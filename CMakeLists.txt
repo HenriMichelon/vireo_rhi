@@ -26,9 +26,6 @@ set(PROJECT_FILES
 add_executable(${PROJECT_NAME}
         ${SRC_DIR}/main.cpp
 )
-compile_options(${MY_TARGET})
-target_include_directories(${MY_TARGET} PUBLIC ${INCLUDE_DIR})
-
 #######################################################
 
 target_sources(${MY_TARGET}
@@ -37,6 +34,17 @@ target_sources(${MY_TARGET}
         FILES
         ${PROJECT_FILES}
 )
+
+compile_options(${MY_TARGET})
+target_include_directories(${MY_TARGET} PUBLIC ${INCLUDE_DIR})
+if(WIN32)
+    target_link_libraries(${MY_TARGET} Xinput dinput8 dxguid dxgi d3d12)
+    if(MINGW)
+        target_link_options(${MY_TARGET} PRIVATE "-mwindows")
+    endif()
+    set_target_properties(${MY_TARGET} PROPERTIES
+            WIN32_EXECUTABLE TRUE)
+endif()
 
 include(FetchContent)
 include(cmake/std.cmake)
