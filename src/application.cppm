@@ -19,14 +19,15 @@ export namespace dx12 {
         virtual void OnDestroy();
 
     private:
-        static constexpr UINT FrameCount = 2;
-
         struct Vertex
         {
             XMFLOAT3 position;
-            XMFLOAT4 color;
+            // XMFLOAT4 color;
+            XMFLOAT2 uv;
         };
 
+        // Triangle
+        static constexpr UINT FrameCount = 2;
         ComPtr<ID3D12Device> m_device;
         ComPtr<ID3D12CommandQueue> m_commandQueue;
         ComPtr<IDXGISwapChain3> m_swapChain;
@@ -45,11 +46,18 @@ export namespace dx12 {
         UINT64 m_fenceValue;
         CD3DX12_VIEWPORT m_viewport;
         CD3DX12_RECT m_scissorRect;
-
         void LoadPipeline();
         void LoadAssets();
         void WaitForPreviousFrame();
         void PopulateCommandList();
+
+        // Texture
+        static constexpr  UINT TextureWidth = 256;
+        static constexpr  UINT TextureHeight = 256;
+        static constexpr  UINT TexturePixelSize = 4;    // The number of bytes used to represent a pixel in the texture.
+        ComPtr<ID3D12DescriptorHeap> m_srvHeap;
+        ComPtr<ID3D12Resource> m_texture;
+        std::vector<UINT8> GenerateTextureData();
     };
 
 }
