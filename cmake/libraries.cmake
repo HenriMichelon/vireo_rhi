@@ -4,7 +4,6 @@
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT
 #
-
 message(NOTICE "Fetching DirectX-Headers from https://github.com/microsoft/DirectX-Headers.git...")
 FetchContent_Declare(
         DirectX-Headers
