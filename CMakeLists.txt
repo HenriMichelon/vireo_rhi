@@ -22,7 +22,7 @@ set(D2D12Lite_DIR ${CMAKE_CURRENT_SOURCE_DIR}/D3D12Lite)
 
 #######################################################
 set(PROJECT_FILES
-        ${SRC_DIR}/app.cppm
+        ${SRC_DIR}/renderer.cppm
 )
 add_executable(${PROJECT_NAME}
         ${D2D12Lite_DIR}/D3D12Lite.cpp
