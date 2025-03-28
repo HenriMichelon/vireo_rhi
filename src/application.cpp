@@ -26,6 +26,12 @@ namespace dx12 {
         // Record all the commands we need to render the scene into the command list.
         PopulateCommandList();
 
+        auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_frameIndex].Get(),
+                                            D3D12_RESOURCE_STATE_RENDER_TARGET,
+                                            D3D12_RESOURCE_STATE_PRESENT);
+        m_commandList->ResourceBarrier(1, &barrier);
+        ThrowIfFailed(m_commandList->Close());
+
         // Execute the command list.
         ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
         m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
@@ -61,16 +67,19 @@ namespace dx12 {
         m_commandList->RSSetScissorRects(1, &m_scissorRect);
 
         // Indicate that the back buffer will be used as a render target.
-        auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_frameIndex].Get(),
-                                                  D3D12_RESOURCE_STATE_PRESENT,
-                                                  D3D12_RESOURCE_STATE_RENDER_TARGET);
-        m_commandList->ResourceBarrier(1, &barrier);
-        CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(), m_frameIndex, m_rtvDescriptorSize);
-        m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+        {
+            auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_frameIndex].Get(),
+                                                      D3D12_RESOURCE_STATE_PRESENT,
+                                                      D3D12_RESOURCE_STATE_RENDER_TARGET);
+            m_commandList->ResourceBarrier(1, &barrier);
 
-        // Record commands.
-        const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-        m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+            // Record commands.
+            const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+            CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(), m_frameIndex, m_rtvDescriptorSize);
+            m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+            m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+        }
+
         m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         m_commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
         m_commandList->DrawInstanced(3, 1, 0, 0);
