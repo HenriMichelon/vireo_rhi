@@ -7,6 +7,8 @@ function(compile_options TARGET_NAME )
                 /std:c++latest
                 /experimental:module
                 /fp:fast
+                /DUNICODE
+                /D_UNICODE
         )
         if (CMAKE_BUILD_TYPE STREQUAL "Debug")
             target_compile_options(${TARGET_NAME} PRIVATE
