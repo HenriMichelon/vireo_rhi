@@ -22,8 +22,10 @@ set(D2D12Lite_DIR ${CMAKE_CURRENT_SOURCE_DIR}/D3D12Lite)
 
 #######################################################
 set(PROJECT_FILES
+        ${SRC_DIR}/application.cppm
 )
 add_executable(${PROJECT_NAME}
+        ${SRC_DIR}/application.cpp
         ${SRC_DIR}/main.cpp
         ${SRC_DIR}/DXSample.cpp
         ${SRC_DIR}/Win32Application.cpp
@@ -40,7 +42,7 @@ target_sources(${MY_TARGET}
 compile_options(${MY_TARGET})
 target_include_directories(${MY_TARGET} PUBLIC ${INCLUDE_DIR})
 target_include_directories(${MY_TARGET} PUBLIC ${D2D12Lite_DIR})
-target_link_libraries(${MY_TARGET} Xinput dinput8 dxguid dxgi d3d12)
+target_link_libraries(${MY_TARGET} Xinput dinput8 dxguid dxgi d3d12 d3dcompiler)
 #target_link_libraries(${MY_TARGET} ${D2D12Lite_DIR}/dxc/lib/x64/dxcompiler.lib)
 if(MINGW)
     target_link_options(${MY_TARGET} PRIVATE "-mwindows")

@@ -1,32 +1,23 @@
-// #pragma once
+#pragma once
 
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#include <shellapi.h>
-
-// The min/max macros conflict with like-named member functions.
-// Only use std::min and std::max defined in <algorithm>.
-#if defined(min)
-#undef min
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers.
 #endif
 
-#if defined(max)
-#undef max
-#endif
+#include <windows.h>
 
-// Windows Runtime Library. Needed for Microsoft::WRL::ComPtr<> template class.
-#include <wrl.h>
-using namespace Microsoft::WRL;
-
-// DirectX 12 specific headers.
 #include <d3d12.h>
+#include <d3dx12.h>
 #include <dxgi1_6.h>
-#include <d3dcompiler.h>
+#include <D3Dcompiler.h>
 #include <DirectXMath.h>
 
-// D3D12 extension library.
-#include <d3dx12.h>
+#include <string>
+#include <wrl.h>
+#include <shellapi.h>
 
 import std;
+
+using namespace DirectX;
 
 
