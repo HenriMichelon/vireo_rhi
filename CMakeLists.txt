@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.29)
 
 project(dx12)
+set(MY_TARGET ${PROJECT_NAME})
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
@@ -16,7 +17,7 @@ endif()
 include(cmake/compile_options.cmake)
 
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
-set(TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 #######################################################
 set(PROJECT_FILES
@@ -25,15 +26,18 @@ set(PROJECT_FILES
 add_executable(${PROJECT_NAME}
         ${SRC_DIR}/main.cpp
 )
-compile_options(${PROJECT_NAME})
+compile_options(${MY_TARGET})
+target_include_directories(${MY_TARGET} PUBLIC ${INCLUDE_DIR})
 
 #######################################################
 
-target_sources(${PROJECT_NAME}
+target_sources(${MY_TARGET}
         PUBLIC
         FILE_SET CXX_MODULES
         FILES
         ${PROJECT_FILES}
 )
 
+include(FetchContent)
 include(cmake/std.cmake)
+include(cmake/libraries.cmake)
