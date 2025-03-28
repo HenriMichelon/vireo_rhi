@@ -55,9 +55,25 @@ export namespace dx12 {
         static constexpr  UINT TextureWidth = 256;
         static constexpr  UINT TextureHeight = 256;
         static constexpr  UINT TexturePixelSize = 4;    // The number of bytes used to represent a pixel in the texture.
-        ComPtr<ID3D12DescriptorHeap> m_srvHeap;
+        ComPtr<ID3D12DescriptorHeap> m_srvCbvHeap;
+        UINT m_srvCbvDescriptorSize;
         ComPtr<ID3D12Resource> m_texture;
         std::vector<UINT8> GenerateTextureData();
+
+        // Buffer
+        enum rootParameterIndex {
+          ROOT_PARAMETER_INDEX_SRV = 0,
+          ROOT_PARAMETER_INDEX_CBV = 1,
+        };
+        struct SceneConstantBuffer
+        {
+            XMFLOAT4 offset;
+            float padding[60]; // Padding so the constant buffer is 256-byte aligned.
+        };
+        static_assert((sizeof(SceneConstantBuffer) % 256) == 0, "Constant Buffer size must be 256-byte aligned");
+        ComPtr<ID3D12Resource> m_constantBuffer;
+        SceneConstantBuffer m_constantBufferData;
+        UINT8* m_pCbvDataBegin;
     };
 
 }

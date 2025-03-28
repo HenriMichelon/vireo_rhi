@@ -8,10 +8,13 @@ module dx12.app;
 namespace dx12 {
 
     Application::Application(UINT width, UINT height, std::wstring name) : DXSample(width, height, name),
-        m_frameIndex(0),
-       m_viewport(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)),
        m_scissorRect(0, 0, static_cast<LONG>(width), static_cast<LONG>(height)),
-       m_rtvDescriptorSize(0){
+       m_viewport(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)),
+       m_rtvDescriptorSize(0),
+       m_frameIndex(0),
+       m_constantBufferData{},
+       m_pCbvDataBegin(nullptr)
+    {
     }
 
     void Application::OnInit() {
@@ -20,6 +23,15 @@ namespace dx12 {
     }
 
     void Application::OnUpdate() {
+        const float translationSpeed = 0.005f;
+        const float offsetBounds = 1.25f;
+
+        m_constantBufferData.offset.x += translationSpeed;
+        if (m_constantBufferData.offset.x > offsetBounds)
+        {
+            m_constantBufferData.offset.x = -offsetBounds;
+        }
+        memcpy(m_pCbvDataBegin, &m_constantBufferData, sizeof(m_constantBufferData));
     }
 
     void Application::OnRender() {
@@ -58,10 +70,13 @@ namespace dx12 {
         // Set necessary state.
         m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 
-        ID3D12DescriptorHeap* ppHeaps[] = { m_srvHeap.Get() };
+        ID3D12DescriptorHeap* ppHeaps[] = { m_srvCbvHeap.Get() };
         m_commandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-        m_commandList->SetGraphicsRootDescriptorTable(0, m_srvHeap->GetGPUDescriptorHandleForHeapStart());
 
+        D3D12_GPU_DESCRIPTOR_HANDLE gpuHeapHandle = m_srvCbvHeap->GetGPUDescriptorHandleForHeapStart();
+        m_commandList->SetGraphicsRootDescriptorTable(ROOT_PARAMETER_INDEX_SRV, gpuHeapHandle);
+        D3D12_GPU_DESCRIPTOR_HANDLE srvHandle = { gpuHeapHandle.ptr + m_srvCbvDescriptorSize };
+        m_commandList->SetGraphicsRootDescriptorTable(ROOT_PARAMETER_INDEX_CBV, srvHandle);
         m_commandList->RSSetViewports(1, &m_viewport);
         m_commandList->RSSetScissorRects(1, &m_scissorRect);
 
@@ -102,11 +117,13 @@ namespace dx12 {
             featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
         }
 
-        CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
-        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+        CD3DX12_DESCRIPTOR_RANGE1 ranges[2];
+        ranges[ROOT_PARAMETER_INDEX_SRV].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+        ranges[ROOT_PARAMETER_INDEX_CBV].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
 
-        CD3DX12_ROOT_PARAMETER1 rootParameters[1];
-        rootParameters[0].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_PIXEL);
+        CD3DX12_ROOT_PARAMETER1 rootParameters[2];
+        rootParameters[ROOT_PARAMETER_INDEX_SRV].InitAsDescriptorTable(1, &ranges[ROOT_PARAMETER_INDEX_SRV], D3D12_SHADER_VISIBILITY_PIXEL);
+        rootParameters[ROOT_PARAMETER_INDEX_CBV].InitAsDescriptorTable(1, &ranges[ROOT_PARAMETER_INDEX_CBV], D3D12_SHADER_VISIBILITY_VERTEX);
 
         D3D12_STATIC_SAMPLER_DESC sampler = {};
         sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
@@ -123,8 +140,15 @@ namespace dx12 {
         sampler.RegisterSpace = 0;
         sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
+        // Allow input layout and deny uneccessary access to certain pipeline stages.
+        D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
+            D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+            D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+            D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+            D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-        rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, &sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+        rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, &sampler, rootSignatureFlags);
 
         ComPtr<ID3DBlob> signature;
         ComPtr<ID3DBlob> error;
@@ -220,6 +244,7 @@ namespace dx12 {
     // prematurely destroyed.
     ComPtr<ID3D12Resource> textureUploadHeap;
 
+    auto srvHandle = m_srvCbvHeap->GetCPUDescriptorHandleForHeapStart();
     // Create the texture.
     {
         // Describe and create a Texture2D.
@@ -275,7 +300,36 @@ namespace dx12 {
         srvDesc.Format = textureDesc.Format;
         srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
         srvDesc.Texture2D.MipLevels = 1;
-        m_device->CreateShaderResourceView(m_texture.Get(), &srvDesc, m_srvHeap->GetCPUDescriptorHandleForHeapStart());
+        m_device->CreateShaderResourceView(m_texture.Get(), &srvDesc, srvHandle);
+    }
+
+    // Create the constant buffer.
+    {
+        const UINT constantBufferSize = sizeof(SceneConstantBuffer);    // CB size is required to be 256-byte aligned.
+
+        auto heapUpload = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+        auto bufferSize = CD3DX12_RESOURCE_DESC::Buffer(constantBufferSize);
+        ThrowIfFailed(m_device->CreateCommittedResource(
+            &heapUpload,
+            D3D12_HEAP_FLAG_NONE,
+            &bufferSize,
+            D3D12_RESOURCE_STATE_GENERIC_READ,
+            nullptr,
+            IID_PPV_ARGS(&m_constantBuffer)));
+
+        // Describe and create a constant buffer view.
+        D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+        cbvDesc.BufferLocation = m_constantBuffer->GetGPUVirtualAddress();
+        cbvDesc.SizeInBytes = constantBufferSize;
+        D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle = { srvHandle.ptr + m_srvCbvDescriptorSize };
+        m_device->CreateConstantBufferView(&cbvDesc, cbvHandle);
+
+        // Map and initialize the constant buffer. We don't unmap this until the
+        // app closes. Keeping things mapped for the lifetime of the resource is okay.
+        CD3DX12_RANGE readRange(0, 0);        // We do not intend to read from this resource on the CPU.
+        ThrowIfFailed(m_constantBuffer->Map(0, &readRange, reinterpret_cast<void**>(&m_pCbvDataBegin)));
+        // m_constantBufferData.offset = XMFLOAT4(0.5, 0.5, 0.5, 0.5);
+        memcpy(m_pCbvDataBegin, &m_constantBufferData, sizeof(m_constantBufferData));
     }
 
     // Close the command list and execute it to begin the initial GPU setup.
@@ -428,16 +482,19 @@ namespace dx12 {
             rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
             rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
             ThrowIfFailed(m_device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_rtvHeap)));
-
+            m_rtvDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
             // TEXTURE : Describe and create a shader resource view (SRV) heap for the texture.
+            // Describe and create a constant buffer view (CBV) descriptor heap.
+            // Flags indicate that this descriptor heap can be bound to the pipeline
+            // and that descriptors contained in it can be referenced by a root table.
             D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-            srvHeapDesc.NumDescriptors = 1;
+            srvHeapDesc.NumDescriptors = 2;
             srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
             srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-            ThrowIfFailed(m_device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&m_srvHeap)));
+            ThrowIfFailed(m_device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&m_srvCbvHeap)));
+            m_srvCbvDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-            m_rtvDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
         }
 
         // Create frame resources.
