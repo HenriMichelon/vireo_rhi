@@ -4,6 +4,11 @@
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT
 #
+###### Detect Vulkan SDK
+message(NOTICE "Searching for Vulkan SDK")
+find_package(Vulkan REQUIRED)
+target_include_directories(${MY_TARGET} PUBLIC ${Vulkan_INCLUDE_DIRS})
+
 message(NOTICE "Fetching DirectX-Headers from https://github.com/microsoft/DirectX-Headers.git...")
 FetchContent_Declare(
         DirectX-Headers

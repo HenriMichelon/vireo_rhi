@@ -1,5 +1,6 @@
 #pragma once
 import std;
+using namespace std;
 
 inline void GetAssetsPath(_Out_writes_(pathSize) WCHAR* path, UINT pathSize)
 {
@@ -22,3 +23,19 @@ inline void GetAssetsPath(_Out_writes_(pathSize) WCHAR* path, UINT pathSize)
     }
 }
 
+void die(convertible_to<string_view> auto&& ...s) {
+    stringstream stringstream;
+    for (const auto v : initializer_list<string_view>{ s... }) {
+        stringstream << v << " ";
+    }
+    std::cerr << stringstream.str() << std::endl;
+#if defined(_DEBUG)
+#if defined(__has_builtin)
+    __builtin_debugtrap();
+#elif defined(_MSC_VER)
+    __debugbreak();
+#else
+    throw runtime_error(stringstream.str());
+#endif
+#endif
+}
