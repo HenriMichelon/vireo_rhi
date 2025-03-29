@@ -1,29 +1,28 @@
 // https://github.com/microsoft/DirectX-Graphics-Samples/tree/master/Samples/Desktop/D3D12HelloWorld/src/HelloTriangle
 module;
-#include "libraries.h"
-#include "DXSample.h"
+#include "Libraries.h"
 
-export module dx12.app;
+export module dxvk.app;
 
-export namespace dx12 {
+import dxvk.baseapp;
 
-    LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+export namespace dxvk {
 
-    class Application: public DXSample {
+    class DX12Application: public BaseApplication {
     public:
-        Application(UINT width, UINT height, std::wstring name);
+        DX12Application(UINT width, UINT height, std::wstring name);
 
-        virtual void OnInit();
-        virtual void OnUpdate();
-        virtual void OnRender();
-        virtual void OnDestroy();
+        void OnInit() override;
+        void OnUpdate() override;
+        void OnRender() override;
+        void OnDestroy() override;
 
     private:
         struct Vertex
         {
-            XMFLOAT3 position;
-            // XMFLOAT4 color;
-            XMFLOAT2 uv;
+            glm::vec3 position;
+            // ve4 color;
+            glm::vec2 uv;
         };
 
         // Triangle

@@ -14,10 +14,11 @@
 
 #include <string>
 #include <wrl.h>
-#include <shellapi.h>
 
 import std;
+#include <glm/glm.hpp>
 
 using namespace DirectX;
+using namespace Microsoft::WRL;
 
 

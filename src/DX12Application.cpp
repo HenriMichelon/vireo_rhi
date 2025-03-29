@@ -1,13 +1,15 @@
 // https://github.com/microsoft/DirectX-Graphics-Samples/tree/master/Samples/Desktop/D3D12HelloWorld/src/HelloTriangle
 module;
-#include "libraries.h"
-#include "DXSample.h"
+#include "Libraries.h"
+#include "Tools.h"
 
-module dx12.app;
+module dxvk.app;
 
-namespace dx12 {
+import dxvk.win32app;
 
-    Application::Application(UINT width, UINT height, std::wstring name) : DXSample(width, height, name),
+namespace dxvk {
+
+    DX12Application::DX12Application(UINT width, UINT height, std::wstring name) : BaseApplication(width, height, name),
        m_scissorRect(0, 0, static_cast<LONG>(width), static_cast<LONG>(height)),
        m_viewport(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)),
        m_rtvDescriptorSize(0),
@@ -17,12 +19,12 @@ namespace dx12 {
     {
     }
 
-    void Application::OnInit() {
+    void DX12Application::OnInit() {
         LoadPipeline();
         LoadAssets();
     }
 
-    void Application::OnUpdate() {
+    void DX12Application::OnUpdate() {
         const float translationSpeed = 0.005f;
         const float offsetBounds = 1.25f;
 
@@ -34,7 +36,7 @@ namespace dx12 {
         memcpy(m_pCbvDataBegin, &m_constantBufferData, sizeof(m_constantBufferData));
     }
 
-    void Application::OnRender() {
+    void DX12Application::OnRender() {
         // Record all the commands we need to render the scene into the command list.
         PopulateCommandList();
 
@@ -48,7 +50,7 @@ namespace dx12 {
         WaitForPreviousFrame();
     }
 
-    void Application::OnDestroy() {
+    void DX12Application::OnDestroy() {
         // Ensure that the GPU is no longer referencing resources that are about to be
         // cleaned up by the destructor.
         WaitForPreviousFrame();
@@ -56,7 +58,7 @@ namespace dx12 {
         CloseHandle(m_fenceEvent);
     }
 
-    void Application::PopulateCommandList() {
+    void DX12Application::PopulateCommandList() {
         // Command list allocators can only be reset when the associated
         // command lists have finished execution on the GPU; apps should use
         // fences to determine GPU execution progress.
@@ -104,7 +106,7 @@ namespace dx12 {
 
     }
 
-    void Application::LoadAssets() {
+    void DX12Application::LoadAssets() {
          // Create the root signature.
     {
         D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
@@ -356,7 +358,7 @@ namespace dx12 {
     }
     }
 
-    void Application::WaitForPreviousFrame()
+    void DX12Application::WaitForPreviousFrame()
     {
         // WAITING FOR THE FRAME TO COMPLETE BEFORE CONTINUING IS NOT BEST PRACTICE.
         // This is code implemented as such for simplicity. The D3D12HelloFrameBuffering
@@ -378,7 +380,7 @@ namespace dx12 {
         m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
     }
 
-    void Application::LoadPipeline() {
+    void DX12Application::LoadPipeline() {
         UINT dxgiFactoryFlags = 0;
 #if defined(_DEBUG)
         {
@@ -393,53 +395,40 @@ namespace dx12 {
         ComPtr<IDXGIFactory4> factory;
         ThrowIfFailed(CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&factory)));
 
-        if (m_useWarpDevice) {
-            ComPtr<IDXGIAdapter> warpAdapter;
-            ThrowIfFailed(factory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter)));
+        ComPtr<IDXGIAdapter1> hardwareAdapter;
+        ComPtr<IDXGIAdapter4> hardwareAdapter4;
 
-            ThrowIfFailed(D3D12CreateDevice(
-                warpAdapter.Get(),
-                D3D_FEATURE_LEVEL_11_0,
-                IID_PPV_ARGS(&m_device)
-                ));
+        SIZE_T maxDedicatedVideoMemory = 0;
+        for (UINT i = 0; factory->EnumAdapters1(i, &hardwareAdapter) != DXGI_ERROR_NOT_FOUND; ++i) {
+            DXGI_ADAPTER_DESC1 dxgiAdapterDesc1;
+            hardwareAdapter->GetDesc1(&dxgiAdapterDesc1);
+
+            // Check to see if the adapter can create a D3D12 device without actually
+            // creating it. The adapter with the largest dedicated video memory
+            // is favored.
+            if ((dxgiAdapterDesc1.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) == 0 &&
+                SUCCEEDED(D3D12CreateDevice(hardwareAdapter.Get(),
+                    D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device), nullptr)) &&
+                dxgiAdapterDesc1.DedicatedVideoMemory > maxDedicatedVideoMemory )
+            {
+                maxDedicatedVideoMemory = dxgiAdapterDesc1.DedicatedVideoMemory;
+                ThrowIfFailed(hardwareAdapter.As(&hardwareAdapter4));
+            }
         }
-        else {
-            ComPtr<IDXGIAdapter1> hardwareAdapter;
-            ComPtr<IDXGIAdapter4> hardwareAdapter4;
 
-            SIZE_T maxDedicatedVideoMemory = 0;
-            for (UINT i = 0; factory->EnumAdapters1(i, &hardwareAdapter) != DXGI_ERROR_NOT_FOUND; ++i) {
-                DXGI_ADAPTER_DESC1 dxgiAdapterDesc1;
-                hardwareAdapter->GetDesc1(&dxgiAdapterDesc1);
+        ThrowIfFailed(D3D12CreateDevice(
+            hardwareAdapter.Get(),
+            D3D_FEATURE_LEVEL_11_0,
+            IID_PPV_ARGS(&m_device)
+            ));
 
-                // Check to see if the adapter can create a D3D12 device without actually
-                // creating it. The adapter with the largest dedicated video memory
-                // is favored.
-                if ((dxgiAdapterDesc1.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) == 0 &&
-                    SUCCEEDED(D3D12CreateDevice(hardwareAdapter.Get(),
-                        D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device), nullptr)) &&
-                    dxgiAdapterDesc1.DedicatedVideoMemory > maxDedicatedVideoMemory )
-                {
-                    maxDedicatedVideoMemory = dxgiAdapterDesc1.DedicatedVideoMemory;
-                    ThrowIfFailed(hardwareAdapter.As(&hardwareAdapter4));
-                }
-            }
-
-            ThrowIfFailed(D3D12CreateDevice(
-                hardwareAdapter.Get(),
-                D3D_FEATURE_LEVEL_11_0,
-                IID_PPV_ARGS(&m_device)
-                ));
-
-            DXGI_ADAPTER_DESC3 desc;
-            HRESULT hr = hardwareAdapter4->GetDesc3(&desc);
-            if (SUCCEEDED(hr)) {
-                std::wstring adapterName = desc.Description;
-                std::wcout << L"Display Adapter Name: " << adapterName << std::endl;
-            } else {
-                std::cerr << "Failed to get adapter description." << std::endl;
-            }
-
+        DXGI_ADAPTER_DESC3 desc;
+        HRESULT hr = hardwareAdapter4->GetDesc3(&desc);
+        if (SUCCEEDED(hr)) {
+            std::wstring adapterName = desc.Description;
+            std::wcout << L"Display Adapter Name: " << adapterName << std::endl;
+        } else {
+            std::cerr << "Failed to get adapter description." << std::endl;
         }
 
         // Describe and create the command queue.
@@ -514,7 +503,7 @@ namespace dx12 {
     }
 
     // Generate a simple black and white checkerboard texture.
-    std::vector<UINT8> Application::GenerateTextureData()
+    std::vector<UINT8> DX12Application::GenerateTextureData()
     {
         const UINT rowPitch = TextureWidth * TexturePixelSize;
         const UINT cellPitch = rowPitch >> 3;        // The width of a cell in the checkboard texture.
