@@ -1,7 +1,7 @@
 // https://github.com/microsoft/DirectX-Graphics-Samples/tree/master/Samples/Desktop/D3D12HelloWorld/src/HelloTriangle
 module;
-#include "Libraries.h"
-#include "Tools.h"
+#include "DX12Libraries.h"
+#include "DX12Tools.h"
 
 module dxvk.app;
 
