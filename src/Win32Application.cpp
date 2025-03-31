@@ -9,10 +9,10 @@ import dxvk.app.vulkan;
 
 namespace dxvk {
 
-    HWND Win32Application::m_hwnd = nullptr;
+    HWND Win32Application::hwnd = nullptr;
     std::unique_ptr<BaseApplication> Win32Application::app{};
 
-    int Win32Application::Run(UINT width, UINT height, std::wstring name, HINSTANCE hInstance, int nCmdShow)
+    int Win32Application::run(UINT width, UINT height, std::wstring name, HINSTANCE hInstance, int nCmdShow)
     {
         // Initialize the window class.
         WNDCLASSEX windowClass = { 0 };
@@ -28,7 +28,7 @@ namespace dxvk {
         AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);
 
         // Create the window and store a handle to it.
-        m_hwnd = CreateWindow(
+        hwnd = CreateWindow(
             windowClass.lpszClassName,
             name.c_str(),
             WS_OVERLAPPEDWINDOW,
@@ -47,7 +47,7 @@ namespace dxvk {
         // Initialize the sample. OnInit is defined in each child-implementation of DXSample.
         app->OnInit();
 
-        ShowWindow(m_hwnd, nCmdShow);
+        ShowWindow(hwnd, nCmdShow);
 
         // Main sample loop.
         MSG msg = {};

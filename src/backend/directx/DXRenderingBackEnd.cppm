@@ -12,24 +12,36 @@ export namespace dxvk::backend {
     public:
         DXInstance();
         auto getFactory() { return factory; }
+
     private:
         ComPtr<IDXGIFactory4> factory;
     };
 
     class DXPhysicalDevice : public PhysicalDevice {
     public:
-      DXPhysicalDevice(ComPtr<IDXGIFactory4> factory);
-      auto getHardwareAdapater() { return hardwareAdapter4; }
+        DXPhysicalDevice(ComPtr<IDXGIFactory4> factory);
+        auto getHardwareAdapater() { return hardwareAdapter4; }
+
     private:
-      ComPtr<IDXGIAdapter4> hardwareAdapter4;
+        ComPtr<IDXGIAdapter4> hardwareAdapter4;
+    };
+
+    class DXDevice : public Device {
+    public:
+        DXDevice(ComPtr<IDXGIAdapter4> hardwareAdapter4);
+        auto getDevice() { return device; }
+
+    private:
+        ComPtr<ID3D12Device> device;
     };
 
     class DXRenderingBackEnd : public RenderingBackEnd {
     public:
         DXRenderingBackEnd();
 
-        auto getDXInstance() { return std::reinterpret_pointer_cast<DXInstance>(instance); }
-        auto getDXPhysicalDevice() { return std::reinterpret_pointer_cast<DXPhysicalDevice>(physicalDevice); }
+        auto getDXInstance() const { return std::reinterpret_pointer_cast<DXInstance>(instance); }
+        auto getDXPhysicalDevice() const { return std::reinterpret_pointer_cast<DXPhysicalDevice>(physicalDevice); }
+        auto getDXDevice() const { return std::reinterpret_pointer_cast<DXDevice>(device); }
     };
 
 }

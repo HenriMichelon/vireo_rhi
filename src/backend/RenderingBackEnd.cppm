@@ -6,14 +6,19 @@ export module dxvk.backend;
 
 export namespace dxvk::backend {
 
+    class Instance {
+    public:
+        virtual ~Instance() = default;
+    };
+
     class PhysicalDevice {
     public:
         virtual ~PhysicalDevice() = default;
     };
 
-    class Instance {
+    class Device {
     public:
-        virtual ~Instance() = default;
+        virtual ~Device() = default;
     };
 
     class RenderingBackEnd
@@ -21,12 +26,14 @@ export namespace dxvk::backend {
     public:
         virtual ~RenderingBackEnd() = default;
 
-        auto getInstance() { return instance; }
-        auto getPhysicalDevice() { return physicalDevice; }
+        auto& getInstance() const { return instance; }
+        auto& getPhysicalDevice() const { return physicalDevice; }
+        auto& getDevice() const { return device; }
 
     protected:
-        std::shared_ptr<Instance> instance;
+        std::shared_ptr<Instance>       instance;
         std::shared_ptr<PhysicalDevice> physicalDevice;
+        std::shared_ptr<Device>         device;
 
     };
 }

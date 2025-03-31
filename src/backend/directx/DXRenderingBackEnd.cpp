@@ -10,6 +10,7 @@ namespace dxvk::backend {
     DXRenderingBackEnd::DXRenderingBackEnd() {
         instance = std::make_shared<DXInstance>();
         physicalDevice = std::make_shared<DXPhysicalDevice>(getDXInstance()->getFactory());
+        device = std::make_shared<DXDevice>(getDXPhysicalDevice()->getHardwareAdapater());
     }
 
     DXInstance::DXInstance() {
@@ -55,6 +56,15 @@ namespace dxvk::backend {
         } else {
             std::cerr << "Failed to get adapter description." << std::endl;
         }
+    }
+
+    DXDevice::DXDevice(ComPtr<IDXGIAdapter4> hardwareAdapter4) {
+        ThrowIfFailed(
+            D3D12CreateDevice(
+                  hardwareAdapter4.Get(),
+                  D3D_FEATURE_LEVEL_11_0,
+                  IID_PPV_ARGS(&device)
+          ));
     }
 
 

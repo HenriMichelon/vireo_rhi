@@ -28,7 +28,7 @@ namespace dxvk {
     void BaseApplication::SetCustomWindowText(LPCWSTR text)
     {
         std::wstring windowText = m_title + L": " + text;
-        SetWindowText(Win32Application::GetHwnd(), windowText.c_str());
+        SetWindowText(Win32Application::getHwnd(), windowText.c_str());
     }
 
 }
