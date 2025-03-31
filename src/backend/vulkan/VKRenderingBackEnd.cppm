@@ -140,7 +140,6 @@ export namespace dxvk::backend {
 
         auto getSwapChain() { return swapChain; }
 
-        auto getCurrentFrameIndex() const { return currentFrameIndex; }
 
         void nextSwapChain() override;
 
@@ -156,7 +155,6 @@ export namespace dxvk::backend {
         VkExtent2D                  swapChainExtent;
         float                       swapChainRatio;
         std::vector<VkImageView>    swapChainImageViews;
-        uint32_t                    currentFrameIndex{0};
         VkImageBlit                 colorImageBlit{};
         VkQueue                     presentQueue;
 
@@ -187,6 +185,8 @@ export namespace dxvk::backend {
     class VKRenderingBackEnd : public RenderingBackEnd {
     public:
         VKRenderingBackEnd(uint32_t width, uint32_t height);
+
+        std::shared_ptr<FrameData> createFrameData() override;
 
         auto getVKInstance() const { return std::reinterpret_pointer_cast<VKInstance>(instance); }
         auto getVKPhysicalDevice() const { return std::reinterpret_pointer_cast<VKPhysicalDevice>(physicalDevice); }

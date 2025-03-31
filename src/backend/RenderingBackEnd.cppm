@@ -41,6 +41,8 @@ export namespace dxvk::backend {
 
         auto& getExtent() const { return extent; }
 
+        auto getCurrentFrameIndex() const { return currentFrameIndex; }
+
         virtual void nextSwapChain() = 0;
 
         virtual void present(const FrameData& frameData) = 0;
@@ -48,13 +50,16 @@ export namespace dxvk::backend {
         virtual void prepare(FrameData& frameData) {}
 
     protected:
-        Extent extent{};
+        Extent      extent{};
+        uint32_t    currentFrameIndex{0};
     };
 
     class RenderingBackEnd
     {
     public:
         virtual ~RenderingBackEnd() = default;
+
+        virtual std::shared_ptr<FrameData> createFrameData() = 0;
 
         auto& getInstance() const { return instance; }
         auto& getPhysicalDevice() const { return physicalDevice; }

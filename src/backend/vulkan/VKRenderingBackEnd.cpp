@@ -50,6 +50,10 @@ namespace dxvk::backend {
         swapChain = std::make_shared<VKSwapChain>(*getVKPhysicalDevice(), *getVKDevice(), width, height);
     }
 
+    shared_ptr<FrameData> VKRenderingBackEnd::createFrameData() {
+        return make_shared<VKFrameData>();
+    }
+
     VKInstance::VKInstance() {
         vulkanInitialize();
         std::vector<const char *>requestedLayers{};

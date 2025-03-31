@@ -5,6 +5,7 @@ import std;
 export module dxvk.app;
 
 import dxvk.backend;
+import dxvk.backend.framedata;
 
 export namespace dxvk {
 
@@ -31,6 +32,7 @@ export namespace dxvk {
         std::wstring GetAssetFullPath(LPCWSTR assetName);
 
         void SetCustomWindowText(LPCWSTR text);
+        void WaitForPreviousFrame();
 
         // Texture
         static constexpr  UINT TextureWidth = 256;
@@ -45,7 +47,7 @@ export namespace dxvk {
     private:
         std::wstring m_assetsPath;
         std::wstring m_title;
+        std::vector<std::shared_ptr<backend::FrameData>> framesData{backend::SwapChain::FRAMES_IN_FLIGHT};
 
-        void LoadPipeline();
     };
 }

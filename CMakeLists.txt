@@ -26,6 +26,7 @@ set(PROJECT_FILES
         ${SRC_DIR}/Win32Application.cppm
         ${SRC_DIR}/backend/FrameData.cppm
         ${SRC_DIR}/backend/RenderingBackEnd.cppm
+        ${SRC_DIR}/backend/directx/DXFrameData.cppm
         ${SRC_DIR}/backend/directx/DXRenderingBackEnd.cppm
         ${SRC_DIR}/backend/vulkan/VKFrameData.cppm
         ${SRC_DIR}/backend/vulkan/VKRenderingBackEnd.cppm

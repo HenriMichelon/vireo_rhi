@@ -49,9 +49,6 @@ namespace dxvk {
         m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
         // Present the frame.
-        renderingBackEnd->getSwapChain()->present({});
-
-        WaitForPreviousFrame();
     }
 
     void DXApplication::OnDestroy() {
@@ -394,11 +391,6 @@ namespace dxvk {
     }
 
     void DXApplication::LoadPipeline() {
-        auto backend = std::static_pointer_cast<backend::DXRenderingBackEnd>(renderingBackEnd);
-        auto device = backend->getDXDevice()->getDevice();
-        auto m_commandQueue = backend->getDXGraphicCommandQueue()->getCommandQueue();
-        auto m_swapChain = backend->getDXSwapChain()->getSwapChain();
-
         // Create descriptor heaps.
         {
             // TEXTURE : Describe and create a shader resource view (SRV) heap for the texture.
@@ -414,18 +406,6 @@ namespace dxvk {
 
         }
 
-        // Create frame resources.
-        {
-            CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart());
-
-            // Create a RTV for each frame.
-            for (UINT n = 0; n < backend::SwapChain::FRAMES_IN_FLIGHT; n++)
-            {
-                ThrowIfFailed(m_swapChain->GetBuffer(n, IID_PPV_ARGS(&m_renderTargets[n])));
-                device->CreateRenderTargetView(m_renderTargets[n].Get(), nullptr, rtvHandle);
-                rtvHandle.Offset(1, m_rtvDescriptorSize);
-            }
-        }
 
         ThrowIfFailed(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator)));
     }

@@ -54,8 +54,6 @@ export namespace dxvk::backend {
 
         auto getSwapChain() { return swapChain; }
 
-        auto getCurrentFrameIndex() const { return currentFrameIndex; }
-
         void nextSwapChain() override;
 
         void present(const FrameData& frameData) override;
@@ -65,12 +63,13 @@ export namespace dxvk::backend {
         ComPtr<ID3D12DescriptorHeap> rtvHeap;
         UINT                         rtvDescriptorSize;
         ComPtr<ID3D12Resource>       renderTargets[backend::SwapChain::FRAMES_IN_FLIGHT];
-        UINT                         currentFrameIndex;
     };
 
     class DXRenderingBackEnd : public RenderingBackEnd {
     public:
         DXRenderingBackEnd(uint32_t width, uint32_t height);
+
+        std::shared_ptr<FrameData> createFrameData() override;
 
         auto getDXInstance() const { return std::reinterpret_pointer_cast<DXInstance>(instance); }
         auto getDXPhysicalDevice() const { return std::reinterpret_pointer_cast<DXPhysicalDevice>(physicalDevice); }

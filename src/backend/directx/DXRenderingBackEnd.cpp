@@ -6,6 +6,7 @@ import std;
 module dxvk.backend.directx;
 
 import dxvk.app.win32;
+import dxvk.backend.directx.framedata;
 
 namespace dxvk::backend {
 
@@ -19,6 +20,10 @@ namespace dxvk::backend {
             getDXDevice()->getDevice(),
             getDXGraphicCommandQueue()->getCommandQueue(),
             width, height);
+    }
+
+    std::shared_ptr<FrameData> DXRenderingBackEnd::createFrameData() {
+        return std::make_shared<DXFrameData>();
     }
 
     DXInstance::DXInstance() {
@@ -94,7 +99,7 @@ namespace dxvk::backend {
         extent = { width, height };
 
         DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-        swapChainDesc.BufferCount = SwapChain::FRAMES_IN_FLIGHT;
+        swapChainDesc.BufferCount = FRAMES_IN_FLIGHT;
         swapChainDesc.Width = width;
         swapChainDesc.Height = height;
         swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -112,12 +117,12 @@ namespace dxvk::backend {
             &swapChain1
             ));
         ThrowIfFailed(swapChain1.As(&swapChain));
-        nextSwapChain();
+        DXSwapChain::nextSwapChain();
 
         // Describe and create a render target view (RTV) descriptor heap.
         {
             D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-            rtvHeapDesc.NumDescriptors = backend::SwapChain::FRAMES_IN_FLIGHT;
+            rtvHeapDesc.NumDescriptors = FRAMES_IN_FLIGHT;
             rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
             rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
             ThrowIfFailed(device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap)));
@@ -127,10 +132,8 @@ namespace dxvk::backend {
         // Create frame resources.
         {
             CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(rtvHeap->GetCPUDescriptorHandleForHeapStart());
-
             // Create a RTV for each frame.
-            for (UINT n = 0; n < backend::SwapChain::FRAMES_IN_FLIGHT; n++)
-            {
+            for (UINT n = 0; n < FRAMES_IN_FLIGHT; n++) {
                 ThrowIfFailed(swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTargets[n])));
                 device->CreateRenderTargetView(renderTargets[n].Get(), nullptr, rtvHandle);
                 rtvHandle.Offset(1, rtvDescriptorSize);
