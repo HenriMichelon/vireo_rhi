@@ -2,7 +2,9 @@ module;
 #include "Libraries.h"
 import std;
 
-export module dxvk.baseapp;
+export module dxvk.app;
+
+import dxvk.backend;
 
 export namespace dxvk {
 
@@ -25,6 +27,7 @@ export namespace dxvk {
         const WCHAR* GetTitle() const   { return m_title.c_str(); }
 
     protected:
+        std::shared_ptr<backend::RenderingBackEnd> renderingBackEnd;
         std::wstring GetAssetFullPath(LPCWSTR assetName);
 
         void SetCustomWindowText(LPCWSTR text);

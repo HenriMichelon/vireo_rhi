@@ -2,9 +2,9 @@
 module;
 #include "VKLibraries.h"
 
-export module dxvk.vkapp;
+export module dxvk.app.vulkan;
 
-import dxvk.baseapp;
+import dxvk.app;
 
 export namespace dxvk {
 
@@ -31,7 +31,6 @@ export namespace dxvk {
         static constexpr UINT FrameCount = 2;
         SceneConstantBuffer m_constantBufferData;
 
-        VkInstance instance{VK_NULL_HANDLE};
 
         void LoadPipeline();
 

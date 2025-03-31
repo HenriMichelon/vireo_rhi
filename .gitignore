@@ -374,6 +374,5 @@ _deps
 *.blend1
 # template files
 log.txt
-/shaders/
 .vscode
 cmake-build-debug-mingw

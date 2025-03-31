@@ -1,15 +1,16 @@
 // https://github.com/microsoft/DirectX-Graphics-Samples/tree/master/Samples/Desktop/D3D12HelloWorld/src/HelloTriangle
 module;
-#include "DX12Libraries.h"
-#include "DX12Tools.h"
+#include "DXLibraries.h"
+#include "DXTools.h"
 
-module dxvk.app;
+module dxvk.app.directx;
 
-import dxvk.win32app;
+import dxvk.app.win32;
+import dxvk.backend.directx;
 
 namespace dxvk {
 
-    DX12Application::DX12Application(UINT width, UINT height, std::wstring name) : BaseApplication(width, height, name),
+    DXApplication::DXApplication(UINT width, UINT height, std::wstring name) : BaseApplication(width, height, name),
        m_scissorRect(0, 0, static_cast<LONG>(width), static_cast<LONG>(height)),
        m_viewport(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)),
        m_rtvDescriptorSize(0),
@@ -17,14 +18,15 @@ namespace dxvk {
        m_constantBufferData{},
        m_pCbvDataBegin(nullptr)
     {
+        renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>();
     }
 
-    void DX12Application::OnInit() {
+    void DXApplication::OnInit() {
         LoadPipeline();
         LoadAssets();
     }
 
-    void DX12Application::OnUpdate() {
+    void DXApplication::OnUpdate() {
         const float translationSpeed = 0.005f;
         const float offsetBounds = 1.25f;
 
@@ -36,7 +38,7 @@ namespace dxvk {
         memcpy(m_pCbvDataBegin, &m_constantBufferData, sizeof(m_constantBufferData));
     }
 
-    void DX12Application::OnRender() {
+    void DXApplication::OnRender() {
         // Record all the commands we need to render the scene into the command list.
         PopulateCommandList();
 
@@ -50,7 +52,7 @@ namespace dxvk {
         WaitForPreviousFrame();
     }
 
-    void DX12Application::OnDestroy() {
+    void DXApplication::OnDestroy() {
         // Ensure that the GPU is no longer referencing resources that are about to be
         // cleaned up by the destructor.
         WaitForPreviousFrame();
@@ -58,7 +60,7 @@ namespace dxvk {
         CloseHandle(m_fenceEvent);
     }
 
-    void DX12Application::PopulateCommandList() {
+    void DXApplication::PopulateCommandList() {
         // Command list allocators can only be reset when the associated
         // command lists have finished execution on the GPU; apps should use
         // fences to determine GPU execution progress.
@@ -106,7 +108,7 @@ namespace dxvk {
 
     }
 
-    void DX12Application::LoadAssets() {
+    void DXApplication::LoadAssets() {
          // Create the root signature.
     {
         D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
@@ -358,7 +360,7 @@ namespace dxvk {
     }
     }
 
-    void DX12Application::WaitForPreviousFrame()
+    void DXApplication::WaitForPreviousFrame()
     {
         // WAITING FOR THE FRAME TO COMPLETE BEFORE CONTINUING IS NOT BEST PRACTICE.
         // This is code implemented as such for simplicity. The D3D12HelloFrameBuffering
@@ -380,26 +382,14 @@ namespace dxvk {
         m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
     }
 
-    void DX12Application::LoadPipeline() {
-        UINT dxgiFactoryFlags = 0;
-#if defined(_DEBUG)
-        {
-            ComPtr<ID3D12Debug> debugController;
-            if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
-            {
-                debugController->EnableDebugLayer();
-                dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
-            }
-        }
-#endif
-        ComPtr<IDXGIFactory4> factory;
-        ThrowIfFailed(CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&factory)));
+    void DXApplication::LoadPipeline() {
+        auto instance = std::static_pointer_cast<backend::DXInstance>(renderingBackEnd->getInstance());
 
         ComPtr<IDXGIAdapter1> hardwareAdapter;
         ComPtr<IDXGIAdapter4> hardwareAdapter4;
 
         SIZE_T maxDedicatedVideoMemory = 0;
-        for (UINT i = 0; factory->EnumAdapters1(i, &hardwareAdapter) != DXGI_ERROR_NOT_FOUND; ++i) {
+        for (UINT i = 0; instance->getFactory()->EnumAdapters1(i, &hardwareAdapter) != DXGI_ERROR_NOT_FOUND; ++i) {
             DXGI_ADAPTER_DESC1 dxgiAdapterDesc1;
             hardwareAdapter->GetDesc1(&dxgiAdapterDesc1);
 
@@ -448,7 +438,7 @@ namespace dxvk {
         swapChainDesc.SampleDesc.Count = 1;
 
         ComPtr<IDXGISwapChain1> swapChain;
-        ThrowIfFailed(factory->CreateSwapChainForHwnd(
+        ThrowIfFailed(instance->getFactory()->CreateSwapChainForHwnd(
             m_commandQueue.Get(),        // Swap chain needs the queue so that it can force a flush on it.
             Win32Application::GetHwnd(),
             &swapChainDesc,
@@ -458,7 +448,7 @@ namespace dxvk {
             ));
 
         // This sample does not support fullscreen transitions.
-        ThrowIfFailed(factory->MakeWindowAssociation(Win32Application::GetHwnd(), DXGI_MWA_NO_ALT_ENTER));
+        ThrowIfFailed(instance->getFactory()->MakeWindowAssociation(Win32Application::GetHwnd(), DXGI_MWA_NO_ALT_ENTER));
 
         ThrowIfFailed(swapChain.As(&m_swapChain));
         m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
@@ -503,7 +493,7 @@ namespace dxvk {
     }
 
     // Generate a simple black and white checkerboard texture.
-    std::vector<UINT8> DX12Application::GenerateTextureData()
+    std::vector<UINT8> DXApplication::GenerateTextureData()
     {
         const UINT rowPitch = TextureWidth * TexturePixelSize;
         const UINT cellPitch = rowPitch >> 3;        // The width of a cell in the checkboard texture.

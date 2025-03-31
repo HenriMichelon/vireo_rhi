@@ -1,16 +1,16 @@
 // https://github.com/microsoft/DirectX-Graphics-Samples/tree/master/Samples/Desktop/D3D12HelloWorld/src/HelloTriangle
 module;
-#include "DX12Libraries.h"
+#include "DXLibraries.h"
 
-export module dxvk.app;
+export module dxvk.app.directx;
 
-import dxvk.baseapp;
+import dxvk.app;
 
 export namespace dxvk {
 
-    class DX12Application: public BaseApplication {
+    class DXApplication: public BaseApplication {
     public:
-        DX12Application(UINT width, UINT height, std::wstring name);
+        DXApplication(UINT width, UINT height, std::wstring name);
 
         void OnInit() override;
         void OnUpdate() override;

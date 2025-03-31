@@ -1,9 +1,9 @@
 module;
 #include "Libraries.h"
 
-module dxvk.win32app;
+module dxvk.app.win32;
 
-import dxvk.baseapp;
+import dxvk.app;
 
 namespace dxvk {
 
