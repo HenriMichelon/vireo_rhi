@@ -27,7 +27,6 @@ export namespace dxvk {
 
         // Triangle
         static constexpr UINT FrameCount = 2;
-        ComPtr<ID3D12CommandQueue> m_commandQueue;
         ComPtr<IDXGISwapChain3> m_swapChain;
         UINT m_frameIndex;
         ComPtr<ID3D12DescriptorHeap> m_rtvHeap;

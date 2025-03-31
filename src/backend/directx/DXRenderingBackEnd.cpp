@@ -11,6 +11,7 @@ namespace dxvk::backend {
         instance = std::make_shared<DXInstance>();
         physicalDevice = std::make_shared<DXPhysicalDevice>(getDXInstance()->getFactory());
         device = std::make_shared<DXDevice>(getDXPhysicalDevice()->getHardwareAdapater());
+        graphicCommandQueue = std::make_shared<DXCommandQueue>(getDXDevice()->getDevice());
     }
 
     DXInstance::DXInstance() {
@@ -65,6 +66,14 @@ namespace dxvk::backend {
                   D3D_FEATURE_LEVEL_11_0,
                   IID_PPV_ARGS(&device)
           ));
+    }
+
+    DXCommandQueue::DXCommandQueue(ComPtr<ID3D12Device> device) {
+        // Describe and create the command queue.
+        D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+        queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+        queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+        ThrowIfFailed(device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&commandQueue)));
     }
 
 

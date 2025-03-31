@@ -39,6 +39,9 @@ namespace dxvk {
     }
 
     void DXApplication::OnRender() {
+        auto backend = std::static_pointer_cast<backend::DXRenderingBackEnd>(renderingBackEnd);
+        auto m_commandQueue = backend->getDXGraphicCommandQueue()->getCommandQueue();
+
         // Record all the commands we need to render the scene into the command list.
         PopulateCommandList();
 
@@ -111,6 +114,7 @@ namespace dxvk {
     void DXApplication::LoadAssets() {
         auto backend = std::static_pointer_cast<backend::DXRenderingBackEnd>(renderingBackEnd);
         auto m_device = backend->getDXDevice()->getDevice();
+        auto m_commandQueue = backend->getDXGraphicCommandQueue()->getCommandQueue();
         // Create the root signature.
         {
 
@@ -363,8 +367,10 @@ namespace dxvk {
         }
     }
 
-    void DXApplication::WaitForPreviousFrame()
-    {
+    void DXApplication::WaitForPreviousFrame() {
+        auto backend = std::static_pointer_cast<backend::DXRenderingBackEnd>(renderingBackEnd);
+        auto m_commandQueue = backend->getDXGraphicCommandQueue()->getCommandQueue();
+
         // WAITING FOR THE FRAME TO COMPLETE BEFORE CONTINUING IS NOT BEST PRACTICE.
         // This is code implemented as such for simplicity. The D3D12HelloFrameBuffering
         // sample illustrates how to use fences for efficient resource usage and to
@@ -388,12 +394,7 @@ namespace dxvk {
     void DXApplication::LoadPipeline() {
         auto backend = std::static_pointer_cast<backend::DXRenderingBackEnd>(renderingBackEnd);
         auto device = backend->getDXDevice()->getDevice();
-
-        // Describe and create the command queue.
-        D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-        queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-        queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-        ThrowIfFailed(device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_commandQueue)));
+        auto m_commandQueue = backend->getDXGraphicCommandQueue()->getCommandQueue();
 
         // Describe and create the swap chain.
         DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};

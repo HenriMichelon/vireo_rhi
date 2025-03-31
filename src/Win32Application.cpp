@@ -41,8 +41,8 @@ namespace dxvk {
             hInstance,
             nullptr);
 
-        app = make_unique<dxvk::VKApplication>(width, height, name);
-        // app =  make_unique<dxvk::DXApplication>(width, height, name);
+        app = std::make_unique<dxvk::VKApplication>(width, height, name);
+        // app =  std::make_unique<dxvk::DXApplication>(width, height, name);
 
         // Initialize the sample. OnInit is defined in each child-implementation of DXSample.
         app->OnInit();

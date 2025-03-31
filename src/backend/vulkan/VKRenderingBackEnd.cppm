@@ -91,24 +91,32 @@ export namespace dxvk::backend {
 
     };
 
-
     class VKDevice : public Device {
     public:
         VKDevice(const VKPhysicalDevice& physicalDevice, const std::vector<const char *>& requestedLayers);
         ~VKDevice() override;
 
-        auto getDevice() { return device; }
+        auto getDevice() const { return device; }
+
+        auto getGraphicsQueueFamilyIndex() const { return graphicsQueueFamilyIndex; }
 
     private:
         VkDevice    device{VK_NULL_HANDLE};
-        VkQueue     presentQueue;
         uint32_t    presentQueueFamilyIndex;
-        VkQueue     graphicsQueue;
         uint32_t    graphicsQueueFamilyIndex;
-        VkQueue     transferQueue;
         uint32_t    transferQueueFamilyIndex;
-        VkQueue     computeQueue;
         uint32_t    computeQueueFamilyIndex;
+    };
+
+    class VKCommandQueue : public CommandQueue {
+    public:
+        VKCommandQueue(const VKDevice& device);
+        ~VKCommandQueue() override;
+
+        auto getCommandQueue() const { return commandQueue; }
+
+    private:
+        VkQueue commandQueue;
     };
 
     class VKRenderingBackEnd : public RenderingBackEnd {
@@ -118,6 +126,7 @@ export namespace dxvk::backend {
         auto getVKInstance() const { return std::reinterpret_pointer_cast<VKInstance>(instance); }
         auto getVKPhysicalDevice() const { return std::reinterpret_pointer_cast<VKPhysicalDevice>(physicalDevice); }
         auto getVKDevice() const { return std::reinterpret_pointer_cast<VKDevice>(device); }
+        auto getVKGraphicCommandQueue() const { return std::reinterpret_pointer_cast<VKCommandQueue>(graphicCommandQueue); }
     };
 
 }

@@ -45,6 +45,7 @@ namespace dxvk::backend {
         instance = std::make_shared<VKInstance>();
         physicalDevice = std::make_shared<VKPhysicalDevice>(getVKInstance()->getInstance());
         device = std::make_shared<VKDevice>(*getVKPhysicalDevice(), getVKInstance()->getRequestedLayers());
+        graphicCommandQueue = std::make_shared<VKCommandQueue>(*getVKDevice());
     }
 
     VKInstance::VKInstance() {
@@ -441,6 +442,18 @@ namespace dxvk::backend {
     VKDevice::~VKDevice() {
         vkDeviceWaitIdle(device);
         vkDestroyDevice(device, nullptr);
+    }
+
+    VKCommandQueue::VKCommandQueue(const VKDevice& device) {
+        vkGetDeviceQueue(
+            device.getDevice(),
+            device.getGraphicsQueueFamilyIndex(),
+            0,
+            &commandQueue);
+    }
+
+    VKCommandQueue::~VKCommandQueue() {
+        vkQueueWaitIdle(commandQueue);
     }
 
 

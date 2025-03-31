@@ -21,6 +21,11 @@ export namespace dxvk::backend {
         virtual ~Device() = default;
     };
 
+    class CommandQueue {
+    public:
+        virtual ~CommandQueue() = default;
+    };
+
     class RenderingBackEnd
     {
     public:
@@ -29,11 +34,13 @@ export namespace dxvk::backend {
         auto& getInstance() const { return instance; }
         auto& getPhysicalDevice() const { return physicalDevice; }
         auto& getDevice() const { return device; }
+        auto& getGraphicCommandQueue() const { return graphicCommandQueue; }
 
     protected:
-        std::shared_ptr<Instance>       instance;
-        std::shared_ptr<PhysicalDevice> physicalDevice;
-        std::shared_ptr<Device>         device;
+        std::shared_ptr<Instance>        instance;
+        std::shared_ptr<PhysicalDevice>  physicalDevice;
+        std::shared_ptr<Device>          device;
+        std::shared_ptr<CommandQueue>    graphicCommandQueue;
 
     };
 }
