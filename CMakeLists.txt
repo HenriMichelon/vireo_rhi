@@ -22,20 +22,18 @@ set(D2D12Lite_DIR ${CMAKE_CURRENT_SOURCE_DIR}/D3D12Lite)
 
 #######################################################
 set(PROJECT_FILES
-        ${SRC_DIR}/BaseApplication.cppm
-        ${SRC_DIR}/DXApplication.cppm
-        ${SRC_DIR}/VKApplication.cppm
+        ${SRC_DIR}/Application.cppm
         ${SRC_DIR}/Win32Application.cppm
+        ${SRC_DIR}/backend/FrameData.cppm
         ${SRC_DIR}/backend/RenderingBackEnd.cppm
         ${SRC_DIR}/backend/directx/DXRenderingBackEnd.cppm
+        ${SRC_DIR}/backend/vulkan/VKFrameData.cppm
         ${SRC_DIR}/backend/vulkan/VKRenderingBackEnd.cppm
 )
 add_executable(${PROJECT_NAME}
         ${SRC_DIR}/main.cpp
         ${SRC_DIR}/vulkan.cpp
-        ${SRC_DIR}/BaseApplication.cpp
-        ${SRC_DIR}/DXApplication.cpp
-        ${SRC_DIR}/VKApplication.cpp
+        ${SRC_DIR}/Application.cpp
         ${SRC_DIR}/Win32Application.cpp
         ${SRC_DIR}/backend/directx/DXRenderingBackEnd.cpp
         ${SRC_DIR}/backend/vulkan/VKRenderingBackEnd.cpp

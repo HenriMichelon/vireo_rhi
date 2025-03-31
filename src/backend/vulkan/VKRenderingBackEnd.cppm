@@ -5,6 +5,7 @@ import std;
 export module dxvk.backend.vulkan;
 
 import dxvk.backend;
+import dxvk.backend.framedata;
 
 export namespace dxvk::backend {
 
@@ -102,6 +103,7 @@ export namespace dxvk::backend {
 
         auto getGraphicsQueueFamilyIndex() const { return graphicsQueueFamilyIndex; }
 
+        auto getPresentQueueFamilyIndex() const { return presentQueueFamilyIndex; }
 
         VkImageView createImageView(VkImage            image,
                                     VkFormat           format,
@@ -142,6 +144,10 @@ export namespace dxvk::backend {
 
         void nextSwapChain() override;
 
+        void present(const FrameData& frameData) override;
+
+        void prepare(FrameData& frameData) override;
+
     private:
         VkDevice                    device;
         VkSwapchainKHR              swapChain;
@@ -152,6 +158,7 @@ export namespace dxvk::backend {
         std::vector<VkImageView>    swapChainImageViews;
         uint32_t                    currentFrameIndex{0};
         VkImageBlit                 colorImageBlit{};
+        VkQueue                     presentQueue;
 
         // For Device::querySwapChainSupport()
         struct SwapChainSupportDetails {

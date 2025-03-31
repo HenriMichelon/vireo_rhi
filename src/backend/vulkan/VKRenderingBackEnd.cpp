@@ -6,6 +6,7 @@ import std;
 module dxvk.backend.vulkan;
 
 import dxvk.app.win32;
+import dxvk.backend.vulkan.framedata;
 
 namespace dxvk::backend {
 
@@ -491,6 +492,12 @@ namespace dxvk::backend {
 
     VKSwapChain::VKSwapChain(const VKPhysicalDevice& physicalDevice, const VKDevice& device, uint32_t width, uint32_t height):
     device{device.getDevice()} {
+        vkGetDeviceQueue(
+            device.getDevice(),
+            device.getPresentQueueFamilyIndex(),
+            0,
+            &presentQueue);
+
          // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain
         const SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice.getPhysicalDevice(), physicalDevice.getSurface());
         const VkSurfaceFormatKHR      surfaceFormat    = chooseSwapSurfaceFormat(swapChainSupport.formats);
@@ -637,6 +644,44 @@ namespace dxvk::backend {
 
     void VKSwapChain::nextSwapChain() {
         currentFrameIndex = (currentFrameIndex + 1) % SwapChain::FRAMES_IN_FLIGHT;
+    }
+
+    void VKSwapChain::present(const FrameData& frameData) {
+        const auto& data = static_cast<const VKFrameData&>(frameData);
+        const VkSwapchainKHR   swapChains[] = { swapChain };
+        const VkPresentInfoKHR presentInfo{
+            .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+            .waitSemaphoreCount = 1,
+            .pWaitSemaphores    = &data.renderFinishedSemaphore,
+            .swapchainCount     = 1,
+            .pSwapchains        = swapChains,
+            .pImageIndices      = &data.imageIndex,
+            .pResults           = nullptr // Optional
+        };
+        if (vkQueuePresentKHR(presentQueue, &presentInfo) != VK_SUCCESS) {
+            die("failed to present swap chain image!");
+        }
+    }
+
+    void VKSwapChain::prepare(FrameData& frameData) {
+        auto& data = static_cast<VKFrameData&>(frameData);
+        // get the next available swap chain image
+        const auto result = vkAcquireNextImageKHR(
+             device,
+             swapChain,
+             UINT64_MAX,
+             data.imageAvailableSemaphore,
+             VK_NULL_HANDLE,
+             &data.imageIndex);
+        if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+            die("not implemented");
+            // recreateSwapChain();
+            // for (const auto &renderer : renderers) { renderer->recreateImagesResources(); }
+            // return;
+        }
+        if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+            die("failed to acquire swap chain image :", to_string(result));
+        }
     }
 
     VKSwapChain::~VKSwapChain() {

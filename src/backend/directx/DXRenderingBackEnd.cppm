@@ -5,6 +5,7 @@ import std;
 export module dxvk.backend.directx;
 
 import dxvk.backend;
+import dxvk.backend.framedata;
 
 export namespace dxvk::backend {
 
@@ -45,7 +46,11 @@ export namespace dxvk::backend {
 
     class DXSwapChain : public SwapChain {
     public:
-        DXSwapChain(ComPtr<IDXGIFactory4> factory, ComPtr<ID3D12CommandQueue> commandQueue, uint32_t with, uint32_t height);
+        DXSwapChain(
+            ComPtr<IDXGIFactory4> factory,
+            ComPtr<ID3D12Device> device,
+            ComPtr<ID3D12CommandQueue> commandQueue,
+            uint32_t with, uint32_t height);
 
         auto getSwapChain() { return swapChain; }
 
@@ -53,9 +58,14 @@ export namespace dxvk::backend {
 
         void nextSwapChain() override;
 
+        void present(const FrameData& frameData) override;
+
     private:
-        ComPtr<IDXGISwapChain3> swapChain;
-        uint32_t                currentFrameIndex;
+        ComPtr<IDXGISwapChain3>      swapChain;
+        ComPtr<ID3D12DescriptorHeap> rtvHeap;
+        UINT                         rtvDescriptorSize;
+        ComPtr<ID3D12Resource>       renderTargets[backend::SwapChain::FRAMES_IN_FLIGHT];
+        UINT                         currentFrameIndex;
     };
 
     class DXRenderingBackEnd : public RenderingBackEnd {

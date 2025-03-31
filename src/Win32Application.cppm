@@ -19,6 +19,6 @@ namespace dxvk {
 
     private:
         static HWND hwnd;
-        static std::unique_ptr<BaseApplication> app;
+        static std::unique_ptr<Application> app;
     };
 }

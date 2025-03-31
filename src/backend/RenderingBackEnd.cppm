@@ -4,6 +4,8 @@ import std;
 
 export module dxvk.backend;
 
+import dxvk.backend.framedata;
+
 export namespace dxvk::backend {
 
     class Instance {
@@ -40,6 +42,10 @@ export namespace dxvk::backend {
         auto& getExtent() const { return extent; }
 
         virtual void nextSwapChain() = 0;
+
+        virtual void present(const FrameData& frameData) = 0;
+
+        virtual void prepare(FrameData& frameData) {}
 
     protected:
         Extent extent{};

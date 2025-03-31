@@ -16,6 +16,7 @@ namespace dxvk::backend {
         graphicCommandQueue = std::make_shared<DXCommandQueue>(getDXDevice()->getDevice());
         swapChain = std::make_shared<DXSwapChain>(
             getDXInstance()->getFactory(),
+            getDXDevice()->getDevice(),
             getDXGraphicCommandQueue()->getCommandQueue(),
             width, height);
     }
@@ -86,6 +87,7 @@ namespace dxvk::backend {
 
     DXSwapChain::DXSwapChain(
         ComPtr<IDXGIFactory4> factory,
+        ComPtr<ID3D12Device> device,
         ComPtr<ID3D12CommandQueue> commandQueue,
         uint32_t width,
         uint32_t height) {
@@ -111,10 +113,37 @@ namespace dxvk::backend {
             ));
         ThrowIfFailed(swapChain1.As(&swapChain));
         nextSwapChain();
+
+        // Describe and create a render target view (RTV) descriptor heap.
+        {
+            D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
+            rtvHeapDesc.NumDescriptors = backend::SwapChain::FRAMES_IN_FLIGHT;
+            rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+            rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+            ThrowIfFailed(device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap)));
+            rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+        }
+
+        // Create frame resources.
+        {
+            CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(rtvHeap->GetCPUDescriptorHandleForHeapStart());
+
+            // Create a RTV for each frame.
+            for (UINT n = 0; n < backend::SwapChain::FRAMES_IN_FLIGHT; n++)
+            {
+                ThrowIfFailed(swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTargets[n])));
+                device->CreateRenderTargetView(renderTargets[n].Get(), nullptr, rtvHandle);
+                rtvHandle.Offset(1, rtvDescriptorSize);
+            }
+        }
     }
 
     void DXSwapChain::nextSwapChain() {
         currentFrameIndex = swapChain->GetCurrentBackBufferIndex();
+    }
+
+    void DXSwapChain::present(const FrameData&) {
+        ThrowIfFailed(swapChain->Present(1, 0));
     }
 
 

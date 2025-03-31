@@ -10,7 +10,7 @@ import dxvk.backend.directx;
 
 namespace dxvk {
 
-    DXApplication::DXApplication(UINT width, UINT height, std::wstring name) : BaseApplication(width, height, name),
+    DXApplication::DXApplication(UINT width, UINT height, std::wstring name) : Application(width, height, name),
        m_scissorRect(0, 0, static_cast<LONG>(width), static_cast<LONG>(height)),
        m_viewport(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)),
        m_rtvDescriptorSize(0),
@@ -40,7 +40,6 @@ namespace dxvk {
     void DXApplication::OnRender() {
         auto backend = std::static_pointer_cast<backend::DXRenderingBackEnd>(renderingBackEnd);
         auto m_commandQueue = backend->getDXGraphicCommandQueue()->getCommandQueue();
-        auto m_swapChain = backend->getDXSwapChain()->getSwapChain();
 
         // Record all the commands we need to render the scene into the command list.
         PopulateCommandList();
@@ -50,7 +49,7 @@ namespace dxvk {
         m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
         // Present the frame.
-        ThrowIfFailed(m_swapChain->Present(1, 0));
+        renderingBackEnd->getSwapChain()->present({});
 
         WaitForPreviousFrame();
     }
@@ -402,14 +401,6 @@ namespace dxvk {
 
         // Create descriptor heaps.
         {
-            // Describe and create a render target view (RTV) descriptor heap.
-            D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-            rtvHeapDesc.NumDescriptors = backend::SwapChain::FRAMES_IN_FLIGHT;
-            rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-            rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-            ThrowIfFailed(device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_rtvHeap)));
-            m_rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-
             // TEXTURE : Describe and create a shader resource view (SRV) heap for the texture.
             // Describe and create a constant buffer view (CBV) descriptor heap.
             // Flags indicate that this descriptor heap can be bound to the pipeline
@@ -439,40 +430,5 @@ namespace dxvk {
         ThrowIfFailed(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator)));
     }
 
-    // Generate a simple black and white checkerboard texture.
-    std::vector<UINT8> DXApplication::GenerateTextureData()
-    {
-        const UINT rowPitch = TextureWidth * TexturePixelSize;
-        const UINT cellPitch = rowPitch >> 3;        // The width of a cell in the checkboard texture.
-        const UINT cellHeight = TextureWidth >> 3;    // The height of a cell in the checkerboard texture.
-        const UINT textureSize = rowPitch * TextureHeight;
 
-        std::vector<UINT8> data(textureSize);
-        UINT8* pData = &data[0];
-
-        for (UINT n = 0; n < textureSize; n += TexturePixelSize)
-        {
-            UINT x = n % rowPitch;
-            UINT y = n / rowPitch;
-            UINT i = x / cellPitch;
-            UINT j = y / cellHeight;
-
-            if (i % 2 == j % 2)
-            {
-                pData[n] = 0x00;        // R
-                pData[n + 1] = 0x00;    // G
-                pData[n + 2] = 0x00;    // B
-                pData[n + 3] = 0xff;    // A
-            }
-            else
-            {
-                pData[n] = 0xff;        // R
-                pData[n + 1] = 0xff;    // G
-                pData[n + 2] = 0xff;    // B
-                pData[n + 3] = 0xff;    // A
-            }
-        }
-
-        return data;
-    }
 }

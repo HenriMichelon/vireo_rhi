@@ -27,9 +27,6 @@ export namespace dxvk {
         };
 
         // Triangle
-        ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
-        UINT m_rtvDescriptorSize;
-        ComPtr<ID3D12Resource> m_renderTargets[backend::SwapChain::FRAMES_IN_FLIGHT];
         ComPtr<ID3D12CommandAllocator> m_commandAllocator;
         ComPtr<ID3D12RootSignature> m_rootSignature;
         ComPtr<ID3D12PipelineState> m_pipelineState;
@@ -46,14 +43,9 @@ export namespace dxvk {
         void WaitForPreviousFrame();
         void PopulateCommandList();
 
-        // Texture
-        static constexpr  UINT TextureWidth = 256;
-        static constexpr  UINT TextureHeight = 256;
-        static constexpr  UINT TexturePixelSize = 4;    // The number of bytes used to represent a pixel in the texture.
         ComPtr<ID3D12DescriptorHeap> m_srvCbvHeap;
         UINT m_srvCbvDescriptorSize;
         ComPtr<ID3D12Resource> m_texture;
-        std::vector<UINT8> GenerateTextureData();
 
         // Buffer
         enum rootParameterIndex {

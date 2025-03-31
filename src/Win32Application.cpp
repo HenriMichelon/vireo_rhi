@@ -4,13 +4,11 @@ module;
 module dxvk.app.win32;
 
 import dxvk.app;
-import dxvk.app.directx;
-import dxvk.app.vulkan;
 
 namespace dxvk {
 
     HWND Win32Application::hwnd = nullptr;
-    std::unique_ptr<BaseApplication> Win32Application::app{};
+    std::unique_ptr<Application> Win32Application::app{};
 
     int Win32Application::run(UINT width, UINT height, std::wstring name, HINSTANCE hInstance, int nCmdShow)
     {
@@ -42,7 +40,8 @@ namespace dxvk {
             nullptr);
 
         // app = std::make_unique<dxvk::VKApplication>(width, height, name);
-        app =  std::make_unique<dxvk::DXApplication>(width, height, name);
+        // app =  std::make_unique<dxvk::DXApplication>(width, height, name);
+        app =  std::make_unique<dxvk::Application>(width, height, name);
 
         // Initialize the sample. OnInit is defined in each child-implementation of DXSample.
         app->OnInit();
