@@ -43,14 +43,30 @@ export namespace dxvk::backend {
         ComPtr<ID3D12CommandQueue> commandQueue;
     };
 
+    class DXSwapChain : public SwapChain {
+    public:
+        DXSwapChain(ComPtr<IDXGIFactory4> factory, ComPtr<ID3D12CommandQueue> commandQueue, uint32_t with, uint32_t height);
+
+        auto getSwapChain() { return swapChain; }
+
+        auto getCurrentFrameIndex() const { return currentFrameIndex; }
+
+        void nextSwapChain() override;
+
+    private:
+        ComPtr<IDXGISwapChain3> swapChain;
+        uint32_t                currentFrameIndex;
+    };
+
     class DXRenderingBackEnd : public RenderingBackEnd {
     public:
-        DXRenderingBackEnd();
+        DXRenderingBackEnd(uint32_t width, uint32_t height);
 
         auto getDXInstance() const { return std::reinterpret_pointer_cast<DXInstance>(instance); }
         auto getDXPhysicalDevice() const { return std::reinterpret_pointer_cast<DXPhysicalDevice>(physicalDevice); }
         auto getDXDevice() const { return std::reinterpret_pointer_cast<DXDevice>(device); }
         auto getDXGraphicCommandQueue() const { return std::reinterpret_pointer_cast<DXCommandQueue>(graphicCommandQueue); }
+        auto getDXSwapChain() const { return std::reinterpret_pointer_cast<DXSwapChain>(swapChain); }
     };
 
 }

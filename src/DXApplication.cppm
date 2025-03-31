@@ -5,6 +5,7 @@ module;
 export module dxvk.app.directx;
 
 import dxvk.app;
+import dxvk.backend;
 
 export namespace dxvk {
 
@@ -26,12 +27,9 @@ export namespace dxvk {
         };
 
         // Triangle
-        static constexpr UINT FrameCount = 2;
-        ComPtr<IDXGISwapChain3> m_swapChain;
-        UINT m_frameIndex;
         ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
         UINT m_rtvDescriptorSize;
-        ComPtr<ID3D12Resource> m_renderTargets[FrameCount];
+        ComPtr<ID3D12Resource> m_renderTargets[backend::SwapChain::FRAMES_IN_FLIGHT];
         ComPtr<ID3D12CommandAllocator> m_commandAllocator;
         ComPtr<ID3D12RootSignature> m_rootSignature;
         ComPtr<ID3D12PipelineState> m_pipelineState;

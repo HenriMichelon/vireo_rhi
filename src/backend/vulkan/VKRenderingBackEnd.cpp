@@ -41,11 +41,12 @@ namespace dxvk::backend {
     }
 
 
-    VKRenderingBackEnd::VKRenderingBackEnd() {
+    VKRenderingBackEnd::VKRenderingBackEnd(uint32_t width, uint32_t height) {
         instance = std::make_shared<VKInstance>();
         physicalDevice = std::make_shared<VKPhysicalDevice>(getVKInstance()->getInstance());
         device = std::make_shared<VKDevice>(*getVKPhysicalDevice(), getVKInstance()->getRequestedLayers());
         graphicCommandQueue = std::make_shared<VKCommandQueue>(*getVKDevice());
+        swapChain = std::make_shared<VKSwapChain>(*getVKPhysicalDevice(), *getVKDevice(), width, height);
     }
 
     VKInstance::VKInstance() {
@@ -439,6 +440,38 @@ namespace dxvk::backend {
         }
     }
 
+    VkImageView VKDevice::createImageView(const VkImage            image,
+                                       const VkFormat           format,
+                                       const VkImageAspectFlags aspectFlags,
+                                       const uint32_t           mipLevels,
+                                       const VkImageViewType    type,
+                                       const uint32_t           baseArrayLayer,
+                                       const uint32_t           layers,
+                                       const uint32_t           baseMipLevel) const {
+        // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Image_views
+        const VkImageViewCreateInfo viewInfo{
+            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+            .image = image,
+            .viewType = type,
+            .format = format,
+            .subresourceRange = {
+                .aspectMask = aspectFlags,
+                .baseMipLevel = baseMipLevel,
+                .levelCount = mipLevels,
+                .baseArrayLayer = baseArrayLayer,
+                // Note : VK_REMAINING_ARRAY_LAYERS does not work for VK_IMAGE_VIEW_TYPE_2D_ARRAY
+                // we have to specify the exact number of layers or texture() only read the first layer
+                .layerCount = type == VK_IMAGE_VIEW_TYPE_CUBE ? VK_REMAINING_ARRAY_LAYERS : layers
+            }
+        };
+        VkImageView imageView;
+        if (vkCreateImageView(device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
+            die("failed to create texture image view!");
+        }
+        return imageView;
+    }
+
+
     VKDevice::~VKDevice() {
         vkDeviceWaitIdle(device);
         vkDestroyDevice(device, nullptr);
@@ -456,5 +489,163 @@ namespace dxvk::backend {
         vkQueueWaitIdle(commandQueue);
     }
 
+    VKSwapChain::VKSwapChain(const VKPhysicalDevice& physicalDevice, const VKDevice& device, uint32_t width, uint32_t height):
+    device{device.getDevice()} {
+         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain
+        const SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice.getPhysicalDevice(), physicalDevice.getSurface());
+        const VkSurfaceFormatKHR      surfaceFormat    = chooseSwapSurfaceFormat(swapChainSupport.formats);
+        const VkPresentModeKHR        presentMode      = chooseSwapPresentMode(swapChainSupport.presentModes);
+        swapChainExtent = chooseSwapExtent(swapChainSupport.capabilities, width, height);
+
+        uint32_t imageCount = SwapChain::FRAMES_IN_FLIGHT + 1;
+        if (swapChainSupport.capabilities.maxImageCount > 0 &&
+            imageCount > swapChainSupport.capabilities.maxImageCount) {
+            imageCount = swapChainSupport.capabilities.maxImageCount;
+        }
+
+        {
+            VkSwapchainCreateInfoKHR createInfo = {
+                .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+                .surface = physicalDevice.getSurface(),
+                .minImageCount = imageCount,
+                .imageFormat = surfaceFormat.format,
+                .imageColorSpace = surfaceFormat.colorSpace,
+                .imageExtent = swapChainExtent,
+                .imageArrayLayers = 1,
+                // VK_IMAGE_USAGE_TRANSFER_DST_BIT for Blit or Revolve (see presentToSwapChain())
+                .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+                .preTransform = swapChainSupport.capabilities.currentTransform,
+                .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+                .presentMode = presentMode,
+                .clipped = VK_TRUE
+            };
+            const VKPhysicalDevice::QueueFamilyIndices indices = physicalDevice.findQueueFamilies(physicalDevice.getPhysicalDevice());
+            const uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
+            if (indices.graphicsFamily != indices.presentFamily) {
+                createInfo.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
+                createInfo.queueFamilyIndexCount = 2;
+                createInfo.pQueueFamilyIndices   = queueFamilyIndices;
+            } else {
+                createInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
+                createInfo.queueFamilyIndexCount = 0; // Optional
+                createInfo.pQueueFamilyIndices   = nullptr; // Optional
+            }
+            // Need VK_KHR_SWAPCHAIN extension, or it will crash (no validation error)
+            if (vkCreateSwapchainKHR(device.getDevice(), &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
+                die("Failed to create Vulkan swap chain!");
+            }
+        }
+
+        vkGetSwapchainImagesKHR(device.getDevice(), swapChain, &imageCount, nullptr);
+        swapChainImages.resize(imageCount);
+        vkGetSwapchainImagesKHR(device.getDevice(), swapChain, &imageCount, swapChainImages.data());
+        swapChainImageFormat = surfaceFormat.format;
+        SwapChain::extent      = Extent{ swapChainExtent.width, swapChainExtent.height };
+        swapChainRatio       = static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height);
+
+        swapChainImageViews.resize(swapChainImages.size());
+        for (uint32_t i = 0; i < swapChainImages.size(); i++) {
+            swapChainImageViews[i] = device.createImageView(swapChainImages[i],
+                                                     swapChainImageFormat,
+                                                     VK_IMAGE_ASPECT_COLOR_BIT,
+                                                     1);
+        }
+
+        // For bliting image to swapchain
+        constexpr VkOffset3D vkOffset0{0, 0, 0};
+        const VkOffset3D     vkOffset1{
+            static_cast<int32_t>(swapChainExtent.width),
+            static_cast<int32_t>(swapChainExtent.height),
+            1,
+        };
+        colorImageBlit.srcOffsets[0]                 = vkOffset0;
+        colorImageBlit.srcOffsets[1]                 = vkOffset1;
+        colorImageBlit.srcSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+        colorImageBlit.srcSubresource.mipLevel       = 0;
+        colorImageBlit.srcSubresource.baseArrayLayer = 0;
+        colorImageBlit.srcSubresource.layerCount     = 1;
+        colorImageBlit.dstOffsets[0]                 = vkOffset0;
+        colorImageBlit.dstOffsets[1]                 = vkOffset1;
+        colorImageBlit.dstSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+        colorImageBlit.dstSubresource.mipLevel       = 0;
+        colorImageBlit.dstSubresource.baseArrayLayer = 0;
+        colorImageBlit.dstSubresource.layerCount     = 1;
+    }
+
+    VKSwapChain::SwapChainSupportDetails VKSwapChain::querySwapChainSupport(
+        const VkPhysicalDevice vkPhysicalDevice,
+        VkSurfaceKHR surface) const {
+        // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain#page_Querying-details-of-swap-chain-support
+        SwapChainSupportDetails details;
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vkPhysicalDevice, surface, &details.capabilities);
+        uint32_t formatCount;
+        vkGetPhysicalDeviceSurfaceFormatsKHR(vkPhysicalDevice, surface, &formatCount, nullptr);
+        if (formatCount != 0) {
+            details.formats.resize(formatCount);
+            vkGetPhysicalDeviceSurfaceFormatsKHR(vkPhysicalDevice, surface, &formatCount, details.formats.data());
+        }
+        uint32_t presentModeCount;
+        vkGetPhysicalDeviceSurfacePresentModesKHR(vkPhysicalDevice, surface, &presentModeCount, nullptr);
+        if (presentModeCount != 0) {
+            details.presentModes.resize(presentModeCount);
+            vkGetPhysicalDeviceSurfacePresentModesKHR(vkPhysicalDevice,
+                                                      surface,
+                                                      &presentModeCount,
+                                                      details.presentModes.data());
+        }
+        return details;
+    }
+
+    VkSurfaceFormatKHR VKSwapChain::chooseSwapSurfaceFormat(const vector<VkSurfaceFormatKHR> &availableFormats) {
+        // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain#page_Choosing-the-right-settings-for-the-swap-chain
+        for (const auto &availableFormat : availableFormats) {
+            // Using sRGB no-linear color space
+            // https://learnopengl.com/Advanced-Lighting/Gamma-Correction
+            if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
+                availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) { return availableFormat; }
+        }
+        return availableFormats[0];
+    }
+
+    VkPresentModeKHR VKSwapChain::chooseSwapPresentMode(const vector<VkPresentModeKHR> &availablePresentModes) {
+        // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain#page_Presentation-mode
+        const auto mode = VK_PRESENT_MODE_FIFO_KHR; //static_cast<VkPresentModeKHR>(app().getConfig().vSyncMode);
+        for (const auto &availablePresentMode : availablePresentModes) {
+            if (availablePresentMode == mode) {
+                return availablePresentMode;
+            }
+        }
+        return VK_PRESENT_MODE_FIFO_KHR;
+    }
+
+    VkExtent2D VKSwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities, uint32_t width, uint32_t height) const {
+        // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain#page_Swap-extent
+        // if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) { return capabilities.currentExtent; }
+        VkExtent2D actualExtent{
+            .width = width,
+            .height = height
+        };
+        // actualExtent.width = std::max(
+                // capabilities.minImageExtent.width,
+                // std::min(capabilities.maxImageExtent.width, actualExtent.width));
+        // actualExtent.height = std::max(
+                // capabilities.minImageExtent.height,
+                // std::min(capabilities.maxImageExtent.height, actualExtent.height));
+        return actualExtent;
+    }
+
+    void VKSwapChain::nextSwapChain() {
+        currentFrameIndex = (currentFrameIndex + 1) % SwapChain::FRAMES_IN_FLIGHT;
+    }
+
+    VKSwapChain::~VKSwapChain() {
+        vkDeviceWaitIdle(device);
+        // https://vulkan-tutorial.com/Drawing_a_triangle/Swap_chain_recreation#page_Recreating-the-swap-chain
+        for (auto &swapChainImageView : swapChainImageViews) {
+            vkDestroyImageView(device, swapChainImageView, nullptr);
+        }
+        vkDestroySwapchainKHR(device, swapChain, nullptr);
+    }
 
 }

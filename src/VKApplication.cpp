@@ -12,7 +12,7 @@ namespace dxvk {
 
     VKApplication::VKApplication(UINT width, UINT height, std::wstring name) :
         BaseApplication(width, height, name) {
-        renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>();
+        renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>(width, height);
     }
 
     void VKApplication::OnInit() {

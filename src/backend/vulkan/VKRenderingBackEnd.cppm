@@ -58,13 +58,15 @@ export namespace dxvk::backend {
         // Find a dedicated compute & transfer queue
         uint32_t findComputeQueueFamily() const;
 
+        auto getSurface() const { return surface; }
+
     private:
-        VkInstance                  instance{VK_NULL_HANDLE};
-        VkSurfaceKHR                surface;
-        VkPhysicalDevice            physicalDevice{VK_NULL_HANDLE};
-        std::vector<const char*>    deviceExtensions;
-        VkPhysicalDeviceFeatures    deviceFeatures {};
-        VkPhysicalDeviceProperties2 deviceProperties{
+        VkInstance                   instance{VK_NULL_HANDLE};
+        VkSurfaceKHR                 surface;
+        VkPhysicalDevice             physicalDevice{VK_NULL_HANDLE};
+        std::vector<const char*>     deviceExtensions;
+        VkPhysicalDeviceFeatures     deviceFeatures {};
+        VkPhysicalDeviceProperties2  deviceProperties{
             VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2
         };
         VkPhysicalDeviceIDProperties physDeviceIDProps{
@@ -100,6 +102,16 @@ export namespace dxvk::backend {
 
         auto getGraphicsQueueFamilyIndex() const { return graphicsQueueFamilyIndex; }
 
+
+        VkImageView createImageView(VkImage            image,
+                                    VkFormat           format,
+                                    VkImageAspectFlags aspectFlags,
+                                    uint32_t           mipLevels = 1,
+                                    VkImageViewType    type      = VK_IMAGE_VIEW_TYPE_2D,
+                                    uint32_t           baseArrayLayer = 0,
+                                    uint32_t           layers = 1,
+                                    uint32_t           baseMipLevel = 0) const;
+
     private:
         VkDevice    device{VK_NULL_HANDLE};
         uint32_t    presentQueueFamilyIndex;
@@ -119,9 +131,55 @@ export namespace dxvk::backend {
         VkQueue commandQueue;
     };
 
+    class VKSwapChain : public SwapChain {
+    public:
+        VKSwapChain(const VKPhysicalDevice& physicalDevice, const VKDevice& device, uint32_t width, uint32_t height);
+        ~VKSwapChain() override;
+
+        auto getSwapChain() { return swapChain; }
+
+        auto getCurrentFrameIndex() const { return currentFrameIndex; }
+
+        void nextSwapChain() override;
+
+    private:
+        VkDevice                    device;
+        VkSwapchainKHR              swapChain;
+        std::vector<VkImage>        swapChainImages;
+        VkFormat                    swapChainImageFormat;
+        VkExtent2D                  swapChainExtent;
+        float                       swapChainRatio;
+        std::vector<VkImageView>    swapChainImageViews;
+        uint32_t                    currentFrameIndex{0};
+        VkImageBlit                 colorImageBlit{};
+
+        // For Device::querySwapChainSupport()
+        struct SwapChainSupportDetails {
+            VkSurfaceCapabilitiesKHR        capabilities;
+            std::vector<VkSurfaceFormatKHR> formats;
+            std::vector<VkPresentModeKHR>   presentModes;
+        };
+
+        // Get the swap chain capabilities
+        SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice vkPhysicalDevice, VkSurfaceKHR surface) const;
+
+        // Get the swap chain format, default for sRGB/NON-LINEAR
+        static VkSurfaceFormatKHR chooseSwapSurfaceFormat(
+                const std::vector<VkSurfaceFormatKHR> &availableFormats);
+
+        // Get the swap chain present mode, default to MAILBOX, if not available FIFO (V-SYNC)
+        static VkPresentModeKHR chooseSwapPresentMode(
+                const std::vector<VkPresentModeKHR> &availablePresentModes);
+
+        // Get the swap chain images sizes
+        VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities, uint32_t width, uint32_t height) const;
+
+
+    };
+
     class VKRenderingBackEnd : public RenderingBackEnd {
     public:
-        VKRenderingBackEnd();
+        VKRenderingBackEnd(uint32_t width, uint32_t height);
 
         auto getVKInstance() const { return std::reinterpret_pointer_cast<VKInstance>(instance); }
         auto getVKPhysicalDevice() const { return std::reinterpret_pointer_cast<VKPhysicalDevice>(physicalDevice); }

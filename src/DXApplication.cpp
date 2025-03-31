@@ -14,11 +14,10 @@ namespace dxvk {
        m_scissorRect(0, 0, static_cast<LONG>(width), static_cast<LONG>(height)),
        m_viewport(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)),
        m_rtvDescriptorSize(0),
-       m_frameIndex(0),
        m_constantBufferData{},
        m_pCbvDataBegin(nullptr)
     {
-        renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>();
+        renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>(width, height);
     }
 
     void DXApplication::OnInit() {
@@ -41,6 +40,7 @@ namespace dxvk {
     void DXApplication::OnRender() {
         auto backend = std::static_pointer_cast<backend::DXRenderingBackEnd>(renderingBackEnd);
         auto m_commandQueue = backend->getDXGraphicCommandQueue()->getCommandQueue();
+        auto m_swapChain = backend->getDXSwapChain()->getSwapChain();
 
         // Record all the commands we need to render the scene into the command list.
         PopulateCommandList();
@@ -64,6 +64,9 @@ namespace dxvk {
     }
 
     void DXApplication::PopulateCommandList() {
+        auto backend = std::static_pointer_cast<backend::DXRenderingBackEnd>(renderingBackEnd);
+        auto m_frameIndex = backend->getDXSwapChain()->getCurrentFrameIndex();
+
         // Command list allocators can only be reset when the associated
         // command lists have finished execution on the GPU; apps should use
         // fences to determine GPU execution progress.
@@ -370,6 +373,7 @@ namespace dxvk {
     void DXApplication::WaitForPreviousFrame() {
         auto backend = std::static_pointer_cast<backend::DXRenderingBackEnd>(renderingBackEnd);
         auto m_commandQueue = backend->getDXGraphicCommandQueue()->getCommandQueue();
+        auto swapChain = backend->getSwapChain();
 
         // WAITING FOR THE FRAME TO COMPLETE BEFORE CONTINUING IS NOT BEST PRACTICE.
         // This is code implemented as such for simplicity. The D3D12HelloFrameBuffering
@@ -387,46 +391,20 @@ namespace dxvk {
             ThrowIfFailed(m_fence->SetEventOnCompletion(fence, m_fenceEvent));
             WaitForSingleObject(m_fenceEvent, INFINITE);
         }
-
-        m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
+        swapChain->nextSwapChain();
     }
 
     void DXApplication::LoadPipeline() {
         auto backend = std::static_pointer_cast<backend::DXRenderingBackEnd>(renderingBackEnd);
         auto device = backend->getDXDevice()->getDevice();
         auto m_commandQueue = backend->getDXGraphicCommandQueue()->getCommandQueue();
-
-        // Describe and create the swap chain.
-        DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-        swapChainDesc.BufferCount = FrameCount;
-        swapChainDesc.Width = m_width;
-        swapChainDesc.Height = m_height;
-        swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-        swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-        swapChainDesc.SampleDesc.Count = 1;
-
-        ComPtr<IDXGISwapChain1> swapChain;
-        ThrowIfFailed(backend->getDXInstance()->getFactory()->CreateSwapChainForHwnd(
-            m_commandQueue.Get(),        // Swap chain needs the queue so that it can force a flush on it.
-            Win32Application::getHwnd(),
-            &swapChainDesc,
-            nullptr,
-            nullptr,
-            &swapChain
-            ));
-
-        // This sample does not support fullscreen transitions.
-        ThrowIfFailed(backend->getDXInstance()->getFactory()->MakeWindowAssociation(Win32Application::getHwnd(), DXGI_MWA_NO_ALT_ENTER));
-
-        ThrowIfFailed(swapChain.As(&m_swapChain));
-        m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
+        auto m_swapChain = backend->getDXSwapChain()->getSwapChain();
 
         // Create descriptor heaps.
         {
             // Describe and create a render target view (RTV) descriptor heap.
             D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-            rtvHeapDesc.NumDescriptors = FrameCount;
+            rtvHeapDesc.NumDescriptors = backend::SwapChain::FRAMES_IN_FLIGHT;
             rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
             rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
             ThrowIfFailed(device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_rtvHeap)));
@@ -450,7 +428,7 @@ namespace dxvk {
             CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart());
 
             // Create a RTV for each frame.
-            for (UINT n = 0; n < FrameCount; n++)
+            for (UINT n = 0; n < backend::SwapChain::FRAMES_IN_FLIGHT; n++)
             {
                 ThrowIfFailed(m_swapChain->GetBuffer(n, IID_PPV_ARGS(&m_renderTargets[n])));
                 device->CreateRenderTargetView(m_renderTargets[n].Get(), nullptr, rtvHandle);
