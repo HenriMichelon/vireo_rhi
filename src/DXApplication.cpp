@@ -383,43 +383,14 @@ namespace dxvk {
     }
 
     void DXApplication::LoadPipeline() {
-        auto instance = std::static_pointer_cast<backend::DXInstance>(renderingBackEnd->getInstance());
-
-        ComPtr<IDXGIAdapter1> hardwareAdapter;
-        ComPtr<IDXGIAdapter4> hardwareAdapter4;
-
-        SIZE_T maxDedicatedVideoMemory = 0;
-        for (UINT i = 0; instance->getFactory()->EnumAdapters1(i, &hardwareAdapter) != DXGI_ERROR_NOT_FOUND; ++i) {
-            DXGI_ADAPTER_DESC1 dxgiAdapterDesc1;
-            hardwareAdapter->GetDesc1(&dxgiAdapterDesc1);
-
-            // Check to see if the adapter can create a D3D12 device without actually
-            // creating it. The adapter with the largest dedicated video memory
-            // is favored.
-            if ((dxgiAdapterDesc1.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) == 0 &&
-                SUCCEEDED(D3D12CreateDevice(hardwareAdapter.Get(),
-                    D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device), nullptr)) &&
-                dxgiAdapterDesc1.DedicatedVideoMemory > maxDedicatedVideoMemory )
-            {
-                maxDedicatedVideoMemory = dxgiAdapterDesc1.DedicatedVideoMemory;
-                ThrowIfFailed(hardwareAdapter.As(&hardwareAdapter4));
-            }
-        }
+        auto backend = std::static_pointer_cast<backend::DXRenderingBackEnd>(renderingBackEnd);
 
         ThrowIfFailed(D3D12CreateDevice(
-            hardwareAdapter.Get(),
+            backend->getDXPhysicalDevice()->getHardwareAdapater().Get(),
             D3D_FEATURE_LEVEL_11_0,
             IID_PPV_ARGS(&m_device)
             ));
 
-        DXGI_ADAPTER_DESC3 desc;
-        HRESULT hr = hardwareAdapter4->GetDesc3(&desc);
-        if (SUCCEEDED(hr)) {
-            std::wstring adapterName = desc.Description;
-            std::wcout << L"Display Adapter Name: " << adapterName << std::endl;
-        } else {
-            std::cerr << "Failed to get adapter description." << std::endl;
-        }
 
         // Describe and create the command queue.
         D3D12_COMMAND_QUEUE_DESC queueDesc = {};
@@ -438,7 +409,7 @@ namespace dxvk {
         swapChainDesc.SampleDesc.Count = 1;
 
         ComPtr<IDXGISwapChain1> swapChain;
-        ThrowIfFailed(instance->getFactory()->CreateSwapChainForHwnd(
+        ThrowIfFailed(backend->getDXInstance()->getFactory()->CreateSwapChainForHwnd(
             m_commandQueue.Get(),        // Swap chain needs the queue so that it can force a flush on it.
             Win32Application::GetHwnd(),
             &swapChainDesc,
@@ -448,7 +419,7 @@ namespace dxvk {
             ));
 
         // This sample does not support fullscreen transitions.
-        ThrowIfFailed(instance->getFactory()->MakeWindowAssociation(Win32Application::GetHwnd(), DXGI_MWA_NO_ALT_ENTER));
+        ThrowIfFailed(backend->getDXInstance()->getFactory()->MakeWindowAssociation(Win32Application::GetHwnd(), DXGI_MWA_NO_ALT_ENTER));
 
         ThrowIfFailed(swapChain.As(&m_swapChain));
         m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();

@@ -27,8 +27,8 @@ set(PROJECT_FILES
         ${SRC_DIR}/VKApplication.cppm
         ${SRC_DIR}/Win32Application.cppm
         ${SRC_DIR}/backend/RenderingBackEnd.cppm
-        ${SRC_DIR}/backend/DXRenderingBackEnd.cppm
-        ${SRC_DIR}/backend/VKRenderingBackEnd.cppm
+        ${SRC_DIR}/backend/directx/DXRenderingBackEnd.cppm
+        ${SRC_DIR}/backend/vulkan/VKRenderingBackEnd.cppm
 )
 add_executable(${PROJECT_NAME}
         ${SRC_DIR}/main.cpp
@@ -37,8 +37,8 @@ add_executable(${PROJECT_NAME}
         ${SRC_DIR}/DXApplication.cpp
         ${SRC_DIR}/VKApplication.cpp
         ${SRC_DIR}/Win32Application.cpp
-        ${SRC_DIR}/backend/DXRenderingBackEnd.cpp
-        ${SRC_DIR}/backend/VKRenderingBackEnd.cpp
+        ${SRC_DIR}/backend/directx/DXRenderingBackEnd.cpp
+        ${SRC_DIR}/backend/vulkan/VKRenderingBackEnd.cpp
 )
 #######################################################
 

@@ -6,11 +6,13 @@ module;
 module dxvk.app.vulkan;
 
 import dxvk.app.win32;
+import dxvk.backend.vulkan;
 
 namespace dxvk {
 
-    VKApplication::VKApplication(UINT width, UINT height, std::wstring name) : BaseApplication(width, height, name)
-    {
+    VKApplication::VKApplication(UINT width, UINT height, std::wstring name) :
+        BaseApplication(width, height, name) {
+        renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>();
     }
 
     void VKApplication::OnInit() {

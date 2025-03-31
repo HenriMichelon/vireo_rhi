@@ -4,12 +4,15 @@ module;
 module dxvk.app.win32;
 
 import dxvk.app;
+import dxvk.app.directx;
+import dxvk.app.vulkan;
 
 namespace dxvk {
 
     HWND Win32Application::m_hwnd = nullptr;
+    std::unique_ptr<BaseApplication> Win32Application::app{};
 
-    int Win32Application::Run(BaseApplication* pSample, HINSTANCE hInstance, int nCmdShow)
+    int Win32Application::Run(UINT width, UINT height, std::wstring name, HINSTANCE hInstance, int nCmdShow)
     {
         // Initialize the window class.
         WNDCLASSEX windowClass = { 0 };
@@ -21,13 +24,13 @@ namespace dxvk {
         windowClass.lpszClassName = L"DXSampleClass";
         RegisterClassEx(&windowClass);
 
-        RECT windowRect = { 0, 0, static_cast<LONG>(pSample->GetWidth()), static_cast<LONG>(pSample->GetHeight()) };
+        RECT windowRect = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
         AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);
 
         // Create the window and store a handle to it.
         m_hwnd = CreateWindow(
             windowClass.lpszClassName,
-            pSample->GetTitle(),
+            name.c_str(),
             WS_OVERLAPPEDWINDOW,
             CW_USEDEFAULT,
             CW_USEDEFAULT,
@@ -36,10 +39,13 @@ namespace dxvk {
             nullptr,        // We have no parent window.
             nullptr,        // We aren't using menus.
             hInstance,
-            pSample);
+            nullptr);
+
+        app = make_unique<dxvk::VKApplication>(width, height, name);
+        // app =  make_unique<dxvk::DXApplication>(width, height, name);
 
         // Initialize the sample. OnInit is defined in each child-implementation of DXSample.
-        pSample->OnInit();
+        app->OnInit();
 
         ShowWindow(m_hwnd, nCmdShow);
 
@@ -55,7 +61,7 @@ namespace dxvk {
             }
         }
 
-        pSample->OnDestroy();
+        app->OnDestroy();
 
         // Return this part of the WM_QUIT message to Windows.
         return static_cast<char>(msg.wParam);
@@ -64,7 +70,7 @@ namespace dxvk {
     // Main message handler for the sample.
     LRESULT CALLBACK Win32Application::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
-        BaseApplication* pSample = reinterpret_cast<BaseApplication*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+        auto& pSample = getApp();
 
         switch (message)
         {
