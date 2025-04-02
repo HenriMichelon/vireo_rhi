@@ -143,9 +143,9 @@ export namespace dxvk::backend {
 
         void nextSwapChain() override;
 
-        void present(const FrameData& frameData) override;
+        void present(std::vector<std::shared_ptr<FrameData>>& framesData) override;
 
-        void prepare(FrameData& frameData) override;
+        void prepare(std::shared_ptr<FrameData>& frameData) override;
 
     private:
         VkDevice                    device;

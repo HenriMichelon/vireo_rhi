@@ -15,6 +15,8 @@ namespace dxvk::backend {
         physicalDevice = std::make_shared<DXPhysicalDevice>(getDXInstance()->getFactory());
         device = std::make_shared<DXDevice>(getDXPhysicalDevice()->getHardwareAdapater());
         graphicCommandQueue = std::make_shared<DXCommandQueue>(getDXDevice()->getDevice());
+        transferCommandQueue = graphicCommandQueue; // TODO multiple queues for threading
+        presentCommandQueue = graphicCommandQueue; // TODO multiple queues for threading
         swapChain = std::make_shared<DXSwapChain>(
             getDXInstance()->getFactory(),
             *getDXDevice(),
@@ -24,9 +26,14 @@ namespace dxvk::backend {
 
     std::shared_ptr<FrameData> DXRenderingBackEnd::createFrameData(uint32_t frameIndex) {
         auto frameData = std::make_shared<DXFrameData>();
-        if (frameIndex == swapChain->getCurrentFrameIndex()) {
-            frameData->inFlightFenceValue++;
-        }
+        // if (frameIndex == swapChain->getCurrentFrameIndex()) {
+        //     ThrowIfFailed(getDXPresentCommandQueue()->getCommandQueue()->Signal(
+        //         getDXDevice()->getInFlightFence().Get(),
+        //         frameData->inFlightFenceValue
+        //     ));
+        //     frameData->inFlightFenceValue++;
+        //     std::cout << frameData->inFlightFenceValue << std::endl;
+        // }
         return frameData;
     }
 
@@ -108,7 +115,8 @@ namespace dxvk::backend {
         ComPtr<ID3D12CommandQueue> commandQueue,
         uint32_t width,
         uint32_t height) :
-        device{dxdevice} {
+        device{dxdevice},
+        presentCommandQueue{commandQueue} {
         extent = { width, height };
 
         DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
@@ -158,22 +166,26 @@ namespace dxvk::backend {
         currentFrameIndex = swapChain->GetCurrentBackBufferIndex();
     }
 
-    void DXSwapChain::prepare(FrameData& frameData) {
-        auto& data = static_cast<DXFrameData&>(frameData);
+    void DXSwapChain::prepare(std::shared_ptr<FrameData>& frameData) {
+        auto data = static_pointer_cast<DXFrameData>(frameData);
         // If the next frame is not ready to be rendered yet, wait until it is ready.
-        if (device.getInFlightFence()->GetCompletedValue() < data.inFlightFenceValue)
-        {
-            ThrowIfFailed(device.getInFlightFence()->SetEventOnCompletion(data.inFlightFenceValue, device.getInFlightFenceEvent()));
+        if (device.getInFlightFence()->GetCompletedValue() < data->inFlightFenceValue) {
+            ThrowIfFailed(device.getInFlightFence()->SetEventOnCompletion(
+                data->inFlightFenceValue,
+                device.getInFlightFenceEvent()
+            ));
             WaitForSingleObjectEx(device.getInFlightFenceEvent(), INFINITE, FALSE);
         }
+        // Set the fence value for the next frame.
+        data->inFlightFenceValue += 1;
     }
 
-    void DXSwapChain::present(const FrameData&) {
+    void DXSwapChain::present(std::vector<std::shared_ptr<FrameData>>& framesData) {
         ThrowIfFailed(swapChain->Present(1, 0));
         // Schedule a Signal command in the queue.
-        // auto& data = static_cast<DXFrameData&>(frameData);
-        //const UINT64 currentFenceValue = data.inFlightFenceValue;
-        //ThrowIfFailed(m_commandQueue->Signal(inFlightFence.Get(), currentFenceValue));
+        auto data = static_pointer_cast<DXFrameData>(framesData[currentFrameIndex]);
+        const UINT64 currentFenceValue = data->inFlightFenceValue;
+        ThrowIfFailed(presentCommandQueue->Signal(device.getInFlightFence().Get(), currentFenceValue));
     }
-    
+
 }

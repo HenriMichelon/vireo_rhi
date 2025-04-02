@@ -650,16 +650,16 @@ namespace dxvk::backend {
         currentFrameIndex = (currentFrameIndex + 1) % SwapChain::FRAMES_IN_FLIGHT;
     }
 
-    void VKSwapChain::present(const FrameData& frameData) {
-        const auto& data = static_cast<const VKFrameData&>(frameData);
+    void VKSwapChain::present(std::vector<std::shared_ptr<FrameData>>& framesData) {
+        auto data = static_pointer_cast<VKFrameData>(framesData[currentFrameIndex]);
         const VkSwapchainKHR   swapChains[] = { swapChain };
         const VkPresentInfoKHR presentInfo{
             .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
             .waitSemaphoreCount = 1,
-            .pWaitSemaphores    = &data.renderFinishedSemaphore,
+            .pWaitSemaphores    = &data->renderFinishedSemaphore,
             .swapchainCount     = 1,
             .pSwapchains        = swapChains,
-            .pImageIndices      = &data.imageIndex,
+            .pImageIndices      = &data->imageIndex,
             .pResults           = nullptr // Optional
         };
         if (vkQueuePresentKHR(presentQueue, &presentInfo) != VK_SUCCESS) {
@@ -667,16 +667,16 @@ namespace dxvk::backend {
         }
     }
 
-    void VKSwapChain::prepare(FrameData& frameData) {
-        auto& data = static_cast<VKFrameData&>(frameData);
+    void VKSwapChain::prepare(std::shared_ptr<FrameData>& frameData) {
+        auto data = static_pointer_cast<VKFrameData>(frameData);
         // get the next available swap chain image
         const auto result = vkAcquireNextImageKHR(
              device,
              swapChain,
              UINT64_MAX,
-             data.imageAvailableSemaphore,
+             data->imageAvailableSemaphore,
              VK_NULL_HANDLE,
-             &data.imageIndex);
+             &data->imageIndex);
         if (result == VK_ERROR_OUT_OF_DATE_KHR) {
             die("not implemented");
             // recreateSwapChain();

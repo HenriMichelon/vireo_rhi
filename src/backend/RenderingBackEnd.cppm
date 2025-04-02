@@ -45,9 +45,9 @@ export namespace dxvk::backend {
 
         virtual void nextSwapChain() = 0;
 
-        virtual void present(const FrameData& frameData) = 0;
+        virtual void present(std::vector<std::shared_ptr<FrameData>>& framesData) = 0;
 
-        virtual void prepare(FrameData& frameData) {}
+        virtual void prepare(std::shared_ptr<FrameData>& frameData) {}
 
     protected:
         Extent      extent{};
@@ -62,9 +62,17 @@ export namespace dxvk::backend {
         virtual std::shared_ptr<FrameData> createFrameData(uint32_t frameIndex) = 0;
 
         auto& getInstance() const { return instance; }
+
         auto& getPhysicalDevice() const { return physicalDevice; }
+
         auto& getDevice() const { return device; }
+
         auto& getGraphicCommandQueue() const { return graphicCommandQueue; }
+
+        auto& getPresentCommandQueue() const { return presentCommandQueue; }
+
+        auto& getTransferCommandQueue() const { return transferCommandQueue; }
+
         auto& getSwapChain() const { return swapChain; }
 
     protected:
@@ -72,6 +80,8 @@ export namespace dxvk::backend {
         std::shared_ptr<PhysicalDevice>  physicalDevice;
         std::shared_ptr<Device>          device;
         std::shared_ptr<CommandQueue>    graphicCommandQueue;
+        std::shared_ptr<CommandQueue>    presentCommandQueue;
+        std::shared_ptr<CommandQueue>    transferCommandQueue;
         std::shared_ptr<SwapChain>       swapChain;
 
     };

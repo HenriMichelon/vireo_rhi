@@ -33,35 +33,15 @@ namespace dxvk {
 
     void Application::OnRender() {
         auto& swapChain = renderingBackEnd->getSwapChain();
-        auto frameData = *(framesData[swapChain->getCurrentFrameIndex()]);
+        auto frameData = framesData[swapChain->getCurrentFrameIndex()];
         swapChain->prepare(frameData);
         //draw
-        swapChain->present(frameData);
-        WaitForPreviousFrame();
+        swapChain->present(framesData);
         swapChain->nextSwapChain();
     }
 
     void Application::OnDestroy() {
-        WaitForPreviousFrame();
-    }
-
-    void Application::WaitForPreviousFrame() {
-        // WAITING FOR THE FRAME TO COMPLETE BEFORE CONTINUING IS NOT BEST PRACTICE.
-        // This is code implemented as such for simplicity. The D3D12HelloFrameBuffering
-        // sample illustrates how to use fences for efficient resource usage and to
-        // maximize GPU utilization.
-
-        // Signal and increment the fence value.
-        // const UINT64 fence = m_fenceValue;
-        // ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), fence));
-        // m_fenceValue++;
-
-        // Wait until the previous frame is finished.
-        // if (m_fence->GetCompletedValue() < fence)
-        // {
-            // ThrowIfFailed(m_fence->SetEventOnCompletion(fence, m_fenceEvent));
-            // WaitForSingleObject(m_fenceEvent, INFINITE);
-        // }
+        // WaitForPreviousFrame();
     }
 
     std::wstring Application::GetAssetFullPath(LPCWSTR assetName)

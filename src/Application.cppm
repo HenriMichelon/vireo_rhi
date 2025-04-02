@@ -32,7 +32,6 @@ export namespace dxvk {
         std::wstring GetAssetFullPath(LPCWSTR assetName);
 
         void SetCustomWindowText(LPCWSTR text);
-        void WaitForPreviousFrame();
 
         // Texture
         static constexpr  UINT TextureWidth = 256;

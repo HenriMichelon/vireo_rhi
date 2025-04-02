@@ -63,13 +63,14 @@ export namespace dxvk::backend {
 
         void nextSwapChain() override;
 
-        void prepare(FrameData& frameData) override;
+        void prepare(std::shared_ptr<FrameData>& frameData) override;
 
-        void present(const FrameData& frameData) override;
+        void present(std::vector<std::shared_ptr<FrameData>>& framesData) override;
 
     private:
         DXDevice&                    device;
         ComPtr<IDXGISwapChain3>      swapChain;
+        ComPtr<ID3D12CommandQueue>   presentCommandQueue;
         ComPtr<ID3D12Resource>       renderTargets[FRAMES_IN_FLIGHT];
         ComPtr<ID3D12DescriptorHeap> rtvHeap;
         UINT                         rtvDescriptorSize{0};
@@ -82,9 +83,17 @@ export namespace dxvk::backend {
         std::shared_ptr<FrameData> createFrameData(uint32_t frameIndex) override;
 
         auto getDXInstance() const { return std::reinterpret_pointer_cast<DXInstance>(instance); }
+
         auto getDXPhysicalDevice() const { return std::reinterpret_pointer_cast<DXPhysicalDevice>(physicalDevice); }
+
         auto getDXDevice() const { return std::reinterpret_pointer_cast<DXDevice>(device); }
+
         auto getDXGraphicCommandQueue() const { return std::reinterpret_pointer_cast<DXCommandQueue>(graphicCommandQueue); }
+
+        auto getDXPresentCommandQueue() const { return std::reinterpret_pointer_cast<DXCommandQueue>(presentCommandQueue); }
+
+        auto getDXTransferCommandQueue() const { return std::reinterpret_pointer_cast<DXCommandQueue>(transferCommandQueue); }
+
         auto getDXSwapChain() const { return std::reinterpret_pointer_cast<DXSwapChain>(swapChain); }
     };
 
