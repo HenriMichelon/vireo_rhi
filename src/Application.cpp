@@ -33,10 +33,10 @@ namespace dxvk {
 
     void Application::OnRender() {
         auto& swapChain = renderingBackEnd->getSwapChain();
-        auto frameData = framesData[swapChain->getCurrentFrameIndex()];
+        auto& frameData = *(framesData[swapChain->getCurrentFrameIndex()]);
         swapChain->prepare(frameData);
         //draw
-        swapChain->present(framesData);
+        swapChain->present(frameData);
         swapChain->nextSwapChain();
     }
 

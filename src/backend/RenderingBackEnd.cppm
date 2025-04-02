@@ -45,9 +45,9 @@ export namespace dxvk::backend {
 
         virtual void nextSwapChain() = 0;
 
-        virtual void present(std::vector<std::shared_ptr<FrameData>>& framesData) = 0;
+        virtual void present(FrameData& frameData) = 0;
 
-        virtual void prepare(std::shared_ptr<FrameData>& frameData) {}
+        virtual void prepare(FrameData& frameData) {}
 
     protected:
         Extent      extent{};

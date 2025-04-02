@@ -17,7 +17,6 @@ namespace dxvk {
        m_constantBufferData{},
        m_pCbvDataBegin(nullptr)
     {
-        renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>(width, height);
     }
 
     void DXApplication::OnInit() {
@@ -349,15 +348,7 @@ namespace dxvk {
 
         // Create synchronization objects and wait until assets have been uploaded to the GPU.
         {
-            ThrowIfFailed(m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)));
-            m_fenceValue = 1;
 
-            // Create an event handle to use for frame synchronization.
-            m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-            if (m_fenceEvent == nullptr)
-            {
-                ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
-            }
 
             // Wait for the command list to execute; we are reusing the same command
             // list in our main loop but for now, we just want to wait for setup to
@@ -367,27 +358,7 @@ namespace dxvk {
     }
 
     void DXApplication::WaitForPreviousFrame() {
-        auto backend = std::static_pointer_cast<backend::DXRenderingBackEnd>(renderingBackEnd);
-        auto m_commandQueue = backend->getDXGraphicCommandQueue()->getCommandQueue();
-        auto swapChain = backend->getSwapChain();
 
-        // WAITING FOR THE FRAME TO COMPLETE BEFORE CONTINUING IS NOT BEST PRACTICE.
-        // This is code implemented as such for simplicity. The D3D12HelloFrameBuffering
-        // sample illustrates how to use fences for efficient resource usage and to
-        // maximize GPU utilization.
-
-        // Signal and increment the fence value.
-        const UINT64 fence = m_fenceValue;
-        ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), fence));
-        m_fenceValue++;
-
-        // Wait until the previous frame is finished.
-        if (m_fence->GetCompletedValue() < fence)
-        {
-            ThrowIfFailed(m_fence->SetEventOnCompletion(fence, m_fenceEvent));
-            WaitForSingleObject(m_fenceEvent, INFINITE);
-        }
-        swapChain->nextSwapChain();
     }
 
     void DXApplication::LoadPipeline() {

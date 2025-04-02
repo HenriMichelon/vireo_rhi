@@ -166,25 +166,25 @@ namespace dxvk::backend {
         currentFrameIndex = swapChain->GetCurrentBackBufferIndex();
     }
 
-    void DXSwapChain::prepare(std::shared_ptr<FrameData>& frameData) {
-        auto data = static_pointer_cast<DXFrameData>(frameData);
+    void DXSwapChain::prepare(FrameData& frameData) {
+        auto& data = static_cast<DXFrameData&>(frameData);
         // If the next frame is not ready to be rendered yet, wait until it is ready.
-        if (device.getInFlightFence()->GetCompletedValue() < data->inFlightFenceValue) {
+        if (device.getInFlightFence()->GetCompletedValue() < data.inFlightFenceValue) {
             ThrowIfFailed(device.getInFlightFence()->SetEventOnCompletion(
-                data->inFlightFenceValue,
+                data.inFlightFenceValue,
                 device.getInFlightFenceEvent()
             ));
             WaitForSingleObjectEx(device.getInFlightFenceEvent(), INFINITE, FALSE);
         }
         // Set the fence value for the next frame.
-        data->inFlightFenceValue += 1;
+        data.inFlightFenceValue += 1;
     }
 
-    void DXSwapChain::present(std::vector<std::shared_ptr<FrameData>>& framesData) {
+    void DXSwapChain::present(FrameData& frameData) {
         ThrowIfFailed(swapChain->Present(1, 0));
         // Schedule a Signal command in the queue.
-        auto data = static_pointer_cast<DXFrameData>(framesData[currentFrameIndex]);
-        const UINT64 currentFenceValue = data->inFlightFenceValue;
+        auto& data = static_cast<DXFrameData&>(frameData);
+        const UINT64 currentFenceValue = data.inFlightFenceValue;
         ThrowIfFailed(presentCommandQueue->Signal(device.getInFlightFence().Get(), currentFenceValue));
     }
 
