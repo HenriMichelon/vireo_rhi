@@ -22,10 +22,9 @@ namespace dxvk {
         renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>(width, height);
     }
 
-
     void Application::OnInit() {
-        for (int i = 0; i < backend::SwapChain::FRAMES_IN_FLIGHT; i++) {
-            framesData[i] = renderingBackEnd->createFrameData();
+        for (uint32_t i = 0; i < backend::SwapChain::FRAMES_IN_FLIGHT; i++) {
+            framesData[i] = renderingBackEnd->createFrameData(i);
         }
     }
 
@@ -34,7 +33,10 @@ namespace dxvk {
 
     void Application::OnRender() {
         auto& swapChain = renderingBackEnd->getSwapChain();
-        swapChain->present(*(framesData[swapChain->getCurrentFrameIndex()]));
+        auto frameData = *(framesData[swapChain->getCurrentFrameIndex()]);
+        swapChain->prepare(frameData);
+        //draw
+        swapChain->present(frameData);
         WaitForPreviousFrame();
         swapChain->nextSwapChain();
     }
@@ -44,9 +46,6 @@ namespace dxvk {
     }
 
     void Application::WaitForPreviousFrame() {
-        // auto backend = std::static_pointer_cast<backend::DXRenderingBackEnd>(renderingBackEnd);
-        // auto m_commandQueue = backend->getDXGraphicCommandQueue()->getCommandQueue();
-
         // WAITING FOR THE FRAME TO COMPLETE BEFORE CONTINUING IS NOT BEST PRACTICE.
         // This is code implemented as such for simplicity. The D3D12HelloFrameBuffering
         // sample illustrates how to use fences for efficient resource usage and to

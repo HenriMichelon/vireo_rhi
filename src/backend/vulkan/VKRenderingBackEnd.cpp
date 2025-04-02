@@ -50,7 +50,7 @@ namespace dxvk::backend {
         swapChain = std::make_shared<VKSwapChain>(*getVKPhysicalDevice(), *getVKDevice(), width, height);
     }
 
-    shared_ptr<FrameData> VKRenderingBackEnd::createFrameData() {
+    shared_ptr<FrameData> VKRenderingBackEnd::createFrameData(const uint32_t frameIndex) {
         return make_shared<VKFrameData>();
     }
 

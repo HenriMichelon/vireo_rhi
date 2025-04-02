@@ -186,7 +186,7 @@ export namespace dxvk::backend {
     public:
         VKRenderingBackEnd(uint32_t width, uint32_t height);
 
-        std::shared_ptr<FrameData> createFrameData() override;
+        std::shared_ptr<FrameData> createFrameData(uint32_t frameIndex) override;
 
         auto getVKInstance() const { return std::reinterpret_pointer_cast<VKInstance>(instance); }
         auto getVKPhysicalDevice() const { return std::reinterpret_pointer_cast<VKPhysicalDevice>(physicalDevice); }

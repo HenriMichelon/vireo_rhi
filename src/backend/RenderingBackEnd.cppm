@@ -59,7 +59,7 @@ export namespace dxvk::backend {
     public:
         virtual ~RenderingBackEnd() = default;
 
-        virtual std::shared_ptr<FrameData> createFrameData() = 0;
+        virtual std::shared_ptr<FrameData> createFrameData(uint32_t frameIndex) = 0;
 
         auto& getInstance() const { return instance; }
         auto& getPhysicalDevice() const { return physicalDevice; }

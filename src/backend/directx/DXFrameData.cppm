@@ -8,6 +8,7 @@ import dxvk.backend.framedata;
 export namespace dxvk::backend {
 
     struct DXFrameData : FrameData {
+        UINT64 inFlightFenceValue{0};
     };
 
 }

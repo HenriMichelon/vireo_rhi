@@ -30,10 +30,17 @@ export namespace dxvk::backend {
     class DXDevice : public Device {
     public:
         DXDevice(ComPtr<IDXGIAdapter4> hardwareAdapter4);
+
         auto getDevice() { return device; }
+
+        auto getInFlightFence() { return inFlightFence; }
+
+        auto getInFlightFenceEvent() const { return inFlightFenceEvent;}
 
     private:
         ComPtr<ID3D12Device> device;
+        ComPtr<ID3D12Fence>  inFlightFence;
+        HANDLE               inFlightFenceEvent;
     };
 
     class DXCommandQueue : public CommandQueue{
@@ -48,7 +55,7 @@ export namespace dxvk::backend {
     public:
         DXSwapChain(
             ComPtr<IDXGIFactory4> factory,
-            ComPtr<ID3D12Device> device,
+            DXDevice& device,
             ComPtr<ID3D12CommandQueue> commandQueue,
             uint32_t with, uint32_t height);
 
@@ -56,20 +63,23 @@ export namespace dxvk::backend {
 
         void nextSwapChain() override;
 
+        void prepare(FrameData& frameData) override;
+
         void present(const FrameData& frameData) override;
 
     private:
+        DXDevice&                    device;
         ComPtr<IDXGISwapChain3>      swapChain;
+        ComPtr<ID3D12Resource>       renderTargets[FRAMES_IN_FLIGHT];
         ComPtr<ID3D12DescriptorHeap> rtvHeap;
-        UINT                         rtvDescriptorSize;
-        ComPtr<ID3D12Resource>       renderTargets[backend::SwapChain::FRAMES_IN_FLIGHT];
+        UINT                         rtvDescriptorSize{0};
     };
 
     class DXRenderingBackEnd : public RenderingBackEnd {
     public:
         DXRenderingBackEnd(uint32_t width, uint32_t height);
 
-        std::shared_ptr<FrameData> createFrameData() override;
+        std::shared_ptr<FrameData> createFrameData(uint32_t frameIndex) override;
 
         auto getDXInstance() const { return std::reinterpret_pointer_cast<DXInstance>(instance); }
         auto getDXPhysicalDevice() const { return std::reinterpret_pointer_cast<DXPhysicalDevice>(physicalDevice); }

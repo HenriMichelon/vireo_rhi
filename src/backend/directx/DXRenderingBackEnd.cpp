@@ -17,13 +17,17 @@ namespace dxvk::backend {
         graphicCommandQueue = std::make_shared<DXCommandQueue>(getDXDevice()->getDevice());
         swapChain = std::make_shared<DXSwapChain>(
             getDXInstance()->getFactory(),
-            getDXDevice()->getDevice(),
+            *getDXDevice(),
             getDXGraphicCommandQueue()->getCommandQueue(),
             width, height);
     }
 
-    std::shared_ptr<FrameData> DXRenderingBackEnd::createFrameData() {
-        return std::make_shared<DXFrameData>();
+    std::shared_ptr<FrameData> DXRenderingBackEnd::createFrameData(uint32_t frameIndex) {
+        auto frameData = std::make_shared<DXFrameData>();
+        if (frameIndex == swapChain->getCurrentFrameIndex()) {
+            frameData->inFlightFenceValue++;
+        }
+        return frameData;
     }
 
     DXInstance::DXInstance() {
@@ -80,6 +84,14 @@ namespace dxvk::backend {
                   D3D_FEATURE_LEVEL_11_0,
                   IID_PPV_ARGS(&device)
           ));
+        ThrowIfFailed(device->CreateFence(
+            0,
+            D3D12_FENCE_FLAG_NONE,
+            IID_PPV_ARGS(&inFlightFence)));
+        inFlightFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+        if (inFlightFenceEvent == nullptr) {
+            ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
+        }
     }
 
     DXCommandQueue::DXCommandQueue(ComPtr<ID3D12Device> device) {
@@ -92,10 +104,11 @@ namespace dxvk::backend {
 
     DXSwapChain::DXSwapChain(
         ComPtr<IDXGIFactory4> factory,
-        ComPtr<ID3D12Device> device,
+        DXDevice& dxdevice,
         ComPtr<ID3D12CommandQueue> commandQueue,
         uint32_t width,
-        uint32_t height) {
+        uint32_t height) :
+        device{dxdevice} {
         extent = { width, height };
 
         DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
@@ -125,8 +138,8 @@ namespace dxvk::backend {
             rtvHeapDesc.NumDescriptors = FRAMES_IN_FLIGHT;
             rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
             rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-            ThrowIfFailed(device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap)));
-            rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+            ThrowIfFailed(device.getDevice()->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap)));
+            rtvDescriptorSize = device.getDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
         }
 
         // Create frame resources.
@@ -135,7 +148,7 @@ namespace dxvk::backend {
             // Create a RTV for each frame.
             for (UINT n = 0; n < FRAMES_IN_FLIGHT; n++) {
                 ThrowIfFailed(swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTargets[n])));
-                device->CreateRenderTargetView(renderTargets[n].Get(), nullptr, rtvHandle);
+                device.getDevice()->CreateRenderTargetView(renderTargets[n].Get(), nullptr, rtvHandle);
                 rtvHandle.Offset(1, rtvDescriptorSize);
             }
         }
@@ -145,9 +158,22 @@ namespace dxvk::backend {
         currentFrameIndex = swapChain->GetCurrentBackBufferIndex();
     }
 
-    void DXSwapChain::present(const FrameData&) {
-        ThrowIfFailed(swapChain->Present(1, 0));
+    void DXSwapChain::prepare(FrameData& frameData) {
+        auto& data = static_cast<DXFrameData&>(frameData);
+        // If the next frame is not ready to be rendered yet, wait until it is ready.
+        if (device.getInFlightFence()->GetCompletedValue() < data.inFlightFenceValue)
+        {
+            ThrowIfFailed(device.getInFlightFence()->SetEventOnCompletion(data.inFlightFenceValue, device.getInFlightFenceEvent()));
+            WaitForSingleObjectEx(device.getInFlightFenceEvent(), INFINITE, FALSE);
+        }
     }
 
-
+    void DXSwapChain::present(const FrameData&) {
+        ThrowIfFailed(swapChain->Present(1, 0));
+        // Schedule a Signal command in the queue.
+        // auto& data = static_cast<DXFrameData&>(frameData);
+        //const UINT64 currentFenceValue = data.inFlightFenceValue;
+        //ThrowIfFailed(m_commandQueue->Signal(inFlightFence.Get(), currentFenceValue));
+    }
+    
 }
