@@ -18,14 +18,15 @@ namespace dxvk {
         GetAssetsPath(assetsPath, _countof(assetsPath));
         m_assetsPath = assetsPath;
         m_aspectRatio = static_cast<float>(width) / static_cast<float>(height);
-        renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>(width, height);
-        //renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>(width, height);
+        // renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>(width, height);
+        renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>(width, height);
     }
 
     void Application::OnInit() {
         for (uint32_t i = 0; i < backend::SwapChain::FRAMES_IN_FLIGHT; i++) {
             framesData[i] = renderingBackEnd->createFrameData(i);
         }
+        commandAllocator = renderingBackEnd->getDevice()->createCommandAllocator(backend::CommandAllocator::GRAPHIC);
     }
 
     void Application::OnUpdate() {
@@ -33,14 +34,26 @@ namespace dxvk {
 
     void Application::OnRender() {
         auto& swapChain = renderingBackEnd->getSwapChain();
-        auto& frameData = *(framesData[swapChain->getCurrentFrameIndex()]);
-        swapChain->prepare(frameData);
+        auto& frameData = *framesData[swapChain->getCurrentFrameIndex()];
+        swapChain->acquire(frameData);
+
+        auto commandList = commandAllocator->createCommandList();
+        commandList->begin();
+        swapChain->begin(frameData, commandList);
         //draw
+        swapChain->end(frameData, commandList);
+        commandList->end();
+        renderingBackEnd->getGraphicCommandQueue()->submit(frameData, {commandList});
+
         swapChain->present(frameData);
         swapChain->nextSwapChain();
     }
 
     void Application::OnDestroy() {
+        renderingBackEnd->getDevice()->waitIdle();
+        for (uint32_t i = 0; i < backend::SwapChain::FRAMES_IN_FLIGHT; i++) {
+            renderingBackEnd->destroyFrameData(framesData[i]);
+        }
         // WaitForPreviousFrame();
     }
 

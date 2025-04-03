@@ -18,14 +18,41 @@ export namespace dxvk::backend {
         virtual ~PhysicalDevice() = default;
     };
 
+    class CommandList {
+    public:
+        virtual void begin() = 0;
+        virtual void end() = 0;
+
+        virtual ~CommandList() = default;
+    };
+
+    class CommandAllocator {
+    public:
+        enum Type {
+            GRAPHIC,
+            TRANSFER,
+            COMPUTE,
+        };
+
+        virtual std::shared_ptr<CommandList> createCommandList() const  = 0;
+
+        virtual ~CommandAllocator() = default;
+    };
+
     class Device {
     public:
+        virtual void waitIdle() = 0;
+
+        virtual std::shared_ptr<CommandAllocator> createCommandAllocator(CommandAllocator::Type type) const = 0;
+
         virtual ~Device() = default;
     };
 
-    class CommandQueue {
+    class SubmitQueue {
     public:
-        virtual ~CommandQueue() = default;
+        virtual void submit(const FrameData& frameData, std::vector<std::shared_ptr<CommandList>> commandLists) = 0;
+
+        virtual ~SubmitQueue() = default;
     };
 
     class SwapChain {
@@ -45,9 +72,13 @@ export namespace dxvk::backend {
 
         virtual void nextSwapChain() = 0;
 
-        virtual void present(FrameData& frameData) = 0;
+        virtual void acquire(FrameData& frameData) {}
 
-        virtual void prepare(FrameData& frameData) {}
+        virtual void begin(FrameData& frameData, std::shared_ptr<CommandList>& commandList) {}
+
+        virtual void end(FrameData& frameData, std::shared_ptr<CommandList>& commandList) {}
+
+        virtual void present(FrameData& frameData) = 0;
 
     protected:
         Extent      extent{};
@@ -60,6 +91,8 @@ export namespace dxvk::backend {
         virtual ~RenderingBackEnd() = default;
 
         virtual std::shared_ptr<FrameData> createFrameData(uint32_t frameIndex) = 0;
+
+        virtual void destroyFrameData(std::shared_ptr<FrameData> frameData) = 0;
 
         auto& getInstance() const { return instance; }
 
@@ -79,9 +112,9 @@ export namespace dxvk::backend {
         std::shared_ptr<Instance>        instance;
         std::shared_ptr<PhysicalDevice>  physicalDevice;
         std::shared_ptr<Device>          device;
-        std::shared_ptr<CommandQueue>    graphicCommandQueue;
-        std::shared_ptr<CommandQueue>    presentCommandQueue;
-        std::shared_ptr<CommandQueue>    transferCommandQueue;
+        std::shared_ptr<SubmitQueue>     graphicCommandQueue;
+        std::shared_ptr<SubmitQueue>     presentCommandQueue;
+        std::shared_ptr<SubmitQueue>     transferCommandQueue;
         std::shared_ptr<SwapChain>       swapChain;
 
     };

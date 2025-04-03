@@ -46,8 +46,15 @@ namespace dxvk::backend {
         instance = std::make_shared<VKInstance>();
         physicalDevice = std::make_shared<VKPhysicalDevice>(getVKInstance()->getInstance());
         device = std::make_shared<VKDevice>(*getVKPhysicalDevice(), getVKInstance()->getRequestedLayers());
-        graphicCommandQueue = std::make_shared<VKCommandQueue>(*getVKDevice());
+        graphicCommandQueue = std::make_shared<VKSubmitQueue>(*getVKDevice());
         swapChain = std::make_shared<VKSwapChain>(*getVKPhysicalDevice(), *getVKDevice(), width, height);
+    }
+
+    void VKRenderingBackEnd::destroyFrameData(std::shared_ptr<FrameData> frameData) {
+        auto data = static_pointer_cast<VKFrameData>(frameData);
+        vkDestroySemaphore(getVKDevice()->getDevice(), data->imageAvailableSemaphore, nullptr);
+        vkDestroySemaphore(getVKDevice()->getDevice(), data->renderFinishedSemaphore, nullptr);
+        vkDestroyFence(getVKDevice()->getDevice(), data->inFlightFence, nullptr);
     }
 
     shared_ptr<FrameData> VKRenderingBackEnd::createFrameData(const uint32_t frameIndex) {
@@ -162,8 +169,6 @@ namespace dxvk::backend {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME,
             // https://docs.vulkan.org/samples/latest/samples/extensions/dynamic_rendering/README.html
             VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
-            // https://docs.vulkan.org/samples/latest/samples/extensions/shader_object/README.html
-            VK_EXT_SHADER_OBJECT_EXTENSION_NAME,
             // for Vulkan Memory Allocator
             VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
             VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME,
@@ -442,16 +447,10 @@ namespace dxvk::backend {
                 }
             };
 
-            // https://docs.vulkan.org/samples/latest/samples/extensions/shader_object/README.html
-            VkPhysicalDeviceShaderObjectFeaturesEXT deviceShaderObjectFeatures{
-                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_FEATURES_EXT,
-                .pNext = &deviceFeatures2,
-                .shaderObject = VK_TRUE,
-            };
             // https://lesleylai.info/en/vk-khr-dynamic-rendering/
             const VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature{
                 .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR,
-                .pNext = &deviceShaderObjectFeatures,
+                .pNext = &deviceFeatures2,
                 .dynamicRendering = VK_TRUE,
             };
             const VkDeviceCreateInfo createInfo{
@@ -503,13 +502,58 @@ namespace dxvk::backend {
         return imageView;
     }
 
+    VkImageMemoryBarrier VKDevice::imageMemoryBarrier(
+          const VkImage image,
+          const VkAccessFlags srcAccessMask,
+          const VkAccessFlags dstAccessMask,
+          const VkImageLayout oldLayout,
+          const VkImageLayout newLayout,
+          const uint32_t baseMipLevel,
+          const uint32_t levelCount
+      ) {
+        return VkImageMemoryBarrier {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .srcAccessMask =  srcAccessMask,
+            .dstAccessMask = dstAccessMask,
+            .oldLayout = oldLayout,
+            .newLayout = newLayout,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = image,
+            .subresourceRange = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = baseMipLevel,
+                .levelCount = levelCount,
+                .baseArrayLayer = 0,
+                .layerCount = VK_REMAINING_ARRAY_LAYERS,
+            }
+        };
+    }
+
+    std::shared_ptr<CommandAllocator> VKDevice::createCommandAllocator(CommandAllocator::Type type) const {
+        const VkCommandPoolCreateInfo poolInfo           = {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+            .flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, // TODO optional
+            .queueFamilyIndex = type == CommandAllocator::COMPUTE ? computeQueueFamilyIndex :
+                type == CommandAllocator::TRANSFER ? transferQueueFamilyIndex :
+                graphicsQueueFamilyIndex
+        };
+        VkCommandPool commandPool;
+        if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
+            die("Failed to create a command pool");
+        }
+        return std::make_shared<VKCommandAllocator>(device, commandPool);
+    }
+
+    void VKDevice::waitIdle() {
+        vkDeviceWaitIdle(device);
+    }
 
     VKDevice::~VKDevice() {
-        vkDeviceWaitIdle(device);
         vkDestroyDevice(device, nullptr);
     }
 
-    VKCommandQueue::VKCommandQueue(const VKDevice& device) {
+    VKSubmitQueue::VKSubmitQueue(const VKDevice& device) {
         vkGetDeviceQueue(
             device.getDevice(),
             device.getGraphicsQueueFamilyIndex(),
@@ -517,12 +561,98 @@ namespace dxvk::backend {
             &commandQueue);
     }
 
-    VKCommandQueue::~VKCommandQueue() {
+    VKSubmitQueue::~VKSubmitQueue() {
         vkQueueWaitIdle(commandQueue);
     }
 
+    void VKSubmitQueue::submit(const FrameData& frameData, std::vector<std::shared_ptr<CommandList>> commandLists) {
+        auto& data = static_cast<const VKFrameData&>(frameData);
+        std::vector<VkCommandBufferSubmitInfo> submitInfos(commandLists.size());
+        for (int i = 0; i < commandLists.size(); i++) {
+            submitInfos[i] = {
+                .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
+                .commandBuffer = static_pointer_cast<VKCommandList>(commandLists[i])->getCommandBuffer(),
+            };
+        }
+        const VkSubmitInfo2 submitInfo {
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+            .waitSemaphoreInfoCount = 1,
+            .pWaitSemaphoreInfos = &data.imageAvailableSemaphoreSubmitInfo,
+            .commandBufferInfoCount = static_cast<uint32_t>(submitInfos.size()),
+            .pCommandBufferInfos = submitInfos.data(),
+            .signalSemaphoreInfoCount = 1,
+            .pSignalSemaphoreInfos = &data.renderFinishedSemaphoreSubmitInfo
+        };
+        const auto result = vkQueueSubmit2(commandQueue, 1, &submitInfo, data.inFlightFence);
+        if (result != VK_SUCCESS) {
+            die("failed to submit draw command buffer : ");
+        }
+    }
+
+    VKCommandAllocator::VKCommandAllocator(VkDevice device, VkCommandPool commandPool):
+        device(device),
+        commandPool(commandPool) {
+    }
+
+    VKCommandAllocator::~VKCommandAllocator() {
+        vkDestroyCommandPool(device, commandPool, nullptr);
+    }
+
+    std::shared_ptr<CommandList> VKCommandAllocator::createCommandList() const {
+        const VkCommandBufferAllocateInfo allocInfo{
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+            .commandPool = commandPool,
+            .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+            .commandBufferCount = 1
+        };
+        VkCommandBuffer commandBuffer;
+        if (vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer) != VK_SUCCESS) {
+            die("failed to allocate renderer command buffers!");
+        }
+        return std::make_shared<VKCommandList>(commandBuffer);
+    }
+
+    VKCommandList::VKCommandList(VkCommandBuffer commandBuffer): commandBuffer(commandBuffer) {
+    }
+
+    VKCommandList::~VKCommandList() {
+    }
+
+    void VKCommandList::begin() {
+        constexpr VkCommandBufferBeginInfo beginInfo{
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        };
+        vkResetCommandBuffer(commandBuffer, 0);
+        if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+            die("failed to begin recording command buffer!");
+        }
+        // setInitialState(commandBuffer);
+    }
+
+    void VKCommandList::end() {
+        if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
+            die("failed to record command buffer!");
+        }
+    }
+
+    void VKCommandList::pipelineBarrier(
+       const VkPipelineStageFlags srcStageMask,
+       const VkPipelineStageFlags dstStageMask,
+       const vector<VkImageMemoryBarrier>& barriers) const {
+        vkCmdPipelineBarrier(commandBuffer,
+            srcStageMask,
+            dstStageMask,
+            0,
+            0,
+            nullptr,
+            0,
+            nullptr,
+            static_cast<uint32_t>(barriers.size()),
+            barriers.data());
+    }
+
     VKSwapChain::VKSwapChain(const VKPhysicalDevice& physicalDevice, const VKDevice& device, uint32_t width, uint32_t height):
-    device{device.getDevice()} {
+        device{device.getDevice()} {
         vkGetDeviceQueue(
             device.getDevice(),
             device.getPresentQueueFamilyIndex(),
@@ -597,18 +727,18 @@ namespace dxvk::backend {
             static_cast<int32_t>(swapChainExtent.height),
             1,
         };
-        colorImageBlit.srcOffsets[0]                 = vkOffset0;
-        colorImageBlit.srcOffsets[1]                 = vkOffset1;
-        colorImageBlit.srcSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-        colorImageBlit.srcSubresource.mipLevel       = 0;
-        colorImageBlit.srcSubresource.baseArrayLayer = 0;
-        colorImageBlit.srcSubresource.layerCount     = 1;
-        colorImageBlit.dstOffsets[0]                 = vkOffset0;
-        colorImageBlit.dstOffsets[1]                 = vkOffset1;
-        colorImageBlit.dstSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-        colorImageBlit.dstSubresource.mipLevel       = 0;
-        colorImageBlit.dstSubresource.baseArrayLayer = 0;
-        colorImageBlit.dstSubresource.layerCount     = 1;
+        // colorImageBlit.srcOffsets[0]                 = vkOffset0;
+        // colorImageBlit.srcOffsets[1]                 = vkOffset1;
+        // colorImageBlit.srcSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+        // colorImageBlit.srcSubresource.mipLevel       = 0;
+        // colorImageBlit.srcSubresource.baseArrayLayer = 0;
+        // colorImageBlit.srcSubresource.layerCount     = 1;
+        // colorImageBlit.dstOffsets[0]                 = vkOffset0;
+        // colorImageBlit.dstOffsets[1]                 = vkOffset1;
+        // colorImageBlit.dstSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+        // colorImageBlit.dstSubresource.mipLevel       = 0;
+        // colorImageBlit.dstSubresource.baseArrayLayer = 0;
+        // colorImageBlit.dstSubresource.layerCount     = 1;
     }
 
     VKSwapChain::SwapChainSupportDetails VKSwapChain::querySwapChainSupport(
@@ -679,23 +809,7 @@ namespace dxvk::backend {
 
     void VKSwapChain::present(FrameData& frameData) {
         auto& data = static_cast<VKFrameData&>(frameData);
-        // {
-        //     const VkSubmitInfo2 submitInfo {
-        //         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
-        //         .waitSemaphoreInfoCount = 1,
-        //         .pWaitSemaphoreInfos = &data.imageAvailableSemaphoreSubmitInfo,
-        //         .commandBufferInfoCount = 0,
-        //         .pCommandBufferInfos = nullptr,
-        //         .signalSemaphoreInfoCount = 1,
-        //         .pSignalSemaphoreInfos = &data.renderFinishedSemaphoreSubmitInfo
-        //     };
-        //
-        //     const auto result = vkQueueSubmit2(graphicsQueue, 1, &submitInfo, data.inFlightFence);
-        //     if (result != VK_SUCCESS) {
-        //         die("failed to submit draw command buffer : ");
-        //         return;
-        //     }
-        // }
+
         {
             const VkSwapchainKHR   swapChains[] = { swapChain };
             const VkPresentInfoKHR presentInfo{
@@ -713,16 +827,66 @@ namespace dxvk::backend {
         }
     }
 
-    void VKSwapChain::prepare(FrameData& frameData) {
+    void VKSwapChain::begin(FrameData& frameData, std::shared_ptr<CommandList>& commandList) {
+        auto& data = static_cast<VKFrameData&>(frameData);
+        const VkImageMemoryBarrier barrier = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .srcAccessMask = 0,
+            .dstAccessMask =  VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = swapChainImages[data.imageIndex],
+            .subresourceRange = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = 1
+            }
+        };
+        static_pointer_cast<VKCommandList>(commandList)->pipelineBarrier(
+            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            {barrier});
+    }
+
+    void VKSwapChain::end(FrameData& frameData, std::shared_ptr<CommandList>& commandList) {
+        auto& data = static_cast<VKFrameData&>(frameData);
+        const VkImageMemoryBarrier barrier = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            .dstAccessMask = 0,
+            .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = swapChainImages[data.imageIndex],
+            .subresourceRange = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = VK_REMAINING_ARRAY_LAYERS
+            }
+        };
+        static_pointer_cast<VKCommandList>(commandList)->pipelineBarrier(
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+            {barrier});
+    }
+
+    void VKSwapChain::acquire(FrameData& frameData) {
         auto& data = static_cast<VKFrameData&>(frameData);
         // wait until the GPU has finished rendering the frame.
-        // {
-        //     if (vkWaitForFences(device, 1, &data.inFlightFence, VK_TRUE, UINT64_MAX) == VK_TIMEOUT) {
-        //         die("timeout waiting for inFlightFence");
-        //         // return;
-        //     }
-        //     vkResetFences(device, 1, &data.inFlightFence);
-        // }
+        {
+            if (vkWaitForFences(device, 1, &data.inFlightFence, VK_TRUE, UINT64_MAX) == VK_TIMEOUT) {
+                die("timeout waiting for inFlightFence");
+                // return;
+            }
+            vkResetFences(device, 1, &data.inFlightFence);
+        }
         // get the next available swap chain image
         {
             const auto result = vkAcquireNextImageKHR(

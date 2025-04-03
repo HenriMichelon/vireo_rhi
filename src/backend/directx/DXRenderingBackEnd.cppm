@@ -12,6 +12,7 @@ export namespace dxvk::backend {
     class DXInstance : public Instance {
     public:
         DXInstance();
+
         auto getFactory() { return factory; }
 
     private:
@@ -21,6 +22,7 @@ export namespace dxvk::backend {
     class DXPhysicalDevice : public PhysicalDevice {
     public:
         DXPhysicalDevice(ComPtr<IDXGIFactory4> factory);
+
         auto getHardwareAdapater() { return hardwareAdapter4; }
 
     private:
@@ -31,11 +33,15 @@ export namespace dxvk::backend {
     public:
         DXDevice(ComPtr<IDXGIAdapter4> hardwareAdapter4);
 
+        void waitIdle() override {};
+
         auto getDevice() { return device; }
 
         auto getInFlightFence() { return inFlightFence; }
 
         auto getInFlightFenceEvent() const { return inFlightFenceEvent;}
+
+        std::shared_ptr<CommandAllocator> createCommandAllocator(CommandAllocator::Type type) const override { return nullptr; }
 
     private:
         ComPtr<ID3D12Device> device;
@@ -43,12 +49,30 @@ export namespace dxvk::backend {
         HANDLE               inFlightFenceEvent;
     };
 
-    class DXCommandQueue : public CommandQueue{
+    class DXSubmitQueue : public SubmitQueue{
     public:
-        DXCommandQueue(ComPtr<ID3D12Device> device);
+        DXSubmitQueue(ComPtr<ID3D12Device> device);
+
         auto getCommandQueue() { return commandQueue; }
+
+        void submit(const FrameData& frameData, std::vector<std::shared_ptr<CommandList>> commandLists) override { }
+
     private:
         ComPtr<ID3D12CommandQueue> commandQueue;
+    };
+
+    class DXCommandAllocator : public CommandAllocator {
+    public:
+        ~DXCommandAllocator() override = default;
+
+        std::shared_ptr<CommandList> createCommandList() const override { return nullptr; }
+
+    private:
+    };
+
+    class DXCommandList : public CommandList {
+    public:
+        ~DXCommandList() override = default;
     };
 
     class DXSwapChain : public SwapChain {
@@ -63,7 +87,7 @@ export namespace dxvk::backend {
 
         void nextSwapChain() override;
 
-        void prepare(FrameData& frameData) override;
+        void acquire(FrameData& frameData) override;
 
         void present(FrameData& frameData) override;
 
@@ -82,17 +106,19 @@ export namespace dxvk::backend {
 
         std::shared_ptr<FrameData> createFrameData(uint32_t frameIndex) override;
 
+        void destroyFrameData(std::shared_ptr<FrameData> frameData) override {};
+
         auto getDXInstance() const { return std::reinterpret_pointer_cast<DXInstance>(instance); }
 
         auto getDXPhysicalDevice() const { return std::reinterpret_pointer_cast<DXPhysicalDevice>(physicalDevice); }
 
         auto getDXDevice() const { return std::reinterpret_pointer_cast<DXDevice>(device); }
 
-        auto getDXGraphicCommandQueue() const { return std::reinterpret_pointer_cast<DXCommandQueue>(graphicCommandQueue); }
+        auto getDXGraphicCommandQueue() const { return std::reinterpret_pointer_cast<DXSubmitQueue>(graphicCommandQueue); }
 
-        auto getDXPresentCommandQueue() const { return std::reinterpret_pointer_cast<DXCommandQueue>(presentCommandQueue); }
+        auto getDXPresentCommandQueue() const { return std::reinterpret_pointer_cast<DXSubmitQueue>(presentCommandQueue); }
 
-        auto getDXTransferCommandQueue() const { return std::reinterpret_pointer_cast<DXCommandQueue>(transferCommandQueue); }
+        auto getDXTransferCommandQueue() const { return std::reinterpret_pointer_cast<DXSubmitQueue>(transferCommandQueue); }
 
         auto getDXSwapChain() const { return std::reinterpret_pointer_cast<DXSwapChain>(swapChain); }
     };

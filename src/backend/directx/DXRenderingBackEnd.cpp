@@ -14,7 +14,7 @@ namespace dxvk::backend {
         instance = std::make_shared<DXInstance>();
         physicalDevice = std::make_shared<DXPhysicalDevice>(getDXInstance()->getFactory());
         device = std::make_shared<DXDevice>(getDXPhysicalDevice()->getHardwareAdapater());
-        graphicCommandQueue = std::make_shared<DXCommandQueue>(getDXDevice()->getDevice());
+        graphicCommandQueue = std::make_shared<DXSubmitQueue>(getDXDevice()->getDevice());
         transferCommandQueue = graphicCommandQueue; // TODO multiple queues for threading
         presentCommandQueue = graphicCommandQueue; // TODO multiple queues for threading
         swapChain = std::make_shared<DXSwapChain>(
@@ -101,7 +101,7 @@ namespace dxvk::backend {
         }
     }
 
-    DXCommandQueue::DXCommandQueue(ComPtr<ID3D12Device> device) {
+    DXSubmitQueue::DXSubmitQueue(ComPtr<ID3D12Device> device) {
         // Describe and create the command queue.
         D3D12_COMMAND_QUEUE_DESC queueDesc = {};
         queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
@@ -166,7 +166,7 @@ namespace dxvk::backend {
         currentFrameIndex = swapChain->GetCurrentBackBufferIndex();
     }
 
-    void DXSwapChain::prepare(FrameData& frameData) {
+    void DXSwapChain::acquire(FrameData& frameData) {
         auto& data = static_cast<DXFrameData&>(frameData);
         // If the next frame is not ready to be rendered yet, wait until it is ready.
         if (device.getInFlightFence()->GetCompletedValue() < data.inFlightFenceValue) {

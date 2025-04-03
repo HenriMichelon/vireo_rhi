@@ -47,6 +47,7 @@ export namespace dxvk {
         std::wstring m_assetsPath;
         std::wstring m_title;
         std::vector<std::shared_ptr<backend::FrameData>> framesData{backend::SwapChain::FRAMES_IN_FLIGHT};
+        std::shared_ptr<backend::CommandAllocator> commandAllocator;
 
     };
 }

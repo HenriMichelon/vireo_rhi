@@ -99,6 +99,8 @@ export namespace dxvk::backend {
         VKDevice(const VKPhysicalDevice& physicalDevice, const std::vector<const char *>& requestedLayers);
         ~VKDevice() override;
 
+        void waitIdle();
+
         auto getDevice() const { return device; }
 
         auto getGraphicsQueueFamilyIndex() const { return graphicsQueueFamilyIndex; }
@@ -114,6 +116,15 @@ export namespace dxvk::backend {
                                     uint32_t           layers = 1,
                                     uint32_t           baseMipLevel = 0) const;
 
+        std::shared_ptr<CommandAllocator> createCommandAllocator(CommandAllocator::Type type) const override;
+
+        static VkImageMemoryBarrier imageMemoryBarrier(
+          VkImage image,
+          VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask,
+          VkImageLayout oldLayout, VkImageLayout newLayout,
+          uint32_t baseMipLevel = 0,
+          uint32_t levelCount = VK_REMAINING_MIP_LEVELS);
+
     private:
         VkDevice    device{VK_NULL_HANDLE};
         uint32_t    presentQueueFamilyIndex;
@@ -122,15 +133,51 @@ export namespace dxvk::backend {
         uint32_t    computeQueueFamilyIndex;
     };
 
-    class VKCommandQueue : public CommandQueue {
+    class VKSubmitQueue : public SubmitQueue {
     public:
-        VKCommandQueue(const VKDevice& device);
-        ~VKCommandQueue() override;
+        VKSubmitQueue(const VKDevice& device);
+
+        ~VKSubmitQueue() override;
 
         auto getCommandQueue() const { return commandQueue; }
 
+        void submit(const FrameData& frameData, std::vector<std::shared_ptr<CommandList>> commandLists) override;
+
     private:
         VkQueue commandQueue;
+    };
+
+    class VKCommandAllocator : public CommandAllocator {
+    public:
+        VKCommandAllocator(VkDevice device, VkCommandPool commandPool);
+        ~VKCommandAllocator() override;
+
+        std::shared_ptr<CommandList> createCommandList() const override;
+
+    private:
+        VkDevice      device;
+        VkCommandPool commandPool;
+    };
+
+    class VKCommandList : public CommandList {
+    public:
+        VKCommandList(VkCommandBuffer commandBuffer);
+
+        ~VKCommandList() override;
+
+        void begin() override;
+
+        void end() override;
+
+        auto getCommandBuffer() const { return commandBuffer; }
+
+        void pipelineBarrier(
+            VkPipelineStageFlags srcStageMask,
+            VkPipelineStageFlags dstStageMask,
+            const std::vector<VkImageMemoryBarrier>& barriers) const;
+
+    private:
+        VkCommandBuffer commandBuffer;
     };
 
     class VKSwapChain : public SwapChain {
@@ -142,9 +189,14 @@ export namespace dxvk::backend {
 
         void nextSwapChain() override;
 
+        void acquire(FrameData& frameData) override;
+
+        void begin(FrameData& frameData, std::shared_ptr<CommandList>& commandList) override;
+
+        void end(FrameData& frameData, std::shared_ptr<CommandList>& commandList) override;
+
         void present(FrameData& framesData) override;
 
-        void prepare(FrameData& frameData) override;
 
     private:
         VkDevice                    device;
@@ -154,7 +206,6 @@ export namespace dxvk::backend {
         VkExtent2D                  swapChainExtent;
         float                       swapChainRatio;
         std::vector<VkImageView>    swapChainImageViews;
-        VkImageBlit                 colorImageBlit{};
         VkQueue                     presentQueue;
 
         // For Device::querySwapChainSupport()
@@ -186,11 +237,12 @@ export namespace dxvk::backend {
         VKRenderingBackEnd(uint32_t width, uint32_t height);
 
         std::shared_ptr<FrameData> createFrameData(uint32_t frameIndex) override;
+        void destroyFrameData(std::shared_ptr<FrameData> frameData) override;
 
         auto getVKInstance() const { return std::reinterpret_pointer_cast<VKInstance>(instance); }
         auto getVKPhysicalDevice() const { return std::reinterpret_pointer_cast<VKPhysicalDevice>(physicalDevice); }
         auto getVKDevice() const { return std::reinterpret_pointer_cast<VKDevice>(device); }
-        auto getVKGraphicCommandQueue() const { return std::reinterpret_pointer_cast<VKCommandQueue>(graphicCommandQueue); }
+        auto getVKGraphicCommandQueue() const { return std::reinterpret_pointer_cast<VKSubmitQueue>(graphicCommandQueue); }
     };
 
 }
