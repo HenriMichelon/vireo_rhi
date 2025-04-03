@@ -140,7 +140,6 @@ export namespace dxvk::backend {
 
         auto getSwapChain() { return swapChain; }
 
-
         void nextSwapChain() override;
 
         void present(FrameData& framesData) override;

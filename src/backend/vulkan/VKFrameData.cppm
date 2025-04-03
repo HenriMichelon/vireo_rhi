@@ -9,7 +9,10 @@ export namespace dxvk::backend {
 
     struct VKFrameData : FrameData {
         VkSemaphore             imageAvailableSemaphore;
+        VkSemaphoreSubmitInfo   imageAvailableSemaphoreSubmitInfo;
         VkSemaphore             renderFinishedSemaphore;
+        VkSemaphoreSubmitInfo   renderFinishedSemaphoreSubmitInfo;
+        VkFence                 inFlightFence;
         uint32_t                imageIndex;
     };
 

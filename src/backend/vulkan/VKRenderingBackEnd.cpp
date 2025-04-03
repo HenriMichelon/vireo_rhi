@@ -51,7 +51,34 @@ namespace dxvk::backend {
     }
 
     shared_ptr<FrameData> VKRenderingBackEnd::createFrameData(const uint32_t frameIndex) {
-        return make_shared<VKFrameData>();
+        auto data = make_shared<VKFrameData>();
+        constexpr VkSemaphoreCreateInfo semaphoreInfo{
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
+        };
+        constexpr VkFenceCreateInfo fenceInfo{
+            .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+            .flags = VK_FENCE_CREATE_SIGNALED_BIT
+        };
+        if (vkCreateSemaphore(getVKDevice()->getDevice(), &semaphoreInfo, nullptr, &data->imageAvailableSemaphore) != VK_SUCCESS
+            || vkCreateSemaphore(getVKDevice()->getDevice(), &semaphoreInfo, nullptr, &data->renderFinishedSemaphore) != VK_SUCCESS
+            || vkCreateFence(getVKDevice()->getDevice(), &fenceInfo, nullptr, &data->inFlightFence) != VK_SUCCESS) {
+            die("failed to create semaphores!");
+        }
+        data->imageAvailableSemaphoreSubmitInfo = {
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+            .semaphore = data->imageAvailableSemaphore,
+            .value = 1,
+            .stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR,
+            .deviceIndex = 0
+        };
+        data->renderFinishedSemaphoreSubmitInfo = {
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+            .semaphore = data->renderFinishedSemaphore,
+            .value = 1,
+            .stageMask = VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
+            .deviceIndex = 0
+        };
+        return data;
     }
 
     VKInstance::VKInstance() {
@@ -652,39 +679,68 @@ namespace dxvk::backend {
 
     void VKSwapChain::present(FrameData& frameData) {
         auto& data = static_cast<VKFrameData&>(frameData);
-        const VkSwapchainKHR   swapChains[] = { swapChain };
-        const VkPresentInfoKHR presentInfo{
-            .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-            .waitSemaphoreCount = 1,
-            .pWaitSemaphores    = &data.renderFinishedSemaphore,
-            .swapchainCount     = 1,
-            .pSwapchains        = swapChains,
-            .pImageIndices      = &data.imageIndex,
-            .pResults           = nullptr // Optional
-        };
-        if (vkQueuePresentKHR(presentQueue, &presentInfo) != VK_SUCCESS) {
-            die("failed to present swap chain image!");
+        // {
+        //     const VkSubmitInfo2 submitInfo {
+        //         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+        //         .waitSemaphoreInfoCount = 1,
+        //         .pWaitSemaphoreInfos = &data.imageAvailableSemaphoreSubmitInfo,
+        //         .commandBufferInfoCount = 0,
+        //         .pCommandBufferInfos = nullptr,
+        //         .signalSemaphoreInfoCount = 1,
+        //         .pSignalSemaphoreInfos = &data.renderFinishedSemaphoreSubmitInfo
+        //     };
+        //
+        //     const auto result = vkQueueSubmit2(graphicsQueue, 1, &submitInfo, data.inFlightFence);
+        //     if (result != VK_SUCCESS) {
+        //         die("failed to submit draw command buffer : ");
+        //         return;
+        //     }
+        // }
+        {
+            const VkSwapchainKHR   swapChains[] = { swapChain };
+            const VkPresentInfoKHR presentInfo{
+                .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+                .waitSemaphoreCount = 1,
+                .pWaitSemaphores    = &data.renderFinishedSemaphore,
+                .swapchainCount     = 1,
+                .pSwapchains        = swapChains,
+                .pImageIndices      = &data.imageIndex,
+                .pResults           = nullptr // Optional
+            };
+            if (vkQueuePresentKHR(presentQueue, &presentInfo) != VK_SUCCESS) {
+                die("failed to present swap chain image!");
+            }
         }
     }
 
     void VKSwapChain::prepare(FrameData& frameData) {
         auto& data = static_cast<VKFrameData&>(frameData);
+        // wait until the GPU has finished rendering the frame.
+        // {
+        //     if (vkWaitForFences(device, 1, &data.inFlightFence, VK_TRUE, UINT64_MAX) == VK_TIMEOUT) {
+        //         die("timeout waiting for inFlightFence");
+        //         // return;
+        //     }
+        //     vkResetFences(device, 1, &data.inFlightFence);
+        // }
         // get the next available swap chain image
-        const auto result = vkAcquireNextImageKHR(
-             device,
-             swapChain,
-             UINT64_MAX,
-             data.imageAvailableSemaphore,
-             VK_NULL_HANDLE,
-             &data.imageIndex);
-        if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-            die("not implemented");
-            // recreateSwapChain();
-            // for (const auto &renderer : renderers) { renderer->recreateImagesResources(); }
-            // return;
-        }
-        if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-            die("failed to acquire swap chain image :", to_string(result));
+        {
+            const auto result = vkAcquireNextImageKHR(
+                 device,
+                 swapChain,
+                 UINT64_MAX,
+                 data.imageAvailableSemaphore,
+                 VK_NULL_HANDLE,
+                 &data.imageIndex);
+            if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+                die("not implemented");
+                // recreateSwapChain();
+                // for (const auto &renderer : renderers) { renderer->recreateImagesResources(); }
+                // return;
+            }
+            if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+                die("failed to acquire swap chain image :", to_string(result));
+            }
         }
     }
 
