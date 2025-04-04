@@ -41,7 +41,7 @@ export namespace dxvk::backend {
 
         auto getInFlightFenceEvent() const { return inFlightFenceEvent;}
 
-        std::shared_ptr<CommandAllocator> createCommandAllocator(CommandAllocator::Type type) const override { return nullptr; }
+        std::shared_ptr<CommandAllocator> createCommandAllocator(CommandAllocator::Type type) const override;
 
     private:
         ComPtr<ID3D12Device> device;
@@ -63,16 +63,26 @@ export namespace dxvk::backend {
 
     class DXCommandAllocator : public CommandAllocator {
     public:
-        ~DXCommandAllocator() override = default;
+        DXCommandAllocator(ComPtr<ID3D12Device> device);
 
-        std::shared_ptr<CommandList> createCommandList() const override { return nullptr; }
+        std::shared_ptr<CommandList> createCommandList() const override;
 
     private:
+        ComPtr<ID3D12Device>           device;
+        ComPtr<ID3D12CommandAllocator> commandAllocator;
     };
 
     class DXCommandList : public CommandList {
     public:
+        DXCommandList(ComPtr<ID3D12Device> device, ComPtr<ID3D12CommandAllocator> commandAllocator);
+
+        void begin() override;
+        void end() override;
+
         ~DXCommandList() override = default;
+    private:
+        ComPtr<ID3D12GraphicsCommandList> commandList;
+        ComPtr<ID3D12CommandAllocator>    commandAllocator;
     };
 
     class DXSwapChain : public SwapChain {
@@ -106,7 +116,7 @@ export namespace dxvk::backend {
 
         std::shared_ptr<FrameData> createFrameData(uint32_t frameIndex) override;
 
-        void destroyFrameData(std::shared_ptr<FrameData> frameData) override {};
+        void destroyFrameData(std::shared_ptr<FrameData> frameData) override {}
 
         auto getDXInstance() const { return std::reinterpret_pointer_cast<DXInstance>(instance); }
 

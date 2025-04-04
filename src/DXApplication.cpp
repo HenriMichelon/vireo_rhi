@@ -37,17 +37,12 @@ namespace dxvk {
     }
 
     void DXApplication::OnRender() {
-        auto backend = std::static_pointer_cast<backend::DXRenderingBackEnd>(renderingBackEnd);
-        auto m_commandQueue = backend->getDXGraphicCommandQueue()->getCommandQueue();
-
         // Record all the commands we need to render the scene into the command list.
         PopulateCommandList();
 
         // Execute the command list.
         ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
         m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-
-        // Present the frame.
     }
 
     void DXApplication::OnDestroy() {
@@ -70,7 +65,7 @@ namespace dxvk {
         // However, when ExecuteCommandList() is called on a particular command
         // list, that command list can then be reset at any time and must be before
         // re-recording.
-        ThrowIfFailed(m_commandList->Reset(m_commandAllocator.Get(), m_pipelineState.Get()));
+//        ThrowIfFailed(m_commandList->Reset(m_commandAllocator.Get(), m_pipelineState.Get()));
 
         // Set necessary state.
         m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
@@ -105,14 +100,11 @@ namespace dxvk {
         auto barrier2 = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_frameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
         m_commandList->ResourceBarrier(1, &barrier2);
 
-        ThrowIfFailed(m_commandList->Close());
+//        ThrowIfFailed(m_commandList->Close());
 
     }
 
     void DXApplication::LoadAssets() {
-        auto backend = std::static_pointer_cast<backend::DXRenderingBackEnd>(renderingBackEnd);
-        auto m_device = backend->getDXDevice()->getDevice();
-        auto m_commandQueue = backend->getDXGraphicCommandQueue()->getCommandQueue();
         // Create the root signature.
         {
 
@@ -206,7 +198,7 @@ namespace dxvk {
         }
 
         // Create the command list.
-        ThrowIfFailed(m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), m_pipelineState.Get(), IID_PPV_ARGS(&m_commandList)));
+       // ThrowIfFailed(m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), m_pipelineState.Get(), IID_PPV_ARGS(&m_commandList)));
 
         // Create the vertex buffer.
         {
@@ -377,8 +369,6 @@ namespace dxvk {
 
         }
 
-
-        ThrowIfFailed(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator)));
     }
 
 

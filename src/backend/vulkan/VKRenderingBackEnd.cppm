@@ -107,6 +107,10 @@ export namespace dxvk::backend {
 
         auto getPresentQueueFamilyIndex() const { return presentQueueFamilyIndex; }
 
+        auto getComputeQueueFamilyIndex() const { return computeQueueFamilyIndex; }
+
+        auto getTransferQueueFamilyIndex() const { return transferQueueFamilyIndex; }
+
         VkImageView createImageView(VkImage            image,
                                     VkFormat           format,
                                     VkImageAspectFlags aspectFlags,
@@ -149,7 +153,7 @@ export namespace dxvk::backend {
 
     class VKCommandAllocator : public CommandAllocator {
     public:
-        VKCommandAllocator(VkDevice device, VkCommandPool commandPool);
+        VKCommandAllocator(const VKDevice& device, Type type);
         ~VKCommandAllocator() override;
 
         std::shared_ptr<CommandList> createCommandList() const override;

@@ -18,15 +18,16 @@ namespace dxvk {
         GetAssetsPath(assetsPath, _countof(assetsPath));
         m_assetsPath = assetsPath;
         m_aspectRatio = static_cast<float>(width) / static_cast<float>(height);
-        // renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>(width, height);
-        renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>(width, height);
+        renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>(width, height);
+        // renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>(width, height);
     }
 
     void Application::OnInit() {
         for (uint32_t i = 0; i < backend::SwapChain::FRAMES_IN_FLIGHT; i++) {
             framesData[i] = renderingBackEnd->createFrameData(i);
+            graphicCommandAllocator[i] = renderingBackEnd->getDevice()->createCommandAllocator(backend::CommandAllocator::GRAPHIC);
+            graphicCommandList[i] = graphicCommandAllocator[i]->createCommandList();
         }
-        commandAllocator = renderingBackEnd->getDevice()->createCommandAllocator(backend::CommandAllocator::GRAPHIC);
     }
 
     void Application::OnUpdate() {
@@ -35,9 +36,10 @@ namespace dxvk {
     void Application::OnRender() {
         auto& swapChain = renderingBackEnd->getSwapChain();
         auto& frameData = *framesData[swapChain->getCurrentFrameIndex()];
+        auto& commandList = graphicCommandList[swapChain->getCurrentFrameIndex()];
+
         swapChain->acquire(frameData);
 
-        auto commandList = commandAllocator->createCommandList();
         commandList->begin();
         swapChain->begin(frameData, commandList);
         //draw
@@ -54,24 +56,20 @@ namespace dxvk {
         for (uint32_t i = 0; i < backend::SwapChain::FRAMES_IN_FLIGHT; i++) {
             renderingBackEnd->destroyFrameData(framesData[i]);
         }
-        // WaitForPreviousFrame();
     }
 
-    std::wstring Application::GetAssetFullPath(LPCWSTR assetName)
-    {
+    std::wstring Application::GetAssetFullPath(LPCWSTR assetName) {
         return m_assetsPath + assetName;
     }
 
     // Helper function for setting the window's title text.
-    void Application::SetCustomWindowText(LPCWSTR text)
-    {
+    void Application::SetCustomWindowText(LPCWSTR text) {
         std::wstring windowText = m_title + L": " + text;
         SetWindowText(Win32Application::getHwnd(), windowText.c_str());
     }
 
     // Generate a simple black and white checkerboard texture.
-    std::vector<UINT8> Application::GenerateTextureData()
-    {
+    std::vector<UINT8> Application::GenerateTextureData() {
         const UINT rowPitch = TextureWidth * TexturePixelSize;
         const UINT cellPitch = rowPitch >> 3;        // The width of a cell in the checkboard texture.
         const UINT cellHeight = TextureWidth >> 3;    // The height of a cell in the checkerboard texture.

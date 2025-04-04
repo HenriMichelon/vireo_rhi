@@ -531,18 +531,7 @@ namespace dxvk::backend {
     }
 
     std::shared_ptr<CommandAllocator> VKDevice::createCommandAllocator(CommandAllocator::Type type) const {
-        const VkCommandPoolCreateInfo poolInfo           = {
-            .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-            .flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, // TODO optional
-            .queueFamilyIndex = type == CommandAllocator::COMPUTE ? computeQueueFamilyIndex :
-                type == CommandAllocator::TRANSFER ? transferQueueFamilyIndex :
-                graphicsQueueFamilyIndex
-        };
-        VkCommandPool commandPool;
-        if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
-            die("Failed to create a command pool");
-        }
-        return std::make_shared<VKCommandAllocator>(device, commandPool);
+        return std::make_shared<VKCommandAllocator>(*this, type);
     }
 
     void VKDevice::waitIdle() {
@@ -589,9 +578,18 @@ namespace dxvk::backend {
         }
     }
 
-    VKCommandAllocator::VKCommandAllocator(VkDevice device, VkCommandPool commandPool):
-        device(device),
-        commandPool(commandPool) {
+    VKCommandAllocator::VKCommandAllocator(const VKDevice& device, CommandAllocator::Type type):
+        device(device.getDevice()) {
+        const VkCommandPoolCreateInfo poolInfo           = {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+            .flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, // TODO optional
+            .queueFamilyIndex = type == COMPUTE ? device.getComputeQueueFamilyIndex() :
+                type == TRANSFER ?  device.getTransferQueueFamilyIndex() :
+                 device.getGraphicsQueueFamilyIndex()
+        };
+        if (vkCreateCommandPool(device.getDevice(), &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
+            die("Failed to create a command pool");
+        }
     }
 
     VKCommandAllocator::~VKCommandAllocator() {

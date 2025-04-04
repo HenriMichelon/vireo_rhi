@@ -101,12 +101,43 @@ namespace dxvk::backend {
         }
     }
 
+    std::shared_ptr<CommandAllocator> DXDevice::createCommandAllocator(CommandAllocator::Type type) const {
+        return std::make_shared<DXCommandAllocator>(device);
+    }
+
     DXSubmitQueue::DXSubmitQueue(ComPtr<ID3D12Device> device) {
         // Describe and create the command queue.
         D3D12_COMMAND_QUEUE_DESC queueDesc = {};
         queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
         queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
         ThrowIfFailed(device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&commandQueue)));
+    }
+
+    DXCommandAllocator::DXCommandAllocator(ComPtr<ID3D12Device> device):
+        device{device} {
+        ThrowIfFailed(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator)));
+    }
+
+    std::shared_ptr<CommandList> DXCommandAllocator::createCommandList() const {
+        return std::make_shared<DXCommandList>(device, commandAllocator);
+    }
+
+    DXCommandList::DXCommandList(ComPtr<ID3D12Device> device, ComPtr<ID3D12CommandAllocator> commandAllocator):
+        commandAllocator{commandAllocator} {
+        // ThrowIfFailed(device->CreateCommandList(
+        //     0,
+        //     D3D12_COMMAND_LIST_TYPE_DIRECT,
+        //     commandAllocator.Get(),
+        //     m_pipelineState.Get(),
+        //     IID_PPV_ARGS(&commandList)));
+    }
+
+    void DXCommandList::begin() {
+        //ThrowIfFailed(commandList->Reset(commandAllocator.Get(), m_pipelineState.Get()));
+    }
+
+    void DXCommandList::end() {
+        ThrowIfFailed(commandList->Close());
     }
 
     DXSwapChain::DXSwapChain(
