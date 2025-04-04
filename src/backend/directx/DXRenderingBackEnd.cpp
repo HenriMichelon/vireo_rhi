@@ -25,16 +25,7 @@ namespace dxvk::backend {
     }
 
     std::shared_ptr<FrameData> DXRenderingBackEnd::createFrameData(uint32_t frameIndex) {
-        auto frameData = std::make_shared<DXFrameData>();
-        // if (frameIndex == swapChain->getCurrentFrameIndex()) {
-        //     ThrowIfFailed(getDXPresentCommandQueue()->getCommandQueue()->Signal(
-        //         getDXDevice()->getInFlightFence().Get(),
-        //         frameData->inFlightFenceValue
-        //     ));
-        //     frameData->inFlightFenceValue++;
-        //     std::cout << frameData->inFlightFenceValue << std::endl;
-        // }
-        return frameData;
+        return std::make_shared<DXFrameData>();
     }
 
     DXInstance::DXInstance() {
@@ -42,8 +33,7 @@ namespace dxvk::backend {
 #if defined(_DEBUG)
         {
             ComPtr<ID3D12Debug> debugController;
-            if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
-            {
+            if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)))) {
                 debugController->EnableDebugLayer();
                 dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
             }
@@ -91,6 +81,14 @@ namespace dxvk::backend {
                   D3D_FEATURE_LEVEL_11_0,
                   IID_PPV_ARGS(&device)
           ));
+#if defined(_DEBUG)
+        ComPtr<ID3D12InfoQueue> infoQueue;
+        if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
+            infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, TRUE);
+            infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE);
+            infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, TRUE);
+        }
+#endif
         ThrowIfFailed(device->CreateFence(
             0,
             D3D12_FENCE_FLAG_NONE,
@@ -123,17 +121,20 @@ namespace dxvk::backend {
     }
 
     DXCommandList::DXCommandList(ComPtr<ID3D12Device> device, ComPtr<ID3D12CommandAllocator> commandAllocator):
+        device{device},
         commandAllocator{commandAllocator} {
-        // ThrowIfFailed(device->CreateCommandList(
-        //     0,
-        //     D3D12_COMMAND_LIST_TYPE_DIRECT,
-        //     commandAllocator.Get(),
-        //     m_pipelineState.Get(),
-        //     IID_PPV_ARGS(&commandList)));
+        ThrowIfFailed(device->CreateCommandList(
+            0,
+            D3D12_COMMAND_LIST_TYPE_DIRECT,
+            commandAllocator.Get(),
+            nullptr,
+            IID_PPV_ARGS(&commandList)));
+        ThrowIfFailed(commandList->Close());
     }
 
     void DXCommandList::begin() {
-        //ThrowIfFailed(commandList->Reset(commandAllocator.Get(), m_pipelineState.Get()));
+        ThrowIfFailed(commandAllocator->Reset());
+        ThrowIfFailed(commandList->Reset(commandAllocator.Get(), nullptr));
     }
 
     void DXCommandList::end() {

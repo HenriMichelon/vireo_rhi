@@ -54,13 +54,11 @@ namespace dxvk {
     }
 
     void DXApplication::PopulateCommandList() {
-        auto backend = std::static_pointer_cast<backend::DXRenderingBackEnd>(renderingBackEnd);
-        auto m_frameIndex = backend->getDXSwapChain()->getCurrentFrameIndex();
 
         // Command list allocators can only be reset when the associated
         // command lists have finished execution on the GPU; apps should use
         // fences to determine GPU execution progress.
-        ThrowIfFailed(m_commandAllocator->Reset());
+//        ThrowIfFailed(m_commandAllocator->Reset());
 
         // However, when ExecuteCommandList() is called on a particular command
         // list, that command list can then be reset at any time and must be before

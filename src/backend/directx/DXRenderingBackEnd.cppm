@@ -81,6 +81,7 @@ export namespace dxvk::backend {
 
         ~DXCommandList() override = default;
     private:
+        ComPtr<ID3D12Device>              device;
         ComPtr<ID3D12GraphicsCommandList> commandList;
         ComPtr<ID3D12CommandAllocator>    commandAllocator;
     };

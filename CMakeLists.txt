@@ -21,7 +21,18 @@ set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(D2D12Lite_DIR ${CMAKE_CURRENT_SOURCE_DIR}/D3D12Lite)
 
 #######################################################
-set(PROJECT_FILES
+add_executable(${MY_TARGET}
+        ${SRC_DIR}/main.cpp
+        ${SRC_DIR}/vulkan.cpp
+        ${SRC_DIR}/Application.cpp
+        ${SRC_DIR}/Win32Application.cpp
+        ${SRC_DIR}/backend/directx/DXRenderingBackEnd.cpp
+        ${SRC_DIR}/backend/vulkan/VKRenderingBackEnd.cpp
+)
+target_sources(${MY_TARGET}
+        PUBLIC
+        FILE_SET CXX_MODULES
+        FILES
         ${SRC_DIR}/Application.cppm
         ${SRC_DIR}/Win32Application.cppm
         ${SRC_DIR}/backend/FrameData.cppm
@@ -31,22 +42,7 @@ set(PROJECT_FILES
         ${SRC_DIR}/backend/vulkan/VKFrameData.cppm
         ${SRC_DIR}/backend/vulkan/VKRenderingBackEnd.cppm
 )
-add_executable(${PROJECT_NAME}
-        ${SRC_DIR}/main.cpp
-        ${SRC_DIR}/vulkan.cpp
-        ${SRC_DIR}/Application.cpp
-        ${SRC_DIR}/Win32Application.cpp
-        ${SRC_DIR}/backend/directx/DXRenderingBackEnd.cpp
-        ${SRC_DIR}/backend/vulkan/VKRenderingBackEnd.cpp
-)
 #######################################################
-
-target_sources(${MY_TARGET}
-        PUBLIC
-        FILE_SET CXX_MODULES
-        FILES
-        ${PROJECT_FILES}
-)
 
 compile_options(${MY_TARGET})
 target_include_directories(${MY_TARGET} PUBLIC ${INCLUDE_DIR})

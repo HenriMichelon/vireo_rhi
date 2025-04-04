@@ -11,8 +11,8 @@
 
 #pragma once
 #include "DXLibraries.h"
+#include "Tools.h"
 import std;
-
 
 // Note that while ComPtr is used to manage the lifetime of resources on the CPU,
 // it has no understanding of the lifetime of resources on the GPU. Apps must account
@@ -27,47 +27,44 @@ inline std::string HrToString(HRESULT hr)
     return std::string(s_str);
 }
 
-class HrException : public std::runtime_error
-{
-public:
-    HrException(HRESULT hr) : std::runtime_error(HrToString(hr)), m_hr(hr) {}
-    HRESULT Error() const { return m_hr; }
-private:
-    const HRESULT m_hr;
-};
-
 #define SAFE_RELEASE(p) if (p) (p)->Release()
 
-inline void ThrowIfFailed(HRESULT hr)
-{
+void PrintD3D12DebugMessages(ID3D12Device* device) {
+    ComPtr<ID3D12InfoQueue> infoQueue;
+    if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
+        const UINT64 numMessages = infoQueue->GetNumStoredMessages();
+        for (UINT64 i = 0; i < numMessages; ++i) {
+            SIZE_T messageLength = 0;
+            infoQueue->GetMessage(i, nullptr, &messageLength);
+            auto message = reinterpret_cast<D3D12_MESSAGE*>(malloc(messageLength));
+            infoQueue->GetMessage(i, message, &messageLength);
+
+            std::cerr << "D3D12 Debug: " << message->pDescription << std::endl;
+
+            free(message);
+        }
+
+        // Optional: clear the stored messages after printing
+        infoQueue->ClearStoredMessages();
+    }
+}
+
+inline void ThrowIfFailed(HRESULT hr) {
     if (FAILED(hr))
     {
-        throw HrException(hr);
+        die(HrToString(hr));
     }
 }
 
-inline void GetAssetsPath(_Out_writes_(pathSize) WCHAR* path, UINT pathSize)
-{
-    if (path == nullptr)
+inline void ThrowAndPrintIfFailed(HRESULT hr, ID3D12Device* device) {
+    if (FAILED(hr))
     {
-        throw std::exception();
-    }
-
-    DWORD size = GetModuleFileName(nullptr, path, pathSize);
-    if (size == 0 || size == pathSize)
-    {
-        // Method failed or path was truncated.
-        throw std::exception();
-    }
-
-    WCHAR* lastSlash = wcsrchr(path, L'\\');
-    if (lastSlash)
-    {
-        *(lastSlash + 1) = L'\0';
+        PrintD3D12DebugMessages(device);
+        die(HrToString(hr));
     }
 }
 
-inline HRESULT ReadDataFromFile(LPCWSTR filename, byte** data, UINT* size)
+inline HRESULT ReadDataFromFile(LPCWSTR filename, std::byte** data, UINT* size)
 {
     using namespace Microsoft::WRL;
 
@@ -100,7 +97,7 @@ inline HRESULT ReadDataFromFile(LPCWSTR filename, byte** data, UINT* size)
         throw std::exception();
     }
 
-    *data = reinterpret_cast<byte*>(malloc(fileInfo.EndOfFile.LowPart));
+    *data = reinterpret_cast<std::byte*>(malloc(fileInfo.EndOfFile.LowPart));
     *size = fileInfo.EndOfFile.LowPart;
 
     if (!ReadFile(file.Get(), *data, fileInfo.EndOfFile.LowPart, nullptr, nullptr))
@@ -111,7 +108,7 @@ inline HRESULT ReadDataFromFile(LPCWSTR filename, byte** data, UINT* size)
     return S_OK;
 }
 
-inline HRESULT ReadDataFromDDSFile(LPCWSTR filename, byte** data, UINT* offset, UINT* size)
+inline HRESULT ReadDataFromDDSFile(LPCWSTR filename, std::byte** data, UINT* offset, UINT* size)
 {
     if (FAILED(ReadDataFromFile(filename, data, size)))
     {
