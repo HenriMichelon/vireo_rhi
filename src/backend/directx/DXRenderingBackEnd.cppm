@@ -32,8 +32,7 @@ export namespace dxvk::backend {
     class DXDevice : public Device {
     public:
         DXDevice(ComPtr<IDXGIAdapter4> hardwareAdapter4);
-
-        void waitIdle() override {};
+        ~DXDevice() override;
 
         auto getDevice() { return device; }
 
@@ -81,6 +80,7 @@ export namespace dxvk::backend {
 
         ~DXCommandList() override = default;
     private:
+        ComPtr<ID3D12Device>              device;
         ComPtr<ID3D12GraphicsCommandList> commandList;
         ComPtr<ID3D12CommandAllocator>    commandAllocator;
     };

@@ -18,8 +18,8 @@ namespace dxvk {
         GetAssetsPath(assetsPath, _countof(assetsPath));
         m_assetsPath = assetsPath;
         m_aspectRatio = static_cast<float>(width) / static_cast<float>(height);
-        renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>(width, height);
-        // renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>(width, height);
+        // renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>(width, height);
+        renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>(width, height);
     }
 
     void Application::OnInit() {

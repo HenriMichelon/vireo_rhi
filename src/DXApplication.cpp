@@ -46,26 +46,9 @@ namespace dxvk {
     }
 
     void DXApplication::OnDestroy() {
-        // Ensure that the GPU is no longer referencing resources that are about to be
-        // cleaned up by the destructor.
-        WaitForPreviousFrame();
-
-        CloseHandle(m_fenceEvent);
     }
 
     void DXApplication::PopulateCommandList() {
-        auto backend = std::static_pointer_cast<backend::DXRenderingBackEnd>(renderingBackEnd);
-        auto m_frameIndex = backend->getDXSwapChain()->getCurrentFrameIndex();
-
-        // Command list allocators can only be reset when the associated
-        // command lists have finished execution on the GPU; apps should use
-        // fences to determine GPU execution progress.
-        ThrowIfFailed(m_commandAllocator->Reset());
-
-        // However, when ExecuteCommandList() is called on a particular command
-        // list, that command list can then be reset at any time and must be before
-        // re-recording.
-//        ThrowIfFailed(m_commandList->Reset(m_commandAllocator.Get(), m_pipelineState.Get()));
 
         // Set necessary state.
         m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
@@ -99,8 +82,6 @@ namespace dxvk {
         // Indicate that the back buffer will now be used to present.
         auto barrier2 = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_frameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
         m_commandList->ResourceBarrier(1, &barrier2);
-
-//        ThrowIfFailed(m_commandList->Close());
 
     }
 
@@ -196,9 +177,6 @@ namespace dxvk {
             psoDesc.SampleDesc.Count = 1;
             ThrowIfFailed(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
         }
-
-        // Create the command list.
-       // ThrowIfFailed(m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), m_pipelineState.Get(), IID_PPV_ARGS(&m_commandList)));
 
         // Create the vertex buffer.
         {

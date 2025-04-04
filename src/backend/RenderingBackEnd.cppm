@@ -41,7 +41,7 @@ export namespace dxvk::backend {
 
     class Device {
     public:
-        virtual void waitIdle() = 0;
+        virtual void waitIdle() {}
 
         virtual std::shared_ptr<CommandAllocator> createCommandAllocator(CommandAllocator::Type type) const = 0;
 
