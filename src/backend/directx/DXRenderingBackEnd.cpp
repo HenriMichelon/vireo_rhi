@@ -28,6 +28,30 @@ namespace dxvk::backend {
         return std::make_shared<DXFrameData>();
     }
 
+    std::shared_ptr<PipelineResources> DXRenderingBackEnd::createPipelineResources() {
+        return std::make_shared<DXPipelineResources>(getDXDevice()->getDevice());
+    }
+
+    std::shared_ptr<Pipeline> DXRenderingBackEnd::createPipeline(
+            PipelineResources& pipelineResources,
+            VertexInputLayout& vertexInputLayout,
+            ShaderModule& vertexShader,
+            ShaderModule& fragmentShader) {
+        return std::make_shared<DXPipeline>(getDXDevice()->getDevice(), pipelineResources, vertexInputLayout, vertexShader, fragmentShader);
+    }
+
+    std::shared_ptr<VertexInputLayout> DXRenderingBackEnd::createVertexLayout(
+        size_t,
+        std::vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) {
+        return std::make_shared<DXVertexInputLayout>(attributesDescriptions);
+    }
+
+    std::shared_ptr<ShaderModule> DXRenderingBackEnd::createShaderModule(
+        const std::string& fileName,
+        const std::string& entryPointName) {
+        return std::make_shared<DXShaderModule>(fileName, entryPointName);
+    }
+
     DXInstance::DXInstance() {
         UINT dxgiFactoryFlags = 0;
 #if defined(_DEBUG)
@@ -222,6 +246,113 @@ namespace dxvk::backend {
         auto& data = static_cast<DXFrameData&>(frameData);
         const UINT64 currentFenceValue = data.inFlightFenceValue;
         ThrowIfFailed(presentCommandQueue->Signal(device.getInFlightFence().Get(), currentFenceValue));
+    }
+
+    DXVertexInputLayout::DXVertexInputLayout(std::vector<AttributeDescription>& attributesDescriptions) {
+        for (int i = 0; i < attributesDescriptions.size(); i++) {
+            inputElementDescs.push_back({
+                .SemanticName = reinterpret_cast<LPCSTR>(attributesDescriptions[i].binding.c_str()),
+                .SemanticIndex = 0,
+                .Format = DXFormat[attributesDescriptions[i].format],
+                .InputSlot = 0,
+                .AlignedByteOffset = attributesDescriptions[i].offset,
+                .InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+                .InstanceDataStepRate = 0
+            });
+        }
+    }
+
+    DXShaderModule::DXShaderModule(const std::string& fileName, const std::string& entryPointName) {
+        std::ifstream shaderFile(fileName, std::ios::binary | std::ios::ate);
+        if (!shaderFile) {
+            die("Error loading shader " + fileName);
+        }
+
+        std::streamsize size = shaderFile.tellg();
+        shaderFile.seekg(0, std::ios::beg);
+
+        if (FAILED(D3DCreateBlob(size, &shader))) {
+            die("Error creating blob for  shader " + fileName);
+        }
+        shaderFile.read(reinterpret_cast<char*>(shader->GetBufferPointer()), size);
+// #if defined(_DEBUG)
+//         // Enable better shader debugging with the graphics debugging tools.
+//         UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+// #else
+//         UINT compileFlags = 0;
+// #endif
+        // ComPtr<ID3DBlob> errorMessages;
+        // std::wstring wFilePath(fileName.begin(), fileName.end());
+        // auto hr = D3DCompileFromFile(
+        //     wFilePath.c_str(),
+        //     nullptr,
+        //     nullptr,
+        //     entryPointName.c_str(),
+        //     "vs_5_0",
+        //     compileFlags,
+        //     0,
+        //     &shader,
+        //     &errorMessages);
+        // if (FAILED(hr)) {
+        //     if (errorMessages != nullptr) {
+        //         std::cerr << static_cast<const char*>(errorMessages->GetBufferPointer()) << std::endl;
+        //         errorMessages->Release();
+        //     }
+        //     ThrowIfFailed(hr);
+        // }
+    }
+
+    DXPipelineResources::DXPipelineResources(const ComPtr<ID3D12Device>& device) {
+        CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
+        rootSignatureDesc.Init(
+            0,
+            nullptr,
+            0,
+            nullptr,
+            D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+        ComPtr<ID3DBlob> signature;
+        ComPtr<ID3DBlob> error;
+        ThrowIfFailed(D3D12SerializeRootSignature(
+            &rootSignatureDesc,
+            D3D_ROOT_SIGNATURE_VERSION_1,
+            &signature,
+            &error));
+        ThrowIfFailed(device->CreateRootSignature(
+            0,
+            signature->GetBufferPointer(),
+            signature->GetBufferSize(),
+            IID_PPV_ARGS(&rootSignature)));
+    }
+
+    DXPipeline::DXPipeline(
+        const ComPtr<ID3D12Device>& device,
+        PipelineResources& pipelineResources,
+        VertexInputLayout& vertexInputLayout,
+        ShaderModule& vertexShader,
+        ShaderModule& fragmentShader) {
+        auto& dxVertexInputLayout = static_cast<DXVertexInputLayout&>(vertexInputLayout);
+        auto& dxPipelineResources = static_cast<DXPipelineResources&>(pipelineResources);
+        auto& dxVertexShader = static_cast<DXShaderModule&>(vertexShader);
+        auto& dxPixelShader = static_cast<DXShaderModule&>(fragmentShader);
+
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+        psoDesc.InputLayout = {
+            dxVertexInputLayout.getInputElementDescs().data(),
+            static_cast<UINT>(dxVertexInputLayout.getInputElementDescs().size())
+        };
+        psoDesc.pRootSignature = dxPipelineResources.getRootSignature().Get();
+        psoDesc.VS = CD3DX12_SHADER_BYTECODE(dxVertexShader.getShader().Get());
+        psoDesc.PS = CD3DX12_SHADER_BYTECODE(dxPixelShader.getShader().Get());
+        psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+        psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+        psoDesc.DepthStencilState.DepthEnable = FALSE;
+        psoDesc.DepthStencilState.StencilEnable = FALSE;
+        psoDesc.SampleMask = UINT_MAX;
+        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        psoDesc.NumRenderTargets = 1;
+        psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+        psoDesc.SampleDesc.Count = 1;
+        ThrowAndPrintIfFailed(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)), device.Get());
     }
 
 }

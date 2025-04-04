@@ -2,27 +2,6 @@
 import std;
 using namespace std;
 
-inline void GetAssetsPath(_Out_writes_(pathSize) WCHAR* path, UINT pathSize)
-{
-    if (path == nullptr)
-    {
-        throw std::exception();
-    }
-
-    DWORD size = GetModuleFileName(nullptr, path, pathSize);
-    if (size == 0 || size == pathSize)
-    {
-        // Method failed or path was truncated.
-        throw std::exception();
-    }
-
-    WCHAR* lastSlash = wcsrchr(path, L'\\');
-    if (lastSlash)
-    {
-        *(lastSlash + 1) = L'\0';
-    }
-}
-
 void die(convertible_to<string_view> auto&& ...s) {
     stringstream stringstream;
     for (const auto v : initializer_list<string_view>{ s... }) {
@@ -38,4 +17,14 @@ void die(convertible_to<string_view> auto&& ...s) {
     throw runtime_error(stringstream.str());
 #endif
 #endif
+}
+
+inline string wstring_to_string(const std::wstring &wstr) {
+    wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
+    return conv.to_bytes(wstr);
+}
+
+inline wstring string_to_wstring(const std::string &str) {
+    wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
+    return conv.from_bytes(str);
 }

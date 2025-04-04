@@ -14,9 +14,6 @@ namespace dxvk {
         m_width(width),
         m_height(height),
         m_title(name) {
-        WCHAR assetsPath[512];
-        GetAssetsPath(assetsPath, _countof(assetsPath));
-        m_assetsPath = assetsPath;
         m_aspectRatio = static_cast<float>(width) / static_cast<float>(height);
         // renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>(width, height);
         renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>(width, height);
@@ -28,6 +25,21 @@ namespace dxvk {
             graphicCommandAllocator[i] = renderingBackEnd->getDevice()->createCommandAllocator(backend::CommandAllocator::GRAPHIC);
             graphicCommandList[i] = graphicCommandAllocator[i]->createCommandList();
         }
+        pipelineResources["default"] = renderingBackEnd->createPipelineResources();
+        auto attributes = std::vector{
+            backend::VertexInputLayout::AttributeDescription{"POSITION", backend::VertexInputLayout::R32G32B32_FLOAT, 0},
+            backend::VertexInputLayout::AttributeDescription{"COLOR",    backend::VertexInputLayout::R32G32B32_FLOAT, 12}
+        };
+        auto defaultVertexInputLayout = renderingBackEnd->createVertexLayout(sizeof(Vertex), attributes);
+        // dxc -T "fs_5_0" -E "PSMain" -Fo shaders1_frag.cso .\shaders1.hlsl
+        auto vertexShader = renderingBackEnd->createShaderModule("shaders/shaders1_vert.cso", "VSMain");
+        // dxc -T "ps_5_0" -E "PSMain" -Fo shaders1_frag.cso .\shaders1.hlsl
+        auto fragmentShader = renderingBackEnd->createShaderModule("shaders/shaders1_frag.cso", "PSMain");
+        pipelines["default"] = renderingBackEnd->createPipeline(
+            *pipelineResources["default"],
+            *defaultVertexInputLayout,
+            *vertexShader,
+            *fragmentShader);
     }
 
     void Application::OnUpdate() {
@@ -56,10 +68,6 @@ namespace dxvk {
         for (uint32_t i = 0; i < backend::SwapChain::FRAMES_IN_FLIGHT; i++) {
             renderingBackEnd->destroyFrameData(framesData[i]);
         }
-    }
-
-    std::wstring Application::GetAssetFullPath(LPCWSTR assetName) {
-        return m_assetsPath + assetName;
     }
 
     // Helper function for setting the window's title text.

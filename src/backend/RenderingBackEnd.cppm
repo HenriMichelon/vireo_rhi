@@ -85,6 +85,36 @@ export namespace dxvk::backend {
         uint32_t    currentFrameIndex{0};
     };
 
+    class VertexInputLayout {
+    public:
+        enum AttributeFormat {
+            R32G32_FLOAT,
+            R32G32B32_FLOAT,
+            R32G32B32A32_FLOAT,
+        };
+        struct AttributeDescription {
+            std::string     binding;
+            AttributeFormat format;
+            uint32_t        offset;
+        };
+        virtual ~VertexInputLayout() = default;
+    };
+
+    class ShaderModule {
+    public:
+        virtual ~ShaderModule() = default;
+    };
+
+    class PipelineResources {
+    public:
+        virtual ~PipelineResources() = default;
+    };
+
+    class Pipeline {
+    public:
+        virtual ~Pipeline() = default;
+    };
+
     class RenderingBackEnd
     {
     public:
@@ -93,6 +123,22 @@ export namespace dxvk::backend {
         virtual std::shared_ptr<FrameData> createFrameData(uint32_t frameIndex) = 0;
 
         virtual void destroyFrameData(std::shared_ptr<FrameData> frameData) = 0;
+
+        virtual std::shared_ptr<VertexInputLayout> createVertexLayout(
+            size_t size,
+            std::vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) = 0;
+
+        virtual std::shared_ptr<ShaderModule> createShaderModule(
+            const std::string& fileName,
+            const std::string& entryPointName) = 0;
+
+        virtual std::shared_ptr<PipelineResources> createPipelineResources() = 0;
+
+        virtual std::shared_ptr<Pipeline> createPipeline(
+            PipelineResources& pipelineResources,
+            VertexInputLayout& vertexInputLayout,
+            ShaderModule& vertexShader,
+            ShaderModule& fragmentShader) = 0;
 
         auto& getInstance() const { return instance; }
 

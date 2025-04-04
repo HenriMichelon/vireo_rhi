@@ -1,4 +1,7 @@
 module;
+#include <map>
+#include <map>
+
 #include "Libraries.h"
 import std;
 
@@ -29,7 +32,6 @@ export namespace dxvk {
 
     protected:
         std::shared_ptr<backend::RenderingBackEnd> renderingBackEnd;
-        std::wstring GetAssetFullPath(LPCWSTR assetName);
 
         void SetCustomWindowText(LPCWSTR text);
 
@@ -44,11 +46,17 @@ export namespace dxvk {
         float m_aspectRatio;
 
     private:
-        std::wstring m_assetsPath;
+        struct Vertex {
+            glm::vec3 pos;
+            glm::vec4 color;
+        };
+
         std::wstring m_title;
         std::vector<std::shared_ptr<backend::FrameData>> framesData{backend::SwapChain::FRAMES_IN_FLIGHT};
         std::vector<std::shared_ptr<backend::CommandAllocator>> graphicCommandAllocator{backend::SwapChain::FRAMES_IN_FLIGHT};
         std::vector<std::shared_ptr<backend::CommandList>> graphicCommandList{backend::SwapChain::FRAMES_IN_FLIGHT};
+        std::map<std::string, std::shared_ptr<backend::PipelineResources>> pipelineResources;
+        std::map<std::string, std::shared_ptr<backend::Pipeline>> pipelines;
 
     };
 }

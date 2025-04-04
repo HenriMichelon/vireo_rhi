@@ -110,11 +110,77 @@ export namespace dxvk::backend {
         UINT                         rtvDescriptorSize{0};
     };
 
+    class DXVertexInputLayout : public VertexInputLayout {
+    public:
+        static constexpr DXGI_FORMAT DXFormat[] {
+            DXGI_FORMAT_R32G32_FLOAT,
+            DXGI_FORMAT_R32G32B32_FLOAT,
+            DXGI_FORMAT_R32G32B32A32_FLOAT
+        };
+
+        DXVertexInputLayout(std::vector<AttributeDescription>& attributesDescriptions);
+
+        const auto& getInputElementDescs() const { return inputElementDescs; }
+
+    private:
+        std::vector<D3D12_INPUT_ELEMENT_DESC> inputElementDescs;
+    };
+
+    class DXShaderModule: public ShaderModule {
+    public:
+        DXShaderModule(const std::string& fileName, const std::string& entryPointName);
+
+        auto getShader() const { return shader; }
+
+    private:
+        ComPtr<ID3DBlob> shader;
+    };
+
+
+    class DXPipelineResources : public PipelineResources {
+    public:
+        DXPipelineResources(const ComPtr<ID3D12Device>& device);
+
+        auto getRootSignature() const { return rootSignature; }
+
+    private:
+        ComPtr<ID3D12RootSignature> rootSignature;
+    };
+
+    class DXPipeline : public Pipeline {
+    public:
+        DXPipeline(
+            const ComPtr<ID3D12Device>& device,
+            PipelineResources& pipelineResources,
+            VertexInputLayout& vertexInputLayout,
+            ShaderModule& vertexShader,
+            ShaderModule& fragmentShader);
+
+    private:
+        ComPtr<ID3D12PipelineState> pipelineState;
+    };
+
     class DXRenderingBackEnd : public RenderingBackEnd {
     public:
         DXRenderingBackEnd(uint32_t width, uint32_t height);
 
         std::shared_ptr<FrameData> createFrameData(uint32_t frameIndex) override;
+
+        std::shared_ptr<VertexInputLayout> createVertexLayout(
+            size_t size,
+            std::vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) override;
+
+        std::shared_ptr<ShaderModule> createShaderModule(
+            const std::string& fileName,
+            const std::string& entryPointName) override;
+
+        std::shared_ptr<PipelineResources> createPipelineResources() override;
+
+        std::shared_ptr<Pipeline> createPipeline(
+            PipelineResources& pipelineResources,
+            VertexInputLayout& vertexInputLayout,
+            ShaderModule& vertexShader,
+            ShaderModule& fragmentShader) override;
 
         void destroyFrameData(std::shared_ptr<FrameData> frameData) override {}
 

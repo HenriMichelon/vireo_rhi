@@ -13,22 +13,13 @@ export namespace dxvk {
     public:
         DXApplication(UINT width, UINT height, std::wstring name);
 
-        void OnInit() override;
         void OnUpdate() override;
         void OnRender() override;
-        void OnDestroy() override;
 
     private:
-        struct Vertex
-        {
-            glm::vec3 position;
-            // ve4 color;
-            glm::vec2 uv;
-        };
+
 
         // Triangle
-        ComPtr<ID3D12RootSignature> m_rootSignature;
-        ComPtr<ID3D12PipelineState> m_pipelineState;
         ComPtr<ID3D12Resource> m_vertexBuffer;
         D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView;
         HANDLE m_fenceEvent;
@@ -38,7 +29,6 @@ export namespace dxvk {
         CD3DX12_RECT m_scissorRect;
         void LoadPipeline();
         void LoadAssets();
-        void WaitForPreviousFrame();
         void PopulateCommandList();
 
         ComPtr<ID3D12DescriptorHeap> m_srvCbvHeap;

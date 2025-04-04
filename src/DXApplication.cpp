@@ -19,11 +19,6 @@ namespace dxvk {
     {
     }
 
-    void DXApplication::OnInit() {
-        LoadPipeline();
-        LoadAssets();
-    }
-
     void DXApplication::OnUpdate() {
         const float translationSpeed = 0.005f;
         const float offsetBounds = 1.25f;
@@ -43,9 +38,6 @@ namespace dxvk {
         // Execute the command list.
         ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
         m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-    }
-
-    void DXApplication::OnDestroy() {
     }
 
     void DXApplication::PopulateCommandList() {
@@ -136,46 +128,6 @@ namespace dxvk {
             ComPtr<ID3DBlob> error;
             ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, featureData.HighestVersion, &signature, &error));
             ThrowIfFailed(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
-        }
-
-        // Create the pipeline state, which includes compiling and loading shaders.
-        {
-            ComPtr<ID3DBlob> vertexShader;
-            ComPtr<ID3DBlob> pixelShader;
-
-    #if defined(_DEBUG)
-            // Enable better shader debugging with the graphics debugging tools.
-            UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-    #else
-            UINT compileFlags = 0;
-    #endif
-
-            ThrowIfFailed(D3DCompileFromFile(GetAssetFullPath(L"..\\shaders\\shaders.hlsl").c_str(), nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &vertexShader, nullptr));
-            ThrowIfFailed(D3DCompileFromFile(GetAssetFullPath(L"..\\shaders\\shaders.hlsl").c_str(), nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShader, nullptr));
-
-            // Define the vertex input layout.
-            D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
-            {
-                { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-                { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
-            };
-
-            // Describe and create the graphics pipeline state object (PSO).
-            D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-            psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
-            psoDesc.pRootSignature = m_rootSignature.Get();
-            psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShader.Get());
-            psoDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShader.Get());
-            psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-            psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-            psoDesc.DepthStencilState.DepthEnable = FALSE;
-            psoDesc.DepthStencilState.StencilEnable = FALSE;
-            psoDesc.SampleMask = UINT_MAX;
-            psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-            psoDesc.NumRenderTargets = 1;
-            psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-            psoDesc.SampleDesc.Count = 1;
-            ThrowIfFailed(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
         }
 
         // Create the vertex buffer.
@@ -325,10 +277,6 @@ namespace dxvk {
             // complete before continuing.
             WaitForPreviousFrame();
         }
-    }
-
-    void DXApplication::WaitForPreviousFrame() {
-
     }
 
     void DXApplication::LoadPipeline() {
