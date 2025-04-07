@@ -127,7 +127,7 @@ export namespace dxvk::backend {
 
         virtual ~SwapChain() = default;
 
-        auto& getExtent() const { return extent; }
+        const auto& getExtent() const { return extent; }
 
         auto getCurrentFrameIndex() const { return currentFrameIndex; }
 

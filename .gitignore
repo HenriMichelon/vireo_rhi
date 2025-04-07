@@ -376,3 +376,4 @@ _deps
 log.txt
 .vscode
 cmake-build-debug-mingw
+*.dxil

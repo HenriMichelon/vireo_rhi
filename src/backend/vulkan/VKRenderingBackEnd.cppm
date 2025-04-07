@@ -1,6 +1,6 @@
 module;
 #include "VKLibraries.h"
-import std;
+#include "VKTools.h"
 
 export module dxvk.backend.vulkan;
 
@@ -194,7 +194,9 @@ export namespace dxvk::backend {
 
         ~VKSwapChain() override;
 
-        auto getSwapChain() { return swapChain; }
+        auto getSwapChain() const { return swapChain; }
+
+        auto getFormat() const { return swapChainImageFormat; }
 
         void nextSwapChain() override;
 
@@ -254,6 +256,10 @@ export namespace dxvk::backend {
 
         VKVertexInputLayout(size_t size, std::vector<AttributeDescription>& attributesDescriptions);
 
+        const auto& getVertexBindingDescription() const { return vertexBindingDescription; }
+
+        const auto& getVertexAttributeDescription() const { return vertexAttributeDescriptions; }
+
     private:
         VkVertexInputBindingDescription                vertexBindingDescription;
         std::vector<VkVertexInputAttributeDescription> vertexAttributeDescriptions;
@@ -264,6 +270,8 @@ export namespace dxvk::backend {
         VKShaderModule(VkDevice device, const std::string& fileName);
 
         ~VKShaderModule() override;
+
+        auto getShaderModule() { return shaderModule; }
 
     private:
         VkDevice       device;
@@ -276,6 +284,8 @@ export namespace dxvk::backend {
 
         ~VKPipelineResources() override;
 
+        auto getPipelineLayout() const { return pipelineLayout; }
+
     private:
         VkDevice         device;
         VkPipelineLayout pipelineLayout;
@@ -283,6 +293,21 @@ export namespace dxvk::backend {
 
     class VKPipeline : public Pipeline {
     public:
+        VKPipeline(
+           VkDevice device,
+           VkFormat swapChainImageFormat,
+           const SwapChain::Extent& extent,
+           PipelineResources& pipelineResources,
+           VertexInputLayout& vertexInputLayout,
+           ShaderModule& vertexShader,
+           ShaderModule& fragmentShader);
+
+        ~VKPipeline();
+
+    private:
+        VkDevice     device;
+        VkPipeline   pipeline;
+        VkRenderPass renderPass;
     };
 
     class VKRenderingBackEnd : public RenderingBackEnd {
@@ -318,6 +343,8 @@ export namespace dxvk::backend {
         auto getVKPhysicalDevice() const { return std::reinterpret_pointer_cast<VKPhysicalDevice>(physicalDevice); }
 
         auto getVKDevice() const { return std::reinterpret_pointer_cast<VKDevice>(device); }
+
+        auto getVKSwapChain() const { return std::reinterpret_pointer_cast<VKSwapChain>(swapChain); }
 
         auto getVKGraphicCommandQueue() const { return std::reinterpret_pointer_cast<VKSubmitQueue>(graphicCommandQueue); }
     };
