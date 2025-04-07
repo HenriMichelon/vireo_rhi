@@ -156,7 +156,7 @@ export namespace dxvk::backend {
         VKCommandAllocator(const VKDevice& device, Type type);
         ~VKCommandAllocator() override;
 
-        std::shared_ptr<CommandList> createCommandList() const override;
+        std::shared_ptr<CommandList> createCommandList(Pipeline& pipeline) const override;
 
     private:
         VkDevice      device;
@@ -169,9 +169,13 @@ export namespace dxvk::backend {
 
         ~VKCommandList() override;
 
-        void begin() override;
+        void begin(Pipeline& pipeline) override;
 
         void end() override;
+
+        void bindVertexBuffer(Buffer& buffer) override { }
+
+        void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) override {};
 
         auto getCommandBuffer() const { return commandBuffer; }
 
@@ -195,9 +199,9 @@ export namespace dxvk::backend {
 
         void acquire(FrameData& frameData) override;
 
-        void begin(FrameData& frameData, std::shared_ptr<CommandList>& commandList) override;
+        void begin(FrameData& frameData, CommandList& commandList) override;
 
-        void end(FrameData& frameData, std::shared_ptr<CommandList>& commandList) override;
+        void end(FrameData& frameData, CommandList& commandList) override;
 
         void present(FrameData& framesData) override;
 
@@ -241,7 +245,7 @@ export namespace dxvk::backend {
         VKRenderingBackEnd(uint32_t width, uint32_t height);
 
         std::shared_ptr<FrameData> createFrameData(uint32_t frameIndex) override;
-        void destroyFrameData(std::shared_ptr<FrameData> frameData) override;
+        void destroyFrameData(FrameData& frameData) override;
 
         auto getVKInstance() const { return std::reinterpret_pointer_cast<VKInstance>(instance); }
         auto getVKPhysicalDevice() const { return std::reinterpret_pointer_cast<VKPhysicalDevice>(physicalDevice); }

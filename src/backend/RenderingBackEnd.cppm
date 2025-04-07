@@ -18,27 +18,6 @@ export namespace dxvk::backend {
         virtual ~PhysicalDevice() = default;
     };
 
-    class CommandList {
-    public:
-        virtual void begin() = 0;
-        virtual void end() = 0;
-
-        virtual ~CommandList() = default;
-    };
-
-    class CommandAllocator {
-    public:
-        enum Type {
-            GRAPHIC,
-            TRANSFER,
-            COMPUTE,
-        };
-
-        virtual std::shared_ptr<CommandList> createCommandList() const  = 0;
-
-        virtual ~CommandAllocator() = default;
-    };
-
     class Buffer {
     public:
         enum Type {
@@ -63,6 +42,63 @@ export namespace dxvk::backend {
     protected:
         size_t  bufferSize{0};
         void*   mappedAddress{nullptr};
+    };
+
+
+    class VertexInputLayout {
+    public:
+        enum AttributeFormat {
+            R32G32_FLOAT,
+            R32G32B32_FLOAT,
+            R32G32B32A32_FLOAT,
+        };
+        struct AttributeDescription {
+            std::string     binding;
+            AttributeFormat format;
+            uint32_t        offset;
+        };
+        virtual ~VertexInputLayout() = default;
+    };
+
+    class ShaderModule {
+    public:
+        virtual ~ShaderModule() = default;
+    };
+
+    class PipelineResources {
+    public:
+        virtual ~PipelineResources() = default;
+    };
+
+    class Pipeline {
+    public:
+        virtual ~Pipeline() = default;
+    };
+
+    class CommandList {
+    public:
+        virtual void begin(Pipeline& pipeline) = 0;
+
+        virtual void end() = 0;
+
+        virtual void bindVertexBuffer(Buffer& buffer) = 0;
+
+        virtual void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) = 0;
+
+        virtual ~CommandList() = default;
+    };
+
+    class CommandAllocator {
+    public:
+        enum Type {
+            GRAPHIC,
+            TRANSFER,
+            COMPUTE,
+        };
+
+        virtual std::shared_ptr<CommandList> createCommandList(Pipeline& pipeline) const  = 0;
+
+        virtual ~CommandAllocator() = default;
     };
 
     class Device {
@@ -98,11 +134,11 @@ export namespace dxvk::backend {
 
         virtual void nextSwapChain() = 0;
 
-        virtual void acquire(FrameData& frameData) {}
+        virtual void acquire(FrameData& frameData) = 0;
 
-        virtual void begin(FrameData& frameData, std::shared_ptr<CommandList>& commandList) {}
+        virtual void begin(FrameData& frameData, CommandList& commandList) {}
 
-        virtual void end(FrameData& frameData, std::shared_ptr<CommandList>& commandList) {}
+        virtual void end(FrameData& frameData, CommandList& commandList) {}
 
         virtual void present(FrameData& frameData) = 0;
 
@@ -111,44 +147,14 @@ export namespace dxvk::backend {
         uint32_t    currentFrameIndex{0};
     };
 
-    class VertexInputLayout {
-    public:
-        enum AttributeFormat {
-            R32G32_FLOAT,
-            R32G32B32_FLOAT,
-            R32G32B32A32_FLOAT,
-        };
-        struct AttributeDescription {
-            std::string     binding;
-            AttributeFormat format;
-            uint32_t        offset;
-        };
-        virtual ~VertexInputLayout() = default;
-    };
 
-    class ShaderModule {
-    public:
-        virtual ~ShaderModule() = default;
-    };
-
-    class PipelineResources {
-    public:
-        virtual ~PipelineResources() = default;
-    };
-
-    class Pipeline {
-    public:
-        virtual ~Pipeline() = default;
-    };
-
-    class RenderingBackEnd
-    {
+    class RenderingBackEnd {
     public:
         virtual ~RenderingBackEnd() = default;
 
         virtual std::shared_ptr<FrameData> createFrameData(uint32_t frameIndex) = 0;
 
-        virtual void destroyFrameData(std::shared_ptr<FrameData> frameData) = 0;
+        virtual void destroyFrameData(FrameData& frameData) {}
 
         virtual std::shared_ptr<VertexInputLayout> createVertexLayout(
             size_t size,
