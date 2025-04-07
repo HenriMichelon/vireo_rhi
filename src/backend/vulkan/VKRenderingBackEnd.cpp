@@ -93,25 +93,11 @@ namespace dxvk::backend {
     }
 
     std::shared_ptr<ShaderModule> VKRenderingBackEnd::createShaderModule(const std::string& fileName) {
-        return nullptr;
+        return make_shared<VKShaderModule>(getVKDevice()->getDevice(), fileName);
     }
 
     std::shared_ptr<PipelineResources> VKRenderingBackEnd::createPipelineResources() {
         return nullptr;
-    }
-
-    VKVertexInputLayout::VKVertexInputLayout(size_t size, std::vector<AttributeDescription>& attributesDescriptions) {
-        vertexBindingDescription.binding = 0;
-        vertexBindingDescription.stride = size;
-        vertexBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-        for (int i = 0; i < attributesDescriptions.size(); i++) {
-            vertexAttributeDescriptions.push_back({
-                .location = static_cast<uint32_t>(i),
-                .binding = 0,
-                .format = VKFormat[attributesDescriptions[i].format],
-                .offset = attributesDescriptions[i].offset,
-            });
-        }
     }
 
     std::shared_ptr<Pipeline> VKRenderingBackEnd::createPipeline(
@@ -132,6 +118,45 @@ namespace dxvk::backend {
 
     void VKRenderingBackEnd::endRendering(CommandList& commandList) {
 
+    }
+
+    VKVertexInputLayout::VKVertexInputLayout(size_t size, std::vector<AttributeDescription>& attributesDescriptions) {
+        vertexBindingDescription.binding = 0;
+        vertexBindingDescription.stride = size;
+        vertexBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+        for (int i = 0; i < attributesDescriptions.size(); i++) {
+            vertexAttributeDescriptions.push_back({
+                .location = static_cast<uint32_t>(i),
+                .binding = 0,
+                .format = VKFormat[attributesDescriptions[i].format],
+                .offset = attributesDescriptions[i].offset,
+            });
+        }
+    }
+
+    VKShaderModule::VKShaderModule(VkDevice device, const std::string& fileName):
+        device{device} {
+        std::ifstream file(fileName + ".spv", std::ios::ate | std::ios::binary);
+        if (!file.is_open()) {
+            die("failed to open shader file!");
+        }
+        const auto fileSize = static_cast<size_t>(file.tellg());
+        std::vector<char> buffer(fileSize);
+        file.seekg(0);
+        file.read(buffer.data(), fileSize);
+        file.close();
+        const auto createInfo = VkShaderModuleCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+            .codeSize = buffer.size(),
+            .pCode = reinterpret_cast<const uint32_t*>(buffer.data())
+        };
+        if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+            die("failed to create shader module!");
+        }
+    }
+
+    VKShaderModule::~VKShaderModule() {
+        vkDestroyShaderModule(device, shaderModule, nullptr);
     }
 
     VKInstance::VKInstance() {

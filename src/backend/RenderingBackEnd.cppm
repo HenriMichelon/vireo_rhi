@@ -44,7 +44,6 @@ export namespace dxvk::backend {
         void*   mappedAddress{nullptr};
     };
 
-
     class VertexInputLayout {
     public:
         enum AttributeFormat {

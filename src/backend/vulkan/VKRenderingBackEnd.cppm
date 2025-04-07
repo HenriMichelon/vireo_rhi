@@ -259,9 +259,17 @@ export namespace dxvk::backend {
         std::vector<VkVertexInputAttributeDescription> vertexAttributeDescriptions;
     };
 
-    class VKShaderModule : public ShaderModule {
+    class VKShaderModule: public ShaderModule {
     public:
+        VKShaderModule(VkDevice device, const std::string& fileName);
+
+        ~VKShaderModule() override;
+
+    private:
+        VkDevice       device;
+        VkShaderModule shaderModule;
     };
+
 
     class VKPipelineResources : public PipelineResources {
     public:
