@@ -40,7 +40,6 @@ namespace dxvk::backend {
         }
     }
 
-
     VKRenderingBackEnd::VKRenderingBackEnd(uint32_t width, uint32_t height) {
         instance = std::make_shared<VKInstance>();
         physicalDevice = std::make_shared<VKPhysicalDevice>(getVKInstance()->getInstance());
@@ -85,6 +84,54 @@ namespace dxvk::backend {
             .deviceIndex = 0
         };
         return data;
+    }
+
+    std::shared_ptr<VertexInputLayout> VKRenderingBackEnd::createVertexLayout(
+           size_t size,
+           std::vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) {
+        return make_shared<VKVertexInputLayout>(size, attributesDescriptions);
+    }
+
+    std::shared_ptr<ShaderModule> VKRenderingBackEnd::createShaderModule(const std::string& fileName) {
+        return nullptr;
+    }
+
+    std::shared_ptr<PipelineResources> VKRenderingBackEnd::createPipelineResources() {
+        return nullptr;
+    }
+
+    VKVertexInputLayout::VKVertexInputLayout(size_t size, std::vector<AttributeDescription>& attributesDescriptions) {
+        vertexBindingDescription.binding = 0;
+        vertexBindingDescription.stride = size;
+        vertexBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+        for (int i = 0; i < attributesDescriptions.size(); i++) {
+            vertexAttributeDescriptions.push_back({
+                .location = static_cast<uint32_t>(i),
+                .binding = 0,
+                .format = VKFormat[attributesDescriptions[i].format],
+                .offset = attributesDescriptions[i].offset,
+            });
+        }
+    }
+
+    std::shared_ptr<Pipeline> VKRenderingBackEnd::createPipeline(
+        PipelineResources& pipelineResources,
+        VertexInputLayout& vertexInputLayout,
+        ShaderModule& vertexShader,
+        ShaderModule& fragmentShader) {
+        return nullptr;
+    }
+
+    std::shared_ptr<Buffer> VKRenderingBackEnd::createBuffer(Buffer::Type type, size_t size, size_t count) {
+        return nullptr;
+    }
+
+    void VKRenderingBackEnd::beginRendering(PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) {
+
+    }
+
+    void VKRenderingBackEnd::endRendering(CommandList& commandList) {
+
     }
 
     VKInstance::VKInstance() {

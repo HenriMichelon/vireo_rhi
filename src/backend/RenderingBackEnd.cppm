@@ -147,7 +147,6 @@ export namespace dxvk::backend {
         uint32_t    currentFrameIndex{0};
     };
 
-
     class RenderingBackEnd {
     public:
         virtual ~RenderingBackEnd() = default;

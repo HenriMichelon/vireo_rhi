@@ -191,6 +191,7 @@ export namespace dxvk::backend {
     class VKSwapChain : public SwapChain {
     public:
         VKSwapChain(const VKPhysicalDevice& physicalDevice, const VKDevice& device, uint32_t width, uint32_t height);
+
         ~VKSwapChain() override;
 
         auto getSwapChain() { return swapChain; }
@@ -204,7 +205,6 @@ export namespace dxvk::backend {
         void end(FrameData& frameData, CommandList& commandList) override;
 
         void present(FrameData& framesData) override;
-
 
     private:
         VkDevice                    device;
@@ -236,8 +236,39 @@ export namespace dxvk::backend {
 
         // Get the swap chain images sizes
         VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities, uint32_t width, uint32_t height) const;
+    };
 
+    class VKBuffer : public Buffer {
+    public:
 
+    private:
+    };
+
+    class VKVertexInputLayout : public VertexInputLayout {
+    public:
+        static constexpr VkFormat VKFormat[] {
+            VK_FORMAT_R32G32_SFLOAT,
+            VK_FORMAT_R32G32B32_SFLOAT,
+            VK_FORMAT_R32G32B32A32_SFLOAT
+        };
+
+        VKVertexInputLayout(size_t size, std::vector<AttributeDescription>& attributesDescriptions);
+
+    private:
+        VkVertexInputBindingDescription                vertexBindingDescription;
+        std::vector<VkVertexInputAttributeDescription> vertexAttributeDescriptions;
+    };
+
+    class VKShaderModule : public ShaderModule {
+    public:
+    };
+
+    class VKPipelineResources : public PipelineResources {
+    public:
+    };
+
+    class VKPipeline : public Pipeline {
+    public:
     };
 
     class VKRenderingBackEnd : public RenderingBackEnd {
@@ -245,11 +276,35 @@ export namespace dxvk::backend {
         VKRenderingBackEnd(uint32_t width, uint32_t height);
 
         std::shared_ptr<FrameData> createFrameData(uint32_t frameIndex) override;
+
         void destroyFrameData(FrameData& frameData) override;
 
+        virtual std::shared_ptr<VertexInputLayout> createVertexLayout(
+            size_t size,
+            std::vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) override;
+
+        virtual std::shared_ptr<ShaderModule> createShaderModule(const std::string& fileName) override;
+
+        virtual std::shared_ptr<PipelineResources> createPipelineResources() override;
+
+        virtual std::shared_ptr<Pipeline> createPipeline(
+            PipelineResources& pipelineResources,
+            VertexInputLayout& vertexInputLayout,
+            ShaderModule& vertexShader,
+            ShaderModule& fragmentShader) override;
+
+        virtual std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1) override;
+
+        virtual void beginRendering(PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) override;
+
+        virtual void endRendering(CommandList& commandList) override;
+
         auto getVKInstance() const { return std::reinterpret_pointer_cast<VKInstance>(instance); }
+
         auto getVKPhysicalDevice() const { return std::reinterpret_pointer_cast<VKPhysicalDevice>(physicalDevice); }
+
         auto getVKDevice() const { return std::reinterpret_pointer_cast<VKDevice>(device); }
+
         auto getVKGraphicCommandQueue() const { return std::reinterpret_pointer_cast<VKSubmitQueue>(graphicCommandQueue); }
     };
 
