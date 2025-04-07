@@ -11,12 +11,12 @@ import dxvk.backend.vulkan;
 namespace dxvk {
 
     Application::Application(UINT width, UINT height, std::wstring name) :
+        title(name),
         width(width),
-        height(height),
-        title(name) {
+        height(height) {
         aspectRatio = static_cast<float>(width) / static_cast<float>(height);
-        renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>(width, height);
-        // renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>(width, height);
+        // renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>(width, height);
+        renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>(width, height);
     }
 
     void Application::onInit() {
@@ -44,19 +44,19 @@ namespace dxvk {
             graphicCommandList[i] = graphicCommandAllocator[i]->createCommandList(*pipelines["default"]);
         }
 
-        // auto triangleVertices = std::vector<Vertex> {
-        //     { { 0.0f, 0.25f * aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-        //     { { 0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-        //     { { -0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
-        // };
-        // // Note: using upload heaps to transfer static data like vert buffers is not
-        // // recommended. Every time the GPU needs it, the upload heap will be marshalled
-        // // over. Please read up on Default Heap usage. An upload heap is used here for
-        // // code simplicity and because there are very few verts to actually transfer.
-        // vertexBuffer = renderingBackEnd->createBuffer(backend::Buffer::UPLOAD, sizeof(Vertex), triangleVertices.size());
-        // vertexBuffer->map();
-        // vertexBuffer->write(&triangleVertices[0]);
-        // vertexBuffer->unmap();
+        auto triangleVertices = std::vector<Vertex> {
+            { { 0.0f, 0.25f * aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+            { { 0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+            { { -0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
+        };
+        // Note: using upload heaps to transfer static data like vert buffers is not
+        // recommended. Every time the GPU needs it, the upload heap will be marshalled
+        // over. Please read up on Default Heap usage. An upload heap is used here for
+        // code simplicity and because there are very few verts to actually transfer.
+        vertexBuffer = renderingBackEnd->createBuffer(backend::Buffer::UPLOAD, sizeof(Vertex), triangleVertices.size());
+        vertexBuffer->map();
+        vertexBuffer->write(&triangleVertices[0]);
+        vertexBuffer->unmap();
     }
 
     void Application::onUpdate() {
@@ -74,8 +74,8 @@ namespace dxvk {
         swapChain->begin(frameData, *commandList);
         renderingBackEnd->beginRendering(*pipelineResources["default"], pipeline, *commandList);
 
-        // commandList->bindVertexBuffer(*vertexBuffer);
-        // commandList->drawInstanced(3);
+        commandList->bindVertexBuffer(*vertexBuffer);
+        commandList->drawInstanced(3);
 
         renderingBackEnd->endRendering(*commandList);
         swapChain->end(frameData, *commandList);

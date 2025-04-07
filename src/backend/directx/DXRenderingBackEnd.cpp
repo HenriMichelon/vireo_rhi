@@ -256,9 +256,9 @@ namespace dxvk::backend {
             nullptr,
             nullptr,
             &swapChain1
-            ));
+        ));
         ThrowIfFailed(swapChain1.As(&swapChain));
-        nextSwapChain();
+        currentFrameIndex = swapChain->GetCurrentBackBufferIndex();
 
         // Describe and create a render target view (RTV) descriptor heap.
         {
@@ -276,6 +276,7 @@ namespace dxvk::backend {
             // Create a RTV for each frame.
             for (UINT n = 0; n < FRAMES_IN_FLIGHT; n++) {
                 ThrowIfFailed(swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTargets[n])));
+                renderTargets[n]->SetName(L"BackBuffer");
                 device.getDevice()->CreateRenderTargetView(renderTargets[n].Get(), nullptr, rtvHandle);
                 rtvHandle.Offset(1, rtvDescriptorSize);
             }
@@ -284,21 +285,20 @@ namespace dxvk::backend {
 
     void DXSwapChain::nextSwapChain() {
         currentFrameIndex = swapChain->GetCurrentBackBufferIndex();
+        assert(currentFrameIndex < FRAMES_IN_FLIGHT);
     }
 
     void DXSwapChain::acquire(FrameData& frameData) {
         auto& data = static_cast<DXFrameData&>(frameData);
+
     }
 
     void DXSwapChain::present(FrameData& frameData) {
-        ThrowIfFailed(swapChain->Present(1, 0));
-
-        // Schedule a Signal command in the queue.
         auto& data = static_cast<DXFrameData&>(frameData);
-        const UINT64 currentFenceValue = data.inFlightFenceValue;
+        ThrowAndPrintIfFailed(swapChain->Present(1, 0), device.getDevice().Get());
+
+        const auto currentFenceValue = data.inFlightFenceValue;
         ThrowIfFailed(presentCommandQueue->Signal(device.getInFlightFence().Get(), currentFenceValue));
-        // Set the fence value for the next frame.
-        data.inFlightFenceValue += 1;
 
         // If the next frame is not ready to be rendered yet, wait until it is ready.
         if (device.getInFlightFence()->GetCompletedValue() < currentFenceValue) {
@@ -309,6 +309,7 @@ namespace dxvk::backend {
             WaitForSingleObjectEx(device.getInFlightFenceEvent(), INFINITE, FALSE);
         }
 
+        data.inFlightFenceValue += 1;
     }
 
     DXVertexInputLayout::DXVertexInputLayout(std::vector<AttributeDescription>& attributesDescriptions) {
