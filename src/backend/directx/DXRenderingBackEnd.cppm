@@ -53,6 +53,8 @@ export namespace dxvk::backend {
 
         void write(void* data, size_t size = WHOLE_SIZE, size_t offset = 0);
 
+        const auto& getBufferView() const { return bufferView; }
+
     private:
         ComPtr<ID3D12Resource>      buffer;
         D3D12_VERTEX_BUFFER_VIEW    bufferView;
@@ -105,9 +107,13 @@ export namespace dxvk::backend {
     public:
         DXCommandList(ComPtr<ID3D12Device> device, ComPtr<ID3D12CommandAllocator> commandAllocator);
 
-        void begin() override;
+        void begin(Pipeline& pipeline) override;
 
         void end() override;
+
+        void bindVertexBuffer(Buffer& buffer) override;
+
+        void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) override;
 
         auto getCommandList() { return commandList; }
 
@@ -195,6 +201,8 @@ export namespace dxvk::backend {
             ShaderModule& vertexShader,
             ShaderModule& fragmentShader);
 
+        auto getPipelineState() { return pipelineState; }
+
     private:
         ComPtr<ID3D12PipelineState> pipelineState;
     };
@@ -226,8 +234,6 @@ export namespace dxvk::backend {
         void beginRendering(PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) override;
 
         void endRendering(CommandList& commandList) override;
-
-        void destroyFrameData(std::shared_ptr<FrameData> frameData) override {}
 
         auto getDXInstance() const { return std::reinterpret_pointer_cast<DXInstance>(instance); }
 

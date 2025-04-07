@@ -31,13 +31,13 @@ namespace dxvk {
             backend::VertexInputLayout::AttributeDescription{"COLOR",    backend::VertexInputLayout::R32G32B32_FLOAT, 12}
         };
         auto defaultVertexInputLayout = renderingBackEnd->createVertexLayout(sizeof(Vertex), attributes);
-        // dxc -T "fs_5_0" -E "PSMain" -Fo shaders1_frag.cso .\shaders1.hlsl
+        //  dxc -T "vs_5_0" -E "VSMain" -Fo shaders1_vert.cso .\shaders1.hlsl
         auto vertexShader = renderingBackEnd->createShaderModule(
-            "shaders/shaders1_vert.cso",
+            "shaders/shaders1.hlsl",
             "VSMain");
         // dxc -T "ps_5_0" -E "PSMain" -Fo shaders1_frag.cso .\shaders1.hlsl
         auto fragmentShader = renderingBackEnd->createShaderModule(
-            "shaders/shaders1_frag.cso",
+            "shaders/shaders1.hlsl",
             "PSMain");
         pipelineResources["default"] = renderingBackEnd->createPipelineResources();
         pipelines["default"] = renderingBackEnd->createPipeline(
@@ -69,15 +69,19 @@ namespace dxvk {
         auto& swapChain = renderingBackEnd->getSwapChain();
         auto& frameData = *framesData[swapChain->getCurrentFrameIndex()];
         auto& commandList = graphicCommandList[swapChain->getCurrentFrameIndex()];
+        auto& pipeline = *pipelines["default"];
 
         swapChain->acquire(frameData);
 
-        commandList->begin();
-        swapChain->begin(frameData, commandList);
-        renderingBackEnd->beginRendering(*pipelineResources["default"], *pipelines["default"], *commandList);
+        commandList->begin(pipeline);
+        swapChain->begin(frameData, *commandList);
+        renderingBackEnd->beginRendering(*pipelineResources["default"], pipeline, *commandList);
+
+        commandList->bindVertexBuffer(*vertexBuffer);
+        commandList->drawInstanced(3);
 
         renderingBackEnd->endRendering(*commandList);
-        swapChain->end(frameData, commandList);
+        swapChain->end(frameData, *commandList);
         commandList->end();
         renderingBackEnd->getGraphicCommandQueue()->submit(frameData, {commandList});
 
@@ -88,7 +92,7 @@ namespace dxvk {
     void Application::onDestroy() {
         renderingBackEnd->getDevice()->waitIdle();
         for (uint32_t i = 0; i < backend::SwapChain::FRAMES_IN_FLIGHT; i++) {
-            renderingBackEnd->destroyFrameData(framesData[i]);
+            renderingBackEnd->destroyFrameData(*framesData[i]);
         }
     }
 

@@ -33,11 +33,11 @@ namespace dxvk {
 
     void DXApplication::OnRender() {
         // Record all the commands we need to render the scene into the command list.
-        PopulateCommandList();
+//        PopulateCommandList();
 
         // Execute the command list.
-        ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
-        m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+//        ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
+//        m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
     }
 
     void DXApplication::PopulateCommandList() {
@@ -68,8 +68,8 @@ namespace dxvk {
 //        const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
 //        m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 //        m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        m_commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
-        m_commandList->DrawInstanced(3, 1, 0, 0);
+//        m_commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
+//        m_commandList->DrawInstanced(3, 1, 0, 0);
 
         // Indicate that the back buffer will now be used to present.
 //        auto barrier2 = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_frameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);

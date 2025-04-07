@@ -213,13 +213,23 @@ namespace dxvk::backend {
         ThrowIfFailed(commandList->Close());
     }
 
-    void DXCommandList::begin() {
+    void DXCommandList::begin(Pipeline& pipeline) {
+        auto& dxPipeline = static_cast<DXPipeline&>(pipeline);
         ThrowIfFailed(commandAllocator->Reset());
-        ThrowIfFailed(commandList->Reset(commandAllocator.Get(), nullptr));
+        ThrowIfFailed(commandList->Reset(commandAllocator.Get(), dxPipeline.getPipelineState().Get()));
     }
 
     void DXCommandList::end() {
         ThrowIfFailed(commandList->Close());
+    }
+
+    void DXCommandList::bindVertexBuffer(Buffer& buffer) {
+        auto& vertexBuffer = static_cast<DXBuffer&>(buffer);
+        commandList->IASetVertexBuffers(0, 1, &vertexBuffer.getBufferView());
+    }
+
+    void DXCommandList::drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount) {
+        commandList->DrawInstanced(vertexCountPerInstance, instanceCount, 0, 0);
     }
 
     DXSwapChain::DXSwapChain(
@@ -251,7 +261,7 @@ namespace dxvk::backend {
             &swapChain1
             ));
         ThrowIfFailed(swapChain1.As(&swapChain));
-        DXSwapChain::nextSwapChain();
+        nextSwapChain();
 
         // Describe and create a render target view (RTV) descriptor heap.
         {
@@ -281,24 +291,27 @@ namespace dxvk::backend {
 
     void DXSwapChain::acquire(FrameData& frameData) {
         auto& data = static_cast<DXFrameData&>(frameData);
-        // If the next frame is not ready to be rendered yet, wait until it is ready.
-        if (device.getInFlightFence()->GetCompletedValue() < data.inFlightFenceValue) {
-            ThrowIfFailed(device.getInFlightFence()->SetEventOnCompletion(
-                data.inFlightFenceValue,
-                device.getInFlightFenceEvent()
-            ));
-            WaitForSingleObjectEx(device.getInFlightFenceEvent(), INFINITE, FALSE);
-        }
-        // Set the fence value for the next frame.
-        data.inFlightFenceValue += 1;
     }
 
     void DXSwapChain::present(FrameData& frameData) {
         ThrowIfFailed(swapChain->Present(1, 0));
+
         // Schedule a Signal command in the queue.
         auto& data = static_cast<DXFrameData&>(frameData);
         const UINT64 currentFenceValue = data.inFlightFenceValue;
         ThrowIfFailed(presentCommandQueue->Signal(device.getInFlightFence().Get(), currentFenceValue));
+        // Set the fence value for the next frame.
+        data.inFlightFenceValue += 1;
+
+        // If the next frame is not ready to be rendered yet, wait until it is ready.
+        if (device.getInFlightFence()->GetCompletedValue() < currentFenceValue) {
+            ThrowIfFailed(device.getInFlightFence()->SetEventOnCompletion(
+                currentFenceValue,
+                device.getInFlightFenceEvent()
+            ));
+            WaitForSingleObjectEx(device.getInFlightFenceEvent(), INFINITE, FALSE);
+        }
+
     }
 
     DXVertexInputLayout::DXVertexInputLayout(std::vector<AttributeDescription>& attributesDescriptions) {
@@ -316,43 +329,43 @@ namespace dxvk::backend {
     }
 
     DXShaderModule::DXShaderModule(const std::string& fileName, const std::string& entryPointName) {
-        std::ifstream shaderFile(fileName, std::ios::binary | std::ios::ate);
-        if (!shaderFile) {
-            die("Error loading shader " + fileName);
-        }
-
-        std::streamsize size = shaderFile.tellg();
-        shaderFile.seekg(0, std::ios::beg);
-
-        if (FAILED(D3DCreateBlob(size, &shader))) {
-            die("Error creating blob for  shader " + fileName);
-        }
-        shaderFile.read(reinterpret_cast<char*>(shader->GetBufferPointer()), size);
-// #if defined(_DEBUG)
-//         // Enable better shader debugging with the graphics debugging tools.
-//         UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-// #else
-//         UINT compileFlags = 0;
-// #endif
-        // ComPtr<ID3DBlob> errorMessages;
-        // std::wstring wFilePath(fileName.begin(), fileName.end());
-        // auto hr = D3DCompileFromFile(
-        //     wFilePath.c_str(),
-        //     nullptr,
-        //     nullptr,
-        //     entryPointName.c_str(),
-        //     "vs_5_0",
-        //     compileFlags,
-        //     0,
-        //     &shader,
-        //     &errorMessages);
-        // if (FAILED(hr)) {
-        //     if (errorMessages != nullptr) {
-        //         std::cerr << static_cast<const char*>(errorMessages->GetBufferPointer()) << std::endl;
-        //         errorMessages->Release();
-        //     }
-        //     ThrowIfFailed(hr);
+        // std::ifstream shaderFile(fileName, std::ios::binary | std::ios::ate);
+        // if (!shaderFile) {
+        //     die("Error loading shader " + fileName);
         // }
+        //
+        // std::streamsize size = shaderFile.tellg();
+        // shaderFile.seekg(0, std::ios::beg);
+        //
+        // if (FAILED(D3DCreateBlob(size, &shader))) {
+        //     die("Error creating blob for  shader " + fileName);
+        // }
+        // shaderFile.read(reinterpret_cast<char*>(shader->GetBufferPointer()), size);
+#if defined(_DEBUG)
+        // Enable better shader debugging with the graphics debugging tools.
+        UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#else
+        UINT compileFlags = 0;
+#endif
+        ComPtr<ID3DBlob> errorMessages;
+        std::wstring wFilePath(fileName.begin(), fileName.end());
+        auto hr = D3DCompileFromFile(
+            wFilePath.c_str(),
+            nullptr,
+            nullptr,
+            entryPointName.c_str(),
+            entryPointName == "VSMain" ? "vs_5_0" : "ps_5_0",
+            compileFlags,
+            0,
+            &shader,
+            &errorMessages);
+        if (FAILED(hr)) {
+            if (errorMessages != nullptr) {
+                std::cerr << static_cast<const char*>(errorMessages->GetBufferPointer()) << std::endl;
+                errorMessages->Release();
+            }
+            ThrowIfFailed(hr);
+        }
     }
 
     DXPipelineResources::DXPipelineResources(const ComPtr<ID3D12Device>& device) {

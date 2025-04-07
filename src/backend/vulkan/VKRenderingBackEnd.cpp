@@ -50,11 +50,11 @@ namespace dxvk::backend {
         swapChain = std::make_shared<VKSwapChain>(*getVKPhysicalDevice(), *getVKDevice(), width, height);
     }
 
-    void VKRenderingBackEnd::destroyFrameData(std::shared_ptr<FrameData> frameData) {
-        auto data = static_pointer_cast<VKFrameData>(frameData);
-        vkDestroySemaphore(getVKDevice()->getDevice(), data->imageAvailableSemaphore, nullptr);
-        vkDestroySemaphore(getVKDevice()->getDevice(), data->renderFinishedSemaphore, nullptr);
-        vkDestroyFence(getVKDevice()->getDevice(), data->inFlightFence, nullptr);
+    void VKRenderingBackEnd::destroyFrameData(FrameData& frameData) {
+        auto& data = static_cast<VKFrameData&>(frameData);
+        vkDestroySemaphore(getVKDevice()->getDevice(), data.imageAvailableSemaphore, nullptr);
+        vkDestroySemaphore(getVKDevice()->getDevice(), data.renderFinishedSemaphore, nullptr);
+        vkDestroyFence(getVKDevice()->getDevice(), data.inFlightFence, nullptr);
     }
 
     shared_ptr<FrameData> VKRenderingBackEnd::createFrameData(const uint32_t frameIndex) {
@@ -616,7 +616,7 @@ namespace dxvk::backend {
     VKCommandList::~VKCommandList() {
     }
 
-    void VKCommandList::begin() {
+    void VKCommandList::begin(Pipeline& pipeline) {
         constexpr VkCommandBufferBeginInfo beginInfo{
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         };
@@ -825,7 +825,7 @@ namespace dxvk::backend {
         }
     }
 
-    void VKSwapChain::begin(FrameData& frameData, std::shared_ptr<CommandList>& commandList) {
+    void VKSwapChain::begin(FrameData& frameData, CommandList& commandList) {
         auto& data = static_cast<VKFrameData&>(frameData);
         const VkImageMemoryBarrier barrier = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -844,13 +844,13 @@ namespace dxvk::backend {
                 .layerCount = 1
             }
         };
-        static_pointer_cast<VKCommandList>(commandList)->pipelineBarrier(
+        static_cast<VKCommandList&>(commandList).pipelineBarrier(
             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
             {barrier});
     }
 
-    void VKSwapChain::end(FrameData& frameData, std::shared_ptr<CommandList>& commandList) {
+    void VKSwapChain::end(FrameData& frameData, CommandList& commandList) {
         auto& data = static_cast<VKFrameData&>(frameData);
         const VkImageMemoryBarrier barrier = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -869,7 +869,7 @@ namespace dxvk::backend {
                 .layerCount = VK_REMAINING_ARRAY_LAYERS
             }
         };
-        static_pointer_cast<VKCommandList>(commandList)->pipelineBarrier(
+        static_cast<VKCommandList&>(commandList).pipelineBarrier(
             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
             VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
             {barrier});
