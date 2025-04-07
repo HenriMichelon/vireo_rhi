@@ -39,6 +39,32 @@ export namespace dxvk::backend {
         virtual ~CommandAllocator() = default;
     };
 
+    class Buffer {
+    public:
+        enum Type {
+            UPLOAD,
+            VERTEX,
+            INDEX,
+            UNIFORM
+        };
+
+        static constexpr size_t WHOLE_SIZE = ~0ULL;
+
+        virtual ~Buffer() = default;
+
+        auto getSize() const { return bufferSize; }
+
+        virtual void map() = 0;
+
+        virtual void unmap() = 0;
+
+        virtual void write(void* data, size_t size = WHOLE_SIZE, size_t offset = 0) = 0;
+
+    protected:
+        size_t  bufferSize{0};
+        void*   mappedAddress{nullptr};
+    };
+
     class Device {
     public:
         virtual void waitIdle() {}
@@ -139,6 +165,8 @@ export namespace dxvk::backend {
             VertexInputLayout& vertexInputLayout,
             ShaderModule& vertexShader,
             ShaderModule& fragmentShader) = 0;
+
+        virtual std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1) = 0;
 
         auto& getInstance() const { return instance; }
 

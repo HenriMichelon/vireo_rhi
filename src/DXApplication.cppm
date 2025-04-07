@@ -20,11 +20,6 @@ export namespace dxvk {
 
 
         // Triangle
-        ComPtr<ID3D12Resource> m_vertexBuffer;
-        D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView;
-        HANDLE m_fenceEvent;
-        ComPtr<ID3D12Fence> m_fence;
-        UINT64 m_fenceValue;
         CD3DX12_VIEWPORT m_viewport;
         CD3DX12_RECT m_scissorRect;
         void LoadPipeline();

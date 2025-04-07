@@ -29,6 +29,36 @@ export namespace dxvk::backend {
         ComPtr<IDXGIAdapter4> hardwareAdapter4;
     };
 
+    class DXBuffer : public Buffer {
+    public:
+        static constexpr D3D12_HEAP_TYPE HeapType[] {
+            D3D12_HEAP_TYPE_UPLOAD,
+            D3D12_HEAP_TYPE_DEFAULT, // Vertex
+            D3D12_HEAP_TYPE_DEFAULT, // Index
+            D3D12_HEAP_TYPE_DEFAULT  // Uniform
+        };
+
+        static constexpr D3D12_RESOURCE_STATES ResourceStates[] {
+            D3D12_RESOURCE_STATE_GENERIC_READ,
+            D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
+            D3D12_RESOURCE_STATE_INDEX_BUFFER,
+            D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER
+        };
+
+        DXBuffer(ComPtr<ID3D12Device> device, Type type, size_t size, size_t count = 1);
+
+        void map() override;
+
+        void unmap() override;
+
+        void write(void* data, size_t size = WHOLE_SIZE, size_t offset = 0);
+
+    private:
+        ComPtr<ID3D12Resource>      buffer;
+        D3D12_VERTEX_BUFFER_VIEW    bufferView;
+        CD3DX12_RESOURCE_DESC       resourceDesc;
+    };
+
     class DXDevice : public Device {
     public:
         DXDevice(ComPtr<IDXGIAdapter4> hardwareAdapter4);
@@ -136,7 +166,6 @@ export namespace dxvk::backend {
         ComPtr<ID3DBlob> shader;
     };
 
-
     class DXPipelineResources : public PipelineResources {
     public:
         DXPipelineResources(const ComPtr<ID3D12Device>& device);
@@ -181,6 +210,8 @@ export namespace dxvk::backend {
             VertexInputLayout& vertexInputLayout,
             ShaderModule& vertexShader,
             ShaderModule& fragmentShader) override;
+
+        std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1) override;
 
         void destroyFrameData(std::shared_ptr<FrameData> frameData) override {}
 

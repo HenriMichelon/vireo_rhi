@@ -52,6 +52,10 @@ namespace dxvk::backend {
         return std::make_shared<DXShaderModule>(fileName, entryPointName);
     }
 
+    std::shared_ptr<Buffer> DXRenderingBackEnd::createBuffer(Buffer::Type type, size_t size, size_t count) {
+        return make_shared<DXBuffer>(getDXDevice()->getDevice(), type, size, count);
+    }
+
     DXInstance::DXInstance() {
         UINT dxgiFactoryFlags = 0;
 #if defined(_DEBUG)
@@ -353,6 +357,40 @@ namespace dxvk::backend {
         psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
         psoDesc.SampleDesc.Count = 1;
         ThrowAndPrintIfFailed(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)), device.Get());
+    }
+
+    DXBuffer::DXBuffer(ComPtr<ID3D12Device> device, Type type, size_t size, size_t count) {
+        auto heap = CD3DX12_HEAP_PROPERTIES(HeapType[type]);
+        bufferSize = size * count;
+        resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(static_cast<UINT64>(bufferSize));
+        ThrowIfFailed(device->CreateCommittedResource(
+            &heap,
+            D3D12_HEAP_FLAG_NONE,
+            &resourceDesc,
+            ResourceStates[type],
+            nullptr,
+            IID_PPV_ARGS(&buffer)));
+        bufferView.BufferLocation = buffer->GetGPUVirtualAddress();
+        bufferView.StrideInBytes = size;
+        bufferView.SizeInBytes = bufferSize;
+    }
+
+    void DXBuffer::map() {
+        CD3DX12_RANGE readRange(0, 0);        // We do not intend to read from this resource on the CPU.
+        ThrowIfFailed(buffer->Map(0, &readRange, &mappedAddress));
+    }
+
+    void DXBuffer::unmap() {
+        buffer->Unmap(0, nullptr);
+        mappedAddress = nullptr;
+    }
+
+    void DXBuffer::write(void* data, size_t size, size_t offset) {
+        if (size == WHOLE_SIZE) {
+            memcpy(mappedAddress, data, bufferSize);
+        } else {
+            memcpy(reinterpret_cast<unsigned char*>(mappedAddress) + offset, data, size);
+        }
     }
 
 }

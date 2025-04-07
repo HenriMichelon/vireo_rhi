@@ -44,7 +44,7 @@ namespace dxvk {
         app =  std::make_unique<dxvk::Application>(width, height, name);
 
         // Initialize the sample. OnInit is defined in each child-implementation of DXSample.
-        app->OnInit();
+        app->onInit();
 
         ShowWindow(hwnd, nCmdShow);
 
@@ -60,7 +60,7 @@ namespace dxvk {
             }
         }
 
-        app->OnDestroy();
+        app->onDestroy();
 
         // Return this part of the WM_QUIT message to Windows.
         return static_cast<char>(msg.wParam);
@@ -84,22 +84,22 @@ namespace dxvk {
         case WM_KEYDOWN:
             if (pSample)
             {
-                pSample->OnKeyDown(static_cast<UINT8>(wParam));
+                pSample->onKeyDown(static_cast<UINT8>(wParam));
             }
             return 0;
 
         case WM_KEYUP:
             if (pSample)
             {
-                pSample->OnKeyUp(static_cast<UINT8>(wParam));
+                pSample->onKeyUp(static_cast<UINT8>(wParam));
             }
             return 0;
 
         case WM_PAINT:
             if (pSample)
             {
-                pSample->OnUpdate();
-                pSample->OnRender();
+                pSample->onUpdate();
+                pSample->onRender();
             }
             return 0;
 

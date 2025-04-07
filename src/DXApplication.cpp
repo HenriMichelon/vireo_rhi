@@ -130,44 +130,6 @@ namespace dxvk {
             ThrowIfFailed(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
         }
 
-        // Create the vertex buffer.
-        {
-            // Define the geometry for a triangle.
-            Vertex triangleVertices[] =
-            {
-                { { 0.0f, 0.25f * m_aspectRatio, 0.0f }, { 0.5f, 0.0f } },
-                { { 0.25f, -0.25f * m_aspectRatio, 0.0f }, { 1.0f, 1.0f } },
-                { { -0.25f, -0.25f * m_aspectRatio, 0.0f }, { 0.0f, 1.0f } }
-            };
-
-            const UINT vertexBufferSize = sizeof(triangleVertices);
-
-            // Note: using upload heaps to transfer static data like vert buffers is not
-            // recommended. Every time the GPU needs it, the upload heap will be marshalled
-            // over. Please read up on Default Heap usage. An upload heap is used here for
-            // code simplicity and because there are very few verts to actually transfer.
-            auto heapUpload = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-            auto bufferSize = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
-            ThrowIfFailed(m_device->CreateCommittedResource(
-                &heapUpload,
-                D3D12_HEAP_FLAG_NONE,
-                &bufferSize,
-                D3D12_RESOURCE_STATE_GENERIC_READ,
-                nullptr,
-                IID_PPV_ARGS(&m_vertexBuffer)));
-
-            // Copy the triangle data to the vertex buffer.
-            UINT8* pVertexDataBegin;
-            CD3DX12_RANGE readRange(0, 0);        // We do not intend to read from this resource on the CPU.
-            ThrowIfFailed(m_vertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
-            memcpy(pVertexDataBegin, triangleVertices, sizeof(triangleVertices));
-            m_vertexBuffer->Unmap(0, nullptr);
-
-            // Initialize the vertex buffer view.
-            m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
-            m_vertexBufferView.StrideInBytes = sizeof(Vertex);
-            m_vertexBufferView.SizeInBytes = vertexBufferSize;
-        }
 
         // Note: ComPtr's are CPU objects but this resource needs to stay in scope until
         // the command list that references it has finished executing on the GPU.

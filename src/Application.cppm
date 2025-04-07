@@ -18,32 +18,24 @@ export namespace dxvk {
         Application(UINT width, UINT height, std::wstring name);
         virtual ~Application() = default;
 
-        virtual void OnInit();
-        virtual void OnUpdate();
-        virtual void OnRender();
-        virtual void OnDestroy();
+        virtual void onInit();
+        virtual void onUpdate();
+        virtual void onRender();
+        virtual void onDestroy();
 
-        virtual void OnKeyDown(UINT8 /*key*/)   {}
-        virtual void OnKeyUp(UINT8 /*key*/)     {}
+        virtual void onKeyDown(UINT8 /*key*/)   {}
+        virtual void onKeyUp(UINT8 /*key*/)     {}
 
-        UINT GetWidth() const           { return m_width; }
-        UINT GetHeight() const          { return m_height; }
-        const WCHAR* GetTitle() const   { return m_title.c_str(); }
+        auto getWidth() const           { return width; }
+        auto getHeight() const          { return height; }
+        auto getTitle() const   { return title.c_str(); }
 
     protected:
-        std::shared_ptr<backend::RenderingBackEnd> renderingBackEnd;
-
-        void SetCustomWindowText(LPCWSTR text);
-
         // Texture
         static constexpr  UINT TextureWidth = 256;
         static constexpr  UINT TextureHeight = 256;
         static constexpr  UINT TexturePixelSize = 4;    // The number of bytes used to represent a pixel in the texture.
-        std::vector<UINT8> GenerateTextureData();
-
-        UINT m_width;
-        UINT m_height;
-        float m_aspectRatio;
+        std::vector<UINT8> generateTextureData();
 
     private:
         struct Vertex {
@@ -51,12 +43,19 @@ export namespace dxvk {
             glm::vec4 color;
         };
 
-        std::wstring m_title;
+        std::wstring title;
+        UINT width;
+        UINT height;
+        float aspectRatio;
+
+        std::shared_ptr<backend::RenderingBackEnd> renderingBackEnd;
         std::vector<std::shared_ptr<backend::FrameData>> framesData{backend::SwapChain::FRAMES_IN_FLIGHT};
         std::vector<std::shared_ptr<backend::CommandAllocator>> graphicCommandAllocator{backend::SwapChain::FRAMES_IN_FLIGHT};
         std::vector<std::shared_ptr<backend::CommandList>> graphicCommandList{backend::SwapChain::FRAMES_IN_FLIGHT};
         std::map<std::string, std::shared_ptr<backend::PipelineResources>> pipelineResources;
         std::map<std::string, std::shared_ptr<backend::Pipeline>> pipelines;
+        std::shared_ptr<backend::Buffer> vertexBuffer;
 
+        void setCustomWindowText(LPCWSTR text);
     };
 }
