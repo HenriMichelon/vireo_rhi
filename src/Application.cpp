@@ -25,14 +25,10 @@ namespace dxvk {
             backend::VertexInputLayout::AttributeDescription{"COLOR",    backend::VertexInputLayout::R32G32B32A32_FLOAT, 12}
         };
         auto defaultVertexInputLayout = renderingBackEnd->createVertexLayout(sizeof(Vertex), attributes);
-        //  dxc -T "vs_5_0" -E "VSMain" -Fo shaders1_vert.cso .\shaders1.hlsl
-        auto vertexShader = renderingBackEnd->createShaderModule(
-            "shaders/shaders1.hlsl",
-            "VSMain");
-        // dxc -T "ps_5_0" -E "PSMain" -Fo shaders1_frag.cso .\shaders1.hlsl
-        auto fragmentShader = renderingBackEnd->createShaderModule(
-            "shaders/shaders1.hlsl",
-            "PSMain");
+        //  dxc -T "vs_5_0" -E "VSMain" -Fo shaders1_vert.dxil .\shaders1.hlsl
+        auto vertexShader = renderingBackEnd->createShaderModule("shaders/shaders1_vert");
+        // dxc -T "ps_5_0" -E "PSMain" -Fo shaders1_frag.dxil .\shaders1.hlsl
+        auto fragmentShader = renderingBackEnd->createShaderModule("shaders/shaders1_frag");
         pipelineResources["default"] = renderingBackEnd->createPipelineResources();
         pipelines["default"] = renderingBackEnd->createPipeline(
             *pipelineResources["default"],

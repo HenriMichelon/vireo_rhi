@@ -161,8 +161,7 @@ export namespace dxvk::backend {
             std::vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) = 0;
 
         virtual std::shared_ptr<ShaderModule> createShaderModule(
-            const std::string& fileName,
-            const std::string& entryPointName) = 0;
+            const std::string& fileName) = 0;
 
         virtual std::shared_ptr<PipelineResources> createPipelineResources() = 0;
 

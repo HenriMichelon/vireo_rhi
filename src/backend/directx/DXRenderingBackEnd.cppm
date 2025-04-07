@@ -174,7 +174,7 @@ export namespace dxvk::backend {
 
     class DXShaderModule: public ShaderModule {
     public:
-        DXShaderModule(const std::string& fileName, const std::string& entryPointName);
+        DXShaderModule(const std::string& fileName);
 
         auto getShader() const { return shader; }
 
@@ -217,9 +217,7 @@ export namespace dxvk::backend {
             size_t size,
             std::vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) override;
 
-        std::shared_ptr<ShaderModule> createShaderModule(
-            const std::string& fileName,
-            const std::string& entryPointName) override;
+        std::shared_ptr<ShaderModule> createShaderModule(const std::string& fileName) override;
 
         std::shared_ptr<PipelineResources> createPipelineResources() override;
 

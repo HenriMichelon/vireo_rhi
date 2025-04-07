@@ -47,10 +47,8 @@ namespace dxvk::backend {
         return std::make_shared<DXVertexInputLayout>(attributesDescriptions);
     }
 
-    std::shared_ptr<ShaderModule> DXRenderingBackEnd::createShaderModule(
-        const std::string& fileName,
-        const std::string& entryPointName) {
-        return std::make_shared<DXShaderModule>(fileName, entryPointName);
+    std::shared_ptr<ShaderModule> DXRenderingBackEnd::createShaderModule(const std::string& fileName) {
+        return std::make_shared<DXShaderModule>(fileName);
     }
 
     std::shared_ptr<Buffer> DXRenderingBackEnd::createBuffer(Buffer::Type type, size_t size, size_t count) {
@@ -327,44 +325,17 @@ namespace dxvk::backend {
         }
     }
 
-    DXShaderModule::DXShaderModule(const std::string& fileName, const std::string& entryPointName) {
-        // std::ifstream shaderFile(fileName, std::ios::binary | std::ios::ate);
-        // if (!shaderFile) {
-        //     die("Error loading shader " + fileName);
-        // }
-        //
-        // std::streamsize size = shaderFile.tellg();
-        // shaderFile.seekg(0, std::ios::beg);
-        //
-        // if (FAILED(D3DCreateBlob(size, &shader))) {
-        //     die("Error creating blob for  shader " + fileName);
-        // }
-        // shaderFile.read(reinterpret_cast<char*>(shader->GetBufferPointer()), size);
-#if defined(_DEBUG)
-        // Enable better shader debugging with the graphics debugging tools.
-        UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-#else
-        UINT compileFlags = 0;
-#endif
-        ComPtr<ID3DBlob> errorMessages;
-        std::wstring wFilePath(fileName.begin(), fileName.end());
-        auto hr = D3DCompileFromFile(
-            wFilePath.c_str(),
-            nullptr,
-            nullptr,
-            entryPointName.c_str(),
-            entryPointName == "VSMain" ? "vs_5_0" : "ps_5_0",
-            compileFlags,
-            0,
-            &shader,
-            &errorMessages);
-        if (FAILED(hr)) {
-            if (errorMessages != nullptr) {
-                std::cerr << static_cast<const char*>(errorMessages->GetBufferPointer()) << std::endl;
-                errorMessages->Release();
-            }
-            ThrowIfFailed(hr);
+    DXShaderModule::DXShaderModule(const std::string& fileName) {
+        std::ifstream shaderFile(fileName + ".dxil", std::ios::binary | std::ios::ate);
+        if (!shaderFile) {
+            die("Error loading shader " + fileName);
         }
+        std::streamsize size = shaderFile.tellg();
+        shaderFile.seekg(0, std::ios::beg);
+        if (FAILED(D3DCreateBlob(size, &shader))) {
+            die("Error creating blob for  shader " + fileName);
+        }
+        shaderFile.read(static_cast<char*>(shader->GetBufferPointer()), size);
     }
 
     DXPipelineResources::DXPipelineResources(const ComPtr<ID3D12Device>& device) {
