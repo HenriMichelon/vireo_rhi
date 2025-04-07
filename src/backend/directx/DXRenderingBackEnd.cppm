@@ -84,7 +84,7 @@ export namespace dxvk::backend {
 
         auto getCommandQueue() { return commandQueue; }
 
-        void submit(const FrameData& frameData, std::vector<std::shared_ptr<CommandList>> commandLists) override { }
+        void submit(const FrameData& frameData, std::vector<std::shared_ptr<CommandList>> commandLists) override;
 
     private:
         ComPtr<ID3D12CommandQueue> commandQueue;
@@ -106,9 +106,13 @@ export namespace dxvk::backend {
         DXCommandList(ComPtr<ID3D12Device> device, ComPtr<ID3D12CommandAllocator> commandAllocator);
 
         void begin() override;
+
         void end() override;
 
+        auto getCommandList() { return commandList; }
+
         ~DXCommandList() override = default;
+
     private:
         ComPtr<ID3D12Device>              device;
         ComPtr<ID3D12GraphicsCommandList> commandList;
@@ -124,6 +128,12 @@ export namespace dxvk::backend {
             uint32_t with, uint32_t height);
 
         auto getSwapChain() { return swapChain; }
+
+        auto getRenderTargets() { return renderTargets; }
+
+        auto getDescriptorSize() {  return rtvDescriptorSize; }
+
+        auto getHeap() { return rtvHeap; }
 
         void nextSwapChain() override;
 
@@ -213,6 +223,10 @@ export namespace dxvk::backend {
 
         std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1) override;
 
+        void beginRendering(PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) override;
+
+        void endRendering(CommandList& commandList) override;
+
         void destroyFrameData(std::shared_ptr<FrameData> frameData) override {}
 
         auto getDXInstance() const { return std::reinterpret_pointer_cast<DXInstance>(instance); }
@@ -228,6 +242,10 @@ export namespace dxvk::backend {
         auto getDXTransferCommandQueue() const { return std::reinterpret_pointer_cast<DXSubmitQueue>(transferCommandQueue); }
 
         auto getDXSwapChain() const { return std::reinterpret_pointer_cast<DXSwapChain>(swapChain); }
+
+    private:
+        CD3DX12_VIEWPORT viewport;
+        CD3DX12_RECT scissorRect;
     };
 
 }

@@ -20,8 +20,6 @@ export namespace dxvk {
 
 
         // Triangle
-        CD3DX12_VIEWPORT m_viewport;
-        CD3DX12_RECT m_scissorRect;
         void LoadPipeline();
         void LoadAssets();
         void PopulateCommandList();

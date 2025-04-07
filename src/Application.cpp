@@ -74,7 +74,9 @@ namespace dxvk {
 
         commandList->begin();
         swapChain->begin(frameData, commandList);
-        //draw
+        renderingBackEnd->beginRendering(*pipelineResources["default"], *pipelines["default"], *commandList);
+
+        renderingBackEnd->endRendering(*commandList);
         swapChain->end(frameData, commandList);
         commandList->end();
         renderingBackEnd->getGraphicCommandQueue()->submit(frameData, {commandList});

@@ -10,7 +10,9 @@ import dxvk.backend.directx.framedata;
 
 namespace dxvk::backend {
 
-    DXRenderingBackEnd::DXRenderingBackEnd(uint32_t width, uint32_t height) {
+    DXRenderingBackEnd::DXRenderingBackEnd(uint32_t width, uint32_t height):
+        scissorRect(0, 0, static_cast<LONG>(width), static_cast<LONG>(height)),
+        viewport(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)){
         instance = std::make_shared<DXInstance>();
         physicalDevice = std::make_shared<DXPhysicalDevice>(getDXInstance()->getFactory());
         device = std::make_shared<DXDevice>(getDXPhysicalDevice()->getHardwareAdapater());
@@ -54,6 +56,45 @@ namespace dxvk::backend {
 
     std::shared_ptr<Buffer> DXRenderingBackEnd::createBuffer(Buffer::Type type, size_t size, size_t count) {
         return make_shared<DXBuffer>(getDXDevice()->getDevice(), type, size, count);
+    }
+
+    void DXRenderingBackEnd::beginRendering(PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) {
+        auto dxCommandList = static_cast<DXCommandList&>(commandList).getCommandList();
+        auto dxSwapChain = getDXSwapChain();
+        auto frameIndex = swapChain->getCurrentFrameIndex();
+        auto& dxPipelineResources = static_cast<DXPipelineResources&>(pipelineResources);
+        // auto& dxPipeline = static_cast<DXPipeline&>(pipeline);
+
+        dxCommandList->SetGraphicsRootSignature(dxPipelineResources.getRootSignature().Get());
+        dxCommandList->RSSetViewports(1, &viewport);
+        dxCommandList->RSSetScissorRects(1, &scissorRect);
+
+        auto swapChainBarrier = CD3DX12_RESOURCE_BARRIER::Transition(dxSwapChain->getRenderTargets()[frameIndex].Get(),
+                                                 D3D12_RESOURCE_STATE_PRESENT,
+                                                 D3D12_RESOURCE_STATE_RENDER_TARGET);
+        dxCommandList->ResourceBarrier(1, &swapChainBarrier);
+
+        CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(
+            dxSwapChain->getHeap()->GetCPUDescriptorHandleForHeapStart(),
+            frameIndex,
+            dxSwapChain->getDescriptorSize());
+        dxCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+
+        const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+        dxCommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+        dxCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    }
+
+    void DXRenderingBackEnd::endRendering(CommandList& commandList) {
+        auto dxCommandList = static_cast<DXCommandList&>(commandList).getCommandList();
+        auto dxSwapChain = getDXSwapChain();
+        auto frameIndex = swapChain->getCurrentFrameIndex();
+
+        auto swapChainBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+            dxSwapChain->getRenderTargets()[frameIndex].Get(),
+            D3D12_RESOURCE_STATE_RENDER_TARGET,
+            D3D12_RESOURCE_STATE_PRESENT);
+        dxCommandList->ResourceBarrier(1, &swapChainBarrier);
     }
 
     DXInstance::DXInstance() {
@@ -141,6 +182,14 @@ namespace dxvk::backend {
         queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
         queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
         ThrowIfFailed(device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&commandQueue)));
+    }
+
+    void DXSubmitQueue::submit(const FrameData& frameData, std::vector<std::shared_ptr<CommandList>> commandLists) {
+        auto dxCommandLists = std::vector<ID3D12CommandList*>(commandLists.size());
+        for (int i = 0; i < commandLists.size(); i++) {
+            dxCommandLists[i] = static_pointer_cast<DXCommandList>(commandLists[i])->getCommandList().Get();
+        }
+        commandQueue->ExecuteCommandLists(dxCommandLists.size(), dxCommandLists.data());
     }
 
     DXCommandAllocator::DXCommandAllocator(ComPtr<ID3D12Device> device):
