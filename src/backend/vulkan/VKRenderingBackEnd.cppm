@@ -270,9 +270,15 @@ export namespace dxvk::backend {
         VkShaderModule shaderModule;
     };
 
-
     class VKPipelineResources : public PipelineResources {
     public:
+        VKPipelineResources(VkDevice device);
+
+        ~VKPipelineResources() override;
+
+    private:
+        VkDevice         device;
+        VkPipelineLayout pipelineLayout;
     };
 
     class VKPipeline : public Pipeline {

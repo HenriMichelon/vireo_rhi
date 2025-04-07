@@ -97,7 +97,7 @@ namespace dxvk::backend {
     }
 
     std::shared_ptr<PipelineResources> VKRenderingBackEnd::createPipelineResources() {
-        return nullptr;
+        return make_shared<VKPipelineResources>(getVKDevice()->getDevice());
     }
 
     std::shared_ptr<Pipeline> VKRenderingBackEnd::createPipeline(
@@ -153,6 +153,24 @@ namespace dxvk::backend {
         if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
             die("failed to create shader module!");
         }
+    }
+
+    VKPipelineResources::VKPipelineResources(VkDevice device):
+        device{device} {
+        auto pipelineLayoutInfo = VkPipelineLayoutCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+            .setLayoutCount = 0,
+            .pSetLayouts = nullptr,
+            .pushConstantRangeCount = 0,
+            .pPushConstantRanges = nullptr,
+        };
+        if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create pipeline layout!");
+        }
+    }
+
+    VKPipelineResources::~VKPipelineResources() {
+        vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
     }
 
     VKShaderModule::~VKShaderModule() {
