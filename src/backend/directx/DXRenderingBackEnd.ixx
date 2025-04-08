@@ -20,7 +20,7 @@ export namespace dxvk::backend {
 
     class DXPhysicalDevice : public PhysicalDevice {
     public:
-        DXPhysicalDevice(ComPtr<IDXGIFactory4> factory);
+        DXPhysicalDevice(const ComPtr<IDXGIFactory4>& factory);
 
         auto getHardwareAdapater() { return hardwareAdapter4; }
 
@@ -44,25 +44,35 @@ export namespace dxvk::backend {
             D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER
         };
 
-        DXBuffer(ComPtr<ID3D12Device> device, Type type, size_t size, size_t count = 1);
+        DXBuffer(const ComPtr<ID3D12Device>& device, Type type, size_t size, size_t count = 1);
+
+        DXBuffer(
+            const ComPtr<ID3D12GraphicsCommandList>& commandList,
+            ComPtr<ID3D12Device> device,
+            Type type,
+            const void* data,
+            size_t size,
+            size_t count,
+            const std::wstring& name);
 
         void map() override;
 
         void unmap() override;
 
-        void write(void* data, size_t size = WHOLE_SIZE, size_t offset = 0) override;
+        void write(const void* data, size_t size = WHOLE_SIZE, size_t offset = 0) override;
 
         const auto& getBufferView() const { return bufferView; }
 
     private:
         ComPtr<ID3D12Resource>      buffer;
+        ComPtr<ID3D12Resource>      stagingBuffer{nullptr};
         D3D12_VERTEX_BUFFER_VIEW    bufferView;
         CD3DX12_RESOURCE_DESC       resourceDesc;
     };
 
     class DXDevice : public Device {
     public:
-        DXDevice(ComPtr<IDXGIAdapter4> hardwareAdapter4);
+        DXDevice(const ComPtr<IDXGIAdapter4>& hardwareAdapter4);
         ~DXDevice() override;
 
         auto getDevice() { return device; }
@@ -70,8 +80,6 @@ export namespace dxvk::backend {
         auto getInFlightFence() { return inFlightFence; }
 
         auto getInFlightFenceEvent() const { return inFlightFenceEvent;}
-
-        std::shared_ptr<CommandAllocator> createCommandAllocator(CommandAllocator::Type type) const override;
 
     private:
         ComPtr<ID3D12Device> device;
@@ -81,21 +89,28 @@ export namespace dxvk::backend {
 
     class DXSubmitQueue : public SubmitQueue{
     public:
-        DXSubmitQueue(ComPtr<ID3D12Device> device);
+        DXSubmitQueue(CommandList::Type type, const ComPtr<ID3D12Device>& device);
 
         auto getCommandQueue() { return commandQueue; }
 
         void submit(const FrameData& frameData, std::vector<std::shared_ptr<CommandList>> commandLists) override;
 
+        void submit(std::vector<std::shared_ptr<CommandList>> commandLists) override;
+
+        void waitIdle() override;
+
     private:
+        ComPtr<ID3D12Device>       device;
         ComPtr<ID3D12CommandQueue> commandQueue;
     };
 
     class DXCommandAllocator : public CommandAllocator {
     public:
-        DXCommandAllocator(ComPtr<ID3D12Device> device);
+        DXCommandAllocator(CommandList::Type type, const ComPtr<ID3D12Device>& device);
 
         std::shared_ptr<CommandList> createCommandList(Pipeline& pipeline) const override;
+
+        std::shared_ptr<CommandList> createCommandList() const override;
 
     private:
         ComPtr<ID3D12Device>           device;
@@ -104,9 +119,21 @@ export namespace dxvk::backend {
 
     class DXCommandList : public CommandList {
     public:
-        DXCommandList(ComPtr<ID3D12Device> device, ComPtr<ID3D12CommandAllocator> commandAllocator, ComPtr<ID3D12PipelineState> pipelineState);
+        static constexpr D3D12_COMMAND_LIST_TYPE ListType[] {
+            D3D12_COMMAND_LIST_TYPE_DIRECT,
+            D3D12_COMMAND_LIST_TYPE_COPY,
+            D3D12_COMMAND_LIST_TYPE_COMPUTE,
+        };
+
+        DXCommandList(
+            Type type,
+            const ComPtr<ID3D12Device>& device,
+            const ComPtr<ID3D12CommandAllocator>& commandAllocator,
+            const ComPtr<ID3D12PipelineState>& pipelineState = nullptr);
 
         void begin(Pipeline& pipeline) override;
+
+        void begin() override;
 
         void end() override;
 
@@ -127,10 +154,10 @@ export namespace dxvk::backend {
     class DXSwapChain : public SwapChain {
     public:
         DXSwapChain(
-            ComPtr<IDXGIFactory4> factory,
+            const ComPtr<IDXGIFactory4>& factory,
             DXDevice& device,
             ComPtr<ID3D12CommandQueue> commandQueue,
-            uint32_t with, uint32_t height);
+            uint32_t width, uint32_t height);
 
         auto getSwapChain() { return swapChain; }
 
@@ -145,8 +172,6 @@ export namespace dxvk::backend {
         void acquire(FrameData& frameData) override;
 
         void present(FrameData& frameData) override;
-
-        void terminate(FrameData& frameData) override;
 
     private:
         DXDevice&                    device;
@@ -212,6 +237,10 @@ export namespace dxvk::backend {
     public:
         DXRenderingBackEnd(uint32_t width, uint32_t height);
 
+        void waitIdle(FrameData& frameData) override;
+
+        std::shared_ptr<CommandAllocator> createCommandAllocator(CommandList::Type type) const override;
+
         std::shared_ptr<FrameData> createFrameData(uint32_t frameIndex) override;
 
         std::shared_ptr<VertexInputLayout> createVertexLayout(
@@ -229,6 +258,13 @@ export namespace dxvk::backend {
             ShaderModule& fragmentShader) const override;
 
         std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1) const override;
+
+        std::shared_ptr<Buffer> createVertexBuffer(
+            CommandList& commandList,
+            const void* data,
+            size_t size,
+            size_t count = 1,
+            const std::wstring& name = L"VertexBuffer") const override;
 
         void beginRendering(PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) override;
 

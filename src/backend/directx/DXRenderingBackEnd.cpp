@@ -8,15 +8,15 @@ import dxvk.backend.directx.framedata;
 
 namespace dxvk::backend {
 
-    DXRenderingBackEnd::DXRenderingBackEnd(uint32_t width, uint32_t height):
-        scissorRect(0, 0, static_cast<LONG>(width), static_cast<LONG>(height)),
-        viewport(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)){
+    DXRenderingBackEnd::DXRenderingBackEnd(const uint32_t width, const uint32_t height):
+        viewport(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)),
+        scissorRect(0, 0, static_cast<LONG>(width), static_cast<LONG>(height)){
         instance = std::make_shared<DXInstance>();
         physicalDevice = std::make_shared<DXPhysicalDevice>(getDXInstance()->getFactory());
         device = std::make_shared<DXDevice>(getDXPhysicalDevice()->getHardwareAdapater());
-        graphicCommandQueue = std::make_shared<DXSubmitQueue>(getDXDevice()->getDevice());
-        transferCommandQueue = graphicCommandQueue; // TODO multiple queues for threading
-        presentCommandQueue = graphicCommandQueue; // TODO multiple queues for threading
+        graphicCommandQueue = std::make_shared<DXSubmitQueue>(CommandList::GRAPHIC, getDXDevice()->getDevice());
+        transferCommandQueue = std::make_shared<DXSubmitQueue>(CommandList::GRAPHIC, getDXDevice()->getDevice());
+        presentCommandQueue = std::make_shared<DXSubmitQueue>(CommandList::GRAPHIC, getDXDevice()->getDevice());
         swapChain = std::make_shared<DXSwapChain>(
             getDXInstance()->getFactory(),
             *getDXDevice(),
@@ -24,7 +24,7 @@ namespace dxvk::backend {
             width, height);
     }
 
-    std::shared_ptr<FrameData> DXRenderingBackEnd::createFrameData(uint32_t frameIndex) {
+    std::shared_ptr<FrameData> DXRenderingBackEnd::createFrameData(const uint32_t frameIndex) {
         return std::make_shared<DXFrameData>();
     }
 
@@ -50,15 +50,31 @@ namespace dxvk::backend {
         return std::make_shared<DXShaderModule>(fileName);
     }
 
-    std::shared_ptr<Buffer> DXRenderingBackEnd::createBuffer(Buffer::Type type, size_t size, size_t count) const {
+    std::shared_ptr<Buffer> DXRenderingBackEnd::createBuffer(const Buffer::Type type, const size_t size, const size_t count) const {
         return make_shared<DXBuffer>(getDXDevice()->getDevice(), type, size, count);
     }
 
+    std::shared_ptr<Buffer> DXRenderingBackEnd::createVertexBuffer(
+        CommandList& commandList,
+        const void* data,
+        size_t size,
+        size_t count,
+        const std::wstring& name) const {
+        return make_shared<DXBuffer>(
+            static_cast<DXCommandList&>(commandList).getCommandList(),
+            getDXDevice()->getDevice(),
+            Buffer::VERTEX,
+            data,
+            size,
+            count,
+            name);
+    }
+
     void DXRenderingBackEnd::beginRendering(PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) {
-        auto dxCommandList = static_cast<DXCommandList&>(commandList).getCommandList();
-        auto dxSwapChain = getDXSwapChain();
-        auto frameIndex = swapChain->getCurrentFrameIndex();
-        auto& dxPipelineResources = static_cast<DXPipelineResources&>(pipelineResources);
+        const auto dxCommandList = static_cast<DXCommandList&>(commandList).getCommandList();
+        const auto dxSwapChain = getDXSwapChain();
+        const auto frameIndex = swapChain->getCurrentFrameIndex();
+        const auto& dxPipelineResources = static_cast<DXPipelineResources&>(pipelineResources);
         // auto& dxPipeline = static_cast<DXPipeline&>(pipeline);
 
         dxCommandList->SetGraphicsRootSignature(dxPipelineResources.getRootSignature().Get());
@@ -82,15 +98,29 @@ namespace dxvk::backend {
     }
 
     void DXRenderingBackEnd::endRendering(CommandList& commandList) {
-        auto dxCommandList = static_cast<DXCommandList&>(commandList).getCommandList();
-        auto dxSwapChain = getDXSwapChain();
-        auto frameIndex = swapChain->getCurrentFrameIndex();
+        const auto dxCommandList = static_cast<DXCommandList&>(commandList).getCommandList();
+        const auto dxSwapChain = getDXSwapChain();
+        const auto frameIndex = swapChain->getCurrentFrameIndex();
 
-        auto swapChainBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+        const auto swapChainBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
             dxSwapChain->getRenderTargets()[frameIndex].Get(),
             D3D12_RESOURCE_STATE_RENDER_TARGET,
             D3D12_RESOURCE_STATE_PRESENT);
         dxCommandList->ResourceBarrier(1, &swapChainBarrier);
+    }
+
+    void DXRenderingBackEnd::waitIdle(FrameData& frameData) {
+        const auto& data = static_cast<DXFrameData&>(frameData);
+        auto& device = *getDXDevice();
+        const auto currentFenceValue = data.inFlightFenceValue;
+        ThrowIfFailed(getDXPresentCommandQueue()->getCommandQueue()->Signal(device.getInFlightFence().Get(), currentFenceValue));
+        if (device.getInFlightFence()->GetCompletedValue() < currentFenceValue) {
+            ThrowIfFailed(device.getInFlightFence()->SetEventOnCompletion(
+                currentFenceValue,
+                device.getInFlightFenceEvent()
+            ));
+            WaitForSingleObjectEx(device.getInFlightFenceEvent(), INFINITE, FALSE);
+        }
     }
 
     DXInstance::DXInstance() {
@@ -109,7 +139,7 @@ namespace dxvk::backend {
         ThrowIfFailed(factory->MakeWindowAssociation(Win32Application::getHwnd(), DXGI_MWA_NO_ALT_ENTER));
     }
 
-    DXPhysicalDevice::DXPhysicalDevice(ComPtr<IDXGIFactory4> factory) {
+    DXPhysicalDevice::DXPhysicalDevice(const ComPtr<IDXGIFactory4>& factory) {
         ComPtr<IDXGIAdapter1> hardwareAdapter;
 
         SIZE_T maxDedicatedVideoMemory = 0;
@@ -139,7 +169,7 @@ namespace dxvk::backend {
         }
     }
 
-    DXDevice::DXDevice(ComPtr<IDXGIAdapter4> hardwareAdapter4) {
+    DXDevice::DXDevice(const ComPtr<IDXGIAdapter4>& hardwareAdapter4) {
         ThrowIfFailed(
             D3D12CreateDevice(
                   hardwareAdapter4.Get(),
@@ -168,19 +198,24 @@ namespace dxvk::backend {
         CloseHandle(inFlightFenceEvent);
     }
 
-    std::shared_ptr<CommandAllocator> DXDevice::createCommandAllocator(CommandAllocator::Type type) const {
-        return std::make_shared<DXCommandAllocator>(device);
+    std::shared_ptr<CommandAllocator> DXRenderingBackEnd::createCommandAllocator(CommandList::Type type) const {
+        return std::make_shared<DXCommandAllocator>(type, getDXDevice()->getDevice());
     }
 
-    DXSubmitQueue::DXSubmitQueue(ComPtr<ID3D12Device> device) {
-        // Describe and create the command queue.
-        D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-        queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-        queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+    DXSubmitQueue::DXSubmitQueue(const CommandList::Type type, const ComPtr<ID3D12Device>& device) :
+        device{device} {
+        const auto queueDesc = D3D12_COMMAND_QUEUE_DESC {
+            .Type = DXCommandList::ListType[type],
+            .Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
+        };
         ThrowIfFailed(device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&commandQueue)));
     }
 
     void DXSubmitQueue::submit(const FrameData& frameData, std::vector<std::shared_ptr<CommandList>> commandLists) {
+        submit(commandLists);
+    }
+
+    void DXSubmitQueue::submit(const std::vector<std::shared_ptr<CommandList>> commandLists) {
         auto dxCommandLists = std::vector<ID3D12CommandList*>(commandLists.size());
         for (int i = 0; i < commandLists.size(); i++) {
             dxCommandLists[i] = static_pointer_cast<DXCommandList>(commandLists[i])->getCommandList().Get();
@@ -188,23 +223,63 @@ namespace dxvk::backend {
         commandQueue->ExecuteCommandLists(dxCommandLists.size(), dxCommandLists.data());
     }
 
-    DXCommandAllocator::DXCommandAllocator(ComPtr<ID3D12Device> device):
+    void DXSubmitQueue::waitIdle() {
+        ComPtr<ID3D12Fence>  inFlightFence;
+        ThrowIfFailed(device->CreateFence(
+           0,
+           D3D12_FENCE_FLAG_NONE,
+           IID_PPV_ARGS(&inFlightFence)));
+        HANDLE inFlightFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+        if (inFlightFenceEvent == nullptr) {
+            ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
+        }
+        ThrowIfFailed(commandQueue->Signal(inFlightFence.Get(), 0));
+        if (inFlightFence->GetCompletedValue() < 0) {
+            ThrowIfFailed(inFlightFence->SetEventOnCompletion(
+                0,
+                inFlightFenceEvent
+            ));
+            WaitForSingleObjectEx(inFlightFenceEvent, INFINITE, FALSE);
+        }
+        CloseHandle(inFlightFenceEvent);
+    }
+
+    DXCommandAllocator::DXCommandAllocator(const CommandList::Type type, const ComPtr<ID3D12Device>& device):
+        CommandAllocator{type},
         device{device} {
-        ThrowIfFailed(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator)));
+        ThrowIfFailed(device->CreateCommandAllocator(
+            DXCommandList::ListType[type],
+            IID_PPV_ARGS(&commandAllocator)));
     }
 
     std::shared_ptr<CommandList> DXCommandAllocator::createCommandList(Pipeline& pipeline) const {
-        return std::make_shared<DXCommandList>(device, commandAllocator, static_cast<DXPipeline&>(pipeline).getPipelineState());
+        return std::make_shared<DXCommandList>(
+            getCommandListType(),
+            device,
+            commandAllocator,
+            static_cast<DXPipeline&>(pipeline).getPipelineState());
     }
 
-    DXCommandList::DXCommandList(ComPtr<ID3D12Device> device, ComPtr<ID3D12CommandAllocator> commandAllocator, ComPtr<ID3D12PipelineState> pipelineState):
+    std::shared_ptr<CommandList> DXCommandAllocator::createCommandList() const {
+        return std::make_shared<DXCommandList>(
+            getCommandListType(),
+            device,
+            commandAllocator,
+            nullptr);
+    }
+
+    DXCommandList::DXCommandList(
+        const Type type,
+        const ComPtr<ID3D12Device>& device,
+        const ComPtr<ID3D12CommandAllocator>& commandAllocator,
+        const ComPtr<ID3D12PipelineState>& pipelineState):
         device{device},
         commandAllocator{commandAllocator} {
         ThrowIfFailed(device->CreateCommandList(
             0,
-            D3D12_COMMAND_LIST_TYPE_DIRECT,
+            ListType[type],
             commandAllocator.Get(),
-            pipelineState.Get(),
+            pipelineState == nullptr ? nullptr : pipelineState.Get(),
             IID_PPV_ARGS(&commandList)));
         ThrowIfFailed(commandList->Close());
     }
@@ -213,6 +288,11 @@ namespace dxvk::backend {
         auto& dxPipeline = static_cast<DXPipeline&>(pipeline);
         ThrowIfFailed(commandAllocator->Reset());
         ThrowIfFailed(commandList->Reset(commandAllocator.Get(), dxPipeline.getPipelineState().Get()));
+    }
+
+    void DXCommandList::begin() {
+        ThrowIfFailed(commandAllocator->Reset());
+        ThrowIfFailed(commandList->Reset(commandAllocator.Get(), nullptr));
     }
 
     void DXCommandList::end() {
@@ -224,16 +304,16 @@ namespace dxvk::backend {
         commandList->IASetVertexBuffers(0, 1, &vertexBuffer.getBufferView());
     }
 
-    void DXCommandList::drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount) {
+    void DXCommandList::drawInstanced(const uint32_t vertexCountPerInstance, const uint32_t instanceCount) {
         commandList->DrawInstanced(vertexCountPerInstance, instanceCount, 0, 0);
     }
 
     DXSwapChain::DXSwapChain(
-        ComPtr<IDXGIFactory4> factory,
+        const ComPtr<IDXGIFactory4>& factory,
         DXDevice& dxdevice,
         ComPtr<ID3D12CommandQueue> commandQueue,
-        uint32_t width,
-        uint32_t height) :
+        const uint32_t width,
+        const uint32_t height) :
         device{dxdevice},
         presentCommandQueue{commandQueue} {
         extent = { width, height };
@@ -305,19 +385,6 @@ namespace dxvk::backend {
         auto& data = static_cast<DXFrameData&>(frameData);
         ThrowAndPrintIfFailed(swapChain->Present(1, 0), device.getDevice().Get());
         data.inFlightFenceValue += 1;
-    }
-
-    void DXSwapChain::terminate(FrameData& frameData) {
-        const auto& data = static_cast<DXFrameData&>(frameData);
-        const auto currentFenceValue = data.inFlightFenceValue;
-        ThrowIfFailed(presentCommandQueue->Signal(device.getInFlightFence().Get(), currentFenceValue));
-        if (device.getInFlightFence()->GetCompletedValue() < currentFenceValue) {
-            ThrowIfFailed(device.getInFlightFence()->SetEventOnCompletion(
-                currentFenceValue,
-                device.getInFlightFenceEvent()
-            ));
-            WaitForSingleObjectEx(device.getInFlightFenceEvent(), INFINITE, FALSE);
-        }
     }
 
     DXVertexInputLayout::DXVertexInputLayout(const std::vector<AttributeDescription>& attributesDescriptions) {
@@ -400,10 +467,10 @@ namespace dxvk::backend {
         ThrowAndPrintIfFailed(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)), device.Get());
     }
 
-    DXBuffer::DXBuffer(ComPtr<ID3D12Device> device, Type type, size_t size, size_t count) {
+    DXBuffer::DXBuffer(const ComPtr<ID3D12Device>& device, const Type type, const size_t size, const size_t count) {
         auto heap = CD3DX12_HEAP_PROPERTIES(HeapType[type]);
         bufferSize = size * count;
-        resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(static_cast<UINT64>(bufferSize));
+        resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
         ThrowIfFailed(device->CreateCommittedResource(
             &heap,
             D3D12_HEAP_FLAG_NONE,
@@ -411,6 +478,67 @@ namespace dxvk::backend {
             ResourceStates[type],
             nullptr,
             IID_PPV_ARGS(&buffer)));
+        bufferView.BufferLocation = buffer->GetGPUVirtualAddress();
+        bufferView.StrideInBytes = size;
+        bufferView.SizeInBytes = bufferSize;
+    }
+
+    DXBuffer::DXBuffer(
+        const ComPtr<ID3D12GraphicsCommandList>& commandList,
+        ComPtr<ID3D12Device> device,
+        const Type type,
+        const void* data,
+        const size_t size,
+        const size_t count,
+        const std::wstring& name) {
+        assert(type != UPLOAD);
+        bufferSize = size * count;
+        // auto alignedBufferSize = (bufferSize + 255) & ~255;
+
+        // GPU Buffer
+        const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+        resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
+        ThrowIfFailed(device->CreateCommittedResource(
+            &heapProperties,
+            D3D12_HEAP_FLAG_NONE,
+            &resourceDesc,
+            D3D12_RESOURCE_STATE_COMMON,
+            nullptr,
+            IID_PPV_ARGS(&buffer)));
+        buffer->SetName(name.c_str());
+
+        // Upload buffer
+        const auto stagingBufferSize = GetRequiredIntermediateSize(buffer.Get(), 0, 1);
+        const auto stagingHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+        const auto stagingResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(stagingBufferSize);
+        ThrowIfFailed(device->CreateCommittedResource(
+            &stagingHeapProps,
+            D3D12_HEAP_FLAG_NONE,
+            &stagingResourceDesc,
+            D3D12_RESOURCE_STATE_GENERIC_READ,
+            nullptr,
+            IID_PPV_ARGS(&stagingBuffer)));
+
+        // Data upload & copy
+        const auto copyData = D3D12_SUBRESOURCE_DATA {
+            .pData = data,
+            .RowPitch = static_cast<LONG_PTR>(bufferSize),
+            .SlicePitch =  static_cast<LONG_PTR>(bufferSize),
+        };
+        UpdateSubresources(
+            commandList.Get(),
+            buffer.Get(),
+            stagingBuffer.Get(),
+            0,
+            0,
+            1,
+            &copyData);
+        const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+            buffer.Get(),
+            D3D12_RESOURCE_STATE_COPY_DEST,
+            D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+        commandList->ResourceBarrier(1, &memoryBarrier);
+
         bufferView.BufferLocation = buffer->GetGPUVirtualAddress();
         bufferView.StrideInBytes = size;
         bufferView.SizeInBytes = bufferSize;
@@ -426,7 +554,7 @@ namespace dxvk::backend {
         mappedAddress = nullptr;
     }
 
-    void DXBuffer::write(void* data, size_t size, size_t offset) {
+    void DXBuffer::write(const void* data, const size_t size, const size_t offset) {
         if (size == WHOLE_SIZE) {
             memcpy(mappedAddress, data, bufferSize);
         } else {

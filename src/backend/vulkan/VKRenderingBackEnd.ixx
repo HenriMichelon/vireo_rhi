@@ -119,8 +119,6 @@ export namespace dxvk::backend {
                                     uint32_t           layers = 1,
                                     uint32_t           baseMipLevel = 0) const;
 
-        std::shared_ptr<CommandAllocator> createCommandAllocator(CommandAllocator::Type type) const override;
-
         static VkImageMemoryBarrier imageMemoryBarrier(
           VkImage image,
           VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask,
@@ -140,11 +138,13 @@ export namespace dxvk::backend {
     public:
         VKSubmitQueue(const VKDevice& device);
 
-        ~VKSubmitQueue() override;
-
         auto getCommandQueue() const { return commandQueue; }
 
         void submit(const FrameData& frameData, std::vector<std::shared_ptr<CommandList>> commandLists) override;
+
+        void submit(std::vector<std::shared_ptr<CommandList>> commandLists) override;
+
+        void waitIdle() override;
 
     private:
         VkQueue commandQueue;
@@ -152,10 +152,12 @@ export namespace dxvk::backend {
 
     class VKCommandAllocator : public CommandAllocator {
     public:
-        VKCommandAllocator(const VKDevice& device, Type type);
+        VKCommandAllocator(CommandList::Type type, const VKDevice& device);
         ~VKCommandAllocator() override;
 
         std::shared_ptr<CommandList> createCommandList(Pipeline& pipeline) const override;
+
+        std::shared_ptr<CommandList> createCommandList() const override;
 
     private:
         VkDevice      device;
@@ -169,6 +171,8 @@ export namespace dxvk::backend {
         ~VKCommandList() override;
 
         void begin(Pipeline& pipeline) override;
+
+        void begin() override;
 
         void end() override;
 
@@ -206,8 +210,6 @@ export namespace dxvk::backend {
         void end(FrameData& frameData, CommandList& commandList) override;
 
         void present(FrameData& framesData) override;
-
-        void terminate(FrameData& frameData) override;
 
     private:
         VkDevice                    device;
@@ -315,6 +317,10 @@ export namespace dxvk::backend {
     public:
         VKRenderingBackEnd(uint32_t width, uint32_t height);
 
+        void waitIdle(FrameData& frameData) override;
+
+        std::shared_ptr<CommandAllocator> createCommandAllocator(CommandList::Type type) const override;
+
         std::shared_ptr<FrameData> createFrameData(uint32_t frameIndex) override;
 
         void destroyFrameData(FrameData& frameData) override;
@@ -333,11 +339,11 @@ export namespace dxvk::backend {
             ShaderModule& vertexShader,
             ShaderModule& fragmentShader) const override;
 
-        virtual std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1) const override;
+        std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1) const override;
 
-        virtual void beginRendering(PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) override;
+        void beginRendering(PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) override;
 
-        virtual void endRendering(CommandList& commandList) override;
+        void endRendering(CommandList& commandList) override;
 
         auto getVKInstance() const { return std::reinterpret_pointer_cast<VKInstance>(instance); }
 

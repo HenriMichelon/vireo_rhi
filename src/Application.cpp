@@ -19,6 +19,23 @@ namespace dxvk {
     }
 
     void Application::onInit() {
+        const auto triangleVertices = std::vector<Vertex> {
+                { { 0.0f, 0.25f * aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+                { { 0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+                { { -0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
+        };
+        const auto uploadCommandAllocator = renderingBackEnd->createCommandAllocator(backend::CommandList::GRAPHIC);
+        auto uploadCommandList = uploadCommandAllocator->createCommandList();
+        uploadCommandList->begin();
+        vertexBuffer = renderingBackEnd->createVertexBuffer(
+            *uploadCommandList,
+            &triangleVertices[0],
+            sizeof(Vertex),
+            triangleVertices.size(),
+            L"TriangleVertexBuffer");
+        uploadCommandList->end();
+        renderingBackEnd->getTransferCommandQueue()->submit({uploadCommandList});
+
         const auto attributes = std::vector{
             backend::VertexInputLayout::AttributeDescription{"POSITION", backend::VertexInputLayout::R32G32B32_FLOAT, 0},
             backend::VertexInputLayout::AttributeDescription{"COLOR",    backend::VertexInputLayout::R32G32B32A32_FLOAT, 12}
@@ -35,23 +52,11 @@ namespace dxvk {
 
         for (uint32_t i = 0; i < backend::SwapChain::FRAMES_IN_FLIGHT; i++) {
             framesData[i] = renderingBackEnd->createFrameData(i);
-            graphicCommandAllocator[i] = renderingBackEnd->getDevice()->createCommandAllocator(backend::CommandAllocator::GRAPHIC);
+            graphicCommandAllocator[i] = renderingBackEnd->createCommandAllocator(backend::CommandList::GRAPHIC);
             graphicCommandList[i] = graphicCommandAllocator[i]->createCommandList(*pipelines["default"]);
         }
 
-        auto triangleVertices = std::vector<Vertex> {
-            { { 0.0f, 0.25f * aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-            { { 0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-            { { -0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
-        };
-        // Note: using upload heaps to transfer static data like vert buffers is not
-        // recommended. Every time the GPU needs it, the upload heap will be marshalled
-        // over. Please read up on Default Heap usage. An upload heap is used here for
-        // code simplicity and because there are very few verts to actually transfer.
-        vertexBuffer = renderingBackEnd->createBuffer(backend::Buffer::UPLOAD, sizeof(Vertex), triangleVertices.size());
-        vertexBuffer->map();
-        vertexBuffer->write(&triangleVertices[0]);
-        vertexBuffer->unmap();
+        renderingBackEnd->getTransferCommandQueue()->waitIdle();
     }
 
     void Application::onUpdate() {
@@ -82,7 +87,7 @@ namespace dxvk {
     }
 
     void Application::onDestroy() {
-        renderingBackEnd->getSwapChain()->terminate(*framesData[renderingBackEnd->getSwapChain()->getCurrentFrameIndex()]);
+        renderingBackEnd->getGraphicCommandQueue()->waitIdle();
         renderingBackEnd->getDevice()->waitIdle();
         for (uint32_t i = 0; i < backend::SwapChain::FRAMES_IN_FLIGHT; i++) {
             renderingBackEnd->destroyFrameData(*framesData[i]);
@@ -90,7 +95,7 @@ namespace dxvk {
     }
 
     // Helper function for setting the window's title text.
-    void Application::setCustomWindowText(LPCWSTR text) {
+    void Application::setCustomWindowText(LPCWSTR text) const {
         std::wstring windowText = title + L": " + text;
         SetWindowText(Win32Application::getHwnd(), windowText.c_str());
     }

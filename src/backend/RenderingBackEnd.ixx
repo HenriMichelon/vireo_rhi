@@ -36,7 +36,7 @@ export namespace dxvk::backend {
 
         virtual void unmap() = 0;
 
-        virtual void write(void* data, size_t size = WHOLE_SIZE, size_t offset = 0) = 0;
+        virtual void write(const void* data, size_t size = WHOLE_SIZE, size_t offset = 0) = 0;
 
     protected:
         size_t  bufferSize{0};
@@ -75,7 +75,15 @@ export namespace dxvk::backend {
 
     class CommandList {
     public:
+        enum Type {
+            GRAPHIC,
+            TRANSFER,
+            COMPUTE,
+        };
+
         virtual void begin(Pipeline& pipeline) = 0;
+
+        virtual void begin() = 0;
 
         virtual void end() = 0;
 
@@ -88,22 +96,23 @@ export namespace dxvk::backend {
 
     class CommandAllocator {
     public:
-        enum Type {
-            GRAPHIC,
-            TRANSFER,
-            COMPUTE,
-        };
+        CommandAllocator(const CommandList::Type type) : commandListType{type} {}
 
         virtual std::shared_ptr<CommandList> createCommandList(Pipeline& pipeline) const  = 0;
 
+        virtual std::shared_ptr<CommandList> createCommandList() const  = 0;
+
         virtual ~CommandAllocator() = default;
+
+        auto getCommandListType() const { return commandListType; }
+
+    private:
+        CommandList::Type commandListType;
     };
 
     class Device {
     public:
         virtual void waitIdle() {}
-
-        virtual std::shared_ptr<CommandAllocator> createCommandAllocator(CommandAllocator::Type type) const = 0;
 
         virtual ~Device() = default;
     };
@@ -111,6 +120,10 @@ export namespace dxvk::backend {
     class SubmitQueue {
     public:
         virtual void submit(const FrameData& frameData, std::vector<std::shared_ptr<CommandList>> commandLists) = 0;
+
+        virtual void submit(std::vector<std::shared_ptr<CommandList>> commandLists) = 0;
+
+        virtual void waitIdle() = 0;
 
         virtual ~SubmitQueue() = default;
     };
@@ -140,8 +153,6 @@ export namespace dxvk::backend {
 
         virtual void present(FrameData& frameData) = 0;
 
-        virtual void terminate(FrameData& frameData) = 0;
-
     protected:
         Extent      extent{};
         uint32_t    currentFrameIndex{0};
@@ -154,6 +165,10 @@ export namespace dxvk::backend {
         virtual std::shared_ptr<FrameData> createFrameData(uint32_t frameIndex) = 0;
 
         virtual void destroyFrameData(FrameData& frameData) {}
+
+        virtual void waitIdle(FrameData& frameData) = 0;
+
+        virtual std::shared_ptr<CommandAllocator> createCommandAllocator(CommandList::Type type) const = 0;
 
         virtual std::shared_ptr<VertexInputLayout> createVertexLayout(
             size_t size,
@@ -171,6 +186,13 @@ export namespace dxvk::backend {
             ShaderModule& fragmentShader) const = 0;
 
         virtual std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1) const = 0;
+
+        virtual std::shared_ptr<Buffer> createVertexBuffer(
+            CommandList& commandList,
+            const void* data,
+            size_t size,
+            size_t count = 1,
+            const std::wstring& name = L"VertexBuffer") const = 0;
 
         virtual void beginRendering(PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) = 0;
 

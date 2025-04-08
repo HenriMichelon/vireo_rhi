@@ -51,6 +51,6 @@ export namespace dxvk {
         std::map<std::string, std::shared_ptr<backend::Pipeline>> pipelines;
         std::shared_ptr<backend::Buffer> vertexBuffer;
 
-        void setCustomWindowText(LPCWSTR text);
+        void setCustomWindowText(LPCWSTR text) const;
     };
 }

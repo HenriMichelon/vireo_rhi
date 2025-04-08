@@ -127,6 +127,11 @@ namespace dxvk::backend {
 
     }
 
+    void VKRenderingBackEnd::waitIdle(FrameData& frameData) {
+
+    }
+
+
     VKVertexInputLayout::VKVertexInputLayout(size_t size, const std::vector<AttributeDescription>& attributesDescriptions) {
         vertexBindingDescription.binding = 0;
         vertexBindingDescription.stride = size;
@@ -794,8 +799,8 @@ namespace dxvk::backend {
         };
     }
 
-    std::shared_ptr<CommandAllocator> VKDevice::createCommandAllocator(CommandAllocator::Type type) const {
-        return std::make_shared<VKCommandAllocator>(*this, type);
+    std::shared_ptr<CommandAllocator> VKRenderingBackEnd::createCommandAllocator(CommandList::Type type) const {
+        return std::make_shared<VKCommandAllocator>(type, *getVKDevice());
     }
 
     void VKDevice::waitIdle() {
@@ -814,7 +819,7 @@ namespace dxvk::backend {
             &commandQueue);
     }
 
-    VKSubmitQueue::~VKSubmitQueue() {
+    void VKSubmitQueue::waitIdle() {
         vkQueueWaitIdle(commandQueue);
     }
 
@@ -842,13 +847,35 @@ namespace dxvk::backend {
         }
     }
 
-    VKCommandAllocator::VKCommandAllocator(const VKDevice& device, CommandAllocator::Type type):
+    void VKSubmitQueue::submit(std::vector<std::shared_ptr<CommandList>> commandLists) {
+        std::vector<VkCommandBufferSubmitInfo> submitInfos(commandLists.size());
+        for (int i = 0; i < commandLists.size(); i++) {
+            submitInfos[i] = {
+                .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
+                .commandBuffer = static_pointer_cast<VKCommandList>(commandLists[i])->getCommandBuffer(),
+            };
+        }
+        const VkSubmitInfo2 submitInfo {
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+            .waitSemaphoreInfoCount = 0,
+            .commandBufferInfoCount = static_cast<uint32_t>(submitInfos.size()),
+            .pCommandBufferInfos = submitInfos.data(),
+            .signalSemaphoreInfoCount = 0,
+        };
+        const auto result = vkQueueSubmit2(commandQueue, 1, &submitInfo, VK_NULL_HANDLE);
+        if (result != VK_SUCCESS) {
+            die("failed to submit draw command buffer : ");
+        }
+    }
+
+    VKCommandAllocator::VKCommandAllocator(const CommandList::Type type, const VKDevice& device):
+        CommandAllocator{type},
         device(device.getDevice()) {
         const VkCommandPoolCreateInfo poolInfo           = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
             .flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, // TODO optional
-            .queueFamilyIndex = type == COMPUTE ? device.getComputeQueueFamilyIndex() :
-                type == TRANSFER ?  device.getTransferQueueFamilyIndex() :
+            .queueFamilyIndex = type == CommandList::COMPUTE ? device.getComputeQueueFamilyIndex() :
+                type == CommandList::TRANSFER ?  device.getTransferQueueFamilyIndex() :
                  device.getGraphicsQueueFamilyIndex()
         };
         if (vkCreateCommandPool(device.getDevice(), &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
@@ -861,6 +888,10 @@ namespace dxvk::backend {
     }
 
     std::shared_ptr<CommandList> VKCommandAllocator::createCommandList(Pipeline& pipeline) const {
+        return createCommandList();
+    }
+
+    std::shared_ptr<CommandList> VKCommandAllocator::createCommandList() const {
         const VkCommandBufferAllocateInfo allocInfo{
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
             .commandPool = commandPool,
@@ -889,6 +920,16 @@ namespace dxvk::backend {
             die("failed to begin recording command buffer!");
         }
         // setInitialState(commandBuffer);
+    }
+
+    void VKCommandList::begin() {
+        constexpr VkCommandBufferBeginInfo beginInfo{
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        };
+        vkResetCommandBuffer(commandBuffer, 0);
+        if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+            die("failed to begin recording command buffer!");
+        }
     }
 
     void VKCommandList::end() {
@@ -1168,10 +1209,6 @@ namespace dxvk::backend {
                 die("failed to acquire swap chain image :", to_string(result));
             }
         }
-    }
-
-    void VKSwapChain::terminate(FrameData& frameData) {
-
     }
 
     VKSwapChain::~VKSwapChain() {
