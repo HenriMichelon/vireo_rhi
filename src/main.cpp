@@ -1,4 +1,5 @@
 #include "Libraries.h"
+#include "Tools.h"
 
 import dxvk.app;
 import dxvk.app.win32;

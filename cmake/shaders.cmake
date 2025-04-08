@@ -1,6 +1,5 @@
 ##### compile HLSL sources files into DXIL & SPIR-V
-get_filename_component(VULKAN_DIR ${Vulkan_INCLUDE_DIR} DIRECTORY)
-message(${VULKAN_DIR})
+get_filename_component(VULKAN_DIR "${Vulkan_INCLUDE_DIR}" DIRECTORY)
 set(DXC_EXECUTABLE "${VULKAN_DIR}/bin/dxc.exe")
 #find_program(DXC_EXECUTABLE NAMES dxc PATHS "${VULKAN_DIR}/bin" NO_DEFAULT_PATH)
 #if(NOT DXC_EXECUTABLE)

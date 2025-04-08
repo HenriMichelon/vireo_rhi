@@ -16,7 +16,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 if(MSVC)
     set(USE_STATIC_MSVC_RUNTIME_LIBRARY OFF)
 endif()
-include(cmake/shaders.cmake)
 include(cmake/compile_options.cmake)
 
 #######################################################
@@ -38,16 +37,21 @@ target_sources(${MY_TARGET}
     PUBLIC
     FILE_SET CXX_MODULES
     FILES
-    ${SRC_DIR}/Application.cppm
-    ${SRC_DIR}/Win32Application.cppm
-    ${SRC_DIR}/backend/FrameData.cppm
-    ${SRC_DIR}/backend/RenderingBackEnd.cppm
-    ${SRC_DIR}/backend/directx/DXFrameData.cppm
-    ${SRC_DIR}/backend/directx/DXRenderingBackEnd.cppm
-    ${SRC_DIR}/backend/vulkan/VKFrameData.cppm
-    ${SRC_DIR}/backend/vulkan/VKRenderingBackEnd.cppm
+    ${SRC_DIR}/Application.ixx
+    ${SRC_DIR}/Win32Application.ixx
+    ${SRC_DIR}/backend/FrameData.ixx
+    ${SRC_DIR}/backend/RenderingBackEnd.ixx
+    ${SRC_DIR}/backend/directx/DXFrameData.ixx
+    ${SRC_DIR}/backend/directx/DXRenderingBackEnd.ixx
+    ${SRC_DIR}/backend/vulkan/VKFrameData.ixx
+    ${SRC_DIR}/backend/vulkan/VKRenderingBackEnd.ixx
 )
 compile_options(${MY_TARGET})
+
+include(FetchContent)
+include(cmake/libraries.cmake)
+include(cmake/shaders.cmake)
+include(cmake/std.cmake)
 
 #######################################################
 # HLSL shaders
@@ -69,6 +73,3 @@ set_target_properties(${MY_TARGET} PROPERTIES
         WIN32_EXECUTABLE TRUE)
 
 #######################################################
-include(FetchContent)
-include(cmake/std.cmake)
-include(cmake/libraries.cmake)

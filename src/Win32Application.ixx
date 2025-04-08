@@ -1,6 +1,6 @@
 module;
 #include "Libraries.h"
-import std;
+#include "Tools.h"
 
 export module dxvk.app.win32;
 

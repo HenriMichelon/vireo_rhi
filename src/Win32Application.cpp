@@ -1,5 +1,6 @@
 module;
 #include "Libraries.h"
+#include "Tools.h"
 
 module dxvk.app.win32;
 
