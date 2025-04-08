@@ -9,7 +9,7 @@ import dxvk.backend.vulkan;
 
 namespace dxvk {
 
-    Application::Application(UINT width, UINT height, std::wstring name) :
+    Application::Application(UINT width, UINT height, const std::wstring& name) :
         title(name),
         width(width),
         height(height) {
@@ -19,17 +19,13 @@ namespace dxvk {
     }
 
     void Application::onInit() {
-        auto attributes = std::vector{
+        const auto attributes = std::vector{
             backend::VertexInputLayout::AttributeDescription{"POSITION", backend::VertexInputLayout::R32G32B32_FLOAT, 0},
             backend::VertexInputLayout::AttributeDescription{"COLOR",    backend::VertexInputLayout::R32G32B32A32_FLOAT, 12}
         };
-        auto defaultVertexInputLayout = renderingBackEnd->createVertexLayout(sizeof(Vertex), attributes);
-        // dxc -T "vs_5_0" -E "VSMain" -Fo shaders1_vert.dxil .\shaders1.hlsl*
-        // dxc -spirv -T "vs_5_0" -E "VSMain" -Fo shaders1_vert.spv .\shaders1.hlsl
-        auto vertexShader = renderingBackEnd->createShaderModule("shaders/shaders1_vert");
-        // dxc -T "ps_5_0" -E "PSMain" -Fo shaders1_frag.dxil .\shaders1.hlsl
-        // dxc -spirv -T "ps_5_0" -E "PSMain" -Fo shaders1_frag.spv .\shaders1.hlsl
-        auto fragmentShader = renderingBackEnd->createShaderModule("shaders/shaders1_frag");
+        const auto defaultVertexInputLayout = renderingBackEnd->createVertexLayout(sizeof(Vertex), attributes);
+        const auto vertexShader = renderingBackEnd->createShaderModule("shaders/shaders1_vert");
+        const auto fragmentShader = renderingBackEnd->createShaderModule("shaders/shaders1_frag");
         pipelineResources["default"] = renderingBackEnd->createPipelineResources();
         pipelines["default"] = renderingBackEnd->createPipeline(
             *pipelineResources["default"],
@@ -86,6 +82,7 @@ namespace dxvk {
     }
 
     void Application::onDestroy() {
+        renderingBackEnd->getSwapChain()->terminate(*framesData[renderingBackEnd->getSwapChain()->getCurrentFrameIndex()]);
         renderingBackEnd->getDevice()->waitIdle();
         for (uint32_t i = 0; i < backend::SwapChain::FRAMES_IN_FLIGHT; i++) {
             renderingBackEnd->destroyFrameData(*framesData[i]);

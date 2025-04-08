@@ -87,15 +87,15 @@ namespace dxvk::backend {
 
     std::shared_ptr<VertexInputLayout> VKRenderingBackEnd::createVertexLayout(
            size_t size,
-           std::vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) {
+           const std::vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) const {
         return make_shared<VKVertexInputLayout>(size, attributesDescriptions);
     }
 
-    std::shared_ptr<ShaderModule> VKRenderingBackEnd::createShaderModule(const std::string& fileName) {
+    std::shared_ptr<ShaderModule> VKRenderingBackEnd::createShaderModule(const std::string& fileName) const {
         return make_shared<VKShaderModule>(getVKDevice()->getDevice(), fileName);
     }
 
-    std::shared_ptr<PipelineResources> VKRenderingBackEnd::createPipelineResources() {
+    std::shared_ptr<PipelineResources> VKRenderingBackEnd::createPipelineResources() const {
         return make_shared<VKPipelineResources>(getVKDevice()->getDevice());
     }
 
@@ -103,7 +103,7 @@ namespace dxvk::backend {
         PipelineResources& pipelineResources,
         VertexInputLayout& vertexInputLayout,
         ShaderModule& vertexShader,
-        ShaderModule& fragmentShader) {
+        ShaderModule& fragmentShader) const {
         return make_shared<VKPipeline>(
             getVKDevice()->getDevice(),
             getVKSwapChain()->getFormat(),
@@ -115,7 +115,7 @@ namespace dxvk::backend {
         );
     }
 
-    std::shared_ptr<Buffer> VKRenderingBackEnd::createBuffer(Buffer::Type type, size_t size, size_t count) {
+    std::shared_ptr<Buffer> VKRenderingBackEnd::createBuffer(Buffer::Type type, size_t size, size_t count) const  {
         return nullptr;
     }
 
@@ -127,7 +127,7 @@ namespace dxvk::backend {
 
     }
 
-    VKVertexInputLayout::VKVertexInputLayout(size_t size, std::vector<AttributeDescription>& attributesDescriptions) {
+    VKVertexInputLayout::VKVertexInputLayout(size_t size, const std::vector<AttributeDescription>& attributesDescriptions) {
         vertexBindingDescription.binding = 0;
         vertexBindingDescription.stride = size;
         vertexBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
@@ -1168,6 +1168,10 @@ namespace dxvk::backend {
                 die("failed to acquire swap chain image :", to_string(result));
             }
         }
+    }
+
+    void VKSwapChain::terminate(FrameData& frameData) {
+
     }
 
     VKSwapChain::~VKSwapChain() {

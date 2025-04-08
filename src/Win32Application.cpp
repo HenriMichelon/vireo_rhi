@@ -10,8 +10,7 @@ namespace dxvk {
     HWND Win32Application::hwnd = nullptr;
     std::unique_ptr<Application> Win32Application::app{};
 
-    int Win32Application::run(UINT width, UINT height, std::wstring name, HINSTANCE hInstance, int nCmdShow)
-    {
+    int Win32Application::run(UINT width, UINT height, std::wstring name, const HINSTANCE hInstance, const int nCmdShow) {
         // Initialize the window class.
         WNDCLASSEX windowClass = { 0 };
         windowClass.cbSize = sizeof(WNDCLASSEX);

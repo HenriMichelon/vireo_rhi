@@ -11,7 +11,7 @@ export namespace dxvk {
     class Application
     {
     public:
-        Application(UINT width, UINT height, std::wstring name);
+        Application(UINT width, UINT height, const std::wstring& name);
         virtual ~Application() = default;
 
         virtual void onInit();
@@ -27,7 +27,6 @@ export namespace dxvk {
         auto getTitle() const   { return title.c_str(); }
 
     protected:
-        // Texture
         static constexpr  UINT TextureWidth = 256;
         static constexpr  UINT TextureHeight = 256;
         static constexpr  UINT TexturePixelSize = 4;    // The number of bytes used to represent a pixel in the texture.

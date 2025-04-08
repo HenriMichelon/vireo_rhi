@@ -28,7 +28,7 @@ namespace dxvk::backend {
         return std::make_shared<DXFrameData>();
     }
 
-    std::shared_ptr<PipelineResources> DXRenderingBackEnd::createPipelineResources() {
+    std::shared_ptr<PipelineResources> DXRenderingBackEnd::createPipelineResources() const {
         return std::make_shared<DXPipelineResources>(getDXDevice()->getDevice());
     }
 
@@ -36,21 +36,21 @@ namespace dxvk::backend {
             PipelineResources& pipelineResources,
             VertexInputLayout& vertexInputLayout,
             ShaderModule& vertexShader,
-            ShaderModule& fragmentShader) {
+            ShaderModule& fragmentShader) const {
         return std::make_shared<DXPipeline>(getDXDevice()->getDevice(), pipelineResources, vertexInputLayout, vertexShader, fragmentShader);
     }
 
     std::shared_ptr<VertexInputLayout> DXRenderingBackEnd::createVertexLayout(
         size_t,
-        std::vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) {
+        const std::vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) const {
         return std::make_shared<DXVertexInputLayout>(attributesDescriptions);
     }
 
-    std::shared_ptr<ShaderModule> DXRenderingBackEnd::createShaderModule(const std::string& fileName) {
+    std::shared_ptr<ShaderModule> DXRenderingBackEnd::createShaderModule(const std::string& fileName) const {
         return std::make_shared<DXShaderModule>(fileName);
     }
 
-    std::shared_ptr<Buffer> DXRenderingBackEnd::createBuffer(Buffer::Type type, size_t size, size_t count) {
+    std::shared_ptr<Buffer> DXRenderingBackEnd::createBuffer(Buffer::Type type, size_t size, size_t count) const {
         return make_shared<DXBuffer>(getDXDevice()->getDevice(), type, size, count);
     }
 
@@ -289,16 +289,8 @@ namespace dxvk::backend {
 
     void DXSwapChain::acquire(FrameData& frameData) {
         auto& data = static_cast<DXFrameData&>(frameData);
-
-    }
-
-    void DXSwapChain::present(FrameData& frameData) {
-        auto& data = static_cast<DXFrameData&>(frameData);
-        ThrowAndPrintIfFailed(swapChain->Present(1, 0), device.getDevice().Get());
-
         const auto currentFenceValue = data.inFlightFenceValue;
         ThrowIfFailed(presentCommandQueue->Signal(device.getInFlightFence().Get(), currentFenceValue));
-
         // If the next frame is not ready to be rendered yet, wait until it is ready.
         if (device.getInFlightFence()->GetCompletedValue() < currentFenceValue) {
             ThrowIfFailed(device.getInFlightFence()->SetEventOnCompletion(
@@ -307,11 +299,28 @@ namespace dxvk::backend {
             ));
             WaitForSingleObjectEx(device.getInFlightFenceEvent(), INFINITE, FALSE);
         }
+    }
 
+    void DXSwapChain::present(FrameData& frameData) {
+        auto& data = static_cast<DXFrameData&>(frameData);
+        ThrowAndPrintIfFailed(swapChain->Present(1, 0), device.getDevice().Get());
         data.inFlightFenceValue += 1;
     }
 
-    DXVertexInputLayout::DXVertexInputLayout(std::vector<AttributeDescription>& attributesDescriptions) {
+    void DXSwapChain::terminate(FrameData& frameData) {
+        const auto& data = static_cast<DXFrameData&>(frameData);
+        const auto currentFenceValue = data.inFlightFenceValue;
+        ThrowIfFailed(presentCommandQueue->Signal(device.getInFlightFence().Get(), currentFenceValue));
+        if (device.getInFlightFence()->GetCompletedValue() < currentFenceValue) {
+            ThrowIfFailed(device.getInFlightFence()->SetEventOnCompletion(
+                currentFenceValue,
+                device.getInFlightFenceEvent()
+            ));
+            WaitForSingleObjectEx(device.getInFlightFenceEvent(), INFINITE, FALSE);
+        }
+    }
+
+    DXVertexInputLayout::DXVertexInputLayout(const std::vector<AttributeDescription>& attributesDescriptions) {
         for (int i = 0; i < attributesDescriptions.size(); i++) {
             inputElementDescs.push_back({
                 .SemanticName = reinterpret_cast<LPCSTR>(attributesDescriptions[i].binding.c_str()),

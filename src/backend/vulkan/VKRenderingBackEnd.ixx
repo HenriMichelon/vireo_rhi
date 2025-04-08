@@ -207,6 +207,8 @@ export namespace dxvk::backend {
 
         void present(FrameData& framesData) override;
 
+        void terminate(FrameData& frameData) override;
+
     private:
         VkDevice                    device;
         VkSwapchainKHR              swapChain;
@@ -253,7 +255,7 @@ export namespace dxvk::backend {
             VK_FORMAT_R32G32B32A32_SFLOAT
         };
 
-        VKVertexInputLayout(size_t size, std::vector<AttributeDescription>& attributesDescriptions);
+        VKVertexInputLayout(size_t size, const std::vector<AttributeDescription>& attributesDescriptions);
 
         const auto& getVertexBindingDescription() const { return vertexBindingDescription; }
 
@@ -317,21 +319,21 @@ export namespace dxvk::backend {
 
         void destroyFrameData(FrameData& frameData) override;
 
-        virtual std::shared_ptr<VertexInputLayout> createVertexLayout(
+        std::shared_ptr<VertexInputLayout> createVertexLayout(
             size_t size,
-            std::vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) override;
+            const std::vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) const override;
 
-        virtual std::shared_ptr<ShaderModule> createShaderModule(const std::string& fileName) override;
+        std::shared_ptr<ShaderModule> createShaderModule(const std::string& fileName) const override;
 
-        virtual std::shared_ptr<PipelineResources> createPipelineResources() override;
+        std::shared_ptr<PipelineResources> createPipelineResources() const override;
 
-        virtual std::shared_ptr<Pipeline> createPipeline(
+        std::shared_ptr<Pipeline> createPipeline(
             PipelineResources& pipelineResources,
             VertexInputLayout& vertexInputLayout,
             ShaderModule& vertexShader,
-            ShaderModule& fragmentShader) override;
+            ShaderModule& fragmentShader) const override;
 
-        virtual std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1) override;
+        virtual std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1) const override;
 
         virtual void beginRendering(PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) override;
 

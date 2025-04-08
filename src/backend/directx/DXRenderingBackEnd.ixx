@@ -50,7 +50,7 @@ export namespace dxvk::backend {
 
         void unmap() override;
 
-        void write(void* data, size_t size = WHOLE_SIZE, size_t offset = 0);
+        void write(void* data, size_t size = WHOLE_SIZE, size_t offset = 0) override;
 
         const auto& getBufferView() const { return bufferView; }
 
@@ -136,7 +136,7 @@ export namespace dxvk::backend {
 
         auto getRenderTargets() { return renderTargets; }
 
-        auto getDescriptorSize() {  return rtvDescriptorSize; }
+        auto getDescriptorSize() const {  return rtvDescriptorSize; }
 
         auto getHeap() { return rtvHeap; }
 
@@ -145,6 +145,8 @@ export namespace dxvk::backend {
         void acquire(FrameData& frameData) override;
 
         void present(FrameData& frameData) override;
+
+        void terminate(FrameData& frameData) override;
 
     private:
         DXDevice&                    device;
@@ -163,7 +165,7 @@ export namespace dxvk::backend {
             DXGI_FORMAT_R32G32B32A32_FLOAT
         };
 
-        DXVertexInputLayout(std::vector<AttributeDescription>& attributesDescriptions);
+        DXVertexInputLayout(const std::vector<AttributeDescription>& attributesDescriptions);
 
         const auto& getInputElementDescs() const { return inputElementDescs; }
 
@@ -214,19 +216,19 @@ export namespace dxvk::backend {
 
         std::shared_ptr<VertexInputLayout> createVertexLayout(
             size_t size,
-            std::vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) override;
+            const std::vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) const override;
 
-        std::shared_ptr<ShaderModule> createShaderModule(const std::string& fileName) override;
+        std::shared_ptr<ShaderModule> createShaderModule(const std::string& fileName) const override;
 
-        std::shared_ptr<PipelineResources> createPipelineResources() override;
+        std::shared_ptr<PipelineResources> createPipelineResources() const override;
 
         std::shared_ptr<Pipeline> createPipeline(
             PipelineResources& pipelineResources,
             VertexInputLayout& vertexInputLayout,
             ShaderModule& vertexShader,
-            ShaderModule& fragmentShader) override;
+            ShaderModule& fragmentShader) const override;
 
-        std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1) override;
+        std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1) const override;
 
         void beginRendering(PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) override;
 

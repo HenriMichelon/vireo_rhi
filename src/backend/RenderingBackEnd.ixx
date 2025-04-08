@@ -140,6 +140,8 @@ export namespace dxvk::backend {
 
         virtual void present(FrameData& frameData) = 0;
 
+        virtual void terminate(FrameData& frameData) = 0;
+
     protected:
         Extent      extent{};
         uint32_t    currentFrameIndex{0};
@@ -155,20 +157,20 @@ export namespace dxvk::backend {
 
         virtual std::shared_ptr<VertexInputLayout> createVertexLayout(
             size_t size,
-            std::vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) = 0;
+            const std::vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) const = 0;
 
         virtual std::shared_ptr<ShaderModule> createShaderModule(
-            const std::string& fileName) = 0;
+            const std::string& fileName) const = 0;
 
-        virtual std::shared_ptr<PipelineResources> createPipelineResources() = 0;
+        virtual std::shared_ptr<PipelineResources> createPipelineResources() const = 0;
 
         virtual std::shared_ptr<Pipeline> createPipeline(
             PipelineResources& pipelineResources,
             VertexInputLayout& vertexInputLayout,
             ShaderModule& vertexShader,
-            ShaderModule& fragmentShader) = 0;
+            ShaderModule& fragmentShader) const = 0;
 
-        virtual std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1) = 0;
+        virtual std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1) const = 0;
 
         virtual void beginRendering(PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) = 0;
 
