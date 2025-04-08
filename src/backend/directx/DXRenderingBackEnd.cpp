@@ -16,7 +16,6 @@ namespace dxvk::backend {
         device = std::make_shared<DXDevice>(getDXPhysicalDevice()->getHardwareAdapater());
         graphicCommandQueue = std::make_shared<DXSubmitQueue>(CommandList::GRAPHIC, getDXDevice()->getDevice());
         transferCommandQueue = std::make_shared<DXSubmitQueue>(CommandList::GRAPHIC, getDXDevice()->getDevice());
-        presentCommandQueue = std::make_shared<DXSubmitQueue>(CommandList::GRAPHIC, getDXDevice()->getDevice());
         swapChain = std::make_shared<DXSwapChain>(
             getDXInstance()->getFactory(),
             *getDXDevice(),
@@ -109,18 +108,8 @@ namespace dxvk::backend {
         dxCommandList->ResourceBarrier(1, &swapChainBarrier);
     }
 
-    void DXRenderingBackEnd::waitIdle(FrameData& frameData) {
-        const auto& data = static_cast<DXFrameData&>(frameData);
-        auto& device = *getDXDevice();
-        const auto currentFenceValue = data.inFlightFenceValue;
-        ThrowIfFailed(getDXPresentCommandQueue()->getCommandQueue()->Signal(device.getInFlightFence().Get(), currentFenceValue));
-        if (device.getInFlightFence()->GetCompletedValue() < currentFenceValue) {
-            ThrowIfFailed(device.getInFlightFence()->SetEventOnCompletion(
-                currentFenceValue,
-                device.getInFlightFenceEvent()
-            ));
-            WaitForSingleObjectEx(device.getInFlightFenceEvent(), INFINITE, FALSE);
-        }
+    void DXRenderingBackEnd::waitIdle() {
+        graphicCommandQueue->waitIdle();
     }
 
     DXInstance::DXInstance() {

@@ -237,7 +237,7 @@ export namespace dxvk::backend {
     public:
         DXRenderingBackEnd(uint32_t width, uint32_t height);
 
-        void waitIdle(FrameData& frameData) override;
+        void waitIdle() override;
 
         std::shared_ptr<CommandAllocator> createCommandAllocator(CommandList::Type type) const override;
 
@@ -277,8 +277,6 @@ export namespace dxvk::backend {
         auto getDXDevice() const { return std::reinterpret_pointer_cast<DXDevice>(device); }
 
         auto getDXGraphicCommandQueue() const { return std::reinterpret_pointer_cast<DXSubmitQueue>(graphicCommandQueue); }
-
-        auto getDXPresentCommandQueue() const { return std::reinterpret_pointer_cast<DXSubmitQueue>(presentCommandQueue); }
 
         auto getDXTransferCommandQueue() const { return std::reinterpret_pointer_cast<DXSubmitQueue>(transferCommandQueue); }
 

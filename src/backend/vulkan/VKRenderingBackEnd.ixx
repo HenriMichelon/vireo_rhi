@@ -98,8 +98,6 @@ export namespace dxvk::backend {
         VKDevice(const VKPhysicalDevice& physicalDevice, const std::vector<const char *>& requestedLayers);
         ~VKDevice() override;
 
-        void waitIdle();
-
         auto getDevice() const { return device; }
 
         auto getGraphicsQueueFamilyIndex() const { return graphicsQueueFamilyIndex; }
@@ -136,7 +134,7 @@ export namespace dxvk::backend {
 
     class VKSubmitQueue : public SubmitQueue {
     public:
-        VKSubmitQueue(const VKDevice& device);
+        VKSubmitQueue(CommandList::Type type, const VKDevice& device);
 
         auto getCommandQueue() const { return commandQueue; }
 
@@ -166,7 +164,7 @@ export namespace dxvk::backend {
 
     class VKCommandList : public CommandList {
     public:
-        VKCommandList(VkCommandBuffer commandBuffer);
+        VKCommandList(VkDevice device, VkCommandPool commandPool);
 
         ~VKCommandList() override;
 
@@ -200,6 +198,8 @@ export namespace dxvk::backend {
         auto getSwapChain() const { return swapChain; }
 
         auto getFormat() const { return swapChainImageFormat; }
+
+        const auto& getImageViews() const { return swapChainImageViews; }
 
         void nextSwapChain() override;
 
@@ -298,7 +298,7 @@ export namespace dxvk::backend {
     public:
         VKPipeline(
            VkDevice device,
-           VkFormat swapChainImageFormat,
+           VKSwapChain& swapChain,
            const SwapChain::Extent& extent,
            PipelineResources& pipelineResources,
            VertexInputLayout& vertexInputLayout,
@@ -310,14 +310,13 @@ export namespace dxvk::backend {
     private:
         VkDevice     device;
         VkPipeline   pipeline;
-        VkRenderPass renderPass;
     };
 
     class VKRenderingBackEnd : public RenderingBackEnd {
     public:
         VKRenderingBackEnd(uint32_t width, uint32_t height);
 
-        void waitIdle(FrameData& frameData) override;
+        void waitIdle() override;
 
         std::shared_ptr<CommandAllocator> createCommandAllocator(CommandList::Type type) const override;
 
@@ -340,6 +339,13 @@ export namespace dxvk::backend {
             ShaderModule& fragmentShader) const override;
 
         std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1) const override;
+
+        std::shared_ptr<Buffer> createVertexBuffer(
+            CommandList& commandList,
+            const void* data,
+            size_t size,
+            size_t count = 1,
+            const std::wstring& name = L"VertexBuffer") const override;
 
         void beginRendering(PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) override;
 

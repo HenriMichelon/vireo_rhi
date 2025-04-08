@@ -14,28 +14,28 @@ namespace dxvk {
         width(width),
         height(height) {
         aspectRatio = static_cast<float>(width) / static_cast<float>(height);
-        // renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>(width, height);
-        renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>(width, height);
+        renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>(width, height);
+        // renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>(width, height);
     }
 
     void Application::onInit() {
-        const auto triangleVertices = std::vector<Vertex> {
-                { { 0.0f, 0.25f * aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-                { { 0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-                { { -0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
-        };
-        const auto uploadCommandAllocator = renderingBackEnd->createCommandAllocator(backend::CommandList::GRAPHIC);
-        auto uploadCommandList = uploadCommandAllocator->createCommandList();
-        uploadCommandList->begin();
-        vertexBuffer = renderingBackEnd->createVertexBuffer(
-            *uploadCommandList,
-            &triangleVertices[0],
-            sizeof(Vertex),
-            triangleVertices.size(),
-            L"TriangleVertexBuffer");
-        uploadCommandList->end();
-        renderingBackEnd->getTransferCommandQueue()->submit({uploadCommandList});
-
+        // const auto triangleVertices = std::vector<Vertex> {
+        //         { { 0.0f, 0.25f * aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+        //         { { 0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+        //         { { -0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
+        // };
+        // const auto uploadCommandAllocator = renderingBackEnd->createCommandAllocator(backend::CommandList::GRAPHIC);
+        // auto uploadCommandList = uploadCommandAllocator->createCommandList();
+        // uploadCommandList->begin();
+        // vertexBuffer = renderingBackEnd->createVertexBuffer(
+        //     *uploadCommandList,
+        //     &triangleVertices[0],
+        //     sizeof(Vertex),
+        //     triangleVertices.size(),
+        //     L"TriangleVertexBuffer");
+        // uploadCommandList->end();
+        // renderingBackEnd->getTransferCommandQueue()->submit({uploadCommandList});
+        //
         const auto attributes = std::vector{
             backend::VertexInputLayout::AttributeDescription{"POSITION", backend::VertexInputLayout::R32G32B32_FLOAT, 0},
             backend::VertexInputLayout::AttributeDescription{"COLOR",    backend::VertexInputLayout::R32G32B32A32_FLOAT, 12}
@@ -72,12 +72,12 @@ namespace dxvk {
 
         commandList->begin(pipeline);
         swapChain->begin(frameData, *commandList);
-        renderingBackEnd->beginRendering(*pipelineResources["default"], pipeline, *commandList);
+        // renderingBackEnd->beginRendering(*pipelineResources["default"], pipeline, *commandList);
 
-        commandList->bindVertexBuffer(*vertexBuffer);
-        commandList->drawInstanced(3);
+        // commandList->bindVertexBuffer(*vertexBuffer);
+        // commandList->drawInstanced(3);
 
-        renderingBackEnd->endRendering(*commandList);
+        // renderingBackEnd->endRendering(*commandList);
         swapChain->end(frameData, *commandList);
         commandList->end();
         renderingBackEnd->getGraphicCommandQueue()->submit(frameData, {commandList});
@@ -87,8 +87,7 @@ namespace dxvk {
     }
 
     void Application::onDestroy() {
-        renderingBackEnd->getGraphicCommandQueue()->waitIdle();
-        renderingBackEnd->getDevice()->waitIdle();
+        renderingBackEnd->waitIdle();
         for (uint32_t i = 0; i < backend::SwapChain::FRAMES_IN_FLIGHT; i++) {
             renderingBackEnd->destroyFrameData(*framesData[i]);
         }

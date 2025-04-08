@@ -112,8 +112,6 @@ export namespace dxvk::backend {
 
     class Device {
     public:
-        virtual void waitIdle() {}
-
         virtual ~Device() = default;
     };
 
@@ -166,7 +164,7 @@ export namespace dxvk::backend {
 
         virtual void destroyFrameData(FrameData& frameData) {}
 
-        virtual void waitIdle(FrameData& frameData) = 0;
+        virtual void waitIdle() = 0;
 
         virtual std::shared_ptr<CommandAllocator> createCommandAllocator(CommandList::Type type) const = 0;
 
@@ -206,8 +204,6 @@ export namespace dxvk::backend {
 
         auto& getGraphicCommandQueue() const { return graphicCommandQueue; }
 
-        auto& getPresentCommandQueue() const { return presentCommandQueue; }
-
         auto& getTransferCommandQueue() const { return transferCommandQueue; }
 
         auto& getSwapChain() const { return swapChain; }
@@ -217,7 +213,6 @@ export namespace dxvk::backend {
         std::shared_ptr<PhysicalDevice>  physicalDevice;
         std::shared_ptr<Device>          device;
         std::shared_ptr<SubmitQueue>     graphicCommandQueue;
-        std::shared_ptr<SubmitQueue>     presentCommandQueue;
         std::shared_ptr<SubmitQueue>     transferCommandQueue;
         std::shared_ptr<SwapChain>       swapChain;
 

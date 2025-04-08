@@ -43,12 +43,13 @@ namespace dxvk::backend {
         instance = std::make_shared<VKInstance>();
         physicalDevice = std::make_shared<VKPhysicalDevice>(getVKInstance()->getInstance());
         device = std::make_shared<VKDevice>(*getVKPhysicalDevice(), getVKInstance()->getRequestedLayers());
-        graphicCommandQueue = std::make_shared<VKSubmitQueue>(*getVKDevice());
+        graphicCommandQueue = std::make_shared<VKSubmitQueue>(CommandList::GRAPHIC, *getVKDevice());
+        transferCommandQueue = std::make_shared<VKSubmitQueue>(CommandList::TRANSFER, *getVKDevice());
         swapChain = std::make_shared<VKSwapChain>(*getVKPhysicalDevice(), *getVKDevice(), width, height);
     }
 
     void VKRenderingBackEnd::destroyFrameData(FrameData& frameData) {
-        auto& data = static_cast<VKFrameData&>(frameData);
+        const auto& data = static_cast<VKFrameData&>(frameData);
         vkDestroySemaphore(getVKDevice()->getDevice(), data.imageAvailableSemaphore, nullptr);
         vkDestroySemaphore(getVKDevice()->getDevice(), data.renderFinishedSemaphore, nullptr);
         vkDestroyFence(getVKDevice()->getDevice(), data.inFlightFence, nullptr);
@@ -106,7 +107,7 @@ namespace dxvk::backend {
         ShaderModule& fragmentShader) const {
         return make_shared<VKPipeline>(
             getVKDevice()->getDevice(),
-            getVKSwapChain()->getFormat(),
+            *getVKSwapChain(),
             getSwapChain()->getExtent(),
             pipelineResources,
             vertexInputLayout,
@@ -116,21 +117,31 @@ namespace dxvk::backend {
     }
 
     std::shared_ptr<Buffer> VKRenderingBackEnd::createBuffer(Buffer::Type type, size_t size, size_t count) const  {
+        throw std::exception("not implemented");
+        return nullptr;
+    }
+
+    std::shared_ptr<Buffer> VKRenderingBackEnd::createVertexBuffer(
+           CommandList& commandList,
+           const void* data,
+           size_t size,
+           size_t count,
+           const std::wstring& name) const {
+        throw std::exception("not implemented");
         return nullptr;
     }
 
     void VKRenderingBackEnd::beginRendering(PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) {
-
+        throw std::exception("not implemented");
     }
 
     void VKRenderingBackEnd::endRendering(CommandList& commandList) {
-
+        throw std::exception("not implemented");
     }
 
-    void VKRenderingBackEnd::waitIdle(FrameData& frameData) {
-
+    void VKRenderingBackEnd::waitIdle() {
+        vkDeviceWaitIdle(getVKDevice()->getDevice());
     }
-
 
     VKVertexInputLayout::VKVertexInputLayout(size_t size, const std::vector<AttributeDescription>& attributesDescriptions) {
         vertexBindingDescription.binding = 0;
@@ -146,7 +157,7 @@ namespace dxvk::backend {
         }
     }
 
-    VKShaderModule::VKShaderModule(VkDevice device, const std::string& fileName):
+    VKShaderModule::VKShaderModule(const VkDevice device, const std::string& fileName):
         device{device} {
         std::ifstream file(fileName + ".spv", std::ios::ate | std::ios::binary);
         if (!file.is_open()) {
@@ -191,7 +202,7 @@ namespace dxvk::backend {
 
     VKPipeline::VKPipeline(
            VkDevice device,
-           VkFormat swapChainImageFormat,
+           VKSwapChain& swapChain,
            const SwapChain::Extent& extent,
            PipelineResources& pipelineResources,
            VertexInputLayout& vertexInputLayout,
@@ -299,38 +310,17 @@ namespace dxvk::backend {
             .blendConstants = { 0.0f, 0.0f, 0.0f, 0.0f }
         };
 
-        auto colorAttachment = VkAttachmentDescription {
-            .format = swapChainImageFormat,
-            .samples = VK_SAMPLE_COUNT_1_BIT,
-            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-            .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-            .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+        auto swapChainImageFormat = swapChain.getFormat();
+        auto dynamicRenderingCreateInfo = VkPipelineRenderingCreateInfoKHR{
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR,
+            .pNext                   = VK_NULL_HANDLE,
+            .colorAttachmentCount    = 1,
+            .pColorAttachmentFormats = &swapChainImageFormat,
         };
-        auto colorAttachmentRef = VkAttachmentReference {
-            .attachment = 0,
-            .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
-        };
-        auto subpass = VkSubpassDescription {
-            .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-            .colorAttachmentCount = 1,
-            .pColorAttachments = &colorAttachmentRef
-        };
-        auto renderPassInfo = VkRenderPassCreateInfo {
-            .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-            .attachmentCount = 1,
-            .pAttachments = &colorAttachment,
-            .subpassCount = 1,
-            .pSubpasses = &subpass
-        };
-        if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
-            die("failed to create render pass!");
-        }
 
         auto pipelineInfo = VkGraphicsPipelineCreateInfo {
             .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+            .pNext = &dynamicRenderingCreateInfo,
             .stageCount = static_cast<uint32_t>(shaderStages.size()),
             .pStages = shaderStages.data(),
             .pVertexInputState = &vertexInputInfo,
@@ -342,7 +332,7 @@ namespace dxvk::backend {
             .pColorBlendState = &colorBlending,
             .pDynamicState = &dynamicState,
             .layout = vkPipelineLayout.getPipelineLayout(),
-            .renderPass = renderPass,
+            .renderPass = VK_NULL_HANDLE,
             .subpass = 0,
             .basePipelineHandle = VK_NULL_HANDLE,
             .basePipelineIndex = -1,
@@ -353,7 +343,6 @@ namespace dxvk::backend {
     }
 
     VKPipeline::~VKPipeline() {
-        vkDestroyRenderPass(device, renderPass, nullptr);
         vkDestroyPipeline(device, pipeline, nullptr);
     }
 
@@ -803,17 +792,15 @@ namespace dxvk::backend {
         return std::make_shared<VKCommandAllocator>(type, *getVKDevice());
     }
 
-    void VKDevice::waitIdle() {
-        vkDeviceWaitIdle(device);
-    }
-
     VKDevice::~VKDevice() {
         vkDestroyDevice(device, nullptr);
     }
 
-    VKSubmitQueue::VKSubmitQueue(const VKDevice& device) {
+    VKSubmitQueue::VKSubmitQueue(const CommandList::Type type, const VKDevice& device) {
         vkGetDeviceQueue(
             device.getDevice(),
+            type == CommandList::COMPUTE ? device.getComputeQueueFamilyIndex() :
+            type == CommandList::TRANSFER ?  device.getTransferQueueFamilyIndex() :
             device.getGraphicsQueueFamilyIndex(),
             0,
             &commandQueue);
@@ -892,20 +879,19 @@ namespace dxvk::backend {
     }
 
     std::shared_ptr<CommandList> VKCommandAllocator::createCommandList() const {
+        return std::make_shared<VKCommandList>(device, commandPool);
+    }
+
+    VKCommandList::VKCommandList(const VkDevice device, const VkCommandPool commandPool) {
         const VkCommandBufferAllocateInfo allocInfo{
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
             .commandPool = commandPool,
             .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
             .commandBufferCount = 1
         };
-        VkCommandBuffer commandBuffer;
         if (vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer) != VK_SUCCESS) {
             die("failed to allocate renderer command buffers!");
         }
-        return std::make_shared<VKCommandList>(commandBuffer);
-    }
-
-    VKCommandList::VKCommandList(VkCommandBuffer commandBuffer): commandBuffer(commandBuffer) {
     }
 
     VKCommandList::~VKCommandList() {
