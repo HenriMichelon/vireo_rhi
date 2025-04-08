@@ -19,11 +19,11 @@ namespace dxvk {
     }
 
     void Application::onInit() {
-        // const auto triangleVertices = std::vector<Vertex> {
-        //         { { 0.0f, 0.25f * aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-        //         { { 0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-        //         { { -0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
-        // };
+        const auto triangleVertices = std::vector<Vertex> {
+                { { 0.0f, 0.25f * aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+                { { 0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+                { { -0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
+        };
         // const auto uploadCommandAllocator = renderingBackEnd->createCommandAllocator(backend::CommandList::GRAPHIC);
         // auto uploadCommandList = uploadCommandAllocator->createCommandList();
         // uploadCommandList->begin();

@@ -11,6 +11,20 @@ namespace dxvk::backend {
     DXRenderingBackEnd::DXRenderingBackEnd(const uint32_t width, const uint32_t height):
         viewport(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)),
         scissorRect(0, 0, static_cast<LONG>(width), static_cast<LONG>(height)){
+
+        // Detect RivaTuner which cause problem by incorrectly hooking IDXGISwapChain::Present
+        HANDLE hMap = OpenFileMapping(FILE_MAP_READ, FALSE, L"RTSSSharedMemoryV2");
+        if (hMap) {
+            MessageBox(
+                nullptr,
+                L"RivaTuner Statistic Server is incompatible with the DirectX 12 backend, close it or use the Vulkan backend",
+                nullptr,
+                MB_OK);
+            CloseHandle(hMap);
+            die("RTSS conflict");
+        }
+
+
         instance = std::make_shared<DXInstance>();
         physicalDevice = std::make_shared<DXPhysicalDevice>(getDXInstance()->getFactory());
         device = std::make_shared<DXDevice>(getDXPhysicalDevice()->getHardwareAdapater());
@@ -108,6 +122,10 @@ namespace dxvk::backend {
         dxCommandList->ResourceBarrier(1, &swapChainBarrier);
     }
 
+    std::shared_ptr<CommandAllocator> DXRenderingBackEnd::createCommandAllocator(CommandList::Type type) const {
+        return std::make_shared<DXCommandAllocator>(type, getDXDevice()->getDevice());
+    }
+
     void DXRenderingBackEnd::waitIdle() {
         graphicCommandQueue->waitIdle();
     }
@@ -185,10 +203,6 @@ namespace dxvk::backend {
 
     DXDevice::~DXDevice() {
         CloseHandle(inFlightFenceEvent);
-    }
-
-    std::shared_ptr<CommandAllocator> DXRenderingBackEnd::createCommandAllocator(CommandList::Type type) const {
-        return std::make_shared<DXCommandAllocator>(type, getDXDevice()->getDevice());
     }
 
     DXSubmitQueue::DXSubmitQueue(const CommandList::Type type, const ComPtr<ID3D12Device>& device) :
@@ -372,7 +386,7 @@ namespace dxvk::backend {
 
     void DXSwapChain::present(FrameData& frameData) {
         auto& data = static_cast<DXFrameData&>(frameData);
-        ThrowAndPrintIfFailed(swapChain->Present(1, 0), device.getDevice().Get());
+        ThrowIfFailed(swapChain->Present(1, 0));
         data.inFlightFenceValue += 1;
     }
 
