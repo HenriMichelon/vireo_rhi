@@ -14,8 +14,8 @@ namespace dxvk {
         width(width),
         height(height) {
         aspectRatio = static_cast<float>(width) / static_cast<float>(height);
-        renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>(width, height);
-        // renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>(width, height);
+        // renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>(width, height);
+        renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>(width, height);
     }
 
     void Application::onInit() {
@@ -29,6 +29,7 @@ namespace dxvk {
         auto uploadCommandList = uploadCommandAllocator->createCommandList();
         uploadCommandList->reset();
         uploadCommandList->begin();
+        TODO create + upload
         vertexBuffer = renderingBackEnd->createVertexBuffer(
             *uploadCommandList,
             &triangleVertices[0],
