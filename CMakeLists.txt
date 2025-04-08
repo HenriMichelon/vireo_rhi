@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.29)
 
 #######################################################
-project(dxvk)
+project(mbe_engine)
 set(MY_TARGET ${PROJECT_NAME})
 
 if(NOT CMAKE_BUILD_TYPE)
