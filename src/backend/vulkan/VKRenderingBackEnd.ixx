@@ -1,5 +1,4 @@
 module;
-#include "VKLibraries.h"
 #include "VKTools.h"
 
 export module dxvk.backend.vulkan;

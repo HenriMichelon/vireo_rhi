@@ -1,6 +1,5 @@
 module;
 #include "DXLibraries.h"
-import std;
 
 export module dxvk.backend.directx;
 

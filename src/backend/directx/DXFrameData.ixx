@@ -1,5 +1,5 @@
 module;
-#include "VKLibraries.h"
+#include "DXLibraries.h"
 
 export module dxvk.backend.directx.framedata;
 

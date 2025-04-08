@@ -1,5 +1,4 @@
 module;
-#include "Libraries.h"
 
 export module dxvk.backend.framedata;
 

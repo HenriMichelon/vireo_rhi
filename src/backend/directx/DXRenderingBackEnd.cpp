@@ -1,5 +1,4 @@
 module;
-#include "DXLibraries.h"
 #include "DXTools.h"
 
 module dxvk.backend.directx;
