@@ -105,8 +105,13 @@ namespace dxvk::backend {
             dxSwapChain->getDescriptorSize());
         dxCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
-        const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-        dxCommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+
+        const float dxClearColor[] = { clearColor.r, clearColor.g, clearColor.b, clearColor.a };
+        dxCommandList->ClearRenderTargetView(
+            rtvHandle,
+            dxClearColor,
+            0,
+            nullptr);
         dxCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
 
@@ -314,21 +319,22 @@ namespace dxvk::backend {
     DXSwapChain::DXSwapChain(
         const ComPtr<IDXGIFactory4>& factory,
         DXDevice& dxdevice,
-        ComPtr<ID3D12CommandQueue> commandQueue,
+        const ComPtr<ID3D12CommandQueue>& commandQueue,
         const uint32_t width,
         const uint32_t height) :
         device{dxdevice},
         presentCommandQueue{commandQueue} {
         extent = { width, height };
 
-        DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-        swapChainDesc.BufferCount = FRAMES_IN_FLIGHT;
-        swapChainDesc.Width = width;
-        swapChainDesc.Height = height;
-        swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-        swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-        swapChainDesc.SampleDesc.Count = 1;
+        const auto swapChainDesc = DXGI_SWAP_CHAIN_DESC1 {
+            .Width = width,
+            .Height = height,
+            .Format = DXGI_FORMAT_R8G8B8A8_UNORM,
+            .SampleDesc = { .Count = 1},
+            .BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
+            .BufferCount = FRAMES_IN_FLIGHT,
+            .SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,
+        };
 
         ComPtr<IDXGISwapChain1> swapChain1;
         ThrowIfFailed(factory->CreateSwapChainForHwnd(
@@ -343,25 +349,25 @@ namespace dxvk::backend {
         currentFrameIndex = swapChain->GetCurrentBackBufferIndex();
 
         // Describe and create a render target view (RTV) descriptor heap.
-        {
-            D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-            rtvHeapDesc.NumDescriptors = FRAMES_IN_FLIGHT;
-            rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-            rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-            ThrowIfFailed(device.getDevice()->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap)));
-            rtvDescriptorSize = device.getDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-        }
+        constexpr auto rtvHeapDesc = D3D12_DESCRIPTOR_HEAP_DESC{
+            .Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
+            .NumDescriptors = FRAMES_IN_FLIGHT,
+            .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
+        };
+        ThrowIfFailed(device.getDevice()->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap)));
+        rtvDescriptorSize = device.getDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
         // Create frame resources.
-        {
-            CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(rtvHeap->GetCPUDescriptorHandleForHeapStart());
-            // Create a RTV for each frame.
-            for (UINT n = 0; n < FRAMES_IN_FLIGHT; n++) {
-                ThrowIfFailed(swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTargets[n])));
-                renderTargets[n]->SetName(L"BackBuffer");
-                device.getDevice()->CreateRenderTargetView(renderTargets[n].Get(), nullptr, rtvHandle);
-                rtvHandle.Offset(1, rtvDescriptorSize);
-            }
+        CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(rtvHeap->GetCPUDescriptorHandleForHeapStart());
+        constexpr auto rtvDesc = D3D12_RENDER_TARGET_VIEW_DESC{
+            .Format = RENDER_FORMAT,
+            .ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D,
+        };
+        for (UINT n = 0; n < FRAMES_IN_FLIGHT; n++) {
+            ThrowIfFailed(swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTargets[n])));
+            renderTargets[n]->SetName(L"BackBuffer");
+            device.getDevice()->CreateRenderTargetView(renderTargets[n].Get(), &rtvDesc, rtvHandle);
+            rtvHandle.Offset(1, rtvDescriptorSize);
         }
     }
 
@@ -393,7 +399,7 @@ namespace dxvk::backend {
     DXVertexInputLayout::DXVertexInputLayout(const std::vector<AttributeDescription>& attributesDescriptions) {
         for (int i = 0; i < attributesDescriptions.size(); i++) {
             inputElementDescs.push_back({
-                .SemanticName = reinterpret_cast<LPCSTR>(attributesDescriptions[i].binding.c_str()),
+                .SemanticName = attributesDescriptions[i].binding.c_str(),
                 .SemanticIndex = 0,
                 .Format = DXFormat[attributesDescriptions[i].format],
                 .InputSlot = 0,
@@ -465,7 +471,7 @@ namespace dxvk::backend {
         psoDesc.SampleMask = UINT_MAX;
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         psoDesc.NumRenderTargets = 1;
-        psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+        psoDesc.RTVFormats[0] = DXSwapChain::RENDER_FORMAT;
         psoDesc.SampleDesc.Count = 1;
         ThrowAndPrintIfFailed(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)), device.Get());
     }

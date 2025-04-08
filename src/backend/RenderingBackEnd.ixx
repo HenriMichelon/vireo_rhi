@@ -196,6 +196,8 @@ export namespace dxvk::backend {
 
         virtual void endRendering(CommandList& commandList) = 0;
 
+        void setClearColor(const glm::vec4& color) { clearColor = color; }
+
         auto& getInstance() const { return instance; }
 
         auto& getPhysicalDevice() const { return physicalDevice; }
@@ -209,6 +211,7 @@ export namespace dxvk::backend {
         auto& getSwapChain() const { return swapChain; }
 
     protected:
+        glm::vec4                        clearColor{0.0f};
         std::shared_ptr<Instance>        instance;
         std::shared_ptr<PhysicalDevice>  physicalDevice;
         std::shared_ptr<Device>          device;

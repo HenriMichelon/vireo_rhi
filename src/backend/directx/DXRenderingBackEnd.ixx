@@ -121,7 +121,7 @@ export namespace dxvk::backend {
     public:
         static constexpr D3D12_COMMAND_LIST_TYPE ListType[] {
             D3D12_COMMAND_LIST_TYPE_DIRECT,
-            D3D12_COMMAND_LIST_TYPE_COPY,
+            D3D12_COMMAND_LIST_TYPE_DIRECT, //D3D12_COMMAND_LIST_TYPE_COPY,
             D3D12_COMMAND_LIST_TYPE_COMPUTE,
         };
 
@@ -153,10 +153,12 @@ export namespace dxvk::backend {
 
     class DXSwapChain : public SwapChain {
     public:
+        static constexpr auto RENDER_FORMAT{DXGI_FORMAT_R8G8B8A8_UNORM_SRGB};
+
         DXSwapChain(
             const ComPtr<IDXGIFactory4>& factory,
             DXDevice& device,
-            ComPtr<ID3D12CommandQueue> commandQueue,
+            const ComPtr<ID3D12CommandQueue>& commandQueue,
             uint32_t width, uint32_t height);
 
         auto getSwapChain() { return swapChain; }

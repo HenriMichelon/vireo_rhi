@@ -370,6 +370,9 @@ export namespace dxvk::backend {
         auto getVKSwapChain() const { return std::reinterpret_pointer_cast<VKSwapChain>(swapChain); }
 
         auto getVKGraphicCommandQueue() const { return std::reinterpret_pointer_cast<VKSubmitQueue>(graphicCommandQueue); }
+
+    private:
+        const VkClearValue depthClearValue{.depthStencil = {1.0f, 0}};
     };
 
 }

@@ -147,7 +147,7 @@ namespace dxvk::backend {
                     0, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
                     VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)});
 
-        constexpr auto clearColor = VkClearValue{ .color = {  0.0f, 0.2f, 0.4f, 1.0f }};
+        const auto vkClearColor = VkClearValue{{clearColor.r, clearColor.g, clearColor.b, clearColor.a }};
         const auto colorAttachmentInfo = VkRenderingAttachmentInfo {
             .sType              = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
             .imageView          = swapChain.getImageViews()[data.imageIndex],
@@ -155,10 +155,10 @@ namespace dxvk::backend {
             .resolveMode        = VK_RESOLVE_MODE_NONE,
             .loadOp             = VK_ATTACHMENT_LOAD_OP_CLEAR,
             .storeOp            = VK_ATTACHMENT_STORE_OP_STORE,
-            .clearValue         = clearColor,
+            .clearValue         = vkClearColor,
         };
         const auto renderingInfo = VkRenderingInfo {
-            .sType                = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR,
+            .sType               = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR,
            .pNext                = nullptr,
            .renderArea           = {{0, 0}, {swapChain.getExtent().width, swapChain.getExtent().height}},
            .layerCount           = 1,
@@ -1125,7 +1125,7 @@ namespace dxvk::backend {
 
     VkPresentModeKHR VKSwapChain::chooseSwapPresentMode(const vector<VkPresentModeKHR> &availablePresentModes) {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain#page_Presentation-mode
-        const auto mode = VK_PRESENT_MODE_FIFO_KHR; //static_cast<VkPresentModeKHR>(app().getConfig().vSyncMode);
+        constexpr  auto mode = VK_PRESENT_MODE_MAILBOX_KHR; //static_cast<VkPresentModeKHR>(app().getConfig().vSyncMode);
         for (const auto &availablePresentMode : availablePresentModes) {
             if (availablePresentMode == mode) {
                 return availablePresentMode;

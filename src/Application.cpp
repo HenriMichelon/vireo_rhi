@@ -19,23 +19,24 @@ namespace dxvk {
     }
 
     void Application::onInit() {
+        renderingBackEnd->setClearColor({ 0.0f, 0.2f, 0.4f, 1.0f });
         const auto triangleVertices = std::vector<Vertex> {
                 { { 0.0f, 0.25f * aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
                 { { 0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
                 { { -0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
         };
-        // const auto uploadCommandAllocator = renderingBackEnd->createCommandAllocator(backend::CommandList::GRAPHIC);
-        // auto uploadCommandList = uploadCommandAllocator->createCommandList();
-        // uploadCommandList->begin();
-        // vertexBuffer = renderingBackEnd->createVertexBuffer(
-        //     *uploadCommandList,
-        //     &triangleVertices[0],
-        //     sizeof(Vertex),
-        //     triangleVertices.size(),
-        //     L"TriangleVertexBuffer");
-        // uploadCommandList->end();
-        // renderingBackEnd->getTransferCommandQueue()->submit({uploadCommandList});
-        //
+        const auto uploadCommandAllocator = renderingBackEnd->createCommandAllocator(backend::CommandList::TRANSFER);
+        auto uploadCommandList = uploadCommandAllocator->createCommandList();
+        uploadCommandList->begin();
+        vertexBuffer = renderingBackEnd->createVertexBuffer(
+            *uploadCommandList,
+            &triangleVertices[0],
+            sizeof(Vertex),
+            triangleVertices.size(),
+            L"TriangleVertexBuffer");
+        uploadCommandList->end();
+        renderingBackEnd->getTransferCommandQueue()->submit({uploadCommandList});
+
         const auto attributes = std::vector{
             backend::VertexInputLayout::AttributeDescription{"POSITION", backend::VertexInputLayout::R32G32B32_FLOAT, 0},
             backend::VertexInputLayout::AttributeDescription{"COLOR",    backend::VertexInputLayout::R32G32B32A32_FLOAT, 12}
