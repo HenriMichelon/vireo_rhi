@@ -61,6 +61,8 @@ export namespace dxvk::backend {
 
         void write(const void* data, size_t size = WHOLE_SIZE, size_t offset = 0) override;
 
+        void cleanup() override;
+
         const auto& getBufferView() const { return bufferView; }
 
     private:
@@ -130,6 +132,8 @@ export namespace dxvk::backend {
             const ComPtr<ID3D12Device>& device,
             const ComPtr<ID3D12CommandAllocator>& commandAllocator,
             const ComPtr<ID3D12PipelineState>& pipelineState = nullptr);
+
+        void reset() override;
 
         void begin(Pipeline& pipeline) override;
 

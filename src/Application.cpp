@@ -27,6 +27,7 @@ namespace dxvk {
         };
         const auto uploadCommandAllocator = renderingBackEnd->createCommandAllocator(backend::CommandList::TRANSFER);
         auto uploadCommandList = uploadCommandAllocator->createCommandList();
+        uploadCommandList->reset();
         uploadCommandList->begin();
         vertexBuffer = renderingBackEnd->createVertexBuffer(
             *uploadCommandList,
@@ -58,6 +59,7 @@ namespace dxvk {
         }
 
         renderingBackEnd->getTransferCommandQueue()->waitIdle();
+        vertexBuffer->cleanup();
     }
 
     void Application::onUpdate() {
@@ -71,12 +73,13 @@ namespace dxvk {
 
         swapChain->acquire(frameData);
 
+        commandList->reset();
         commandList->begin(pipeline);
         swapChain->begin(frameData, *commandList);
         renderingBackEnd->beginRendering(frameData, *pipelineResources["default"], pipeline, *commandList);
 
-        // commandList->bindVertexBuffer(*vertexBuffer);
-        // commandList->drawInstanced(3);
+        commandList->bindVertexBuffer(*vertexBuffer);
+        commandList->drawInstanced(3);
 
         renderingBackEnd->endRendering(*commandList);
         swapChain->end(frameData, *commandList);

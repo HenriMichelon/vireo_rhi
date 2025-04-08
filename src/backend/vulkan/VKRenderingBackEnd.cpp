@@ -131,8 +131,16 @@ namespace dxvk::backend {
            size_t size,
            size_t count,
            const std::wstring& name) const {
-        throw std::exception("not implemented");
-        return nullptr;
+        return make_shared<VKBuffer>(
+            static_cast<VKCommandList&>(commandList),
+            *getVKPhysicalDevice(),
+            getVKDevice()->getDevice(),
+            Buffer::VERTEX,
+            data,
+            size,
+            count,
+            1,
+            name);
     }
 
     void VKRenderingBackEnd::beginRendering(FrameData& frameData, PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) {
@@ -177,6 +185,117 @@ namespace dxvk::backend {
 
     void VKRenderingBackEnd::waitIdle() {
         vkDeviceWaitIdle(getVKDevice()->getDevice());
+    }
+
+    VKBuffer::VKBuffer(
+            VKCommandList& commandList,
+            const VKPhysicalDevice& physicalDevice,
+            VkDevice device,
+            Type type,
+            const void* data,
+            size_t size,
+            size_t count,
+            size_t minOffsetAlignment,
+            const std::wstring& name) : device{device} {
+        alignmentSize = minOffsetAlignment > 0
+               ? (size + minOffsetAlignment - 1) & ~(minOffsetAlignment - 1)
+               : size;
+        bufferSize = alignmentSize * count;
+
+        const VkBufferCreateFlags usage =
+            type == VERTEX ? VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT :
+            type == INDEX ? VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT:
+            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+        const auto memTypes = (type == VERTEX || type == INDEX) ?
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT :
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+        createBuffer(physicalDevice, device, bufferSize, usage, memTypes, buffer, bufferMemory);
+
+        createBuffer(
+            physicalDevice, device, bufferSize,
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            stagingBuffer, stagingBufferMemory);
+
+        void* stagingData;
+        vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &stagingData);
+        memcpy(stagingData, data, bufferSize);
+        vkUnmapMemory(device, stagingBufferMemory);
+
+        const auto copyRegion = VkBufferCopy{
+            .srcOffset = 0,
+            .dstOffset = 0,
+            .size = bufferSize,
+        };
+        vkCmdCopyBuffer(
+            commandList.getCommandBuffer(),
+            stagingBuffer,
+            buffer,
+            1,
+            &copyRegion);
+
+
+    }
+
+    void VKBuffer::map() {
+        vkMapMemory(device, bufferMemory, 0, bufferSize, 0, &mappedAddress);
+    }
+
+    void VKBuffer::unmap() {
+        vkUnmapMemory(device, bufferMemory);
+        mappedAddress = nullptr;
+    }
+
+    void VKBuffer::write(const void* data, const size_t size, const size_t offset) {
+        if (size == WHOLE_SIZE) {
+            memcpy(mappedAddress, data, bufferSize);
+        } else {
+            memcpy(static_cast<unsigned char*>(mappedAddress) + offset, data, size);
+        }
+    }
+
+    void VKBuffer::cleanup() {
+        if (stagingBuffer != VK_NULL_HANDLE) {
+            vkDestroyBuffer(device, stagingBuffer, nullptr);
+            vkFreeMemory(device, stagingBufferMemory, nullptr);
+            stagingBuffer = VK_NULL_HANDLE;
+            stagingBufferMemory = VK_NULL_HANDLE;
+        }
+    }
+
+    void VKBuffer::createBuffer(
+            const VKPhysicalDevice& physicalDevice,
+            VkDevice device,
+            VkDeviceSize size,
+            VkBufferUsageFlags bufferUsageFlags,
+            VkMemoryPropertyFlags memoryPropertyFlags,
+            VkBuffer& buffer,
+            VkDeviceMemory& memory) {
+        const auto bufferInfo = VkBufferCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+            .size = size,
+            .usage = bufferUsageFlags,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        };
+        if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
+            die("failed to create buffer!");
+        }
+        VkMemoryRequirements memRequirements;
+        vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
+        const auto allocInfo = VkMemoryAllocateInfo {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+            .allocationSize = memRequirements.size,
+            .memoryTypeIndex = physicalDevice.findMemoryType(memRequirements.memoryTypeBits, memoryPropertyFlags)
+        };
+        if (vkAllocateMemory(device, &allocInfo, nullptr, &memory) != VK_SUCCESS) {
+            die("failed to allocate vertex buffer memory!");
+        }
+        vkBindBufferMemory(device, buffer, memory, 0);
+    }
+
+    VKBuffer::~VKBuffer() {
+        vkDestroyBuffer(device, buffer, nullptr);
+        vkFreeMemory(device, bufferMemory, nullptr);
     }
 
     VKVertexInputLayout::VKVertexInputLayout(size_t size, const std::vector<AttributeDescription>& attributesDescriptions) {
@@ -594,6 +713,16 @@ namespace dxvk::backend {
         return i;
     }
 
+    uint32_t VKPhysicalDevice::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const {
+        VkPhysicalDeviceMemoryProperties memProperties;
+        vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+        for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+            if ((typeFilter & (1 << i)) &&
+                (memProperties.memoryTypes[i].propertyFlags & properties) == properties) { return i; }
+        }
+        die("failed to find suitable memory type!");
+        return 0;
+    }
 
     VKPhysicalDevice::~VKPhysicalDevice() {
         vkDestroySurfaceKHR(instance, surface, nullptr);
@@ -926,18 +1055,31 @@ namespace dxvk::backend {
         }
     }
 
+    void VKCommandList::bindVertexBuffer(Buffer& buffer) {
+        const auto& vkBuffer = static_cast<VKBuffer&>(buffer);
+        const VkBuffer         buffers[] = {vkBuffer.getBuffer()};
+        constexpr VkDeviceSize offsets[] = {0};
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
+    }
+
+    void VKCommandList::drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount) {
+        throw std::runtime_error("not implemented");
+    }
+
     VKCommandList::~VKCommandList() {
+    }
+
+    void VKCommandList::reset() {
+        vkResetCommandBuffer(commandBuffer, 0);
     }
 
     void VKCommandList::begin(Pipeline& pipeline) {
         constexpr VkCommandBufferBeginInfo beginInfo{
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         };
-        vkResetCommandBuffer(commandBuffer, 0);
         if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
             die("failed to begin recording command buffer!");
         }
-        // setInitialState(commandBuffer);
     }
 
     void VKCommandList::begin() {

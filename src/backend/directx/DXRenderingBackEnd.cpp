@@ -292,14 +292,16 @@ namespace dxvk::backend {
         ThrowIfFailed(commandList->Close());
     }
 
+    void DXCommandList::reset() {
+        ThrowIfFailed(commandAllocator->Reset());
+    }
+
     void DXCommandList::begin(Pipeline& pipeline) {
         auto& dxPipeline = static_cast<DXPipeline&>(pipeline);
-        ThrowIfFailed(commandAllocator->Reset());
         ThrowIfFailed(commandList->Reset(commandAllocator.Get(), dxPipeline.getPipelineState().Get()));
     }
 
     void DXCommandList::begin() {
-        ThrowIfFailed(commandAllocator->Reset());
         ThrowIfFailed(commandList->Reset(commandAllocator.Get(), nullptr));
     }
 
@@ -569,6 +571,10 @@ namespace dxvk::backend {
         } else {
             memcpy(reinterpret_cast<unsigned char*>(mappedAddress) + offset, data, size);
         }
+    }
+
+    void DXBuffer::cleanup() {
+        stagingBuffer = nullptr;
     }
 
 }

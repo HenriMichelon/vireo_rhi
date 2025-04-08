@@ -38,6 +38,8 @@ export namespace dxvk::backend {
 
         virtual void write(const void* data, size_t size = WHOLE_SIZE, size_t offset = 0) = 0;
 
+        virtual void cleanup() = 0;
+
     protected:
         size_t  bufferSize{0};
         void*   mappedAddress{nullptr};
@@ -82,6 +84,8 @@ export namespace dxvk::backend {
         };
 
         virtual void begin(Pipeline& pipeline) = 0;
+
+        virtual void reset() = 0;
 
         virtual void begin() = 0;
 

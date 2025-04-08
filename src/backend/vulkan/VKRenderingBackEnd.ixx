@@ -58,6 +58,8 @@ export namespace dxvk::backend {
         // Find a dedicated compute & transfer queue
         uint32_t findComputeQueueFamily() const;
 
+        uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
+
         auto getSurface() const { return surface; }
 
     private:
@@ -168,15 +170,17 @@ export namespace dxvk::backend {
 
         ~VKCommandList() override;
 
+        void reset() override;
+
         void begin(Pipeline& pipeline) override;
 
         void begin() override;
 
         void end() override;
 
-        void bindVertexBuffer(Buffer& buffer) override { }
+        void bindVertexBuffer(Buffer& buffer) override;
 
-        void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) override {};
+        void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) override;
 
         auto getCommandBuffer() const { return commandBuffer; }
 
@@ -255,8 +259,46 @@ export namespace dxvk::backend {
 
     class VKBuffer : public Buffer {
     public:
+        VKBuffer(
+            VKCommandList& commandList,
+            const VKPhysicalDevice& physicalDevice,
+            VkDevice device,
+            Type type,
+            const void* data,
+            size_t size,
+            size_t count,
+            size_t minOffsetAlignment,
+            const std::wstring& name);
+
+        ~VKBuffer() override;
+
+        void map() override;
+
+        void unmap() override;
+
+        void write(const void* data, size_t size = WHOLE_SIZE, size_t offset = 0) override;
+
+        void cleanup() override;
+
+        auto getBuffer() const { return buffer; }
 
     private:
+        VkDevice       device;
+        VkBuffer       buffer;
+        VkDeviceMemory bufferMemory;
+        VkDeviceSize   bufferSize;
+        VkDeviceSize   alignmentSize;
+        VkBuffer       stagingBuffer{VK_NULL_HANDLE};
+        VkDeviceMemory stagingBufferMemory{VK_NULL_HANDLE};
+
+        static void createBuffer(
+            const VKPhysicalDevice& physicalDevice,
+            VkDevice device,
+            VkDeviceSize size,
+            VkBufferUsageFlags usage,
+            VkMemoryPropertyFlags properties,
+            VkBuffer& buffer,
+            VkDeviceMemory& memory);
     };
 
     class VKVertexInputLayout : public VertexInputLayout {
