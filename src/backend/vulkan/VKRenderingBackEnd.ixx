@@ -185,6 +185,14 @@ export namespace dxvk::backend {
             VkPipelineStageFlags dstStageMask,
             const std::vector<VkImageMemoryBarrier>& barriers) const;
 
+        static VkImageMemoryBarrier imageMemoryBarrier(
+           VkImage image,
+           VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask,
+           VkImageLayout oldLayout, VkImageLayout newLayout,
+           uint32_t baseMipLevel = 0,
+           uint32_t levelCount = VK_REMAINING_MIP_LEVELS
+       );
+
     private:
         VkCommandBuffer commandBuffer;
     };
@@ -200,6 +208,8 @@ export namespace dxvk::backend {
         auto getFormat() const { return swapChainImageFormat; }
 
         const auto& getImageViews() const { return swapChainImageViews; }
+
+        const auto& getImages() const { return swapChainImages; }
 
         void nextSwapChain() override;
 
@@ -347,7 +357,7 @@ export namespace dxvk::backend {
             size_t count = 1,
             const std::wstring& name = L"VertexBuffer") const override;
 
-        void beginRendering(PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) override;
+        void beginRendering(FrameData& frameData, PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) override;
 
         void endRendering(CommandList& commandList) override;
 

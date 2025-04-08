@@ -72,12 +72,12 @@ namespace dxvk {
 
         commandList->begin(pipeline);
         swapChain->begin(frameData, *commandList);
-        // renderingBackEnd->beginRendering(*pipelineResources["default"], pipeline, *commandList);
+        renderingBackEnd->beginRendering(frameData, *pipelineResources["default"], pipeline, *commandList);
 
         // commandList->bindVertexBuffer(*vertexBuffer);
         // commandList->drawInstanced(3);
 
-        // renderingBackEnd->endRendering(*commandList);
+        renderingBackEnd->endRendering(*commandList);
         swapChain->end(frameData, *commandList);
         commandList->end();
         renderingBackEnd->getGraphicCommandQueue()->submit(frameData, {commandList});

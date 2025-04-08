@@ -69,7 +69,7 @@ namespace dxvk::backend {
             name);
     }
 
-    void DXRenderingBackEnd::beginRendering(PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) {
+    void DXRenderingBackEnd::beginRendering(FrameData&, PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) {
         const auto dxCommandList = static_cast<DXCommandList&>(commandList).getCommandList();
         const auto dxSwapChain = getDXSwapChain();
         const auto frameIndex = swapChain->getCurrentFrameIndex();

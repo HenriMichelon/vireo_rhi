@@ -266,7 +266,7 @@ export namespace dxvk::backend {
             size_t count = 1,
             const std::wstring& name = L"VertexBuffer") const override;
 
-        void beginRendering(PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) override;
+        void beginRendering(FrameData& frameData, PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) override;
 
         void endRendering(CommandList& commandList) override;
 

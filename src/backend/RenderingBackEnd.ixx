@@ -192,7 +192,7 @@ export namespace dxvk::backend {
             size_t count = 1,
             const std::wstring& name = L"VertexBuffer") const = 0;
 
-        virtual void beginRendering(PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) = 0;
+        virtual void beginRendering(FrameData& frameData, PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) = 0;
 
         virtual void endRendering(CommandList& commandList) = 0;
 

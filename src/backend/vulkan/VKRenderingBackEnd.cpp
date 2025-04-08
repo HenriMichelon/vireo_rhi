@@ -92,6 +92,10 @@ namespace dxvk::backend {
         return make_shared<VKVertexInputLayout>(size, attributesDescriptions);
     }
 
+    std::shared_ptr<CommandAllocator> VKRenderingBackEnd::createCommandAllocator(CommandList::Type type) const {
+        return std::make_shared<VKCommandAllocator>(type, *getVKDevice());
+    }
+
     std::shared_ptr<ShaderModule> VKRenderingBackEnd::createShaderModule(const std::string& fileName) const {
         return make_shared<VKShaderModule>(getVKDevice()->getDevice(), fileName);
     }
@@ -131,12 +135,44 @@ namespace dxvk::backend {
         return nullptr;
     }
 
-    void VKRenderingBackEnd::beginRendering(PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) {
-        throw std::exception("not implemented");
+    void VKRenderingBackEnd::beginRendering(FrameData& frameData, PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) {
+        auto& data = static_cast<VKFrameData&>(frameData);
+        const auto& vkCommandList = static_cast<VKCommandList&>(commandList);
+        const auto& swapChain = *getVKSwapChain();
+
+        vkCommandList.pipelineBarrier(
+            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            {VKCommandList::imageMemoryBarrier(swapChain.getImages()[data.imageIndex],
+                    0, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+                    VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)});
+
+        constexpr auto clearColor = VkClearValue{ .color = {  0.0f, 0.2f, 0.4f, 1.0f }};
+        const auto colorAttachmentInfo = VkRenderingAttachmentInfo {
+            .sType              = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
+            .imageView          = swapChain.getImageViews()[data.imageIndex],
+            .imageLayout        = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .resolveMode        = VK_RESOLVE_MODE_NONE,
+            .loadOp             = VK_ATTACHMENT_LOAD_OP_CLEAR,
+            .storeOp            = VK_ATTACHMENT_STORE_OP_STORE,
+            .clearValue         = clearColor,
+        };
+        const auto renderingInfo = VkRenderingInfo {
+            .sType                = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR,
+           .pNext                = nullptr,
+           .renderArea           = {{0, 0}, {swapChain.getExtent().width, swapChain.getExtent().height}},
+           .layerCount           = 1,
+           .colorAttachmentCount = 1,
+           .pColorAttachments    = &colorAttachmentInfo,
+           .pDepthAttachment     = nullptr,
+           .pStencilAttachment   = nullptr
+        };
+        vkCmdBeginRendering(vkCommandList.getCommandBuffer(), &renderingInfo);
     }
 
     void VKRenderingBackEnd::endRendering(CommandList& commandList) {
-        throw std::exception("not implemented");
+        const auto& vkCommandList = static_cast<VKCommandList&>(commandList);
+        vkCmdEndRendering(vkCommandList.getCommandBuffer());
     }
 
     void VKRenderingBackEnd::waitIdle() {
@@ -788,10 +824,6 @@ namespace dxvk::backend {
         };
     }
 
-    std::shared_ptr<CommandAllocator> VKRenderingBackEnd::createCommandAllocator(CommandList::Type type) const {
-        return std::make_shared<VKCommandAllocator>(type, *getVKDevice());
-    }
-
     VKDevice::~VKDevice() {
         vkDestroyDevice(device, nullptr);
     }
@@ -938,6 +970,32 @@ namespace dxvk::backend {
             nullptr,
             static_cast<uint32_t>(barriers.size()),
             barriers.data());
+    }
+
+    VkImageMemoryBarrier VKCommandList::imageMemoryBarrier(
+           const VkImage image,
+           const VkAccessFlags srcAccessMask, const VkAccessFlags dstAccessMask,
+           const VkImageLayout oldLayout, const VkImageLayout newLayout,
+           const uint32_t baseMipLevel,
+           const uint32_t levelCount
+       ) {
+        return VkImageMemoryBarrier {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .srcAccessMask =  srcAccessMask,
+            .dstAccessMask = dstAccessMask,
+            .oldLayout = oldLayout,
+            .newLayout = newLayout,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = image,
+            .subresourceRange = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = baseMipLevel,
+                .levelCount = levelCount,
+                .baseArrayLayer = 0,
+                .layerCount = VK_REMAINING_ARRAY_LAYERS,
+            }
+        };
     }
 
     VKSwapChain::VKSwapChain(const VKPhysicalDevice& physicalDevice, const VKDevice& device, uint32_t width, uint32_t height):
@@ -1093,7 +1151,7 @@ namespace dxvk::backend {
     }
 
     void VKSwapChain::nextSwapChain() {
-        currentFrameIndex = (currentFrameIndex + 1) % SwapChain::FRAMES_IN_FLIGHT;
+        currentFrameIndex = (currentFrameIndex + 1) % FRAMES_IN_FLIGHT;
     }
 
     void VKSwapChain::present(FrameData& frameData) {
@@ -1117,53 +1175,18 @@ namespace dxvk::backend {
     }
 
     void VKSwapChain::begin(FrameData& frameData, CommandList& commandList) {
-        auto& data = static_cast<VKFrameData&>(frameData);
-        const VkImageMemoryBarrier barrier = {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .srcAccessMask = 0,
-            .dstAccessMask =  VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-            .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .image = swapChainImages[data.imageIndex],
-            .subresourceRange = {
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .baseMipLevel = 0,
-                .levelCount = 1,
-                .baseArrayLayer = 0,
-                .layerCount = 1
-            }
-        };
-        static_cast<VKCommandList&>(commandList).pipelineBarrier(
-            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-            {barrier});
     }
 
     void VKSwapChain::end(FrameData& frameData, CommandList& commandList) {
-        auto& data = static_cast<VKFrameData&>(frameData);
-        const VkImageMemoryBarrier barrier = {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-            .dstAccessMask = 0,
-            .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-            .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .image = swapChainImages[data.imageIndex],
-            .subresourceRange = {
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .baseMipLevel = 0,
-                .levelCount = 1,
-                .baseArrayLayer = 0,
-                .layerCount = VK_REMAINING_ARRAY_LAYERS
-            }
-        };
+        const auto& data = static_cast<VKFrameData&>(frameData);
         static_cast<VKCommandList&>(commandList).pipelineBarrier(
             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
             VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-            {barrier});
+            {
+                VKCommandList::imageMemoryBarrier(swapChainImages[data.imageIndex],
+                    VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, 0,
+                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+            });
     }
 
     void VKSwapChain::acquire(FrameData& frameData) {
@@ -1198,7 +1221,6 @@ namespace dxvk::backend {
     }
 
     VKSwapChain::~VKSwapChain() {
-        vkDeviceWaitIdle(device);
         // https://vulkan-tutorial.com/Drawing_a_triangle/Swap_chain_recreation#page_Recreating-the-swap-chain
         for (auto &swapChainImageView : swapChainImageViews) {
             vkDestroyImageView(device, swapChainImageView, nullptr);
