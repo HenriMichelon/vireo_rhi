@@ -28,7 +28,7 @@ export namespace vireo::backend {
     public:
         DXPhysicalDevice(const ComPtr<IDXGIFactory4>& factory);
 
-        auto getHardwareAdapater() { return hardwareAdapter4; }
+        auto getHardwareAdapter() { return hardwareAdapter4; }
 
     private:
         ComPtr<IDXGIAdapter4> hardwareAdapter4;

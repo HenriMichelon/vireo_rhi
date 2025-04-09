@@ -38,7 +38,7 @@ namespace vireo::backend {
 
         instance = std::make_shared<DXInstance>();
         physicalDevice = std::make_shared<DXPhysicalDevice>(getDXInstance()->getFactory());
-        device = std::make_shared<DXDevice>(getDXPhysicalDevice()->getHardwareAdapater());
+        device = std::make_shared<DXDevice>(getDXPhysicalDevice()->getHardwareAdapter());
         graphicCommandQueue = std::make_shared<DXSubmitQueue>(CommandList::GRAPHIC, getDXDevice()->getDevice());
         transferCommandQueue = std::make_shared<DXSubmitQueue>(CommandList::GRAPHIC, getDXDevice()->getDevice());
         swapChain = std::make_shared<DXSwapChain>(

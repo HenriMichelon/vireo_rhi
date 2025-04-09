@@ -10,20 +10,6 @@ import vireo.backend;
 export namespace dxvk {
 
     class DXApplication: public BaseApplication {
-    public:
-        DXApplication(UINT width, UINT height, std::wstring name);
-
-        void OnUpdate() override;
-        void OnRender() override;
-
-    private:
-
-
-        // Triangle
-        void LoadPipeline();
-        void LoadAssets();
-        void PopulateCommandList();
-
         ComPtr<ID3D12DescriptorHeap> m_srvCbvHeap;
         UINT m_srvCbvDescriptorSize;
         ComPtr<ID3D12Resource> m_texture;

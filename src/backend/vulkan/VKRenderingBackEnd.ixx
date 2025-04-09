@@ -54,7 +54,6 @@ export namespace vireo::backend {
             }
         };
 
-
         // Get the supported queues families for a particular GPU
         QueueFamilyIndices findQueueFamilies(VkPhysicalDevice vkPhysicalDevice) const;
 
@@ -342,7 +341,7 @@ export namespace vireo::backend {
 
         ~VKShaderModule() override;
 
-        auto getShaderModule() { return shaderModule; }
+        auto getShaderModule() const { return shaderModule; }
 
     private:
         VkDevice       device;

@@ -51,6 +51,12 @@ namespace vireo {
             hInstance,
             nullptr);
 
+        RECT rect;
+        GetWindowRect(hwnd, &rect);
+        const auto x = (GetSystemMetrics(SM_CXSCREEN) - (rect.right - rect.left)) / 2;
+        const auto y = (GetSystemMetrics(SM_CYSCREEN) - (rect.bottom - rect.top)) / 2;
+        SetWindowPos(hwnd, nullptr, x, y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+
         app = std::make_unique<Application>(backendType, name);
         app->onInit();
 
@@ -58,7 +64,7 @@ namespace vireo {
 
         MSG msg = {};
         while (msg.message != WM_QUIT) {
-            if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+            if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
             }

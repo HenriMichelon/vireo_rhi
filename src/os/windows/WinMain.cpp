@@ -108,13 +108,9 @@ int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR lpCmdLine, int nCmdS
     //
     // RECT rect;
     // GetWindowRect(hWnd, &rect);
-    // const auto winWidth = rect.right - rect.left;
-    // const auto winHeight = rect.bottom - rect.top;
-    // const auto screenWidth = GetSystemMetrics(SM_CXSCREEN);
-    // const auto screenHeight = GetSystemMetrics(SM_CYSCREEN);
-    // const auto x = (screenWidth - winWidth) / 2;
-    // const auto y = (screenHeight - winHeight) / 2;
-    // SetWindowPos(hWnd, nullptr, x, y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+    // const auto x = (GetSystemMetrics(SM_CXSCREEN) - (rect.right - rect.left)) / 2;
+    // const auto y = (GetSystemMetrics(SM_CYSCREEN) - (rect.bottom - rect.top)) / 2;
+    // // SetWindowPos(hWnd, nullptr, x, y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
     // ShowWindow(hWnd, SW_SHOW);
     // UpdateWindow(hWnd);
     //
