@@ -5,7 +5,7 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "DXTools.h"
+#include "backend/directx/Tools.h"
 
 module vireo.backend.directx;
 

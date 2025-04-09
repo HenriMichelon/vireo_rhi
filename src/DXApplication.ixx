@@ -1,6 +1,6 @@
 // https://github.com/microsoft/DirectX-Graphics-Samples/tree/master/Samples/Desktop/D3D12HelloWorld/src/HelloTriangle
 module;
-#include "DXTools.h"
+#include "backend/directx/Tools.h"
 
 export module vireo.app.directx;
 

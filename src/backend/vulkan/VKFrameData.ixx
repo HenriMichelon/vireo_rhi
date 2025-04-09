@@ -5,7 +5,7 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "VKLibraries.h"
+#include "backend/vulkan/Libraries.h"
 
 export module vireo.backend.vulkan.framedata;
 

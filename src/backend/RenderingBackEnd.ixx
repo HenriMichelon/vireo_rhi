@@ -13,6 +13,11 @@ import vireo.backend.framedata;
 
 export namespace vireo::backend {
 
+    enum class RenderingBackends {
+        DIRECTX,
+        VULKAN,
+    };
+
     class Instance {
     public:
         virtual ~Instance() = default;

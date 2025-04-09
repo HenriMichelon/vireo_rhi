@@ -16,9 +16,10 @@ namespace vireo {
     HWND Win32Application::hwnd = nullptr;
     std::unique_ptr<Application> Win32Application::app{};
 
-    int Win32Application::run(UINT width,
-                              UINT height,
-                              std::wstring name,
+    int Win32Application::run(backend::RenderingBackends backendType,
+                              const UINT width,
+                              const UINT height,
+                              const std::wstring& name,
                               const HINSTANCE hInstance,
                               const int nCmdShow) {
         // Initialize the window class.
@@ -50,7 +51,7 @@ namespace vireo {
             hInstance,
             nullptr);
 
-        app = std::make_unique<Application>(name);
+        app = std::make_unique<Application>(backendType, name);
         app->onInit();
 
         ShowWindow(hwnd, nCmdShow);

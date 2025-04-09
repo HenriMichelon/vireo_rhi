@@ -15,10 +15,13 @@ import vireo.backend.vulkan;
 
 namespace vireo {
 
-    Application::Application(const std::wstring& name) :
+    Application::Application(backend::RenderingBackends& backendType, const std::wstring& name) :
         title(name) {
-        // renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>();
-        renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>();
+        if (backendType == backend::RenderingBackends::VULKAN) {
+            renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>();
+        } else {
+            renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>();
+        }
     }
 
     void Application::onInit() {

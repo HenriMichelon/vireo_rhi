@@ -17,7 +17,7 @@ export namespace vireo {
     class Application
     {
     public:
-        Application(const std::wstring& name);
+        Application(backend::RenderingBackends& backendType, const std::wstring& name);
         virtual ~Application() = default;
 
         virtual void onInit();

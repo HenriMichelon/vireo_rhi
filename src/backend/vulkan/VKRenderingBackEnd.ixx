@@ -5,7 +5,7 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "VKTools.h"
+#include "backend/vulkan/Tools.h"
 
 export module vireo.backend.vulkan;
 

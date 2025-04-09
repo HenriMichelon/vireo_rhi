@@ -32,25 +32,25 @@ set(SHADERS_BUILD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
 
 #######################################################
 add_executable(${MY_TARGET}
-    ${SRC_DIR}/main.cpp
-    ${SRC_DIR}/vulkan.cpp
-    ${SRC_DIR}/Application.cpp
-    ${SRC_DIR}/Win32Application.cpp
-    ${SRC_DIR}/backend/directx/DXRenderingBackEnd.cpp
-    ${SRC_DIR}/backend/vulkan/VKRenderingBackEnd.cpp
+        ${SRC_DIR}/Application.cpp
+        ${SRC_DIR}/os/windows/Win32Application.cpp
+        ${SRC_DIR}/os/windows/WinMain.cpp
+        ${SRC_DIR}/backend/directx/DXRenderingBackEnd.cpp
+        ${SRC_DIR}/backend/vulkan/VKRenderingBackEnd.cpp
+        ${SRC_DIR}/backend/vulkan/Vulkan.cpp
 )
 target_sources(${MY_TARGET}
     PUBLIC
     FILE_SET CXX_MODULES
     FILES
-    ${SRC_DIR}/Application.ixx
-    ${SRC_DIR}/Win32Application.ixx
-    ${SRC_DIR}/backend/FrameData.ixx
-    ${SRC_DIR}/backend/RenderingBackEnd.ixx
-    ${SRC_DIR}/backend/directx/DXFrameData.ixx
-    ${SRC_DIR}/backend/directx/DXRenderingBackEnd.ixx
-    ${SRC_DIR}/backend/vulkan/VKFrameData.ixx
-    ${SRC_DIR}/backend/vulkan/VKRenderingBackEnd.ixx
+        ${SRC_DIR}/Application.ixx
+        ${SRC_DIR}/os/windows/Win32Application.ixx
+        ${SRC_DIR}/backend/FrameData.ixx
+        ${SRC_DIR}/backend/RenderingBackEnd.ixx
+        ${SRC_DIR}/backend/directx/DXFrameData.ixx
+        ${SRC_DIR}/backend/directx/DXRenderingBackEnd.ixx
+        ${SRC_DIR}/backend/vulkan/VKFrameData.ixx
+        ${SRC_DIR}/backend/vulkan/VKRenderingBackEnd.ixx
 )
 compile_options(${MY_TARGET})
 

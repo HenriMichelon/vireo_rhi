@@ -5,8 +5,8 @@
 * https://opensource.org/licenses/MIT
 */
 #pragma once
-#include "VKLibraries.h"
-#include "Tools.h"
+#include "Libraries.h"
+#include "../../Tools.h"
 
 inline void DieIfFailed(const VkResult vr) {
     if (vr != VK_SUCCESS) {
