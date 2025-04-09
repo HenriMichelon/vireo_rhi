@@ -163,7 +163,24 @@ namespace dxvk::backend {
            .pDepthAttachment     = nullptr,
            .pStencilAttachment   = nullptr
         };
-        vkCmdBeginRendering(vkCommandList.getCommandBuffer(), &renderingInfo);
+        auto commandBuffer = vkCommandList.getCommandBuffer();
+        vkCmdBeginRendering(commandBuffer, &renderingInfo);
+
+        const VkExtent2D extent = {swapChain.getExtent().width, swapChain.getExtent().height};
+        const VkViewport viewport{
+            .x = 0.0f,
+            .y = 0.0f,
+            .width = static_cast<float>(extent.width),
+            .height = static_cast<float>(extent.height),
+            .minDepth = 0.0f,
+            .maxDepth = 1.0f
+        };
+            vkCmdSetViewportWithCount(commandBuffer, 1, &viewport);
+            const VkRect2D scissor{
+                .offset = {0, 0},
+                .extent = extent
+        };
+        vkCmdSetScissorWithCount(commandBuffer, 1, &scissor);
     }
 
     void VKRenderingBackEnd::endRendering(CommandList& commandList) {
@@ -361,8 +378,8 @@ namespace dxvk::backend {
             .extent = { extent.width, extent.height }
         };
         std::vector<VkDynamicState> dynamicStates = {
-            VK_DYNAMIC_STATE_VIEWPORT,
-            VK_DYNAMIC_STATE_SCISSOR
+            VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT,
+            VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT
         };
 
         auto dynamicState = VkPipelineDynamicStateCreateInfo {
@@ -372,10 +389,8 @@ namespace dxvk::backend {
         };
         auto viewportState = VkPipelineViewportStateCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
-            .viewportCount = 1,
-            .pViewports = &viewport,
-            .scissorCount = 1,
-            .pScissors = &scissor
+            .viewportCount = 0,
+            .scissorCount = 0,
         };
         auto rasterizer = VkPipelineRasterizationStateCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
@@ -1015,8 +1030,8 @@ namespace dxvk::backend {
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
     }
 
-    void VKCommandList::drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount) {
-        throw std::runtime_error("not implemented");
+    void VKCommandList::drawInstanced(const uint32_t vertexCountPerInstance, const uint32_t instanceCount) {
+        vkCmdDraw(commandBuffer, vertexCountPerInstance, instanceCount, 0, 0);
     }
 
     VKCommandList::~VKCommandList() {
@@ -1033,6 +1048,7 @@ namespace dxvk::backend {
         if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
             die("failed to begin recording command buffer!");
         }
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS , static_cast<VKPipeline&>(pipeline).getPipeline());
     }
 
     void VKCommandList::begin() {

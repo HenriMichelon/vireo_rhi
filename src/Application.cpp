@@ -80,7 +80,7 @@ namespace dxvk {
         renderingBackEnd->beginRendering(frameData, *pipelineResources["default"], pipeline, *commandList);
 
         commandList->bindVertexBuffer(*vertexBuffer);
-        // commandList->drawInstanced(3);
+        commandList->drawInstanced(3);
 
         renderingBackEnd->endRendering(*commandList);
         swapChain->end(frameData, *commandList);

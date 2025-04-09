@@ -11,12 +11,11 @@
 
 struct PSInput
 {
-    float4 position : SV_POSITION;
-    float4 color : COLOR;
+    [[vk::location(0)]] float4 position : SV_POSITION;
+    [[vk::location(1)]] float4 color : COLOR;
 };
 
-PSInput VSMain(float4 position : POSITION, float4 color : COLOR)
-{
+PSInput VSMain([[vk::location(0)]] float4 position : POSITION, [[vk::location(1)]] float4 color : COLOR) {
     PSInput result;
 
     result.position = position;
@@ -25,7 +24,6 @@ PSInput VSMain(float4 position : POSITION, float4 color : COLOR)
     return result;
 }
 
-float4 PSMain(PSInput input) : SV_TARGET
-{
+float4 PSMain(PSInput input) : SV_TARGET {
     return input.color;
 }

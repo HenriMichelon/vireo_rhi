@@ -359,6 +359,8 @@ export namespace dxvk::backend {
            ShaderModule& vertexShader,
            ShaderModule& fragmentShader);
 
+        const auto getPipeline() const { return pipeline; }
+
         ~VKPipeline();
 
     private:
