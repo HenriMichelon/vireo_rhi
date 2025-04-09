@@ -42,6 +42,7 @@ add_executable(${MY_TARGET}
         ${SRC_DIR}/backend/directx/DXRenderingBackEnd.cpp
         ${SRC_DIR}/backend/vulkan/VKBuffer.cpp
         ${SRC_DIR}/backend/vulkan/VKDevice.cpp
+        ${SRC_DIR}/backend/vulkan/VKDescriptors.cpp
         ${SRC_DIR}/backend/vulkan/VKRenderingBackEnd.cpp
         ${SRC_DIR}/backend/vulkan/Vulkan.cpp
 )
@@ -64,6 +65,7 @@ target_sources(${MY_TARGET}
         ${SRC_DIR}/backend/directx/DXRenderingBackEnd.ixx
         ${SRC_DIR}/backend/vulkan/VKBuffer.ixx
         ${SRC_DIR}/backend/vulkan/VKDevice.ixx
+        ${SRC_DIR}/backend/vulkan/VKDescriptors.ixx
         ${SRC_DIR}/backend/vulkan/VKFrameData.ixx
         ${SRC_DIR}/backend/vulkan/VKRenderingBackEnd.ixx
 )

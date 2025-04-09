@@ -46,6 +46,15 @@ namespace vireo {
         uploadCommandList->end();
         renderingBackEnd->getTransferCommandQueue()->submit({uploadCommandList});
 
+        uniformDescriptorAllocator = renderingBackEnd->createDescriptorAllocator(backend::DescriptorType::BUFFER, 100);
+        sceneConstantBufferHandle =  uniformDescriptorAllocator->allocate();
+        sceneConstantBuffer = renderingBackEnd->createBuffer(
+            backend::Buffer::UNIFORM,
+            sizeof(SceneConstantBuffer),
+            1, 256,
+            L"ConstantBuffer");
+        uniformDescriptorAllocator->update(sceneConstantBufferHandle, *sceneConstantBuffer);
+
         const auto attributes = std::vector{
             backend::VertexInputLayout::AttributeDescription{"POSITION", backend::VertexInputLayout::R32G32B32_FLOAT, 0},
             backend::VertexInputLayout::AttributeDescription{"COLOR",    backend::VertexInputLayout::R32G32B32A32_FLOAT, 12}
@@ -101,6 +110,7 @@ namespace vireo {
     }
 
     void Application::onDestroy() {
+        uniformDescriptorAllocator->free(sceneConstantBufferHandle);
         renderingBackEnd->waitIdle();
         for (uint32_t i = 0; i < backend::SwapChain::FRAMES_IN_FLIGHT; i++) {
             renderingBackEnd->destroyFrameData(*framesData[i]);

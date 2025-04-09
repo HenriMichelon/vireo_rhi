@@ -11,6 +11,7 @@ module vireo.backend.directx;
 
 import vireo.app.win32;
 import vireo.backend.directx.buffer;
+import vireo.backend.directx.descriptors;
 import vireo.backend.directx.framedata;
 
 namespace vireo::backend {
@@ -89,6 +90,10 @@ namespace vireo::backend {
                                                              const size_t alignment,
                                                              const std::wstring& name) const {
         return make_shared<DXBuffer>(getDXDevice()->getDevice(), type, size, count, alignment, name);
+    }
+
+    std::shared_ptr<DescriptorAllocator> DXRenderingBackEnd::createDescriptorAllocator(DescriptorType type, uint32_t capacity) {
+        return std::make_shared<DXDescriptorAllocator>(type, getDXDevice()->getDevice(), capacity);
     }
 
     void DXRenderingBackEnd::beginRendering(FrameData&,

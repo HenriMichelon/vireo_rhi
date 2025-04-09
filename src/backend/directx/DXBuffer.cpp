@@ -24,13 +24,13 @@ namespace vireo::backend {
         bufferSize = alignmentSize * count;
 
         // GPU Buffer
-        const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+        const auto heapProperties = CD3DX12_HEAP_PROPERTIES(type == UNIFORM ? D3D12_HEAP_TYPE_UPLOAD : D3D12_HEAP_TYPE_DEFAULT);
         resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
         DieIfFailed(device->CreateCommittedResource(
             &heapProperties,
             D3D12_HEAP_FLAG_NONE,
             &resourceDesc,
-            D3D12_RESOURCE_STATE_COMMON,
+            type == UNIFORM ? D3D12_RESOURCE_STATE_GENERIC_READ : D3D12_RESOURCE_STATE_COMMON,
             nullptr,
             IID_PPV_ARGS(&buffer)));
         buffer->SetName(name.c_str());

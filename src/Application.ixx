@@ -11,6 +11,7 @@ export module vireo.app;
 
 import vireo.backend;
 import vireo.backend.buffer;
+import vireo.backend.descriptors;
 import vireo.backend.framedata;
 
 export namespace vireo {
@@ -38,6 +39,9 @@ export namespace vireo {
             glm::vec3 pos;
             glm::vec4 color;
         };
+        struct SceneConstantBuffer {
+            glm::vec4 offset;
+        };
 
         std::wstring title;
         std::unique_ptr<backend::RenderingBackEnd> renderingBackEnd;
@@ -47,5 +51,9 @@ export namespace vireo {
         std::map<std::string, std::shared_ptr<backend::PipelineResources>> pipelineResources;
         std::map<std::string, std::shared_ptr<backend::Pipeline>> pipelines;
         std::shared_ptr<backend::Buffer> vertexBuffer;
+        std::shared_ptr<backend::Buffer> sceneConstantBuffer;
+        std::shared_ptr<backend::DescriptorAllocator> uniformDescriptorAllocator;
+        backend::DescriptorHandle sceneConstantBufferHandle;
+
     };
 }

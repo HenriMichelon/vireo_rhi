@@ -11,6 +11,7 @@ export module vireo.backend.directx;
 
 import vireo.backend;
 import vireo.backend.buffer;
+import vireo.backend.descriptors;
 import vireo.backend.framedata;
 
 import vireo.backend.directx.device;
@@ -199,6 +200,8 @@ export namespace vireo::backend {
             const std::wstring& name = L"Pipeline") const override;
 
         std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1, size_t alignment = 1, const std::wstring& name = L"Buffer") const override;
+
+        std::shared_ptr<DescriptorAllocator> createDescriptorAllocator(DescriptorType type, uint32_t capacity) override;
 
         void beginRendering(FrameData& frameData, PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) override;
 

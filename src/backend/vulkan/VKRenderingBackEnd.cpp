@@ -10,6 +10,7 @@ module;
 module vireo.backend.vulkan;
 
 import vireo.app.win32;
+import vireo.backend.vulkan.descriptors;
 import vireo.backend.vulkan.framedata;
 
 namespace vireo::backend {
@@ -169,6 +170,10 @@ namespace vireo::backend {
 
     void VKRenderingBackEnd::waitIdle() {
         vkDeviceWaitIdle(getVKDevice()->getDevice());
+    }
+
+    std::shared_ptr<DescriptorAllocator> VKRenderingBackEnd::createDescriptorAllocator(DescriptorType type, uint32_t capacity) {
+        return std::make_shared<VKDescriptorAllocator>(type, getVKDevice()->getDevice(), capacity);
     }
 
     VKVertexInputLayout::VKVertexInputLayout(size_t size, const std::vector<AttributeDescription>& attributesDescriptions) {

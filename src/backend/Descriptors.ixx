@@ -8,6 +8,8 @@ module;
 #include "Tools.h"
 export module vireo.backend.descriptors;
 
+import vireo.backend.buffer;
+
 export namespace vireo::backend {
 
     enum class DescriptorType {
@@ -27,12 +29,13 @@ export namespace vireo::backend {
 
         void free(DescriptorHandle handle);
 
-        virtual void update(DescriptorHandle handle, void* resource) = 0;
+        virtual void update(DescriptorHandle handle, Buffer& buffer) = 0;
 
         virtual uint64_t getGPUHandle(DescriptorHandle handle) const = 0;
 
+    protected:
+        DescriptorType                type;
     private:
-        const DescriptorType          type;
         const uint32_t                capacity;
         std::vector<DescriptorHandle> freeHandles{};
     };
