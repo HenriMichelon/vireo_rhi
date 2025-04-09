@@ -45,13 +45,13 @@ namespace vireo::backend {
         }
     }
 
-    VKRenderingBackEnd::VKRenderingBackEnd(uint32_t width, uint32_t height) {
+    VKRenderingBackEnd::VKRenderingBackEnd() {
         instance = std::make_shared<VKInstance>();
         physicalDevice = std::make_shared<VKPhysicalDevice>(getVKInstance()->getInstance());
         device = std::make_shared<VKDevice>(*getVKPhysicalDevice(), getVKInstance()->getRequestedLayers());
         graphicCommandQueue = std::make_shared<VKSubmitQueue>(CommandList::GRAPHIC, *getVKDevice());
         transferCommandQueue = std::make_shared<VKSubmitQueue>(CommandList::TRANSFER, *getVKDevice());
-        swapChain = std::make_shared<VKSwapChain>(*getVKPhysicalDevice(), *getVKDevice(), width, height);
+        swapChain = std::make_shared<VKSwapChain>(*getVKPhysicalDevice(), *getVKDevice());
     }
 
     void VKRenderingBackEnd::destroyFrameData(FrameData& frameData) {
@@ -1125,19 +1125,24 @@ namespace vireo::backend {
         };
     }
 
-    VKSwapChain::VKSwapChain(const VKPhysicalDevice& physicalDevice, const VKDevice& device, uint32_t width, uint32_t height):
-        device{device.getDevice()} {
+    VKSwapChain::VKSwapChain(const VKPhysicalDevice& physicalDevice, const VKDevice& device):
+        device{device},
+        physicalDevice{physicalDevice},
+        surface{physicalDevice.getSurface()} {
         vkGetDeviceQueue(
             device.getDevice(),
             device.getPresentQueueFamilyIndex(),
             0,
             &presentQueue);
+        create();
+    }
 
-         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain
+    void VKSwapChain::create() {
+        // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain
         const SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice.getPhysicalDevice(), physicalDevice.getSurface());
-        const VkSurfaceFormatKHR      surfaceFormat    = chooseSwapSurfaceFormat(swapChainSupport.formats);
-        const VkPresentModeKHR        presentMode      = chooseSwapPresentMode(swapChainSupport.presentModes);
-        swapChainExtent = chooseSwapExtent(swapChainSupport.capabilities, width, height);
+        const VkSurfaceFormatKHR surfaceFormat= chooseSwapSurfaceFormat(swapChainSupport.formats);
+        const VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
+        swapChainExtent = chooseSwapExtent(swapChainSupport.capabilities);
 
         uint32_t imageCount = FRAMES_IN_FLIGHT + 1;
         if (swapChainSupport.capabilities.maxImageCount > 0 &&
@@ -1148,7 +1153,7 @@ namespace vireo::backend {
         {
             VkSwapchainCreateInfoKHR createInfo = {
                 .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-                .surface = physicalDevice.getSurface(),
+                .surface = surface,
                 .minImageCount = imageCount,
                 .imageFormat = surfaceFormat.format,
                 .imageColorSpace = surfaceFormat.colorSpace,
@@ -1162,29 +1167,28 @@ namespace vireo::backend {
                 .presentMode = presentMode,
                 .clipped = VK_TRUE
             };
-            const VKPhysicalDevice::QueueFamilyIndices indices = physicalDevice.findQueueFamilies(physicalDevice.getPhysicalDevice());
-            const uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
-            if (indices.graphicsFamily != indices.presentFamily) {
+            if (device.getPresentQueueFamilyIndex() != device.getGraphicsQueueFamilyIndex()) {
+                const uint32_t queueFamilyIndices[] = {device.getPresentQueueFamilyIndex(), device.getGraphicsQueueFamilyIndex()};
                 createInfo.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
                 createInfo.queueFamilyIndexCount = 2;
                 createInfo.pQueueFamilyIndices   = queueFamilyIndices;
             } else {
                 createInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
-                createInfo.queueFamilyIndexCount = 0; // Optional
-                createInfo.pQueueFamilyIndices   = nullptr; // Optional
+                createInfo.queueFamilyIndexCount = 0;
+                createInfo.pQueueFamilyIndices   = nullptr;
             }
             // Need VK_KHR_SWAPCHAIN extension, or it will crash (no validation error)
             DieIfFailed(vkCreateSwapchainKHR(device.getDevice(), &createInfo, nullptr, &swapChain));
         }
-
         vkGetSwapchainImagesKHR(device.getDevice(), swapChain, &imageCount, nullptr);
         swapChainImages.resize(imageCount);
-        vkGetSwapchainImagesKHR(device.getDevice(), swapChain, &imageCount, swapChainImages.data());
-        swapChainImageFormat = surfaceFormat.format;
-        extent      = Extent{ swapChainExtent.width, swapChainExtent.height };
-        swapChainRatio       = static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height);
-
         swapChainImageViews.resize(swapChainImages.size());
+        swapChainImageFormat = surfaceFormat.format;
+
+        vkGetSwapchainImagesKHR(device.getDevice(), swapChain, &imageCount, swapChainImages.data());
+        extent      = Extent{ swapChainExtent.width, swapChainExtent.height };
+        aspectRatio = static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height);
+
         for (uint32_t i = 0; i < swapChainImages.size(); i++) {
             swapChainImageViews[i] = device.createImageView(swapChainImages[i],
                                                      swapChainImageFormat,
@@ -1193,12 +1197,12 @@ namespace vireo::backend {
         }
 
         // For bliting image to swapchain
-        constexpr VkOffset3D vkOffset0{0, 0, 0};
-        const VkOffset3D     vkOffset1{
-            static_cast<int32_t>(swapChainExtent.width),
-            static_cast<int32_t>(swapChainExtent.height),
-            1,
-        };
+        // constexpr VkOffset3D vkOffset0{0, 0, 0};
+        // const VkOffset3D     vkOffset1{
+        //     static_cast<int32_t>(swapChainExtent.width),
+        //     static_cast<int32_t>(swapChainExtent.height),
+        //     1,
+        // };
         // colorImageBlit.srcOffsets[0]                 = vkOffset0;
         // colorImageBlit.srcOffsets[1]                 = vkOffset1;
         // colorImageBlit.srcSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -1213,9 +1217,23 @@ namespace vireo::backend {
         // colorImageBlit.dstSubresource.layerCount     = 1;
     }
 
+    void VKSwapChain::recreate() {
+        vkDeviceWaitIdle(device.getDevice());
+        cleanup();
+        create();
+    }
+
+    void VKSwapChain::cleanup() const {
+        // https://vulkan-tutorial.com/Drawing_a_triangle/Swap_chain_recreation#page_Recreating-the-swap-chain
+        for (const auto &swapChainImageView : swapChainImageViews) {
+            vkDestroyImageView(device.getDevice(), swapChainImageView, nullptr);
+        }
+        vkDestroySwapchainKHR(device.getDevice(), swapChain, nullptr);
+    }
+
     VKSwapChain::SwapChainSupportDetails VKSwapChain::querySwapChainSupport(
         const VkPhysicalDevice vkPhysicalDevice,
-        VkSurfaceKHR surface) const {
+        const VkSurfaceKHR surface) const {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain#page_Querying-details-of-swap-chain-support
         SwapChainSupportDetails details;
         vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vkPhysicalDevice, surface, &details.capabilities);
@@ -1259,19 +1277,22 @@ namespace vireo::backend {
         return VK_PRESENT_MODE_FIFO_KHR;
     }
 
-    VkExtent2D VKSwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities, uint32_t width, uint32_t height) const {
+    VkExtent2D VKSwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities) const {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain#page_Swap-extent
-        // if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) { return capabilities.currentExtent; }
-        const VkExtent2D actualExtent{
-            .width = width,
-            .height = height
+        RECT windowRect{};
+        if (GetClientRect(Win32Application::getHwnd(), &windowRect) == 0) {
+            die("Error getting window rect");
+        }
+        VkExtent2D actualExtent{
+            .width = static_cast<uint32_t>(windowRect.right - windowRect.left),
+            .height = static_cast<uint32_t>(windowRect.bottom - windowRect.top)
         };
-        // actualExtent.width = std::max(
-                // capabilities.minImageExtent.width,
-                // std::min(capabilities.maxImageExtent.width, actualExtent.width));
-        // actualExtent.height = std::max(
-                // capabilities.minImageExtent.height,
-                // std::min(capabilities.maxImageExtent.height, actualExtent.height));
+        actualExtent.width = max(
+                capabilities.minImageExtent.width,
+                min(capabilities.maxImageExtent.width, actualExtent.width));
+        actualExtent.height = max(
+                capabilities.minImageExtent.height,
+                min(capabilities.maxImageExtent.height, actualExtent.height));
         return actualExtent;
     }
 
@@ -1293,7 +1314,12 @@ namespace vireo::backend {
                 .pImageIndices      = &data.imageIndex,
                 .pResults           = nullptr // Optional
             };
-            DieIfFailed(vkQueuePresentKHR(presentQueue, &presentInfo));
+            const auto result = vkQueuePresentKHR(presentQueue, &presentInfo);
+            if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+                recreate();
+            } else if (result != VK_SUCCESS) {
+                die("failed to present swap chain image!");
+            }
         }
     }
 
@@ -1312,43 +1338,37 @@ namespace vireo::backend {
             });
     }
 
-    void VKSwapChain::acquire(FrameData& frameData) {
+    bool VKSwapChain::acquire(FrameData& frameData) {
         auto& data = static_cast<VKFrameData&>(frameData);
         // wait until the GPU has finished rendering the frame.
-        {
-            if (vkWaitForFences(device, 1, &data.inFlightFence, VK_TRUE, UINT64_MAX) == VK_TIMEOUT) {
-                die("timeout waiting for inFlightFence");
-                // return;
-            }
-            vkResetFences(device, 1, &data.inFlightFence);
+        if (vkWaitForFences(device.getDevice(), 1, &data.inFlightFence, VK_TRUE, UINT64_MAX) == VK_TIMEOUT) {
+            die("timeout waiting for inFlightFence");
+            return false;
         }
         // get the next available swap chain image
         {
             const auto result = vkAcquireNextImageKHR(
-                 device,
+                 device.getDevice(),
                  swapChain,
                  UINT64_MAX,
                  data.imageAvailableSemaphore,
                  VK_NULL_HANDLE,
                  &data.imageIndex);
             if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-                die("not implemented");
-                // recreateSwapChain();
+                recreate();
                 // for (const auto &renderer : renderers) { renderer->recreateImagesResources(); }
-                // return;
+                return false;
             }
             if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
                 die("failed to acquire swap chain image :", to_string(result));
             }
         }
+        vkResetFences(device.getDevice(), 1, &data.inFlightFence);
+        return true;
     }
 
     VKSwapChain::~VKSwapChain() {
-        // https://vulkan-tutorial.com/Drawing_a_triangle/Swap_chain_recreation#page_Recreating-the-swap-chain
-        for (const auto &swapChainImageView : swapChainImageViews) {
-            vkDestroyImageView(device, swapChainImageView, nullptr);
-        }
-        vkDestroySwapchainKHR(device, swapChain, nullptr);
+        cleanup();
     }
 
 }

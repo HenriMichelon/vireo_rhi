@@ -156,11 +156,13 @@ export namespace vireo::backend {
 
         const auto& getExtent() const { return extent; }
 
+        auto getAspectRatio() const { return aspectRatio; }
+
         auto getCurrentFrameIndex() const { return currentFrameIndex; }
 
         virtual void nextSwapChain() = 0;
 
-        virtual void acquire(FrameData& frameData) = 0;
+        virtual bool acquire(FrameData& frameData) = 0;
 
         virtual void begin(FrameData& frameData, CommandList& commandList) {}
 
@@ -170,6 +172,7 @@ export namespace vireo::backend {
 
     protected:
         Extent      extent{};
+        float       aspectRatio{};
         uint32_t    currentFrameIndex{0};
     };
 

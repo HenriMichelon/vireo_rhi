@@ -14,10 +14,7 @@ import vireo.backend.directx.framedata;
 
 namespace vireo::backend {
 
-    DXRenderingBackEnd::DXRenderingBackEnd(const uint32_t width, const uint32_t height):
-        viewport(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)),
-        scissorRect(0, 0, static_cast<LONG>(width), static_cast<LONG>(height)){
-
+    DXRenderingBackEnd::DXRenderingBackEnd() {
         // Detect RivaTuner which cause problem by incorrectly hooking IDXGISwapChain::Present
         HANDLE hMap = OpenFileMapping(FILE_MAP_READ, FALSE, L"RTSSSharedMemoryV2");
         if (hMap) {
@@ -30,6 +27,14 @@ namespace vireo::backend {
             die("RTSS conflict");
         }
 
+        RECT windowRect{};
+        if (GetClientRect(Win32Application::getHwnd(), &windowRect) == 0) {
+            die("Error getting window rect");
+        }
+        auto width = windowRect.right - windowRect.left;
+        auto height = windowRect.bottom - windowRect.top;
+        viewport = CD3DX12_VIEWPORT{0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)},
+        scissorRect = CD3DX12_RECT{0, 0, static_cast<LONG>(width), static_cast<LONG>(height)};
 
         instance = std::make_shared<DXInstance>();
         physicalDevice = std::make_shared<DXPhysicalDevice>(getDXInstance()->getFactory());
@@ -40,7 +45,8 @@ namespace vireo::backend {
             getDXInstance()->getFactory(),
             *getDXDevice(),
             getDXGraphicCommandQueue()->getCommandQueue(),
-            width, height);
+            width,
+            height);
     }
 
     std::shared_ptr<FrameData> DXRenderingBackEnd::createFrameData(const uint32_t frameIndex) {
@@ -52,11 +58,11 @@ namespace vireo::backend {
     }
 
     std::shared_ptr<Pipeline> DXRenderingBackEnd::createPipeline(
-            PipelineResources& pipelineResources,
-            VertexInputLayout& vertexInputLayout,
-            ShaderModule& vertexShader,
-            ShaderModule& fragmentShader,
-            const std::wstring& name) const {
+        PipelineResources& pipelineResources,
+        VertexInputLayout& vertexInputLayout,
+        ShaderModule& vertexShader,
+        ShaderModule& fragmentShader,
+        const std::wstring& name) const {
         return std::make_shared<DXPipeline>(
             getDXDevice()->getDevice(),
             pipelineResources,
@@ -76,11 +82,18 @@ namespace vireo::backend {
         return std::make_shared<DXShaderModule>(fileName);
     }
 
-    std::shared_ptr<Buffer> DXRenderingBackEnd::createBuffer(const Buffer::Type type, const size_t size, const size_t count, const size_t alignment, const std::wstring& name) const {
+    std::shared_ptr<Buffer> DXRenderingBackEnd::createBuffer(const Buffer::Type type,
+                                                             const size_t size,
+                                                             const size_t count,
+                                                             const size_t alignment,
+                                                             const std::wstring& name) const {
         return make_shared<DXBuffer>(getDXDevice()->getDevice(), type, size, count, alignment, name);
     }
 
-    void DXRenderingBackEnd::beginRendering(FrameData&, PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) {
+    void DXRenderingBackEnd::beginRendering(FrameData&,
+                                            PipelineResources& pipelineResources,
+                                            Pipeline& pipeline,
+                                            CommandList& commandList) {
         const auto dxCommandList = static_cast<DXCommandList&>(commandList).getCommandList();
         const auto dxSwapChain = getDXSwapChain();
         const auto frameIndex = swapChain->getCurrentFrameIndex();
@@ -92,8 +105,8 @@ namespace vireo::backend {
         dxCommandList->RSSetScissorRects(1, &scissorRect);
 
         auto swapChainBarrier = CD3DX12_RESOURCE_BARRIER::Transition(dxSwapChain->getRenderTargets()[frameIndex].Get(),
-                                                 D3D12_RESOURCE_STATE_PRESENT,
-                                                 D3D12_RESOURCE_STATE_RENDER_TARGET);
+                                                                     D3D12_RESOURCE_STATE_PRESENT,
+                                                                     D3D12_RESOURCE_STATE_RENDER_TARGET);
         dxCommandList->ResourceBarrier(1, &swapChainBarrier);
 
         CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(
@@ -103,7 +116,7 @@ namespace vireo::backend {
         dxCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
 
-        const float dxClearColor[] = { clearColor.r, clearColor.g, clearColor.b, clearColor.a };
+        const float dxClearColor[] = {clearColor.r, clearColor.g, clearColor.b, clearColor.a};
         dxCommandList->ClearRenderTargetView(
             rtvHandle,
             dxClearColor,
@@ -162,8 +175,7 @@ namespace vireo::backend {
             if ((dxgiAdapterDesc1.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) == 0 &&
                 SUCCEEDED(D3D12CreateDevice(hardwareAdapter.Get(),
                     D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device), nullptr)) &&
-                dxgiAdapterDesc1.DedicatedVideoMemory > maxDedicatedVideoMemory )
-            {
+                dxgiAdapterDesc1.DedicatedVideoMemory > maxDedicatedVideoMemory) {
                 maxDedicatedVideoMemory = dxgiAdapterDesc1.DedicatedVideoMemory;
                 DieIfFailed(hardwareAdapter.As(&hardwareAdapter4));
             }
@@ -181,10 +193,10 @@ namespace vireo::backend {
     DXDevice::DXDevice(const ComPtr<IDXGIAdapter4>& hardwareAdapter4) {
         DieIfFailed(
             D3D12CreateDevice(
-                  hardwareAdapter4.Get(),
-                  D3D_FEATURE_LEVEL_11_0,
-                  IID_PPV_ARGS(&device)
-          ));
+                hardwareAdapter4.Get(),
+                D3D_FEATURE_LEVEL_11_0,
+                IID_PPV_ARGS(&device)
+                ));
 #if defined(_DEBUG)
         ComPtr<ID3D12InfoQueue> infoQueue;
         if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
@@ -209,7 +221,7 @@ namespace vireo::backend {
 
     DXSubmitQueue::DXSubmitQueue(const CommandList::Type type, const ComPtr<ID3D12Device>& device) :
         device{device} {
-        const auto queueDesc = D3D12_COMMAND_QUEUE_DESC {
+        const auto queueDesc = D3D12_COMMAND_QUEUE_DESC{
             .Type = DXCommandList::ListType[type],
             .Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
         };
@@ -229,11 +241,11 @@ namespace vireo::backend {
     }
 
     void DXSubmitQueue::waitIdle() {
-        ComPtr<ID3D12Fence>  inFlightFence;
+        ComPtr<ID3D12Fence> inFlightFence;
         DieIfFailed(device->CreateFence(
-           0,
-           D3D12_FENCE_FLAG_NONE,
-           IID_PPV_ARGS(&inFlightFence)));
+            0,
+            D3D12_FENCE_FLAG_NONE,
+            IID_PPV_ARGS(&inFlightFence)));
         HANDLE inFlightFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
         if (inFlightFenceEvent == nullptr) {
             DieIfFailed(HRESULT_FROM_WIN32(GetLastError()));
@@ -243,7 +255,7 @@ namespace vireo::backend {
             DieIfFailed(inFlightFence->SetEventOnCompletion(
                 0,
                 inFlightFenceEvent
-            ));
+                ));
             WaitForSingleObjectEx(inFlightFenceEvent, INFINITE, FALSE);
         }
         CloseHandle(inFlightFenceEvent);
@@ -334,10 +346,10 @@ namespace vireo::backend {
             nullptr,
             IID_PPV_ARGS(&stagingBuffer)));
 
-        const auto copyData = D3D12_SUBRESOURCE_DATA {
+        const auto copyData = D3D12_SUBRESOURCE_DATA{
             .pData = source,
             .RowPitch = static_cast<LONG_PTR>(buffer.getSize()),
-            .SlicePitch =  static_cast<LONG_PTR>(buffer.getSize()),
+            .SlicePitch = static_cast<LONG_PTR>(buffer.getSize()),
         };
         UpdateSubresources(
             commandList.Get(),
@@ -365,13 +377,14 @@ namespace vireo::backend {
         const uint32_t height) :
         device{dxdevice},
         presentCommandQueue{commandQueue} {
-        extent = { width, height };
+        extent = {width, height};
+        aspectRatio = static_cast<float>(width) / static_cast<float>(height);
 
-        const auto swapChainDesc = DXGI_SWAP_CHAIN_DESC1 {
+        const auto swapChainDesc = DXGI_SWAP_CHAIN_DESC1{
             .Width = width,
             .Height = height,
             .Format = DXGI_FORMAT_R8G8B8A8_UNORM,
-            .SampleDesc = { .Count = 1},
+            .SampleDesc = {.Count = 1},
             .BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
             .BufferCount = FRAMES_IN_FLIGHT,
             .SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,
@@ -379,13 +392,14 @@ namespace vireo::backend {
 
         ComPtr<IDXGISwapChain1> swapChain1;
         DieIfFailed(factory->CreateSwapChainForHwnd(
-            commandQueue.Get(),        // Swap chain needs the queue so that it can force a flush on it.
+            commandQueue.Get(),
+            // Swap chain needs the queue so that it can force a flush on it.
             Win32Application::getHwnd(),
             &swapChainDesc,
             nullptr,
             nullptr,
             &swapChain1
-        ));
+            ));
         DieIfFailed(swapChain1.As(&swapChain));
         currentFrameIndex = swapChain->GetCurrentBackBufferIndex();
 
@@ -417,7 +431,7 @@ namespace vireo::backend {
         assert(currentFrameIndex < FRAMES_IN_FLIGHT);
     }
 
-    void DXSwapChain::acquire(FrameData& frameData) {
+    bool DXSwapChain::acquire(FrameData& frameData) {
         auto& data = static_cast<DXFrameData&>(frameData);
         const auto currentFenceValue = data.inFlightFenceValue;
         DieIfFailed(presentCommandQueue->Signal(device.getInFlightFence().Get(), currentFenceValue));
@@ -426,9 +440,10 @@ namespace vireo::backend {
             DieIfFailed(device.getInFlightFence()->SetEventOnCompletion(
                 currentFenceValue,
                 device.getInFlightFenceEvent()
-            ));
+                ));
             WaitForSingleObjectEx(device.getInFlightFenceEvent(), INFINITE, FALSE);
         }
+        return true;
     }
 
     void DXSwapChain::present(FrameData& frameData) {
@@ -525,10 +540,11 @@ namespace vireo::backend {
         const size_t size,
         const size_t count,
         size_t minOffsetAlignment,
-        const std::wstring& name): Buffer{type} {
+        const std::wstring& name):
+        Buffer{type} {
         alignmentSize = minOffsetAlignment > 0
-               ? (size + minOffsetAlignment - 1) & ~(minOffsetAlignment - 1)
-               : size;
+            ? (size + minOffsetAlignment - 1) & ~(minOffsetAlignment - 1)
+            : size;
         bufferSize = alignmentSize * count;
 
         // GPU Buffer
@@ -548,7 +564,7 @@ namespace vireo::backend {
     }
 
     void DXBuffer::map() {
-        CD3DX12_RANGE readRange(0, 0);        // We do not intend to read from this resource on the CPU.
+        CD3DX12_RANGE readRange(0, 0); // We do not intend to read from this resource on the CPU.
         DieIfFailed(buffer->Map(0, &readRange, &mappedAddress));
     }
 

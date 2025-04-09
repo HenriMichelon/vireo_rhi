@@ -16,9 +16,13 @@ namespace vireo {
     HWND Win32Application::hwnd = nullptr;
     std::unique_ptr<Application> Win32Application::app{};
 
-    int Win32Application::run(UINT width, UINT height, std::wstring name, const HINSTANCE hInstance, const int nCmdShow) {
+    int Win32Application::run(UINT width,
+                              UINT height,
+                              std::wstring name,
+                              const HINSTANCE hInstance,
+                              const int nCmdShow) {
         // Initialize the window class.
-        WNDCLASSEX windowClass = { 0 };
+        WNDCLASSEX windowClass = {0};
         windowClass.cbSize = sizeof(WNDCLASSEX);
         windowClass.style = CS_HREDRAW | CS_VREDRAW;
         windowClass.lpfnWndProc = WindowProc;
@@ -27,7 +31,7 @@ namespace vireo {
         windowClass.lpszClassName = L"DXSampleClass";
         RegisterClassEx(&windowClass);
 
-        RECT windowRect = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
+        RECT windowRect = {0, 0, static_cast<LONG>(width), static_cast<LONG>(height)};
         AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);
 
         // Create the window and store a handle to it.
@@ -39,27 +43,21 @@ namespace vireo {
             CW_USEDEFAULT,
             windowRect.right - windowRect.left,
             windowRect.bottom - windowRect.top,
-            nullptr,        // We have no parent window.
-            nullptr,        // We aren't using menus.
+            nullptr,
+            // We have no parent window.
+            nullptr,
+            // We aren't using menus.
             hInstance,
             nullptr);
 
-        // app = std::make_unique<vireo::VKApplication>(width, height, name);
-        // app =  std::make_unique<vireo::DXApplication>(width, height, name);
-        app =  std::make_unique<vireo::Application>(width, height, name);
-
-        // Initialize the sample. OnInit is defined in each child-implementation of DXSample.
+        app = std::make_unique<Application>(name);
         app->onInit();
 
         ShowWindow(hwnd, nCmdShow);
 
-        // Main sample loop.
         MSG msg = {};
-        while (msg.message != WM_QUIT)
-        {
-            // Process any messages in the queue.
-            if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-            {
+        while (msg.message != WM_QUIT) {
+            if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
             }
@@ -72,14 +70,11 @@ namespace vireo {
     }
 
     // Main message handler for the sample.
-    LRESULT CALLBACK Win32Application::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-    {
+    LRESULT CALLBACK Win32Application::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
         auto& pSample = getApp();
 
-        switch (message)
-        {
-        case WM_CREATE:
-        {
+        switch (message) {
+        case WM_CREATE: {
             // Save the DXSample* passed in to CreateWindow.
             LPCREATESTRUCT pCreateStruct = reinterpret_cast<LPCREATESTRUCT>(lParam);
             SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pCreateStruct->lpCreateParams));
@@ -87,22 +82,19 @@ namespace vireo {
             return 0;
 
         case WM_KEYDOWN:
-            if (pSample)
-            {
+            if (pSample) {
                 pSample->onKeyDown(static_cast<UINT8>(wParam));
             }
             return 0;
 
         case WM_KEYUP:
-            if (pSample)
-            {
+            if (pSample) {
                 pSample->onKeyUp(static_cast<UINT8>(wParam));
             }
             return 0;
 
         case WM_PAINT:
-            if (pSample)
-            {
+            if (pSample) {
                 pSample->onUpdate();
                 pSample->onRender();
             }

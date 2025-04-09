@@ -222,7 +222,7 @@ export namespace vireo::backend {
 
     class VKSwapChain : public SwapChain {
     public:
-        VKSwapChain(const VKPhysicalDevice& physicalDevice, const VKDevice& device, uint32_t width, uint32_t height);
+        VKSwapChain(const VKPhysicalDevice& physicalDevice, const VKDevice& device);
 
         ~VKSwapChain() override;
 
@@ -236,7 +236,7 @@ export namespace vireo::backend {
 
         void nextSwapChain() override;
 
-        void acquire(FrameData& frameData) override;
+        bool acquire(FrameData& frameData) override;
 
         void begin(FrameData& frameData, CommandList& commandList) override;
 
@@ -245,21 +245,28 @@ export namespace vireo::backend {
         void present(FrameData& framesData) override;
 
     private:
-        VkDevice                    device;
-        VkSwapchainKHR              swapChain;
-        std::vector<VkImage>        swapChainImages;
-        VkFormat                    swapChainImageFormat;
-        VkExtent2D                  swapChainExtent;
-        float                       swapChainRatio;
-        std::vector<VkImageView>    swapChainImageViews;
-        VkQueue                     presentQueue;
-
         // For Device::querySwapChainSupport()
         struct SwapChainSupportDetails {
             VkSurfaceCapabilitiesKHR        capabilities;
             std::vector<VkSurfaceFormatKHR> formats;
             std::vector<VkPresentModeKHR>   presentModes;
         };
+
+        const VKDevice&             device;
+        const VKPhysicalDevice&     physicalDevice;
+        VkSurfaceKHR                surface;
+        VkSwapchainKHR              swapChain;
+        std::vector<VkImage>        swapChainImages;
+        VkFormat                    swapChainImageFormat;
+        VkExtent2D                  swapChainExtent;
+        std::vector<VkImageView>    swapChainImageViews;
+        VkQueue                     presentQueue;
+
+        void recreate();
+
+        void create();
+
+        void cleanup() const;
 
         // Get the swap chain capabilities
         SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice vkPhysicalDevice, VkSurfaceKHR surface) const;
@@ -273,7 +280,7 @@ export namespace vireo::backend {
                 const std::vector<VkPresentModeKHR> &availablePresentModes);
 
         // Get the swap chain images sizes
-        VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities, uint32_t width, uint32_t height) const;
+        VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities) const;
     };
 
     class VKBuffer : public Buffer {
@@ -377,7 +384,7 @@ export namespace vireo::backend {
 
     class VKRenderingBackEnd : public RenderingBackEnd {
     public:
-        VKRenderingBackEnd(uint32_t width, uint32_t height);
+        VKRenderingBackEnd();
 
         void waitIdle() override;
 

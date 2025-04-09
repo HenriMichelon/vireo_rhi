@@ -175,7 +175,7 @@ export namespace vireo::backend {
 
         void nextSwapChain() override;
 
-        void acquire(FrameData& frameData) override;
+        bool acquire(FrameData& frameData) override;
 
         void present(FrameData& frameData) override;
 
@@ -242,7 +242,7 @@ export namespace vireo::backend {
 
     class DXRenderingBackEnd : public RenderingBackEnd {
     public:
-        DXRenderingBackEnd(uint32_t width, uint32_t height);
+        DXRenderingBackEnd();
 
         void waitIdle() override;
 

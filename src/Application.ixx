@@ -17,7 +17,7 @@ export namespace vireo {
     class Application
     {
     public:
-        Application(UINT width, UINT height, const std::wstring& name);
+        Application(const std::wstring& name);
         virtual ~Application() = default;
 
         virtual void onInit();
@@ -28,8 +28,6 @@ export namespace vireo {
         virtual void onKeyDown(UINT8 /*key*/)   {}
         virtual void onKeyUp(UINT8 /*key*/)     {}
 
-        auto getWidth() const           { return width; }
-        auto getHeight() const          { return height; }
         auto getTitle() const   { return title.c_str(); }
 
     protected:
@@ -45,9 +43,6 @@ export namespace vireo {
         };
 
         std::wstring title;
-        UINT width;
-        UINT height;
-        float aspectRatio;
 
         std::shared_ptr<backend::RenderingBackEnd> renderingBackEnd;
         std::vector<std::shared_ptr<backend::FrameData>> framesData{backend::SwapChain::FRAMES_IN_FLIGHT};

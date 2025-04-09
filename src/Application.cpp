@@ -15,17 +15,15 @@ import vireo.backend.vulkan;
 
 namespace vireo {
 
-    Application::Application(UINT width, UINT height, const std::wstring& name) :
-        title(name),
-        width(width),
-        height(height) {
-        aspectRatio = static_cast<float>(width) / static_cast<float>(height);
-        renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>(width, height);
-        // renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>(width, height);
+    Application::Application(const std::wstring& name) :
+        title(name) {
+        // renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>();
+        renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>();
     }
 
     void Application::onInit() {
         renderingBackEnd->setClearColor({ 0.0f, 0.2f, 0.4f, 1.0f });
+        const auto aspectRatio = renderingBackEnd->getSwapChain()->getAspectRatio();
         const auto triangleVertices = std::vector<Vertex> {
                 { { 0.0f, 0.25f * aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
                 { { 0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
@@ -76,10 +74,11 @@ namespace vireo {
     void Application::onRender() {
         auto& swapChain = renderingBackEnd->getSwapChain();
         auto& frameData = *framesData[swapChain->getCurrentFrameIndex()];
+
+        if (!swapChain->acquire(frameData)) { return; }
+
         auto& commandList = graphicCommandList[swapChain->getCurrentFrameIndex()];
         auto& pipeline = *pipelines["default"];
-
-        swapChain->acquire(frameData);
 
         commandList->reset();
         commandList->begin(pipeline);
