@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.29)
 
 #######################################################
-project(mbe_engine)
+project(vireo_engine)
 set(MY_TARGET ${PROJECT_NAME})
 
 if(NOT CMAKE_BUILD_TYPE)
