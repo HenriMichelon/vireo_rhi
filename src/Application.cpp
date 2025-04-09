@@ -57,7 +57,8 @@ namespace vireo {
             *pipelineResources["default"],
             *defaultVertexInputLayout,
             *vertexShader,
-            *fragmentShader);
+            *fragmentShader,
+            L"default");
 
         for (uint32_t i = 0; i < backend::SwapChain::FRAMES_IN_FLIGHT; i++) {
             framesData[i] = renderingBackEnd->createFrameData(i);

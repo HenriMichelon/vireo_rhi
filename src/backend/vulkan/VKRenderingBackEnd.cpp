@@ -114,24 +114,23 @@ namespace vireo::backend {
         PipelineResources& pipelineResources,
         VertexInputLayout& vertexInputLayout,
         ShaderModule& vertexShader,
-        ShaderModule& fragmentShader) const {
+        ShaderModule& fragmentShader,
+        const std::wstring& name) const {
         return make_shared<VKPipeline>(
             getVKDevice()->getDevice(),
             *getVKSwapChain(),
             pipelineResources,
             vertexInputLayout,
             vertexShader,
-            fragmentShader
+            fragmentShader,
+            name
         );
     }
 
     std::shared_ptr<Buffer> VKRenderingBackEnd::createBuffer(Buffer::Type type, size_t size, size_t count, const size_t alignment, const std::wstring& name) const  {
         return make_shared<VKBuffer>(
-           *getVKDevice(),
-           Buffer::VERTEX,
-           size,
-           count,
-           alignment,
+           *getVKDevice(),Buffer::VERTEX,
+           size, count, alignment,
            name);
     }
 
@@ -223,6 +222,7 @@ namespace vireo::backend {
             device.getPhysicalDevice().getMemoryTypeDeviceLocalIndex() :
             device.getPhysicalDevice().getMemoryTypeHostVisibleIndex();
         createBuffer(device, bufferSize, usage, memTypeIndex, buffer, bufferMemory);
+        vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(buffer), VK_OBJECT_TYPE_BUFFER, wstring_to_string(name));
     }
 
     void VKBuffer::map() {
@@ -331,7 +331,8 @@ namespace vireo::backend {
            PipelineResources& pipelineResources,
            VertexInputLayout& vertexInputLayout,
            ShaderModule& vertexShader,
-           ShaderModule& fragmentShader):
+           ShaderModule& fragmentShader,
+           const std::wstring& name):
         device{device} {
         const auto vertexShaderModule = static_cast<VKShaderModule&>(vertexShader).getShaderModule();
         const auto fragmentShaderModule = static_cast<VKShaderModule&>(fragmentShader).getShaderModule();
@@ -446,6 +447,7 @@ namespace vireo::backend {
             .basePipelineIndex = -1,
         };
         DieIfFailed(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline));
+        vkSetObjectName(device, reinterpret_cast<uint64_t>(pipeline), VK_OBJECT_TYPE_PIPELINE, wstring_to_string(name));
     }
 
     VKPipeline::~VKPipeline() {
@@ -523,7 +525,7 @@ namespace vireo::backend {
     PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
 #endif
 
-    VKPhysicalDevice::VKPhysicalDevice(VkInstance instance):
+    VKPhysicalDevice::VKPhysicalDevice(const VkInstance instance):
         instance(instance),
     // Requested device extensions
         deviceExtensions {

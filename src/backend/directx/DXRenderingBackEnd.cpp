@@ -55,8 +55,15 @@ namespace vireo::backend {
             PipelineResources& pipelineResources,
             VertexInputLayout& vertexInputLayout,
             ShaderModule& vertexShader,
-            ShaderModule& fragmentShader) const {
-        return std::make_shared<DXPipeline>(getDXDevice()->getDevice(), pipelineResources, vertexInputLayout, vertexShader, fragmentShader);
+            ShaderModule& fragmentShader,
+            const std::wstring& name) const {
+        return std::make_shared<DXPipeline>(
+            getDXDevice()->getDevice(),
+            pipelineResources,
+            vertexInputLayout,
+            vertexShader,
+            fragmentShader,
+            name);
     }
 
     std::shared_ptr<VertexInputLayout> DXRenderingBackEnd::createVertexLayout(
@@ -484,7 +491,8 @@ namespace vireo::backend {
         PipelineResources& pipelineResources,
         VertexInputLayout& vertexInputLayout,
         ShaderModule& vertexShader,
-        ShaderModule& fragmentShader) {
+        ShaderModule& fragmentShader,
+        const std::wstring& name) {
         auto& dxVertexInputLayout = static_cast<DXVertexInputLayout&>(vertexInputLayout);
         auto& dxPipelineResources = static_cast<DXPipelineResources&>(pipelineResources);
         auto& dxVertexShader = static_cast<DXShaderModule&>(vertexShader);
@@ -508,6 +516,7 @@ namespace vireo::backend {
         psoDesc.RTVFormats[0] = DXSwapChain::RENDER_FORMAT;
         psoDesc.SampleDesc.Count = 1;
         DieIfFailed(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)));
+        pipelineState->SetName(name.c_str());
     }
 
     DXBuffer::DXBuffer(

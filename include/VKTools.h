@@ -13,3 +13,23 @@ inline void DieIfFailed(const VkResult vr) {
         die(std::string(string_VkResult(vr)));
     }
 }
+
+#ifdef _DEBUG
+inline void vkSetObjectName(const VkDevice device, const uint64_t objectHandle, const VkObjectType objectType, const std::string& name) {
+    const auto func = reinterpret_cast<PFN_vkSetDebugUtilsObjectNameEXT>(vkGetDeviceProcAddr(device, "vkSetDebugUtilsObjectNameEXT"));
+    if (func) {
+        const auto nameInfo = VkDebugUtilsObjectNameInfoEXT{
+            .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
+            .objectType = objectType,
+            .objectHandle = objectHandle,
+            .pObjectName = name.c_str(),
+        };
+        func(device, &nameInfo);
+    }
+}
+
+#else
+inline void SetObjectName(VkDevice, uint64_t, VkObjectType, const char*) {
+}
+
+#endif

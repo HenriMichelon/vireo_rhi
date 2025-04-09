@@ -231,7 +231,8 @@ export namespace vireo::backend {
             PipelineResources& pipelineResources,
             VertexInputLayout& vertexInputLayout,
             ShaderModule& vertexShader,
-            ShaderModule& fragmentShader);
+            ShaderModule& fragmentShader,
+            const std::wstring& name);
 
         auto getPipelineState() { return pipelineState; }
 
@@ -261,7 +262,8 @@ export namespace vireo::backend {
             PipelineResources& pipelineResources,
             VertexInputLayout& vertexInputLayout,
             ShaderModule& vertexShader,
-            ShaderModule& fragmentShader) const override;
+            ShaderModule& fragmentShader,
+            const std::wstring& name = L"Pipeline") const override;
 
         std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1, size_t alignment = 1, const std::wstring& name = L"Buffer") const override;
 
