@@ -8,3 +8,4 @@
 #define VK_USE_PLATFORM_WIN32_KHR
 #include "Libraries.h"
 #include "vulkan.h"
+#include <vulkan/vk_enum_string_helper.h>

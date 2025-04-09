@@ -118,7 +118,6 @@ namespace vireo::backend {
         return make_shared<VKPipeline>(
             getVKDevice()->getDevice(),
             *getVKSwapChain(),
-            getSwapChain()->getExtent(),
             pipelineResources,
             vertexInputLayout,
             vertexShader,
@@ -193,6 +192,7 @@ namespace vireo::backend {
         };
         vkCmdSetViewportWithCount(commandBuffer, 1, &viewport);
         vkCmdSetScissorWithCount(commandBuffer, 1, &scissor);
+        vkCmdSetCullMode(commandBuffer, VK_CULL_MODE_NONE);
     }
 
     void VKRenderingBackEnd::endRendering(CommandList& commandList) {
@@ -244,7 +244,6 @@ namespace vireo::backend {
         }
     }
 
-
     void VKBuffer::createBuffer(
             const VKPhysicalDevice& physicalDevice,
             VkDevice device,
@@ -259,9 +258,7 @@ namespace vireo::backend {
             .usage = bufferUsageFlags,
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         };
-        if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
-            die("failed to create buffer!");
-        }
+        DieIfFailed (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer));
         VkMemoryRequirements memRequirements;
         vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
         const auto allocInfo = VkMemoryAllocateInfo {
@@ -269,9 +266,7 @@ namespace vireo::backend {
             .allocationSize = memRequirements.size,
             .memoryTypeIndex = physicalDevice.findMemoryType(memRequirements.memoryTypeBits, memoryPropertyFlags)
         };
-        if (vkAllocateMemory(device, &allocInfo, nullptr, &memory) != VK_SUCCESS) {
-            die("failed to allocate vertex buffer memory!");
-        }
+        DieIfFailed(vkAllocateMemory(device, &allocInfo, nullptr, &memory));
         vkBindBufferMemory(device, buffer, memory, 0);
     }
 
@@ -310,9 +305,7 @@ namespace vireo::backend {
             .codeSize = buffer.size(),
             .pCode = reinterpret_cast<const uint32_t*>(buffer.data())
         };
-        if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
-            die("failed to create shader module!");
-        }
+        DieIfFailed(vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule));
     }
 
     VKShaderModule::~VKShaderModule() {
@@ -328,9 +321,7 @@ namespace vireo::backend {
             .pushConstantRangeCount = 0,
             .pPushConstantRanges = nullptr,
         };
-        if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create pipeline layout!");
-        }
+        DieIfFailed(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout));
     }
 
     VKPipelineResources::~VKPipelineResources() {
@@ -340,7 +331,6 @@ namespace vireo::backend {
     VKPipeline::VKPipeline(
            VkDevice device,
            VKSwapChain& swapChain,
-           const SwapChain::Extent& extent,
            PipelineResources& pipelineResources,
            VertexInputLayout& vertexInputLayout,
            ShaderModule& vertexShader,
@@ -380,7 +370,8 @@ namespace vireo::backend {
 
         const std::vector dynamicStates = {
             VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT,
-            VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT
+            VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT,
+            VK_DYNAMIC_STATE_CULL_MODE
         };
         const auto dynamicState = VkPipelineDynamicStateCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
@@ -395,7 +386,6 @@ namespace vireo::backend {
             .depthClampEnable = VK_FALSE,
             .rasterizerDiscardEnable = VK_FALSE,
             .polygonMode = VK_POLYGON_MODE_FILL,
-            .cullMode = VK_CULL_MODE_NONE,
             .frontFace = VK_FRONT_FACE_CLOCKWISE,
             .depthBiasEnable = VK_FALSE,
             .depthBiasConstantFactor = 0.0f,
@@ -404,13 +394,13 @@ namespace vireo::backend {
             .lineWidth = 1.0f,
         };
         constexpr auto multisampling = VkPipelineMultisampleStateCreateInfo {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-            .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
-            .sampleShadingEnable = VK_FALSE,
-            .minSampleShading = 1.0f,
-            .pSampleMask = nullptr,
-            .alphaToCoverageEnable = VK_FALSE,
-            .alphaToOneEnable = VK_FALSE
+            .sType                  = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+            .rasterizationSamples   = VK_SAMPLE_COUNT_1_BIT,
+            .sampleShadingEnable    = VK_FALSE,
+            .minSampleShading       = 1.0f,
+            .pSampleMask            = nullptr,
+            .alphaToCoverageEnable  = VK_FALSE,
+            .alphaToOneEnable       = VK_FALSE
         };
         constexpr auto colorBlendAttachment = VkPipelineColorBlendAttachmentState {
             .blendEnable = VK_FALSE,
@@ -423,17 +413,17 @@ namespace vireo::backend {
             .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
         };
         const auto colorBlending = VkPipelineColorBlendStateCreateInfo {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-            .logicOpEnable = VK_FALSE,
-            .logicOp = VK_LOGIC_OP_COPY,
-            .attachmentCount = 1,
-            .pAttachments = &colorBlendAttachment,
+            .sType          = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+            .logicOpEnable  = VK_FALSE,
+            .logicOp        = VK_LOGIC_OP_COPY,
+            .attachmentCount= 1,
+            .pAttachments   = &colorBlendAttachment,
             .blendConstants = { 0.0f, 0.0f, 0.0f, 0.0f }
         };
 
         const auto swapChainImageFormat = swapChain.getFormat();
         const auto dynamicRenderingCreateInfo = VkPipelineRenderingCreateInfoKHR{
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR,
+            .sType                   = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR,
             .pNext                   = VK_NULL_HANDLE,
             .colorAttachmentCount    = 1,
             .pColorAttachmentFormats = &swapChainImageFormat,
@@ -458,9 +448,7 @@ namespace vireo::backend {
             .basePipelineHandle = VK_NULL_HANDLE,
             .basePipelineIndex = -1,
         };
-        if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline) != VK_SUCCESS) {
-            die("failed to create  pipeline!");
-        }
+        DieIfFailed(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline));
     }
 
     VKPipeline::~VKPipeline() {
@@ -507,7 +495,7 @@ namespace vireo::backend {
                                                  requestedLayers.data(),
                                                  static_cast<uint32_t>(instanceExtensions.size()),
                                                  instanceExtensions.data()};
-        ThrowIfFailed(vkCreateInstance(&createInfo, nullptr, &instance));
+        DieIfFailed(vkCreateInstance(&createInfo, nullptr, &instance));
         vulkanInitializeInstance(instance);
 
 #ifdef _DEBUG
@@ -522,9 +510,7 @@ namespace vireo::backend {
             .pfnUserCallback = debugCallback,
             .pUserData       = nullptr,
         };
-        if (CreateDebugUtilsMessengerEXT(instance, &debugCreateInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
-            die("failed to set up debug messenger!");
-        }
+        DieIfFailed(CreateDebugUtilsMessengerEXT(instance, &debugCreateInfo, nullptr, &debugMessenger));
 #endif
     }
 
@@ -576,9 +562,7 @@ namespace vireo::backend {
                 .hwnd = Win32Application::getHwnd(),
         };
         vkCreateWin32SurfaceKHR = (PFN_vkCreateWin32SurfaceKHR)vkGetInstanceProcAddr(instance, "vkCreateWin32SurfaceKHR");
-        if (vkCreateWin32SurfaceKHR(instance, &surfaceCreateInfo, nullptr, &surface) != VK_SUCCESS) {
-            die("Failed to create window surface!");
-        }
+        DieIfFailed(vkCreateWin32SurfaceKHR(instance, &surfaceCreateInfo, nullptr, &surface));
 #endif
 
 
@@ -853,9 +837,7 @@ namespace vireo::backend {
                 .ppEnabledExtensionNames = physicalDevice.getDeviceExtensions().data(),
                 .pEnabledFeatures = VK_NULL_HANDLE,
             };
-            if (vkCreateDevice(physicalDevice.getPhysicalDevice(), &createInfo, nullptr, &device) != VK_SUCCESS) {
-                die("Failed to create logical device!");
-            }
+            DieIfFailed(vkCreateDevice(physicalDevice.getPhysicalDevice(), &createInfo, nullptr, &device));
             vulkanInitializeDevice(device);
         }
     }
@@ -885,9 +867,7 @@ namespace vireo::backend {
             }
         };
         VkImageView imageView;
-        if (vkCreateImageView(device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
-            die("failed to create texture image view!");
-        }
+        DieIfFailed(vkCreateImageView(device, &viewInfo, nullptr, &imageView));
         return imageView;
     }
 
@@ -955,10 +935,7 @@ namespace vireo::backend {
             .signalSemaphoreInfoCount = 1,
             .pSignalSemaphoreInfos = &data.renderFinishedSemaphoreSubmitInfo
         };
-        const auto result = vkQueueSubmit2(commandQueue, 1, &submitInfo, data.inFlightFence);
-        if (result != VK_SUCCESS) {
-            die("failed to submit draw command buffer : ");
-        }
+        DieIfFailed(vkQueueSubmit2(commandQueue, 1, &submitInfo, data.inFlightFence));
     }
 
     void VKSubmitQueue::submit(std::vector<std::shared_ptr<CommandList>> commandLists) {
@@ -976,10 +953,7 @@ namespace vireo::backend {
             .pCommandBufferInfos = submitInfos.data(),
             .signalSemaphoreInfoCount = 0,
         };
-        const auto result = vkQueueSubmit2(commandQueue, 1, &submitInfo, VK_NULL_HANDLE);
-        if (result != VK_SUCCESS) {
-            die("failed to submit draw command buffer : ");
-        }
+        DieIfFailed(vkQueueSubmit2(commandQueue, 1, &submitInfo, VK_NULL_HANDLE));
     }
 
     VKCommandAllocator::VKCommandAllocator(const CommandList::Type type, const VKDevice& device):
@@ -992,9 +966,7 @@ namespace vireo::backend {
                 type == CommandList::TRANSFER ?  device.getTransferQueueFamilyIndex() :
                  device.getGraphicsQueueFamilyIndex()
         };
-        if (vkCreateCommandPool(device.getDevice(), &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
-            die("Failed to create a command pool");
-        }
+        DieIfFailed(vkCreateCommandPool(device.getDevice(), &poolInfo, nullptr, &commandPool));
     }
 
     VKCommandAllocator::~VKCommandAllocator() {
@@ -1016,9 +988,7 @@ namespace vireo::backend {
             .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
             .commandBufferCount = 1
         };
-        if (vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer) != VK_SUCCESS) {
-            die("failed to allocate renderer command buffers!");
-        }
+        DieIfFailed(vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer));
     }
 
     void VKCommandList::bindVertexBuffer(Buffer& buffer) {
@@ -1043,9 +1013,7 @@ namespace vireo::backend {
         constexpr VkCommandBufferBeginInfo beginInfo{
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         };
-        if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
-            die("failed to begin recording command buffer!");
-        }
+        DieIfFailed(vkBeginCommandBuffer(commandBuffer, &beginInfo));
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS , static_cast<VKPipeline&>(pipeline).getPipeline());
     }
 
@@ -1054,15 +1022,11 @@ namespace vireo::backend {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         };
         vkResetCommandBuffer(commandBuffer, 0);
-        if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
-            die("failed to begin recording command buffer!");
-        }
+        DieIfFailed(vkBeginCommandBuffer(commandBuffer, &beginInfo));
     }
 
     void VKCommandList::end() {
-        if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
-            die("failed to record command buffer!");
-        }
+        DieIfFailed(vkEndCommandBuffer(commandBuffer));
     }
 
 
@@ -1164,7 +1128,7 @@ namespace vireo::backend {
         const VkPresentModeKHR        presentMode      = chooseSwapPresentMode(swapChainSupport.presentModes);
         swapChainExtent = chooseSwapExtent(swapChainSupport.capabilities, width, height);
 
-        uint32_t imageCount = SwapChain::FRAMES_IN_FLIGHT + 1;
+        uint32_t imageCount = FRAMES_IN_FLIGHT + 1;
         if (swapChainSupport.capabilities.maxImageCount > 0 &&
             imageCount > swapChainSupport.capabilities.maxImageCount) {
             imageCount = swapChainSupport.capabilities.maxImageCount;
@@ -1199,16 +1163,14 @@ namespace vireo::backend {
                 createInfo.pQueueFamilyIndices   = nullptr; // Optional
             }
             // Need VK_KHR_SWAPCHAIN extension, or it will crash (no validation error)
-            if (vkCreateSwapchainKHR(device.getDevice(), &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
-                die("Failed to create Vulkan swap chain!");
-            }
+            DieIfFailed(vkCreateSwapchainKHR(device.getDevice(), &createInfo, nullptr, &swapChain));
         }
 
         vkGetSwapchainImagesKHR(device.getDevice(), swapChain, &imageCount, nullptr);
         swapChainImages.resize(imageCount);
         vkGetSwapchainImagesKHR(device.getDevice(), swapChain, &imageCount, swapChainImages.data());
         swapChainImageFormat = surfaceFormat.format;
-        SwapChain::extent      = Extent{ swapChainExtent.width, swapChainExtent.height };
+        extent      = Extent{ swapChainExtent.width, swapChainExtent.height };
         swapChainRatio       = static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height);
 
         swapChainImageViews.resize(swapChainImages.size());
@@ -1289,7 +1251,7 @@ namespace vireo::backend {
     VkExtent2D VKSwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities, uint32_t width, uint32_t height) const {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain#page_Swap-extent
         // if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) { return capabilities.currentExtent; }
-        VkExtent2D actualExtent{
+        const VkExtent2D actualExtent{
             .width = width,
             .height = height
         };
@@ -1320,9 +1282,7 @@ namespace vireo::backend {
                 .pImageIndices      = &data.imageIndex,
                 .pResults           = nullptr // Optional
             };
-            if (vkQueuePresentKHR(presentQueue, &presentInfo) != VK_SUCCESS) {
-                die("failed to present swap chain image!");
-            }
+            DieIfFailed(vkQueuePresentKHR(presentQueue, &presentInfo));
         }
     }
 
@@ -1374,7 +1334,7 @@ namespace vireo::backend {
 
     VKSwapChain::~VKSwapChain() {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Swap_chain_recreation#page_Recreating-the-swap-chain
-        for (auto &swapChainImageView : swapChainImageViews) {
+        for (const auto &swapChainImageView : swapChainImageViews) {
             vkDestroyImageView(device, swapChainImageView, nullptr);
         }
         vkDestroySwapchainKHR(device, swapChain, nullptr);

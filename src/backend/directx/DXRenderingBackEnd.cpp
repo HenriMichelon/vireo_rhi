@@ -136,9 +136,9 @@ namespace vireo::backend {
             }
         }
 #endif
-        ThrowIfFailed(CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&factory)));
+        DieIfFailed(CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&factory)));
         // This sample does not support fullscreen transitions.
-        ThrowIfFailed(factory->MakeWindowAssociation(Win32Application::getHwnd(), DXGI_MWA_NO_ALT_ENTER));
+        DieIfFailed(factory->MakeWindowAssociation(Win32Application::getHwnd(), DXGI_MWA_NO_ALT_ENTER));
     }
 
     DXPhysicalDevice::DXPhysicalDevice(const ComPtr<IDXGIFactory4>& factory) {
@@ -158,7 +158,7 @@ namespace vireo::backend {
                 dxgiAdapterDesc1.DedicatedVideoMemory > maxDedicatedVideoMemory )
             {
                 maxDedicatedVideoMemory = dxgiAdapterDesc1.DedicatedVideoMemory;
-                ThrowIfFailed(hardwareAdapter.As(&hardwareAdapter4));
+                DieIfFailed(hardwareAdapter.As(&hardwareAdapter4));
             }
         }
         DXGI_ADAPTER_DESC3 desc;
@@ -172,7 +172,7 @@ namespace vireo::backend {
     }
 
     DXDevice::DXDevice(const ComPtr<IDXGIAdapter4>& hardwareAdapter4) {
-        ThrowIfFailed(
+        DieIfFailed(
             D3D12CreateDevice(
                   hardwareAdapter4.Get(),
                   D3D_FEATURE_LEVEL_11_0,
@@ -186,13 +186,13 @@ namespace vireo::backend {
             infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, TRUE);
         }
 #endif
-        ThrowIfFailed(device->CreateFence(
+        DieIfFailed(device->CreateFence(
             0,
             D3D12_FENCE_FLAG_NONE,
             IID_PPV_ARGS(&inFlightFence)));
         inFlightFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
         if (inFlightFenceEvent == nullptr) {
-            ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
+            DieIfFailed(HRESULT_FROM_WIN32(GetLastError()));
         }
     }
 
@@ -206,7 +206,7 @@ namespace vireo::backend {
             .Type = DXCommandList::ListType[type],
             .Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
         };
-        ThrowIfFailed(device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&commandQueue)));
+        DieIfFailed(device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&commandQueue)));
     }
 
     void DXSubmitQueue::submit(const FrameData& frameData, std::vector<std::shared_ptr<CommandList>> commandLists) {
@@ -223,17 +223,17 @@ namespace vireo::backend {
 
     void DXSubmitQueue::waitIdle() {
         ComPtr<ID3D12Fence>  inFlightFence;
-        ThrowIfFailed(device->CreateFence(
+        DieIfFailed(device->CreateFence(
            0,
            D3D12_FENCE_FLAG_NONE,
            IID_PPV_ARGS(&inFlightFence)));
         HANDLE inFlightFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
         if (inFlightFenceEvent == nullptr) {
-            ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
+            DieIfFailed(HRESULT_FROM_WIN32(GetLastError()));
         }
-        ThrowIfFailed(commandQueue->Signal(inFlightFence.Get(), 0));
+        DieIfFailed(commandQueue->Signal(inFlightFence.Get(), 0));
         if (inFlightFence->GetCompletedValue() < 0) {
-            ThrowIfFailed(inFlightFence->SetEventOnCompletion(
+            DieIfFailed(inFlightFence->SetEventOnCompletion(
                 0,
                 inFlightFenceEvent
             ));
@@ -245,7 +245,7 @@ namespace vireo::backend {
     DXCommandAllocator::DXCommandAllocator(const CommandList::Type type, const ComPtr<ID3D12Device>& device):
         CommandAllocator{type},
         device{device} {
-        ThrowIfFailed(device->CreateCommandAllocator(
+        DieIfFailed(device->CreateCommandAllocator(
             DXCommandList::ListType[type],
             IID_PPV_ARGS(&commandAllocator)));
     }
@@ -273,30 +273,30 @@ namespace vireo::backend {
         const ComPtr<ID3D12PipelineState>& pipelineState):
         device{device},
         commandAllocator{commandAllocator} {
-        ThrowIfFailed(device->CreateCommandList(
+        DieIfFailed(device->CreateCommandList(
             0,
             ListType[type],
             commandAllocator.Get(),
             pipelineState == nullptr ? nullptr : pipelineState.Get(),
             IID_PPV_ARGS(&commandList)));
-        ThrowIfFailed(commandList->Close());
+        DieIfFailed(commandList->Close());
     }
 
     void DXCommandList::reset() {
-        ThrowIfFailed(commandAllocator->Reset());
+        DieIfFailed(commandAllocator->Reset());
     }
 
     void DXCommandList::begin(Pipeline& pipeline) {
         auto& dxPipeline = static_cast<DXPipeline&>(pipeline);
-        ThrowIfFailed(commandList->Reset(commandAllocator.Get(), dxPipeline.getPipelineState().Get()));
+        DieIfFailed(commandList->Reset(commandAllocator.Get(), dxPipeline.getPipelineState().Get()));
     }
 
     void DXCommandList::begin() {
-        ThrowIfFailed(commandList->Reset(commandAllocator.Get(), nullptr));
+        DieIfFailed(commandList->Reset(commandAllocator.Get(), nullptr));
     }
 
     void DXCommandList::end() {
-        ThrowIfFailed(commandList->Close());
+        DieIfFailed(commandList->Close());
     }
 
     void DXCommandList::cleanup() {
@@ -319,7 +319,7 @@ namespace vireo::backend {
         const auto stagingBufferSize = GetRequiredIntermediateSize(buffer.getBuffer().Get(), 0, 1);
         const auto stagingHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
         const auto stagingResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(stagingBufferSize);
-        ThrowIfFailed(device->CreateCommittedResource(
+        DieIfFailed(device->CreateCommittedResource(
             &stagingHeapProps,
             D3D12_HEAP_FLAG_NONE,
             &stagingResourceDesc,
@@ -371,7 +371,7 @@ namespace vireo::backend {
         };
 
         ComPtr<IDXGISwapChain1> swapChain1;
-        ThrowIfFailed(factory->CreateSwapChainForHwnd(
+        DieIfFailed(factory->CreateSwapChainForHwnd(
             commandQueue.Get(),        // Swap chain needs the queue so that it can force a flush on it.
             Win32Application::getHwnd(),
             &swapChainDesc,
@@ -379,7 +379,7 @@ namespace vireo::backend {
             nullptr,
             &swapChain1
         ));
-        ThrowIfFailed(swapChain1.As(&swapChain));
+        DieIfFailed(swapChain1.As(&swapChain));
         currentFrameIndex = swapChain->GetCurrentBackBufferIndex();
 
         // Describe and create a render target view (RTV) descriptor heap.
@@ -388,7 +388,7 @@ namespace vireo::backend {
             .NumDescriptors = FRAMES_IN_FLIGHT,
             .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
         };
-        ThrowIfFailed(device.getDevice()->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap)));
+        DieIfFailed(device.getDevice()->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap)));
         rtvDescriptorSize = device.getDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
         // Create frame resources.
@@ -398,7 +398,7 @@ namespace vireo::backend {
             .ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D,
         };
         for (UINT n = 0; n < FRAMES_IN_FLIGHT; n++) {
-            ThrowIfFailed(swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTargets[n])));
+            DieIfFailed(swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTargets[n])));
             renderTargets[n]->SetName(L"BackBuffer");
             device.getDevice()->CreateRenderTargetView(renderTargets[n].Get(), &rtvDesc, rtvHandle);
             rtvHandle.Offset(1, rtvDescriptorSize);
@@ -413,10 +413,10 @@ namespace vireo::backend {
     void DXSwapChain::acquire(FrameData& frameData) {
         auto& data = static_cast<DXFrameData&>(frameData);
         const auto currentFenceValue = data.inFlightFenceValue;
-        ThrowIfFailed(presentCommandQueue->Signal(device.getInFlightFence().Get(), currentFenceValue));
+        DieIfFailed(presentCommandQueue->Signal(device.getInFlightFence().Get(), currentFenceValue));
         // If the next frame is not ready to be rendered yet, wait until it is ready.
         if (device.getInFlightFence()->GetCompletedValue() < currentFenceValue) {
-            ThrowIfFailed(device.getInFlightFence()->SetEventOnCompletion(
+            DieIfFailed(device.getInFlightFence()->SetEventOnCompletion(
                 currentFenceValue,
                 device.getInFlightFenceEvent()
             ));
@@ -426,7 +426,7 @@ namespace vireo::backend {
 
     void DXSwapChain::present(FrameData& frameData) {
         auto& data = static_cast<DXFrameData&>(frameData);
-        ThrowIfFailed(swapChain->Present(1, 0));
+        DieIfFailed(swapChain->Present(1, 0));
         data.inFlightFenceValue += 1;
     }
 
@@ -467,12 +467,12 @@ namespace vireo::backend {
             D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
         ComPtr<ID3DBlob> signature;
         ComPtr<ID3DBlob> error;
-        ThrowIfFailed(D3D12SerializeRootSignature(
+        DieIfFailed(D3D12SerializeRootSignature(
             &rootSignatureDesc,
             D3D_ROOT_SIGNATURE_VERSION_1,
             &signature,
             &error));
-        ThrowIfFailed(device->CreateRootSignature(
+        DieIfFailed(device->CreateRootSignature(
             0,
             signature->GetBufferPointer(),
             signature->GetBufferSize(),
@@ -507,7 +507,7 @@ namespace vireo::backend {
         psoDesc.NumRenderTargets = 1;
         psoDesc.RTVFormats[0] = DXSwapChain::RENDER_FORMAT;
         psoDesc.SampleDesc.Count = 1;
-        ThrowAndPrintIfFailed(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)), device.Get());
+        DieIfFailed(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)));
     }
 
     DXBuffer::DXBuffer(
@@ -525,7 +525,7 @@ namespace vireo::backend {
         // GPU Buffer
         const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
         resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
-        ThrowIfFailed(device->CreateCommittedResource(
+        DieIfFailed(device->CreateCommittedResource(
             &heapProperties,
             D3D12_HEAP_FLAG_NONE,
             &resourceDesc,
@@ -540,7 +540,7 @@ namespace vireo::backend {
 
     void DXBuffer::map() {
         CD3DX12_RANGE readRange(0, 0);        // We do not intend to read from this resource on the CPU.
-        ThrowIfFailed(buffer->Map(0, &readRange, &mappedAddress));
+        DieIfFailed(buffer->Map(0, &readRange, &mappedAddress));
     }
 
     void DXBuffer::unmap() {

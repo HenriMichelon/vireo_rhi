@@ -359,7 +359,6 @@ export namespace vireo::backend {
         VKPipeline(
            VkDevice device,
            VKSwapChain& swapChain,
-           const SwapChain::Extent& extent,
            PipelineResources& pipelineResources,
            VertexInputLayout& vertexInputLayout,
            ShaderModule& vertexShader,

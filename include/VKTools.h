@@ -8,10 +8,8 @@
 #include "VKLibraries.h"
 #include "Tools.h"
 
-inline void ThrowIfFailed(VkResult  hr)
-{
-    if (hr != VK_SUCCESS)
-    {
-        throw std::runtime_error("");
+inline void DieIfFailed(const VkResult vr) {
+    if (vr != VK_SUCCESS) {
+        die(std::string(string_VkResult(vr)));
     }
 }
