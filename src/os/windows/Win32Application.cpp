@@ -84,13 +84,13 @@ namespace vireo {
 
         case WM_KEYDOWN:
             if (pSample) {
-                pSample->onKeyDown(static_cast<UINT8>(wParam));
+                pSample->onKeyDown(static_cast<uint32_t>(wParam));
             }
             return 0;
 
         case WM_KEYUP:
             if (pSample) {
-                pSample->onKeyUp(static_cast<UINT8>(wParam));
+                pSample->onKeyUp(static_cast<uint32_t>(wParam));
             }
             return 0;
 

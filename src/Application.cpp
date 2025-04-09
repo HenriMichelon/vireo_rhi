@@ -18,9 +18,9 @@ namespace vireo {
     Application::Application(backend::RenderingBackends& backendType, const std::wstring& name) :
         title(name) {
         if (backendType == backend::RenderingBackends::VULKAN) {
-            renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>();
+            renderingBackEnd = std::make_unique<backend::VKRenderingBackEnd>();
         } else {
-            renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>();
+            renderingBackEnd = std::make_unique<backend::DXRenderingBackEnd>();
         }
     }
 
@@ -107,38 +107,30 @@ namespace vireo {
         }
     }
 
-    // Helper function for setting the window's title text.
-    void Application::setCustomWindowText(LPCWSTR text) const {
-        std::wstring windowText = title + L": " + text;
-        SetWindowText(Win32Application::getHwnd(), windowText.c_str());
-    }
-
     // Generate a simple black and white checkerboard texture.
-    std::vector<UINT8> Application::generateTextureData() {
-        const UINT rowPitch = TextureWidth * TexturePixelSize;
-        const UINT cellPitch = rowPitch >> 3;        // The width of a cell in the checkboard texture.
-        const UINT cellHeight = TextureWidth >> 3;    // The height of a cell in the checkerboard texture.
-        const UINT textureSize = rowPitch * TextureHeight;
+    // https://github.com/microsoft/DirectX-Graphics-Samples/blob/master/Samples/Desktop/D3D12HelloWorld/src/HelloTexture/D3D12HelloTexture.cpp
+    std::vector<unsigned char> Application::generateTextureData() const {
+        const auto rowPitch = TextureWidth * TexturePixelSize;
+        const auto cellPitch = rowPitch >> 3;        // The width of a cell in the checkboard texture.
+        const auto cellHeight = TextureWidth >> 3;    // The height of a cell in the checkerboard texture.
+        const auto textureSize = rowPitch * TextureHeight;
 
         std::vector<UINT8> data(textureSize);
-        UINT8* pData = &data[0];
+        unsigned char* pData = &data[0];
 
-        for (UINT n = 0; n < textureSize; n += TexturePixelSize)
-        {
-            UINT x = n % rowPitch;
-            UINT y = n / rowPitch;
-            UINT i = x / cellPitch;
-            UINT j = y / cellHeight;
+        for (int n = 0; n < textureSize; n += TexturePixelSize) {
+            const auto x = n % rowPitch;
+            const auto y = n / rowPitch;
+            const auto i = x / cellPitch;
+            const auto j = y / cellHeight;
 
-            if (i % 2 == j % 2)
-            {
+            if (i % 2 == j % 2) {
                 pData[n] = 0x00;        // R
                 pData[n + 1] = 0x00;    // G
                 pData[n + 2] = 0x00;    // B
                 pData[n + 3] = 0xff;    // A
             }
-            else
-            {
+            else {
                 pData[n] = 0xff;        // R
                 pData[n + 1] = 0xff;    // G
                 pData[n + 2] = 0xff;    // B

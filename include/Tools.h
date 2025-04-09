@@ -7,11 +7,10 @@
 #pragma once
 #include "Libraries.h"
 import std;
-using namespace std;
 
-void die(convertible_to<string_view> auto&& ...s) {
-    stringstream stringstream;
-    for (const auto v : initializer_list<string_view>{ s... }) {
+void die(std::convertible_to<std::string_view> auto&& ...s) {
+    std::stringstream stringstream;
+    for (const auto v : std::initializer_list<std::string_view>{ s... }) {
         stringstream << v << " ";
     }
     std::cerr << stringstream.str() << std::endl;
@@ -26,12 +25,12 @@ void die(convertible_to<string_view> auto&& ...s) {
 #endif
 }
 
-inline string wstring_to_string(const std::wstring &wstr) {
-    wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
+inline std::string wstring_to_string(const std::wstring &wstr) {
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
     return conv.to_bytes(wstr);
 }
 
-inline wstring string_to_wstring(const std::string &str) {
-    wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
+inline std::wstring string_to_wstring(const std::string &str) {
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
     return conv.from_bytes(str);
 }

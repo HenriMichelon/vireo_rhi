@@ -61,8 +61,8 @@ namespace vireo::backend {
         vkDestroyFence(getVKDevice()->getDevice(), data.inFlightFence, nullptr);
     }
 
-    shared_ptr<FrameData> VKRenderingBackEnd::createFrameData(const uint32_t frameIndex) {
-        auto data = make_shared<VKFrameData>();
+    std::shared_ptr<FrameData> VKRenderingBackEnd::createFrameData(const uint32_t frameIndex) {
+        auto data = std::make_shared<VKFrameData>();
         constexpr VkSemaphoreCreateInfo semaphoreInfo{
             .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
         };
@@ -103,11 +103,11 @@ namespace vireo::backend {
     }
 
     std::shared_ptr<ShaderModule> VKRenderingBackEnd::createShaderModule(const std::string& fileName) const {
-        return make_shared<VKShaderModule>(getVKDevice()->getDevice(), fileName);
+        return std::make_shared<VKShaderModule>(getVKDevice()->getDevice(), fileName);
     }
 
     std::shared_ptr<PipelineResources> VKRenderingBackEnd::createPipelineResources() const {
-        return make_shared<VKPipelineResources>(getVKDevice()->getDevice());
+        return std::make_shared<VKPipelineResources>(getVKDevice()->getDevice());
     }
 
     std::shared_ptr<Pipeline> VKRenderingBackEnd::createPipeline(
@@ -567,13 +567,13 @@ namespace vireo::backend {
 
         // Use the better Vulkan physical device found
         // https://vulkan-tutorial.com/Drawing_a_triangle/Setup/Physical_devices_and_queue_families#page_Base-device-suitability-checks
-        vector<VkPhysicalDevice> devices(deviceCount);
+        std::vector<VkPhysicalDevice> devices(deviceCount);
         vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
         // Use an ordered map to automatically sort candidates by increasing score
-        multimap<uint32_t, VkPhysicalDevice> candidates;
+        std::multimap<uint32_t, VkPhysicalDevice> candidates;
         for (const auto &dev : devices) {
             uint32_t score = rateDeviceSuitability(dev, deviceExtensions);
-            candidates.insert(make_pair(score, dev));
+            candidates.insert(std::make_pair(score, dev));
         }
         // Check if the best candidate is suitable at all
         if (candidates.rbegin()->first > 0) {
@@ -612,7 +612,7 @@ namespace vireo::backend {
         QueueFamilyIndices indices;
         uint32_t           queueFamilyCount = 0;
         vkGetPhysicalDeviceQueueFamilyProperties(vkPhysicalDevice, &queueFamilyCount, nullptr);
-        vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+        std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
         vkGetPhysicalDeviceQueueFamilyProperties(vkPhysicalDevice, &queueFamilyCount, queueFamilies.data());
         int i = 0;
         for (const auto &queueFamily : queueFamilies) {
@@ -641,7 +641,7 @@ namespace vireo::backend {
     uint32_t VKPhysicalDevice::findTransferQueueFamily() const {
         uint32_t           queueFamilyCount = 0;
         vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
-        vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+        std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
         vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies.data());
         uint32_t i = 0;
         for (const auto &queueFamily : queueFamilies) {
@@ -659,7 +659,7 @@ namespace vireo::backend {
     uint32_t VKPhysicalDevice::findComputeQueueFamily() const {
         uint32_t           queueFamilyCount = 0;
         vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
-        vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+        std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
         vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies.data());
         uint32_t i = 0;
         for (const auto &queueFamily : queueFamilies) {
@@ -674,24 +674,13 @@ namespace vireo::backend {
         return i;
     }
 
-    // uint32_t VKPhysicalDevice::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const {
-    //     VkPhysicalDeviceMemoryProperties memProperties;
-    //     vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
-    //     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-    //         if ((typeFilter & (1 << i)) &&
-    //             (memProperties.memoryTypes[i].propertyFlags & properties) == properties) { return i; }
-    //     }
-    //     die("failed to find suitable memory type!");
-    //     return 0;
-    // }
-
     VKPhysicalDevice::~VKPhysicalDevice() {
         vkDestroySurfaceKHR(instance, surface, nullptr);
     }
 
     uint32_t VKPhysicalDevice::rateDeviceSuitability(
         VkPhysicalDevice            vkPhysicalDevice,
-        const vector<const char *> &deviceExtensions) const {
+        const std::vector<const char *> &deviceExtensions) const {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Setup/Physical_devices_and_queue_families#page_Base-device-suitability-checks
         VkPhysicalDeviceProperties _deviceProperties;
         vkGetPhysicalDeviceProperties(vkPhysicalDevice, &_deviceProperties);
@@ -728,12 +717,12 @@ namespace vireo::backend {
         const std::vector<const char *> &deviceExtensions) {
         uint32_t extensionCount;
         vkEnumerateDeviceExtensionProperties(vkPhysicalDevice, nullptr, &extensionCount, nullptr);
-        vector<VkExtensionProperties> availableExtensions(extensionCount);
+        std::vector<VkExtensionProperties> availableExtensions(extensionCount);
         vkEnumerateDeviceExtensionProperties(vkPhysicalDevice,
                                              nullptr,
                                              &extensionCount,
                                              availableExtensions.data());
-        set<string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
+        std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
         for (const auto &extension : availableExtensions) { requiredExtensions.erase(extension.extensionName); }
         return requiredExtensions.empty();
     }
@@ -763,8 +752,8 @@ namespace vireo::backend {
     VKDevice::VKDevice(const VKPhysicalDevice& physicalDevice, const std::vector<const char *>& requestedLayers):
         physicalDevice{physicalDevice} {
          /// Select command queues
-        vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-        constexpr auto queuePriority = array{1.0f};
+        std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+        constexpr auto queuePriority = std::array{1.0f};
         const auto indices = physicalDevice.findQueueFamilies(physicalDevice.getPhysicalDevice());
         // Use a graphical command queue
         graphicsQueueFamilyIndex = indices.graphicsFamily.value();
@@ -1086,7 +1075,7 @@ namespace vireo::backend {
     void VKCommandList::pipelineBarrier(
        const VkPipelineStageFlags srcStageMask,
        const VkPipelineStageFlags dstStageMask,
-       const vector<VkImageMemoryBarrier>& barriers) const {
+       const std::vector<VkImageMemoryBarrier>& barriers) const {
         vkCmdPipelineBarrier(commandBuffer,
             srcStageMask,
             dstStageMask,
@@ -1255,7 +1244,7 @@ namespace vireo::backend {
         return details;
     }
 
-    VkSurfaceFormatKHR VKSwapChain::chooseSwapSurfaceFormat(const vector<VkSurfaceFormatKHR> &availableFormats) {
+    VkSurfaceFormatKHR VKSwapChain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats) {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain#page_Choosing-the-right-settings-for-the-swap-chain
         for (const auto &availableFormat : availableFormats) {
             // Using sRGB no-linear color space
@@ -1266,7 +1255,7 @@ namespace vireo::backend {
         return availableFormats[0];
     }
 
-    VkPresentModeKHR VKSwapChain::chooseSwapPresentMode(const vector<VkPresentModeKHR> &availablePresentModes) {
+    VkPresentModeKHR VKSwapChain::chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes) {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain#page_Presentation-mode
         constexpr  auto mode = VK_PRESENT_MODE_MAILBOX_KHR; //static_cast<VkPresentModeKHR>(app().getConfig().vSyncMode);
         for (const auto &availablePresentMode : availablePresentModes) {
@@ -1360,7 +1349,7 @@ namespace vireo::backend {
                 return false;
             }
             if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-                die("failed to acquire swap chain image :", to_string(result));
+                die("failed to acquire swap chain image :", std::to_string(result));
             }
         }
         vkResetFences(device.getDevice(), 1, &data.inFlightFence);
