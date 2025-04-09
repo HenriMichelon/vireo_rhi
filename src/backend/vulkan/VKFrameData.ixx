@@ -7,11 +7,11 @@
 module;
 #include "VKLibraries.h"
 
-export module dxvk.backend.vulkan.framedata;
+export module vireo.backend.vulkan.framedata;
 
-import dxvk.backend.framedata;
+import vireo.backend.framedata;
 
-export namespace dxvk::backend {
+export namespace vireo::backend {
 
     struct VKFrameData : FrameData {
         VkSemaphore             imageAvailableSemaphore;

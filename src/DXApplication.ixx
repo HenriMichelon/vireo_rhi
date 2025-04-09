@@ -2,10 +2,10 @@
 module;
 #include "DXTools.h"
 
-export module dxvk.app.directx;
+export module vireo.app.directx;
 
-import dxvk.app;
-import dxvk.backend;
+import vireo.app;
+import vireo.backend;
 
 export namespace dxvk {
 

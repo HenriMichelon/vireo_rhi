@@ -7,12 +7,12 @@
 module;
 #include "VKTools.h"
 
-module dxvk.backend.vulkan;
+module vireo.backend.vulkan;
 
-import dxvk.app.win32;
-import dxvk.backend.vulkan.framedata;
+import vireo.app.win32;
+import vireo.backend.vulkan.framedata;
 
-namespace dxvk::backend {
+namespace vireo::backend {
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT,
                                                        VkDebugUtilsMessageTypeFlagsEXT,
@@ -138,7 +138,7 @@ namespace dxvk::backend {
     }
 
     void VKRenderingBackEnd::beginRendering(FrameData& frameData, PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) {
-        auto& data = static_cast<VKFrameData&>(frameData);
+        const auto& data = static_cast<VKFrameData&>(frameData);
         const auto& vkCommandList = static_cast<VKCommandList&>(commandList);
         const auto& swapChain = *getVKSwapChain();
 

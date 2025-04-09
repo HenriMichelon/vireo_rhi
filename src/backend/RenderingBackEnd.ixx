@@ -7,11 +7,11 @@
 module;
 #include "Tools.h"
 
-export module dxvk.backend;
+export module vireo.backend;
 
-import dxvk.backend.framedata;
+import vireo.backend.framedata;
 
-export namespace dxvk::backend {
+export namespace vireo::backend {
 
     class Instance {
     public:

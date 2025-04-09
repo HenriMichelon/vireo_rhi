@@ -7,12 +7,12 @@
 module;
 #include "DXLibraries.h"
 
-export module dxvk.backend.directx;
+export module vireo.backend.directx;
 
-import dxvk.backend;
-import dxvk.backend.framedata;
+import vireo.backend;
+import vireo.backend.framedata;
 
-export namespace dxvk::backend {
+export namespace vireo::backend {
 
     class DXInstance : public Instance {
     public:

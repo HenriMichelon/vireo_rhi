@@ -6,9 +6,9 @@
 */
 module;
 
-export module dxvk.backend.framedata;
+export module vireo.backend.framedata;
 
-export namespace dxvk::backend {
+export namespace vireo::backend {
 
     struct FrameData {
         virtual ~FrameData() = default;

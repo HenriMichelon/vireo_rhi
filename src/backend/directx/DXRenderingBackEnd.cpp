@@ -7,12 +7,12 @@
 module;
 #include "DXTools.h"
 
-module dxvk.backend.directx;
+module vireo.backend.directx;
 
-import dxvk.app.win32;
-import dxvk.backend.directx.framedata;
+import vireo.app.win32;
+import vireo.backend.directx.framedata;
 
-namespace dxvk::backend {
+namespace vireo::backend {
 
     DXRenderingBackEnd::DXRenderingBackEnd(const uint32_t width, const uint32_t height):
         viewport(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)),

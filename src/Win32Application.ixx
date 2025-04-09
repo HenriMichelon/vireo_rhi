@@ -7,11 +7,11 @@
 module;
 #include "Tools.h"
 
-export module dxvk.app.win32;
+export module vireo.app.win32;
 
-import dxvk.app;
+import vireo.app;
 
-namespace dxvk {
+namespace vireo {
 
     export class Win32Application {
     public:

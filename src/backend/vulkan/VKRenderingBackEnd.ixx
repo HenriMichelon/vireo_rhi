@@ -7,12 +7,12 @@
 module;
 #include "VKTools.h"
 
-export module dxvk.backend.vulkan;
+export module vireo.backend.vulkan;
 
-import dxvk.backend;
-import dxvk.backend.framedata;
+import vireo.backend;
+import vireo.backend.framedata;
 
-export namespace dxvk::backend {
+export namespace vireo::backend {
 
     class VKInstance : public Instance {
     public:

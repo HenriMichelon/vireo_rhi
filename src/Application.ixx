@@ -7,12 +7,12 @@
 module;
 #include "Tools.h"
 
-export module dxvk.app;
+export module vireo.app;
 
-import dxvk.backend;
-import dxvk.backend.framedata;
+import vireo.backend;
+import vireo.backend.framedata;
 
-export namespace dxvk {
+export namespace vireo {
 
     class Application
     {

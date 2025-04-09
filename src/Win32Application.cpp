@@ -7,11 +7,11 @@
 module;
 #include "Tools.h"
 
-module dxvk.app.win32;
+module vireo.app.win32;
 
-import dxvk.app;
+import vireo.app;
 
-namespace dxvk {
+namespace vireo {
 
     HWND Win32Application::hwnd = nullptr;
     std::unique_ptr<Application> Win32Application::app{};
@@ -44,9 +44,9 @@ namespace dxvk {
             hInstance,
             nullptr);
 
-        // app = std::make_unique<dxvk::VKApplication>(width, height, name);
-        // app =  std::make_unique<dxvk::DXApplication>(width, height, name);
-        app =  std::make_unique<dxvk::Application>(width, height, name);
+        // app = std::make_unique<vireo::VKApplication>(width, height, name);
+        // app =  std::make_unique<vireo::DXApplication>(width, height, name);
+        app =  std::make_unique<vireo::Application>(width, height, name);
 
         // Initialize the sample. OnInit is defined in each child-implementation of DXSample.
         app->onInit();

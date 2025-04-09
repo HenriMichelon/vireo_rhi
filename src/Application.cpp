@@ -7,13 +7,13 @@
 module;
 #include "Tools.h"
 
-module dxvk.app;
+module vireo.app;
 
-import dxvk.app.win32;
-import dxvk.backend.directx;
-import dxvk.backend.vulkan;
+import vireo.app.win32;
+import vireo.backend.directx;
+import vireo.backend.vulkan;
 
-namespace dxvk {
+namespace vireo {
 
     Application::Application(UINT width, UINT height, const std::wstring& name) :
         title(name),

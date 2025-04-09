@@ -7,11 +7,11 @@
 module;
 #include "DXLibraries.h"
 
-export module dxvk.backend.directx.framedata;
+export module vireo.backend.directx.framedata;
 
-import dxvk.backend.framedata;
+import vireo.backend.framedata;
 
-export namespace dxvk::backend {
+export namespace vireo::backend {
 
     struct DXFrameData : FrameData {
         UINT64 inFlightFenceValue{0};

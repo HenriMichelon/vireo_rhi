@@ -3,10 +3,10 @@ module;
 #include "DXLibraries.h"
 #include "DXTools.h"
 
-module dxvk.app.directx;
+module vireo.app.directx;
 
-import dxvk.app.win32;
-import dxvk.backend.directx;
+import vireo.app.win32;
+import vireo.backend.directx;
 
 namespace dxvk {
 
