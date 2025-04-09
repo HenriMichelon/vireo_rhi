@@ -20,8 +20,8 @@ namespace dxvk {
         width(width),
         height(height) {
         aspectRatio = static_cast<float>(width) / static_cast<float>(height);
-        // renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>(width, height);
-        renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>(width, height);
+        renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>(width, height);
+        // renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>(width, height);
     }
 
     void Application::onInit() {

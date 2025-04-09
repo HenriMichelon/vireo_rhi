@@ -149,7 +149,11 @@ namespace dxvk::backend {
                     0, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
                     VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)});
 
-        const auto vkClearColor = VkClearValue{{clearColor.r, clearColor.g, clearColor.b, clearColor.a }};
+        const auto vkClearColor = VkClearValue{{
+            clearColor.r, clearColor.g, clearColor.b, clearColor.a
+        }};
+        const VkExtent2D extent = {swapChain.getExtent().width, swapChain.getExtent().height};
+
         const auto colorAttachmentInfo = VkRenderingAttachmentInfo {
             .sType              = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
             .imageView          = swapChain.getImageViews()[data.imageIndex],
@@ -161,31 +165,33 @@ namespace dxvk::backend {
         };
         const auto renderingInfo = VkRenderingInfo {
             .sType               = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR,
-           .pNext                = nullptr,
-           .renderArea           = {{0, 0}, {swapChain.getExtent().width, swapChain.getExtent().height}},
-           .layerCount           = 1,
-           .colorAttachmentCount = 1,
-           .pColorAttachments    = &colorAttachmentInfo,
-           .pDepthAttachment     = nullptr,
-           .pStencilAttachment   = nullptr
+            .pNext                = nullptr,
+            .renderArea           = {
+                {0, 0},
+                extent
+            },
+            .layerCount           = 1,
+            .colorAttachmentCount = 1,
+            .pColorAttachments    = &colorAttachmentInfo,
+            .pDepthAttachment     = nullptr,
+            .pStencilAttachment   = nullptr
         };
-        auto commandBuffer = vkCommandList.getCommandBuffer();
+        const auto& commandBuffer = vkCommandList.getCommandBuffer();
         vkCmdBeginRendering(commandBuffer, &renderingInfo);
 
-        const VkExtent2D extent = {swapChain.getExtent().width, swapChain.getExtent().height};
         const VkViewport viewport{
             .x = 0.0f,
-            .y = 0.0f,
+            .y = static_cast<float>(extent.height),
             .width = static_cast<float>(extent.width),
-            .height = static_cast<float>(extent.height),
+            .height = -static_cast<float>(extent.height),
             .minDepth = 0.0f,
             .maxDepth = 1.0f
         };
-            vkCmdSetViewportWithCount(commandBuffer, 1, &viewport);
-            const VkRect2D scissor{
-                .offset = {0, 0},
-                .extent = extent
+        const VkRect2D scissor{
+            .offset = {0, 0},
+            .extent = extent
         };
+        vkCmdSetViewportWithCount(commandBuffer, 1, &viewport);
         vkCmdSetScissorWithCount(commandBuffer, 1, &scissor);
     }
 
@@ -340,12 +346,12 @@ namespace dxvk::backend {
            ShaderModule& vertexShader,
            ShaderModule& fragmentShader):
         device{device} {
-        auto vertexShaderModule = static_cast<VKShaderModule&>(vertexShader).getShaderModule();
-        auto fragmentShaderModule = static_cast<VKShaderModule&>(fragmentShader).getShaderModule();
-        auto& vkVertexInputLayout = static_cast<VKVertexInputLayout&>(vertexInputLayout);
-        auto& vkPipelineLayout = static_cast<VKPipelineResources&>(pipelineResources);
+        const auto vertexShaderModule = static_cast<VKShaderModule&>(vertexShader).getShaderModule();
+        const auto fragmentShaderModule = static_cast<VKShaderModule&>(fragmentShader).getShaderModule();
+        const auto& vkVertexInputLayout = static_cast<VKVertexInputLayout&>(vertexInputLayout);
+        const auto& vkPipelineLayout = static_cast<VKPipelineResources&>(pipelineResources);
 
-        auto shaderStages = std::vector<VkPipelineShaderStageCreateInfo> {
+        const auto shaderStages = std::vector<VkPipelineShaderStageCreateInfo> {
             {
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .stage = VK_SHADER_STAGE_VERTEX_BIT,
@@ -359,37 +365,37 @@ namespace dxvk::backend {
                 .pName = "PSMain"
             }
         };
-        auto vertexInputInfo = VkPipelineVertexInputStateCreateInfo {
+        const auto vertexInputInfo = VkPipelineVertexInputStateCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
             .vertexBindingDescriptionCount = 1,
             .pVertexBindingDescriptions = &vkVertexInputLayout.getVertexBindingDescription(),
             .vertexAttributeDescriptionCount = static_cast<uint32_t>(vkVertexInputLayout.getVertexAttributeDescription().size()),
             .pVertexAttributeDescriptions = vkVertexInputLayout.getVertexAttributeDescription().data()
         };
-        auto inputAssembly = VkPipelineInputAssemblyStateCreateInfo {
+        constexpr auto inputAssembly = VkPipelineInputAssemblyStateCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
             .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
             .primitiveRestartEnable = VK_FALSE,
         };
 
-        std::vector<VkDynamicState> dynamicStates = {
+        const std::vector dynamicStates = {
             VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT,
             VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT
         };
-        auto dynamicState = VkPipelineDynamicStateCreateInfo {
+        const auto dynamicState = VkPipelineDynamicStateCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
             .dynamicStateCount = static_cast<uint32_t>(dynamicStates.size()),
             .pDynamicStates = dynamicStates.data()
         };
-        auto viewportState = VkPipelineViewportStateCreateInfo {
+        constexpr  auto viewportState = VkPipelineViewportStateCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
         };
-        auto rasterizer = VkPipelineRasterizationStateCreateInfo {
+        constexpr auto rasterizer = VkPipelineRasterizationStateCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
             .depthClampEnable = VK_FALSE,
             .rasterizerDiscardEnable = VK_FALSE,
             .polygonMode = VK_POLYGON_MODE_FILL,
-            .cullMode = VK_CULL_MODE_BACK_BIT,
+            .cullMode = VK_CULL_MODE_NONE,
             .frontFace = VK_FRONT_FACE_CLOCKWISE,
             .depthBiasEnable = VK_FALSE,
             .depthBiasConstantFactor = 0.0f,
@@ -397,7 +403,7 @@ namespace dxvk::backend {
             .depthBiasSlopeFactor = 0.0f,
             .lineWidth = 1.0f,
         };
-        auto multisampling = VkPipelineMultisampleStateCreateInfo {
+        constexpr auto multisampling = VkPipelineMultisampleStateCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
             .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
             .sampleShadingEnable = VK_FALSE,
@@ -406,17 +412,17 @@ namespace dxvk::backend {
             .alphaToCoverageEnable = VK_FALSE,
             .alphaToOneEnable = VK_FALSE
         };
-        auto colorBlendAttachment = VkPipelineColorBlendAttachmentState {
-            .blendEnable = VK_TRUE,
-            .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
-            .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-            .colorBlendOp = VK_BLEND_OP_ADD,
-            .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
-            .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
-            .alphaBlendOp = VK_BLEND_OP_ADD,
+        constexpr auto colorBlendAttachment = VkPipelineColorBlendAttachmentState {
+            .blendEnable = VK_FALSE,
+            // .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
+            // .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+            // .colorBlendOp = VK_BLEND_OP_ADD,
+            // .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+            // .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+            // .alphaBlendOp = VK_BLEND_OP_ADD,
             .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
         };
-        auto colorBlending = VkPipelineColorBlendStateCreateInfo {
+        const auto colorBlending = VkPipelineColorBlendStateCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
             .logicOpEnable = VK_FALSE,
             .logicOp = VK_LOGIC_OP_COPY,
@@ -425,15 +431,15 @@ namespace dxvk::backend {
             .blendConstants = { 0.0f, 0.0f, 0.0f, 0.0f }
         };
 
-        auto swapChainImageFormat = swapChain.getFormat();
-        auto dynamicRenderingCreateInfo = VkPipelineRenderingCreateInfoKHR{
+        const auto swapChainImageFormat = swapChain.getFormat();
+        const auto dynamicRenderingCreateInfo = VkPipelineRenderingCreateInfoKHR{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR,
             .pNext                   = VK_NULL_HANDLE,
             .colorAttachmentCount    = 1,
             .pColorAttachmentFormats = &swapChainImageFormat,
         };
 
-        auto pipelineInfo = VkGraphicsPipelineCreateInfo {
+        const auto pipelineInfo = VkGraphicsPipelineCreateInfo {
             .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
             .pNext = &dynamicRenderingCreateInfo,
             .stageCount = static_cast<uint32_t>(shaderStages.size()),
