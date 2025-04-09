@@ -1,3 +1,9 @@
+/*
+* Copyright (c) 2025-present Henri Michelon
+*
+* This software is released under the MIT License.
+* https://opensource.org/licenses/MIT
+*/
 module;
 #include "VKTools.h"
 
@@ -359,9 +365,9 @@ export namespace dxvk::backend {
            ShaderModule& vertexShader,
            ShaderModule& fragmentShader);
 
-        const auto getPipeline() const { return pipeline; }
+        auto getPipeline() const { return pipeline; }
 
-        ~VKPipeline();
+        ~VKPipeline() override;
 
     private:
         VkDevice     device;

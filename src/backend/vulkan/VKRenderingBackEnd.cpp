@@ -1,3 +1,9 @@
+/*
+* Copyright (c) 2025-present Henri Michelon
+*
+* This software is released under the MIT License.
+* https://opensource.org/licenses/MIT
+*/
 module;
 #include "VKTools.h"
 
@@ -365,23 +371,11 @@ namespace dxvk::backend {
             .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
             .primitiveRestartEnable = VK_FALSE,
         };
-        auto viewport = VkViewport {
-            .x = 0.0f,
-            .y = 0.0f,
-            .width = static_cast<float>(extent.width),
-            .height = static_cast<float>(extent.height),
-            .minDepth = 0.0f,
-            .maxDepth = 1.0f
-        };
-        auto scissor = VkRect2D {
-            .offset = {0, 0},
-            .extent = { extent.width, extent.height }
-        };
+
         std::vector<VkDynamicState> dynamicStates = {
             VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT,
             VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT
         };
-
         auto dynamicState = VkPipelineDynamicStateCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
             .dynamicStateCount = static_cast<uint32_t>(dynamicStates.size()),
@@ -389,8 +383,6 @@ namespace dxvk::backend {
         };
         auto viewportState = VkPipelineViewportStateCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
-            .viewportCount = 0,
-            .scissorCount = 0,
         };
         auto rasterizer = VkPipelineRasterizationStateCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,

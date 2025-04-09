@@ -1,3 +1,9 @@
+/*
+* Copyright (c) 2025-present Henri Michelon
+*
+* This software is released under the MIT License.
+* https://opensource.org/licenses/MIT
+*/
 module;
 #include "Tools.h"
 
@@ -14,8 +20,8 @@ namespace dxvk {
         width(width),
         height(height) {
         aspectRatio = static_cast<float>(width) / static_cast<float>(height);
-        renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>(width, height);
-        // renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>(width, height);
+        // renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>(width, height);
+        renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>(width, height);
     }
 
     void Application::onInit() {
