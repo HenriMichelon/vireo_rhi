@@ -14,8 +14,8 @@ namespace dxvk {
         width(width),
         height(height) {
         aspectRatio = static_cast<float>(width) / static_cast<float>(height);
-        // renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>(width, height);
-        renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>(width, height);
+        renderingBackEnd = std::make_shared<backend::VKRenderingBackEnd>(width, height);
+        // renderingBackEnd = std::make_shared<backend::DXRenderingBackEnd>(width, height);
     }
 
     void Application::onInit() {
@@ -80,7 +80,7 @@ namespace dxvk {
         renderingBackEnd->beginRendering(frameData, *pipelineResources["default"], pipeline, *commandList);
 
         commandList->bindVertexBuffer(*vertexBuffer);
-        commandList->drawInstanced(3);
+        // commandList->drawInstanced(3);
 
         renderingBackEnd->endRendering(*commandList);
         swapChain->end(frameData, *commandList);

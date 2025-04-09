@@ -121,27 +121,15 @@ namespace dxvk::backend {
     }
 
     std::shared_ptr<Buffer> VKRenderingBackEnd::createBuffer(Buffer::Type type, size_t size, size_t count, const size_t alignment, const std::wstring& name) const  {
-        throw std::exception("not implemented");
-        return nullptr;
+        return make_shared<VKBuffer>(
+           *getVKPhysicalDevice(),
+           getVKDevice()->getDevice(),
+           Buffer::VERTEX,
+           size,
+           count,
+           alignment,
+           name);
     }
-
-    // std::shared_ptr<Buffer> VKRenderingBackEnd::createVertexBuffer(
-    //        CommandList& commandList,
-    //        const void* data,
-    //        size_t size,
-    //        size_t count,
-    //        const std::wstring& name) const {
-    //     return make_shared<VKBuffer>(
-    //         static_cast<VKCommandList&>(commandList),
-    //         *getVKPhysicalDevice(),
-    //         getVKDevice()->getDevice(),
-    //         Buffer::VERTEX,
-    //         data,
-    //         size,
-    //         count,
-    //         1,
-    //         name);
-    // }
 
     void VKRenderingBackEnd::beginRendering(FrameData& frameData, PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) {
         auto& data = static_cast<VKFrameData&>(frameData);
@@ -188,15 +176,13 @@ namespace dxvk::backend {
     }
 
     VKBuffer::VKBuffer(
-            VKCommandList& commandList,
             const VKPhysicalDevice& physicalDevice,
-            VkDevice device,
-            Type type,
-            const void* data,
-            size_t size,
-            size_t count,
-            size_t minOffsetAlignment,
-            const std::wstring& name) : Buffer{type}, device{device} {
+            const VkDevice device,
+            const Type type,
+            const size_t size,
+            const size_t count,
+            const size_t minOffsetAlignment,
+            const std::wstring& name) : Buffer{type}, physicalDevice{physicalDevice}, device{device} {
         alignmentSize = minOffsetAlignment > 0
                ? (size + minOffsetAlignment - 1) & ~(minOffsetAlignment - 1)
                : size;
@@ -210,31 +196,6 @@ namespace dxvk::backend {
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT :
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
         createBuffer(physicalDevice, device, bufferSize, usage, memTypes, buffer, bufferMemory);
-
-        createBuffer(
-            physicalDevice, device, bufferSize,
-            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            stagingBuffer, stagingBufferMemory);
-
-        void* stagingData;
-        vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &stagingData);
-        memcpy(stagingData, data, bufferSize);
-        vkUnmapMemory(device, stagingBufferMemory);
-
-        const auto copyRegion = VkBufferCopy{
-            .srcOffset = 0,
-            .dstOffset = 0,
-            .size = bufferSize,
-        };
-        vkCmdCopyBuffer(
-            commandList.getCommandBuffer(),
-            stagingBuffer,
-            buffer,
-            1,
-            &copyRegion);
-
-
     }
 
     void VKBuffer::map() {
@@ -1035,7 +996,7 @@ namespace dxvk::backend {
         return std::make_shared<VKCommandList>(device, commandPool);
     }
 
-    VKCommandList::VKCommandList(const VkDevice device, const VkCommandPool commandPool) {
+    VKCommandList::VKCommandList(const VkDevice device, const VkCommandPool commandPool) : device{device} {
         const VkCommandBufferAllocateInfo allocInfo{
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
             .commandPool = commandPool,
@@ -1092,12 +1053,45 @@ namespace dxvk::backend {
 
 
     void VKCommandList::cleanup() {
-        // if (stagingBuffer != VK_NULL_HANDLE) {
-        //     vkDestroyBuffer(device, stagingBuffer, nullptr);
-        //     vkFreeMemory(device, stagingBufferMemory, nullptr);
-        //     stagingBuffer = VK_NULL_HANDLE;
-        //     stagingBufferMemory = VK_NULL_HANDLE;
-        // }
+        for (int i = 0; i < stagingBuffers.size(); i++) {
+            vkDestroyBuffer(device, stagingBuffers[i], nullptr);
+            vkFreeMemory(device, stagingBuffersMemory[i], nullptr);
+        }
+        stagingBuffers.clear();
+        stagingBuffersMemory.clear();
+    }
+
+    void VKCommandList::upload(Buffer& destination, const void* source) {
+        const auto& buffer = static_cast<VKBuffer&>(destination);
+        VkBuffer       stagingBuffer{VK_NULL_HANDLE};
+        VkDeviceMemory stagingBufferMemory{VK_NULL_HANDLE};
+        VKBuffer::createBuffer(
+            buffer.getPhysicalDevice(),
+            device,
+            buffer.getSize(),
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            stagingBuffer, stagingBufferMemory);
+
+        void* stagingData;
+        vkMapMemory(device, stagingBufferMemory, 0, buffer.getSize(), 0, &stagingData);
+        memcpy(stagingData, source, buffer.getSize());
+        vkUnmapMemory(device, stagingBufferMemory);
+
+        const auto copyRegion = VkBufferCopy{
+            .srcOffset = 0,
+            .dstOffset = 0,
+            .size = buffer.getSize(),
+        };
+        vkCmdCopyBuffer(
+            commandBuffer,
+            stagingBuffer,
+            buffer.getBuffer(),
+            1,
+            &copyRegion);
+
+        stagingBuffers.push_back(stagingBuffer);
+        stagingBuffersMemory.push_back(stagingBufferMemory);
     }
 
     void VKCommandList::pipelineBarrier(

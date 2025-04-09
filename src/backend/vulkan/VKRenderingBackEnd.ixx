@@ -184,7 +184,7 @@ export namespace dxvk::backend {
 
         void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) override;
 
-        void upload(Buffer& destination, const void* source) override {}
+        void upload(Buffer& destination, const void* source) override;
 
         auto getCommandBuffer() const { return commandBuffer; }
 
@@ -202,7 +202,10 @@ export namespace dxvk::backend {
        );
 
     private:
+        VkDevice device;
         VkCommandBuffer commandBuffer;
+        std::vector<VkBuffer> stagingBuffers{};
+        std::vector<VkDeviceMemory> stagingBuffersMemory{};
     };
 
     class VKSwapChain : public SwapChain {
@@ -264,11 +267,9 @@ export namespace dxvk::backend {
     class VKBuffer : public Buffer {
     public:
         VKBuffer(
-            VKCommandList& commandList,
             const VKPhysicalDevice& physicalDevice,
             VkDevice device,
             Type type,
-            const void* data,
             size_t size,
             size_t count,
             size_t minOffsetAlignment,
@@ -284,13 +285,7 @@ export namespace dxvk::backend {
 
         auto getBuffer() const { return buffer; }
 
-    private:
-        VkDevice       device;
-        VkBuffer       buffer;
-        VkDeviceMemory bufferMemory;
-        VkDeviceSize   bufferSize;
-        VkBuffer       stagingBuffer{VK_NULL_HANDLE};
-        VkDeviceMemory stagingBufferMemory{VK_NULL_HANDLE};
+        const auto& getPhysicalDevice() const { return physicalDevice; }
 
         static void createBuffer(
             const VKPhysicalDevice& physicalDevice,
@@ -300,6 +295,12 @@ export namespace dxvk::backend {
             VkMemoryPropertyFlags properties,
             VkBuffer& buffer,
             VkDeviceMemory& memory);
+
+    private:
+        const VKPhysicalDevice& physicalDevice;
+        VkDevice       device;
+        VkBuffer       buffer;
+        VkDeviceMemory bufferMemory;
     };
 
     class VKVertexInputLayout : public VertexInputLayout {
