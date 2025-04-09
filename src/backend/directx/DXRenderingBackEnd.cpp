@@ -63,24 +63,8 @@ namespace dxvk::backend {
         return std::make_shared<DXShaderModule>(fileName);
     }
 
-    std::shared_ptr<Buffer> DXRenderingBackEnd::createBuffer(const Buffer::Type type, const size_t size, const size_t count) const {
-        return make_shared<DXBuffer>(getDXDevice()->getDevice(), type, size, count);
-    }
-
-    std::shared_ptr<Buffer> DXRenderingBackEnd::createVertexBuffer(
-        CommandList& commandList,
-        const void* data,
-        size_t size,
-        size_t count,
-        const std::wstring& name) const {
-        return make_shared<DXBuffer>(
-            static_cast<DXCommandList&>(commandList).getCommandList(),
-            getDXDevice()->getDevice(),
-            Buffer::VERTEX,
-            data,
-            size,
-            count,
-            name);
+    std::shared_ptr<Buffer> DXRenderingBackEnd::createBuffer(const Buffer::Type type, const size_t size, const size_t count, const size_t alignment, const std::wstring& name) const {
+        return make_shared<DXBuffer>(getDXDevice()->getDevice(), type, size, count, alignment, name);
     }
 
     void DXRenderingBackEnd::beginRendering(FrameData&, PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) {
@@ -309,6 +293,10 @@ namespace dxvk::backend {
         ThrowIfFailed(commandList->Close());
     }
 
+    void DXCommandList::cleanup() {
+        stagingBuffers.clear();
+    }
+
     void DXCommandList::bindVertexBuffer(Buffer& buffer) {
         auto& vertexBuffer = static_cast<DXBuffer&>(buffer);
         commandList->IASetVertexBuffers(0, 1, &vertexBuffer.getBufferView());
@@ -317,6 +305,44 @@ namespace dxvk::backend {
     void DXCommandList::drawInstanced(const uint32_t vertexCountPerInstance, const uint32_t instanceCount) {
         commandList->DrawInstanced(vertexCountPerInstance, instanceCount, 0, 0);
     }
+
+    void DXCommandList::upload(Buffer& destination, const void* source) {
+        auto& buffer = static_cast<DXBuffer&>(destination);
+
+        ComPtr<ID3D12Resource> stagingBuffer;
+        const auto stagingBufferSize = GetRequiredIntermediateSize(buffer.getBuffer().Get(), 0, 1);
+        const auto stagingHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+        const auto stagingResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(stagingBufferSize);
+        ThrowIfFailed(device->CreateCommittedResource(
+            &stagingHeapProps,
+            D3D12_HEAP_FLAG_NONE,
+            &stagingResourceDesc,
+            D3D12_RESOURCE_STATE_GENERIC_READ,
+            nullptr,
+            IID_PPV_ARGS(&stagingBuffer)));
+
+        const auto copyData = D3D12_SUBRESOURCE_DATA {
+            .pData = source,
+            .RowPitch = static_cast<LONG_PTR>(buffer.getSize()),
+            .SlicePitch =  static_cast<LONG_PTR>(buffer.getSize()),
+        };
+        UpdateSubresources(
+            commandList.Get(),
+            buffer.getBuffer().Get(),
+            stagingBuffer.Get(),
+            0,
+            0,
+            1,
+            &copyData);
+        const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+            buffer.getBuffer().Get(),
+            D3D12_RESOURCE_STATE_COPY_DEST,
+            DXBuffer::ResourceStates[buffer.getType()]);
+        commandList->ResourceBarrier(1, &memoryBarrier);
+
+        stagingBuffers.push_back(stagingBuffer);
+    }
+
 
     DXSwapChain::DXSwapChain(
         const ComPtr<IDXGIFactory4>& factory,
@@ -478,33 +504,17 @@ namespace dxvk::backend {
         ThrowAndPrintIfFailed(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)), device.Get());
     }
 
-    DXBuffer::DXBuffer(const ComPtr<ID3D12Device>& device, const Type type, const size_t size, const size_t count) {
-        auto heap = CD3DX12_HEAP_PROPERTIES(HeapType[type]);
-        bufferSize = size * count;
-        resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
-        ThrowIfFailed(device->CreateCommittedResource(
-            &heap,
-            D3D12_HEAP_FLAG_NONE,
-            &resourceDesc,
-            ResourceStates[type],
-            nullptr,
-            IID_PPV_ARGS(&buffer)));
-        bufferView.BufferLocation = buffer->GetGPUVirtualAddress();
-        bufferView.StrideInBytes = size;
-        bufferView.SizeInBytes = bufferSize;
-    }
-
     DXBuffer::DXBuffer(
-        const ComPtr<ID3D12GraphicsCommandList>& commandList,
-        ComPtr<ID3D12Device> device,
+        const ComPtr<ID3D12Device>& device,
         const Type type,
-        const void* data,
         const size_t size,
         const size_t count,
-        const std::wstring& name) {
-        assert(type != UPLOAD);
-        bufferSize = size * count;
-        // auto alignedBufferSize = (bufferSize + 255) & ~255;
+        size_t minOffsetAlignment,
+        const std::wstring& name): Buffer{type} {
+        alignmentSize = minOffsetAlignment > 0
+               ? (size + minOffsetAlignment - 1) & ~(minOffsetAlignment - 1)
+               : size;
+        bufferSize = alignmentSize * count;
 
         // GPU Buffer
         const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
@@ -517,39 +527,6 @@ namespace dxvk::backend {
             nullptr,
             IID_PPV_ARGS(&buffer)));
         buffer->SetName(name.c_str());
-
-        // Upload buffer
-        const auto stagingBufferSize = GetRequiredIntermediateSize(buffer.Get(), 0, 1);
-        const auto stagingHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-        const auto stagingResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(stagingBufferSize);
-        ThrowIfFailed(device->CreateCommittedResource(
-            &stagingHeapProps,
-            D3D12_HEAP_FLAG_NONE,
-            &stagingResourceDesc,
-            D3D12_RESOURCE_STATE_GENERIC_READ,
-            nullptr,
-            IID_PPV_ARGS(&stagingBuffer)));
-
-        // Data upload & copy
-        const auto copyData = D3D12_SUBRESOURCE_DATA {
-            .pData = data,
-            .RowPitch = static_cast<LONG_PTR>(bufferSize),
-            .SlicePitch =  static_cast<LONG_PTR>(bufferSize),
-        };
-        UpdateSubresources(
-            commandList.Get(),
-            buffer.Get(),
-            stagingBuffer.Get(),
-            0,
-            0,
-            1,
-            &copyData);
-        const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            buffer.Get(),
-            D3D12_RESOURCE_STATE_COPY_DEST,
-            D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
-        commandList->ResourceBarrier(1, &memoryBarrier);
-
         bufferView.BufferLocation = buffer->GetGPUVirtualAddress();
         bufferView.StrideInBytes = size;
         bufferView.SizeInBytes = bufferSize;
@@ -571,10 +548,6 @@ namespace dxvk::backend {
         } else {
             memcpy(reinterpret_cast<unsigned char*>(mappedAddress) + offset, data, size);
         }
-    }
-
-    void DXBuffer::cleanup() {
-        stagingBuffer = nullptr;
     }
 
 }

@@ -178,9 +178,13 @@ export namespace dxvk::backend {
 
         void end() override;
 
+        void cleanup() override;
+
         void bindVertexBuffer(Buffer& buffer) override;
 
         void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) override;
+
+        void upload(Buffer& destination, const void* source) override {}
 
         auto getCommandBuffer() const { return commandBuffer; }
 
@@ -278,8 +282,6 @@ export namespace dxvk::backend {
 
         void write(const void* data, size_t size = WHOLE_SIZE, size_t offset = 0) override;
 
-        void cleanup() override;
-
         auto getBuffer() const { return buffer; }
 
     private:
@@ -287,7 +289,6 @@ export namespace dxvk::backend {
         VkBuffer       buffer;
         VkDeviceMemory bufferMemory;
         VkDeviceSize   bufferSize;
-        VkDeviceSize   alignmentSize;
         VkBuffer       stagingBuffer{VK_NULL_HANDLE};
         VkDeviceMemory stagingBufferMemory{VK_NULL_HANDLE};
 
@@ -390,14 +391,7 @@ export namespace dxvk::backend {
             ShaderModule& vertexShader,
             ShaderModule& fragmentShader) const override;
 
-        std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1) const override;
-
-        std::shared_ptr<Buffer> createVertexBuffer(
-            CommandList& commandList,
-            const void* data,
-            size_t size,
-            size_t count = 1,
-            const std::wstring& name = L"VertexBuffer") const override;
+        std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1, size_t alignment = 1, const std::wstring& name = L"Buffer") const override;
 
         void beginRendering(FrameData& frameData, PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) override;
 

@@ -30,29 +30,18 @@ export namespace dxvk::backend {
 
     class DXBuffer : public Buffer {
     public:
-        static constexpr D3D12_HEAP_TYPE HeapType[] {
-            D3D12_HEAP_TYPE_UPLOAD,
-            D3D12_HEAP_TYPE_DEFAULT, // Vertex
-            D3D12_HEAP_TYPE_DEFAULT, // Index
-            D3D12_HEAP_TYPE_DEFAULT  // Uniform
-        };
-
         static constexpr D3D12_RESOURCE_STATES ResourceStates[] {
-            D3D12_RESOURCE_STATE_GENERIC_READ,
             D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
             D3D12_RESOURCE_STATE_INDEX_BUFFER,
             D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER
         };
 
-        DXBuffer(const ComPtr<ID3D12Device>& device, Type type, size_t size, size_t count = 1);
-
         DXBuffer(
-            const ComPtr<ID3D12GraphicsCommandList>& commandList,
-            ComPtr<ID3D12Device> device,
+            const ComPtr<ID3D12Device>& device,
             Type type,
-            const void* data,
             size_t size,
             size_t count,
+            size_t minOffsetAlignment,
             const std::wstring& name);
 
         void map() override;
@@ -61,13 +50,13 @@ export namespace dxvk::backend {
 
         void write(const void* data, size_t size = WHOLE_SIZE, size_t offset = 0) override;
 
-        void cleanup() override;
-
         const auto& getBufferView() const { return bufferView; }
 
+        auto& getBuffer() const { return buffer; }
+
     private:
+        ComPtr<ID3D12Device>        device;
         ComPtr<ID3D12Resource>      buffer;
-        ComPtr<ID3D12Resource>      stagingBuffer{nullptr};
         D3D12_VERTEX_BUFFER_VIEW    bufferView;
         CD3DX12_RESOURCE_DESC       resourceDesc;
     };
@@ -145,14 +134,19 @@ export namespace dxvk::backend {
 
         void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) override;
 
+        void upload(Buffer& destination, const void* source) override;
+
+        void cleanup() override;
+
         auto getCommandList() { return commandList; }
 
         ~DXCommandList() override = default;
 
     private:
-        ComPtr<ID3D12Device>              device;
-        ComPtr<ID3D12GraphicsCommandList> commandList;
-        ComPtr<ID3D12CommandAllocator>    commandAllocator;
+        ComPtr<ID3D12Device>                device;
+        ComPtr<ID3D12GraphicsCommandList>   commandList;
+        ComPtr<ID3D12CommandAllocator>      commandAllocator;
+        std::vector<ComPtr<ID3D12Resource>> stagingBuffers{};
     };
 
     class DXSwapChain : public SwapChain {
@@ -263,14 +257,7 @@ export namespace dxvk::backend {
             ShaderModule& vertexShader,
             ShaderModule& fragmentShader) const override;
 
-        std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1) const override;
-
-        std::shared_ptr<Buffer> createVertexBuffer(
-            CommandList& commandList,
-            const void* data,
-            size_t size,
-            size_t count = 1,
-            const std::wstring& name = L"VertexBuffer") const override;
+        std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1, size_t alignment = 1, const std::wstring& name = L"Buffer") const override;
 
         void beginRendering(FrameData& frameData, PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) override;
 

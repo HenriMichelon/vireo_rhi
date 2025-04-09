@@ -29,13 +29,13 @@ namespace dxvk {
         auto uploadCommandList = uploadCommandAllocator->createCommandList();
         uploadCommandList->reset();
         uploadCommandList->begin();
-        TODO create + upload
-        vertexBuffer = renderingBackEnd->createVertexBuffer(
-            *uploadCommandList,
-            &triangleVertices[0],
+        vertexBuffer = renderingBackEnd->createBuffer(
+            backend::Buffer::Type::VERTEX,
             sizeof(Vertex),
             triangleVertices.size(),
+            1,
             L"TriangleVertexBuffer");
+        uploadCommandList->upload(*vertexBuffer, &triangleVertices[0]);
         uploadCommandList->end();
         renderingBackEnd->getTransferCommandQueue()->submit({uploadCommandList});
 
@@ -60,7 +60,7 @@ namespace dxvk {
         }
 
         renderingBackEnd->getTransferCommandQueue()->waitIdle();
-        vertexBuffer->cleanup();
+        uploadCommandList->cleanup();
     }
 
     void Application::onUpdate() {

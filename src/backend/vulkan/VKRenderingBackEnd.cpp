@@ -120,28 +120,28 @@ namespace dxvk::backend {
         );
     }
 
-    std::shared_ptr<Buffer> VKRenderingBackEnd::createBuffer(Buffer::Type type, size_t size, size_t count) const  {
+    std::shared_ptr<Buffer> VKRenderingBackEnd::createBuffer(Buffer::Type type, size_t size, size_t count, const size_t alignment, const std::wstring& name) const  {
         throw std::exception("not implemented");
         return nullptr;
     }
 
-    std::shared_ptr<Buffer> VKRenderingBackEnd::createVertexBuffer(
-           CommandList& commandList,
-           const void* data,
-           size_t size,
-           size_t count,
-           const std::wstring& name) const {
-        return make_shared<VKBuffer>(
-            static_cast<VKCommandList&>(commandList),
-            *getVKPhysicalDevice(),
-            getVKDevice()->getDevice(),
-            Buffer::VERTEX,
-            data,
-            size,
-            count,
-            1,
-            name);
-    }
+    // std::shared_ptr<Buffer> VKRenderingBackEnd::createVertexBuffer(
+    //        CommandList& commandList,
+    //        const void* data,
+    //        size_t size,
+    //        size_t count,
+    //        const std::wstring& name) const {
+    //     return make_shared<VKBuffer>(
+    //         static_cast<VKCommandList&>(commandList),
+    //         *getVKPhysicalDevice(),
+    //         getVKDevice()->getDevice(),
+    //         Buffer::VERTEX,
+    //         data,
+    //         size,
+    //         count,
+    //         1,
+    //         name);
+    // }
 
     void VKRenderingBackEnd::beginRendering(FrameData& frameData, PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) {
         auto& data = static_cast<VKFrameData&>(frameData);
@@ -196,7 +196,7 @@ namespace dxvk::backend {
             size_t size,
             size_t count,
             size_t minOffsetAlignment,
-            const std::wstring& name) : device{device} {
+            const std::wstring& name) : Buffer{type}, device{device} {
         alignmentSize = minOffsetAlignment > 0
                ? (size + minOffsetAlignment - 1) & ~(minOffsetAlignment - 1)
                : size;
@@ -254,14 +254,6 @@ namespace dxvk::backend {
         }
     }
 
-    void VKBuffer::cleanup() {
-        if (stagingBuffer != VK_NULL_HANDLE) {
-            vkDestroyBuffer(device, stagingBuffer, nullptr);
-            vkFreeMemory(device, stagingBufferMemory, nullptr);
-            stagingBuffer = VK_NULL_HANDLE;
-            stagingBufferMemory = VK_NULL_HANDLE;
-        }
-    }
 
     void VKBuffer::createBuffer(
             const VKPhysicalDevice& physicalDevice,
@@ -1096,6 +1088,16 @@ namespace dxvk::backend {
         if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
             die("failed to record command buffer!");
         }
+    }
+
+
+    void VKCommandList::cleanup() {
+        // if (stagingBuffer != VK_NULL_HANDLE) {
+        //     vkDestroyBuffer(device, stagingBuffer, nullptr);
+        //     vkFreeMemory(device, stagingBufferMemory, nullptr);
+        //     stagingBuffer = VK_NULL_HANDLE;
+        //     stagingBufferMemory = VK_NULL_HANDLE;
+        // }
     }
 
     void VKCommandList::pipelineBarrier(

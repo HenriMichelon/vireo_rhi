@@ -20,7 +20,6 @@ export namespace dxvk::backend {
     class Buffer {
     public:
         enum Type {
-            UPLOAD,
             VERTEX,
             INDEX,
             UNIFORM
@@ -28,9 +27,13 @@ export namespace dxvk::backend {
 
         static constexpr size_t WHOLE_SIZE = ~0ULL;
 
+        Buffer(const Type type): type{type} {}
+
         virtual ~Buffer() = default;
 
         auto getSize() const { return bufferSize; }
+
+        auto getType() const { return type; }
 
         virtual void map() = 0;
 
@@ -38,10 +41,10 @@ export namespace dxvk::backend {
 
         virtual void write(const void* data, size_t size = WHOLE_SIZE, size_t offset = 0) = 0;
 
-        virtual void cleanup() = 0;
-
     protected:
+        Type    type;
         size_t  bufferSize{0};
+        size_t  alignmentSize{0};
         void*   mappedAddress{nullptr};
     };
 
@@ -94,6 +97,10 @@ export namespace dxvk::backend {
         virtual void bindVertexBuffer(Buffer& buffer) = 0;
 
         virtual void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) = 0;
+
+        virtual void upload(Buffer& destination, const void* source) = 0;
+
+        virtual void cleanup() = 0;
 
         virtual ~CommandList() = default;
     };
@@ -187,14 +194,7 @@ export namespace dxvk::backend {
             ShaderModule& vertexShader,
             ShaderModule& fragmentShader) const = 0;
 
-        virtual std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1) const = 0;
-
-        virtual std::shared_ptr<Buffer> createVertexBuffer(
-            CommandList& commandList,
-            const void* data,
-            size_t size,
-            size_t count = 1,
-            const std::wstring& name = L"VertexBuffer") const = 0;
+        virtual std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1, size_t alignment = 1, const std::wstring& name = L"Buffer") const = 0;
 
         virtual void beginRendering(FrameData& frameData, PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) = 0;
 
