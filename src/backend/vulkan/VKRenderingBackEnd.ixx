@@ -64,9 +64,11 @@ export namespace vireo::backend {
         // Find a dedicated compute & transfer queue
         uint32_t findComputeQueueFamily() const;
 
-        uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
-
         auto getSurface() const { return surface; }
+
+        auto getMemoryTypeDeviceLocalIndex() const { return memoryTypeDeviceLocalIndex; }
+
+        auto getMemoryTypeHostVisibleIndex() const { return memoryTypeHostVisibleIndex; }
 
     private:
         VkInstance                   instance{VK_NULL_HANDLE};
@@ -80,6 +82,8 @@ export namespace vireo::backend {
         VkPhysicalDeviceIDProperties physDeviceIDProps{
             VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES
         };
+        uint32_t                     memoryTypeDeviceLocalIndex;
+        uint32_t                     memoryTypeHostVisibleIndex;
 
         struct SwapChainSupportDetails {
             VkSurfaceCapabilitiesKHR        capabilities;
@@ -98,7 +102,6 @@ export namespace vireo::backend {
 
         // Get the swap chain capabilities
         SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice vkPhysicalDevice) const;
-
     };
 
     class VKDevice : public Device {
@@ -106,7 +109,9 @@ export namespace vireo::backend {
         VKDevice(const VKPhysicalDevice& physicalDevice, const std::vector<const char *>& requestedLayers);
         ~VKDevice() override;
 
-        auto getDevice() const { return device; }
+        inline auto getDevice() const { return device; }
+
+        inline const auto& getPhysicalDevice() const { return physicalDevice; }
 
         auto getGraphicsQueueFamilyIndex() const { return graphicsQueueFamilyIndex; }
 
@@ -133,6 +138,7 @@ export namespace vireo::backend {
           uint32_t levelCount = VK_REMAINING_MIP_LEVELS);
 
     private:
+        const VKPhysicalDevice& physicalDevice;
         VkDevice    device{VK_NULL_HANDLE};
         uint32_t    presentQueueFamilyIndex;
         uint32_t    graphicsQueueFamilyIndex;
@@ -166,13 +172,13 @@ export namespace vireo::backend {
         std::shared_ptr<CommandList> createCommandList() const override;
 
     private:
-        VkDevice      device;
-        VkCommandPool commandPool;
+        const VKDevice& device;
+        VkCommandPool   commandPool;
     };
 
     class VKCommandList : public CommandList {
     public:
-        VKCommandList(VkDevice device, VkCommandPool commandPool);
+        VKCommandList(const VKDevice& device, VkCommandPool commandPool);
 
         ~VKCommandList() override;
 
@@ -208,7 +214,7 @@ export namespace vireo::backend {
        );
 
     private:
-        VkDevice device;
+        const VKDevice& device;
         VkCommandBuffer commandBuffer;
         std::vector<VkBuffer> stagingBuffers{};
         std::vector<VkDeviceMemory> stagingBuffersMemory{};
@@ -273,8 +279,7 @@ export namespace vireo::backend {
     class VKBuffer : public Buffer {
     public:
         VKBuffer(
-            const VKPhysicalDevice& physicalDevice,
-            VkDevice device,
+            const VKDevice& device,
             Type type,
             size_t size,
             size_t count,
@@ -289,22 +294,18 @@ export namespace vireo::backend {
 
         void write(const void* data, size_t size = WHOLE_SIZE, size_t offset = 0) override;
 
-        auto getBuffer() const { return buffer; }
-
-        const auto& getPhysicalDevice() const { return physicalDevice; }
+        inline auto getBuffer() const { return buffer; }
 
         static void createBuffer(
-            const VKPhysicalDevice& physicalDevice,
-            VkDevice device,
+            const VKDevice& device,
             VkDeviceSize size,
             VkBufferUsageFlags usage,
-            VkMemoryPropertyFlags properties,
+            uint32_t memoryTypeIndex,
             VkBuffer& buffer,
             VkDeviceMemory& memory);
 
     private:
-        const VKPhysicalDevice& physicalDevice;
-        VkDevice       device;
+        const VKDevice& device;
         VkBuffer       buffer;
         VkDeviceMemory bufferMemory;
     };

@@ -127,8 +127,7 @@ namespace vireo::backend {
 
     std::shared_ptr<Buffer> VKRenderingBackEnd::createBuffer(Buffer::Type type, size_t size, size_t count, const size_t alignment, const std::wstring& name) const  {
         return make_shared<VKBuffer>(
-           *getVKPhysicalDevice(),
-           getVKDevice()->getDevice(),
+           *getVKDevice(),
            Buffer::VERTEX,
            size,
            count,
@@ -205,13 +204,12 @@ namespace vireo::backend {
     }
 
     VKBuffer::VKBuffer(
-            const VKPhysicalDevice& physicalDevice,
-            const VkDevice device,
+            const VKDevice& device,
             const Type type,
             const size_t size,
             const size_t count,
             const size_t minOffsetAlignment,
-            const std::wstring& name) : Buffer{type}, physicalDevice{physicalDevice}, device{device} {
+            const std::wstring& name) : Buffer{type},device{device} {
         alignmentSize = minOffsetAlignment > 0
                ? (size + minOffsetAlignment - 1) & ~(minOffsetAlignment - 1)
                : size;
@@ -221,18 +219,18 @@ namespace vireo::backend {
             type == VERTEX ? VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT :
             type == INDEX ? VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT:
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-        const auto memTypes = (type == VERTEX || type == INDEX) ?
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT :
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-        createBuffer(physicalDevice, device, bufferSize, usage, memTypes, buffer, bufferMemory);
+        const auto memTypeIndex = (type == VERTEX || type == INDEX) ?
+            device.getPhysicalDevice().getMemoryTypeDeviceLocalIndex() :
+            device.getPhysicalDevice().getMemoryTypeHostVisibleIndex();
+        createBuffer(device, bufferSize, usage, memTypeIndex, buffer, bufferMemory);
     }
 
     void VKBuffer::map() {
-        vkMapMemory(device, bufferMemory, 0, bufferSize, 0, &mappedAddress);
+        vkMapMemory(device.getDevice(), bufferMemory, 0, bufferSize, 0, &mappedAddress);
     }
 
     void VKBuffer::unmap() {
-        vkUnmapMemory(device, bufferMemory);
+        vkUnmapMemory(device.getDevice(), bufferMemory);
         mappedAddress = nullptr;
     }
 
@@ -245,34 +243,33 @@ namespace vireo::backend {
     }
 
     void VKBuffer::createBuffer(
-            const VKPhysicalDevice& physicalDevice,
-            VkDevice device,
-            VkDeviceSize size,
-            VkBufferUsageFlags bufferUsageFlags,
-            VkMemoryPropertyFlags memoryPropertyFlags,
+            const VKDevice& device,
+            const VkDeviceSize size,
+            const VkBufferUsageFlags usage,
+            const uint32_t memoryTypeIndex,
             VkBuffer& buffer,
             VkDeviceMemory& memory) {
         const auto bufferInfo = VkBufferCreateInfo {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             .size = size,
-            .usage = bufferUsageFlags,
+            .usage = usage,
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         };
-        DieIfFailed (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer));
+        DieIfFailed (vkCreateBuffer(device.getDevice(), &bufferInfo, nullptr, &buffer));
         VkMemoryRequirements memRequirements;
-        vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
+        vkGetBufferMemoryRequirements(device.getDevice(), buffer, &memRequirements);
         const auto allocInfo = VkMemoryAllocateInfo {
             .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
             .allocationSize = memRequirements.size,
-            .memoryTypeIndex = physicalDevice.findMemoryType(memRequirements.memoryTypeBits, memoryPropertyFlags)
+            .memoryTypeIndex = memoryTypeIndex
         };
-        DieIfFailed(vkAllocateMemory(device, &allocInfo, nullptr, &memory));
-        vkBindBufferMemory(device, buffer, memory, 0);
+        DieIfFailed(vkAllocateMemory(device.getDevice(), &allocInfo, nullptr, &memory));
+        vkBindBufferMemory(device.getDevice(), buffer, memory, 0);
     }
 
     VKBuffer::~VKBuffer() {
-        vkDestroyBuffer(device, buffer, nullptr);
-        vkFreeMemory(device, bufferMemory, nullptr);
+        vkDestroyBuffer(device.getDevice(), buffer, nullptr);
+        vkFreeMemory(device.getDevice(), bufferMemory, nullptr);
     }
 
     VKVertexInputLayout::VKVertexInputLayout(size_t size, const std::vector<AttributeDescription>& attributesDescriptions) {
@@ -593,7 +590,19 @@ namespace vireo::backend {
             die("Failed to find a suitable GPU!");
         }
 
-
+        {
+            VkPhysicalDeviceMemoryProperties memoryProperties{};
+            vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
+            for (int i = 0; i < memoryProperties.memoryTypeCount; i++) {
+                if ((memoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) ==
+                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
+                    memoryTypeDeviceLocalIndex = i;
+                } else if ((memoryProperties.memoryTypes[i].propertyFlags & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) ==
+                    (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
+                    memoryTypeHostVisibleIndex = i;
+                }
+            }
+        }
     }
 
      VKPhysicalDevice::QueueFamilyIndices VKPhysicalDevice::findQueueFamilies(const VkPhysicalDevice vkPhysicalDevice) const {
@@ -663,16 +672,16 @@ namespace vireo::backend {
         return i;
     }
 
-    uint32_t VKPhysicalDevice::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const {
-        VkPhysicalDeviceMemoryProperties memProperties;
-        vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
-        for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-            if ((typeFilter & (1 << i)) &&
-                (memProperties.memoryTypes[i].propertyFlags & properties) == properties) { return i; }
-        }
-        die("failed to find suitable memory type!");
-        return 0;
-    }
+    // uint32_t VKPhysicalDevice::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const {
+    //     VkPhysicalDeviceMemoryProperties memProperties;
+    //     vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+    //     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+    //         if ((typeFilter & (1 << i)) &&
+    //             (memProperties.memoryTypes[i].propertyFlags & properties) == properties) { return i; }
+    //     }
+    //     die("failed to find suitable memory type!");
+    //     return 0;
+    // }
 
     VKPhysicalDevice::~VKPhysicalDevice() {
         vkDestroySurfaceKHR(instance, surface, nullptr);
@@ -749,7 +758,8 @@ namespace vireo::backend {
         return details;
     }
 
-    VKDevice::VKDevice(const VKPhysicalDevice& physicalDevice, const std::vector<const char *>& requestedLayers) {
+    VKDevice::VKDevice(const VKPhysicalDevice& physicalDevice, const std::vector<const char *>& requestedLayers):
+        physicalDevice{physicalDevice} {
          /// Select command queues
         vector<VkDeviceQueueCreateInfo> queueCreateInfos;
         constexpr auto queuePriority = array{1.0f};
@@ -958,7 +968,7 @@ namespace vireo::backend {
 
     VKCommandAllocator::VKCommandAllocator(const CommandList::Type type, const VKDevice& device):
         CommandAllocator{type},
-        device(device.getDevice()) {
+        device{device} {
         const VkCommandPoolCreateInfo poolInfo           = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
             .flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, // TODO optional
@@ -970,7 +980,7 @@ namespace vireo::backend {
     }
 
     VKCommandAllocator::~VKCommandAllocator() {
-        vkDestroyCommandPool(device, commandPool, nullptr);
+        vkDestroyCommandPool(device.getDevice(), commandPool, nullptr);
     }
 
     std::shared_ptr<CommandList> VKCommandAllocator::createCommandList(Pipeline& pipeline) const {
@@ -981,14 +991,14 @@ namespace vireo::backend {
         return std::make_shared<VKCommandList>(device, commandPool);
     }
 
-    VKCommandList::VKCommandList(const VkDevice device, const VkCommandPool commandPool) : device{device} {
+    VKCommandList::VKCommandList(const VKDevice& device, const VkCommandPool commandPool) : device{device} {
         const VkCommandBufferAllocateInfo allocInfo{
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
             .commandPool = commandPool,
             .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
             .commandBufferCount = 1
         };
-        DieIfFailed(vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer));
+        DieIfFailed(vkAllocateCommandBuffers(device.getDevice(), &allocInfo, &commandBuffer));
     }
 
     void VKCommandList::bindVertexBuffer(Buffer& buffer) {
@@ -1032,8 +1042,8 @@ namespace vireo::backend {
 
     void VKCommandList::cleanup() {
         for (int i = 0; i < stagingBuffers.size(); i++) {
-            vkDestroyBuffer(device, stagingBuffers[i], nullptr);
-            vkFreeMemory(device, stagingBuffersMemory[i], nullptr);
+            vkDestroyBuffer(device.getDevice(), stagingBuffers[i], nullptr);
+            vkFreeMemory(device.getDevice(), stagingBuffersMemory[i], nullptr);
         }
         stagingBuffers.clear();
         stagingBuffersMemory.clear();
@@ -1044,17 +1054,16 @@ namespace vireo::backend {
         VkBuffer       stagingBuffer{VK_NULL_HANDLE};
         VkDeviceMemory stagingBufferMemory{VK_NULL_HANDLE};
         VKBuffer::createBuffer(
-            buffer.getPhysicalDevice(),
             device,
             buffer.getSize(),
             VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            device.getPhysicalDevice().getMemoryTypeHostVisibleIndex(),
             stagingBuffer, stagingBufferMemory);
 
         void* stagingData;
-        vkMapMemory(device, stagingBufferMemory, 0, buffer.getSize(), 0, &stagingData);
+        vkMapMemory(device.getDevice(), stagingBufferMemory, 0, buffer.getSize(), 0, &stagingData);
         memcpy(stagingData, source, buffer.getSize());
-        vkUnmapMemory(device, stagingBufferMemory);
+        vkUnmapMemory(device.getDevice(), stagingBufferMemory);
 
         const auto copyRegion = VkBufferCopy{
             .srcOffset = 0,
