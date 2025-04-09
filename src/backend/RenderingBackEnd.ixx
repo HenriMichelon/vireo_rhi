@@ -9,6 +9,8 @@ module;
 
 export module vireo.backend;
 
+import vireo.backend.buffer;
+import vireo.backend.device;
 import vireo.backend.framedata;
 
 export namespace vireo::backend {
@@ -16,47 +18,6 @@ export namespace vireo::backend {
     enum class RenderingBackends {
         DIRECTX,
         VULKAN,
-    };
-
-    class Instance {
-    public:
-        virtual ~Instance() = default;
-    };
-
-    class PhysicalDevice {
-    public:
-        virtual ~PhysicalDevice() = default;
-    };
-
-    class Buffer {
-    public:
-        enum Type {
-            VERTEX,
-            INDEX,
-            UNIFORM
-        };
-
-        static constexpr size_t WHOLE_SIZE = ~0ULL;
-
-        Buffer(const Type type): type{type} {}
-
-        virtual ~Buffer() = default;
-
-        auto getSize() const { return bufferSize; }
-
-        auto getType() const { return type; }
-
-        virtual void map() = 0;
-
-        virtual void unmap() = 0;
-
-        virtual void write(const void* data, size_t size = WHOLE_SIZE, size_t offset = 0) = 0;
-
-    protected:
-        Type    type;
-        size_t  bufferSize{0};
-        size_t  alignmentSize{0};
-        void*   mappedAddress{nullptr};
     };
 
     class VertexInputLayout {

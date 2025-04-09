@@ -10,6 +10,7 @@ module;
 export module vireo.app;
 
 import vireo.backend;
+import vireo.backend.buffer;
 import vireo.backend.framedata;
 
 export namespace vireo {

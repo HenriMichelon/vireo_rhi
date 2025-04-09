@@ -10,79 +10,12 @@ module;
 export module vireo.backend.directx;
 
 import vireo.backend;
+import vireo.backend.buffer;
 import vireo.backend.framedata;
 
+import vireo.backend.directx.device;
+
 export namespace vireo::backend {
-
-    class DXInstance : public Instance {
-    public:
-        DXInstance();
-
-        auto getFactory() { return factory; }
-
-    private:
-        ComPtr<IDXGIFactory4> factory;
-    };
-
-    class DXPhysicalDevice : public PhysicalDevice {
-    public:
-        DXPhysicalDevice(const ComPtr<IDXGIFactory4>& factory);
-
-        auto getHardwareAdapter() { return hardwareAdapter4; }
-
-    private:
-        ComPtr<IDXGIAdapter4> hardwareAdapter4;
-    };
-
-    class DXBuffer : public Buffer {
-    public:
-        static constexpr D3D12_RESOURCE_STATES ResourceStates[] {
-            D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
-            D3D12_RESOURCE_STATE_INDEX_BUFFER,
-            D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER
-        };
-
-        DXBuffer(
-            const ComPtr<ID3D12Device>& device,
-            Type type,
-            size_t size,
-            size_t count,
-            size_t minOffsetAlignment,
-            const std::wstring& name);
-
-        void map() override;
-
-        void unmap() override;
-
-        void write(const void* data, size_t size = WHOLE_SIZE, size_t offset = 0) override;
-
-        const auto& getBufferView() const { return bufferView; }
-
-        auto& getBuffer() const { return buffer; }
-
-    private:
-        ComPtr<ID3D12Device>        device;
-        ComPtr<ID3D12Resource>      buffer;
-        D3D12_VERTEX_BUFFER_VIEW    bufferView;
-        CD3DX12_RESOURCE_DESC       resourceDesc;
-    };
-
-    class DXDevice : public Device {
-    public:
-        DXDevice(const ComPtr<IDXGIAdapter4>& hardwareAdapter4);
-        ~DXDevice() override;
-
-        auto getDevice() { return device; }
-
-        auto getInFlightFence() { return inFlightFence; }
-
-        auto getInFlightFenceEvent() const { return inFlightFenceEvent;}
-
-    private:
-        ComPtr<ID3D12Device> device;
-        ComPtr<ID3D12Fence>  inFlightFence;
-        HANDLE               inFlightFenceEvent;
-    };
 
     class DXSubmitQueue : public SubmitQueue{
     public:

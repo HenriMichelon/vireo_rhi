@@ -1,20 +1,10 @@
 // https://github.com/microsoft/DirectX-Graphics-Samples/tree/master/Samples/Desktop/D3D12HelloWorld/src/HelloTriangle
-module;
-#include "backend/directx/Tools.h"
-
-export module vireo.app.directx;
-
-import vireo.app;
-import vireo.backend;
-
-export namespace dxvk {
 
     class DXApplication: public BaseApplication {
         ComPtr<ID3D12DescriptorHeap> m_srvCbvHeap;
         UINT m_srvCbvDescriptorSize;
         ComPtr<ID3D12Resource> m_texture;
 
-        // Buffer
         enum rootParameterIndex {
           ROOT_PARAMETER_INDEX_SRV = 0,
           ROOT_PARAMETER_INDEX_CBV = 1,
@@ -30,4 +20,3 @@ export namespace dxvk {
         UINT8* m_pCbvDataBegin;
     };
 
-}
