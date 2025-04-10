@@ -10,8 +10,10 @@ module;
 module vireo.backend.vulkan;
 
 import vireo.app.win32;
+
 import vireo.backend.vulkan.descriptors;
 import vireo.backend.vulkan.framedata;
+import vireo.backend.vulkan.samplers;
 
 namespace vireo::backend {
 
@@ -172,8 +174,24 @@ namespace vireo::backend {
         vkDeviceWaitIdle(getVKDevice()->getDevice());
     }
 
-    std::shared_ptr<DescriptorSet> VKRenderingBackEnd::createDescriptorAllocator(DescriptorType type, uint32_t capacity) {
+    std::shared_ptr<DescriptorSet> VKRenderingBackEnd::createDescriptorSet(DescriptorType type, uint32_t capacity) {
         return std::make_shared<VKDescriptorSet>(type, getVKDevice()->getDevice(), capacity);
+    }
+
+    std::shared_ptr<Sampler> VKRenderingBackEnd::createSampler(
+           Filter minFilter,
+           Filter magFilter,
+           AddressMode addressModeU,
+           AddressMode addressModeV,
+           AddressMode addressModeW,
+           float minLod,
+           float maxLod,
+           bool anisotropyEnable,
+           MipMapMode mipMapMode) const {
+        return std::make_shared<VKSampler>(
+            *getVKPhysicalDevice(), getVKDevice()->getDevice(),
+            minFilter, magFilter, addressModeU, addressModeV, addressModeW,
+            minLod, maxLod, anisotropyEnable, mipMapMode);
     }
 
     VKVertexInputLayout::VKVertexInputLayout(size_t size, const std::vector<AttributeDescription>& attributesDescriptions) {

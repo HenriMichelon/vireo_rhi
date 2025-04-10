@@ -13,6 +13,7 @@ import vireo.backend;
 import vireo.backend.buffer;
 import vireo.backend.descriptors;
 import vireo.backend.framedata;
+import vireo.backend.samplers;
 
 import vireo.backend.directx.device;
 
@@ -201,7 +202,18 @@ export namespace vireo::backend {
 
         std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1, size_t alignment = 1, const std::wstring& name = L"Buffer") const override;
 
-        std::shared_ptr<DescriptorSet> createDescriptorAllocator(DescriptorType type, uint32_t capacity) override;
+        std::shared_ptr<DescriptorSet> createDescriptorSet(DescriptorType type, uint32_t capacity) override;
+
+        std::shared_ptr<Sampler> createSampler(
+               Filter minFilter,
+               Filter magFilter,
+               AddressMode addressModeU,
+               AddressMode addressModeV,
+               AddressMode addressModeW,
+               float minLod = 0.0f,
+               float maxLod = 1.0f,
+               bool anisotropyEnable = true,
+               MipMapMode mipMapMode = MipMapMode::LINEAR) const override;
 
         void beginRendering(FrameData& frameData, PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) override;
 

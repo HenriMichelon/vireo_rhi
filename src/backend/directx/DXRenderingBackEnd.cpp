@@ -10,9 +10,11 @@ module;
 module vireo.backend.directx;
 
 import vireo.app.win32;
+
 import vireo.backend.directx.buffer;
 import vireo.backend.directx.descriptors;
 import vireo.backend.directx.framedata;
+import vireo.backend.directx.samplers;
 
 namespace vireo::backend {
 
@@ -92,8 +94,23 @@ namespace vireo::backend {
         return make_shared<DXBuffer>(getDXDevice()->getDevice(), type, size, count, alignment, name);
     }
 
-    std::shared_ptr<DescriptorSet> DXRenderingBackEnd::createDescriptorAllocator(DescriptorType type, uint32_t capacity) {
+    std::shared_ptr<DescriptorSet> DXRenderingBackEnd::createDescriptorSet(DescriptorType type, uint32_t capacity) {
         return std::make_shared<DXDescriptorSet>(type, getDXDevice()->getDevice(), capacity);
+    }
+
+    std::shared_ptr<Sampler> DXRenderingBackEnd::createSampler(
+           Filter minFilter,
+           Filter magFilter,
+           AddressMode addressModeU,
+           AddressMode addressModeV,
+           AddressMode addressModeW,
+           float minLod,
+           float maxLod,
+           bool anisotropyEnable,
+           MipMapMode mipMapMode) const {
+        return std::make_shared<DXSampler>(
+            minFilter, magFilter, addressModeU, addressModeV, addressModeW,
+            minLod, maxLod, anisotropyEnable, mipMapMode);
     }
 
     void DXRenderingBackEnd::beginRendering(FrameData&,

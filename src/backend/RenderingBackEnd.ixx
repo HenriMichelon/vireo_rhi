@@ -6,13 +6,13 @@
 */
 module;
 #include "Tools.h"
-
 export module vireo.backend;
 
-import vireo.backend.buffer;
-import vireo.backend.descriptors;
-import vireo.backend.device;
-import vireo.backend.framedata;
+export import vireo.backend.buffer;
+export import vireo.backend.descriptors;
+export import vireo.backend.device;
+export import vireo.backend.framedata;
+export import vireo.backend.samplers;
 
 export namespace vireo::backend {
 
@@ -94,11 +94,6 @@ export namespace vireo::backend {
         CommandList::Type commandListType;
     };
 
-    class Device {
-    public:
-        virtual ~Device() = default;
-    };
-
     class SubmitQueue {
     public:
         virtual void submit(const FrameData& frameData, std::vector<std::shared_ptr<CommandList>> commandLists) = 0;
@@ -171,9 +166,25 @@ export namespace vireo::backend {
             ShaderModule& fragmentShader,
             const std::wstring& name = L"Pipeline") const = 0;
 
-        virtual std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1, size_t alignment = 1, const std::wstring& name = L"Buffer") const = 0;
+        virtual std::shared_ptr<Buffer> createBuffer(
+            Buffer::Type type,
+            size_t size,
+            size_t count = 1,
+            size_t alignment = 1,
+            const std::wstring& name = L"Buffer") const = 0;
 
-        virtual std::shared_ptr<DescriptorSet> createDescriptorAllocator(DescriptorType type, uint32_t capacity) = 0;
+        virtual std::shared_ptr<DescriptorSet> createDescriptorSet(DescriptorType type, uint32_t capacity) = 0;
+
+        virtual std::shared_ptr<Sampler> createSampler(
+            Filter minFilter,
+            Filter magFilter,
+            AddressMode addressModeU,
+            AddressMode addressModeV,
+            AddressMode addressModeW,
+            float minLod = 0.0f,
+            float maxLod = 1.0f,
+            bool anisotropyEnable = true,
+            MipMapMode mipMapMode = MipMapMode::LINEAR) const = 0;
 
         virtual void beginRendering(FrameData& frameData, PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) = 0;
 

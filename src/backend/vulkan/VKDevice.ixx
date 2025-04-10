@@ -38,7 +38,9 @@ export namespace vireo::backend {
 
         auto getPhysicalDevice() const { return physicalDevice; }
 
-        auto& getDeviceExtensions() const { return deviceExtensions; }
+        const auto& getDeviceExtensions() const { return deviceExtensions; }
+
+        const auto& getDeviceProperties() const { return deviceProperties.properties; }
 
         struct QueueFamilyIndices {
             std::optional<uint32_t> graphicsFamily;

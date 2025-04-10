@@ -46,7 +46,7 @@ namespace vireo {
         uploadCommandList->end();
         renderingBackEnd->getTransferCommandQueue()->submit({uploadCommandList});
 
-        uniformDescriptorSet = renderingBackEnd->createDescriptorAllocator(backend::DescriptorType::BUFFER, 100);
+        uniformDescriptorSet = renderingBackEnd->createDescriptorSet(backend::DescriptorType::BUFFER, 100);
         sceneConstantBufferHandle =  uniformDescriptorSet->allocate();
         sceneConstantBuffer = renderingBackEnd->createBuffer(
             backend::Buffer::UNIFORM,
@@ -55,7 +55,15 @@ namespace vireo {
             L"ConstantBuffer");
         uniformDescriptorSet->update(sceneConstantBufferHandle, *sceneConstantBuffer);
 
-
+        defaultSampler = renderingBackEnd->createSampler(
+            backend::Filter::NEAREST,
+            backend::Filter::NEAREST,
+            backend::AddressMode::CLAMP_TO_BORDER,
+            backend::AddressMode::CLAMP_TO_BORDER,
+            backend::AddressMode::CLAMP_TO_BORDER,
+            0.0f, 1.0f,
+            false,
+            backend::MipMapMode::NEAREST);
         pipelineResources["default"] = renderingBackEnd->createPipelineResources();
 
         const auto attributes = std::vector{

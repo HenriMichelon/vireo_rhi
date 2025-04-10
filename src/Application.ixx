@@ -10,9 +10,6 @@ module;
 export module vireo.app;
 
 import vireo.backend;
-import vireo.backend.buffer;
-import vireo.backend.descriptors;
-import vireo.backend.framedata;
 
 export namespace vireo {
 
@@ -49,6 +46,7 @@ export namespace vireo {
         std::vector<std::shared_ptr<backend::CommandAllocator>> graphicCommandAllocator{backend::SwapChain::FRAMES_IN_FLIGHT};
         std::vector<std::shared_ptr<backend::CommandList>> graphicCommandList{backend::SwapChain::FRAMES_IN_FLIGHT};
         std::shared_ptr<backend::DescriptorSet> uniformDescriptorSet;
+        std::shared_ptr<backend::Sampler> defaultSampler;
         std::map<std::string, std::shared_ptr<backend::PipelineResources>> pipelineResources;
         std::map<std::string, std::shared_ptr<backend::Pipeline>> pipelines;
         std::shared_ptr<backend::Buffer> vertexBuffer;

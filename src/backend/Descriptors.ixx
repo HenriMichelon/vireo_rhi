@@ -12,9 +12,9 @@ import vireo.backend.buffer;
 
 export namespace vireo::backend {
 
-    enum class DescriptorType {
-        BUFFER,
-        TEXTURE
+    enum class DescriptorType : uint8_t {
+        BUFFER  = 0,
+        TEXTURE = 1
     };
 
     using DescriptorHandle = uint32_t;
