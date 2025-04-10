@@ -8,8 +8,7 @@ module;
 #include "backend/vulkan/Tools.h"
 module vireo.backend.vulkan.descriptors;
 
-import vireo.backend.vulkan.buffer;
-import vireo.backend.vulkan.samplers;
+import vireo.backend.vulkan.resources;
 
 namespace vireo::backend {
 
@@ -18,8 +17,7 @@ namespace vireo::backend {
         device{device} {
         const VkDescriptorType vkType =
             type == DescriptorType::BUFFER ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER :
-            type == DescriptorType::TEXTURE ? VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE :
-            VK_DESCRIPTOR_TYPE_SAMPLER;
+            VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
 
         const auto poolSize = VkDescriptorPoolSize {
             .type =vkType,

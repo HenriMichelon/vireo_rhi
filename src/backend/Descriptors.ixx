@@ -8,15 +8,13 @@ module;
 #include "Tools.h"
 export module vireo.backend.descriptors;
 
-import vireo.backend.buffer;
-import vireo.backend.samplers;
+import vireo.backend.resources;
 
 export namespace vireo::backend {
 
     enum class DescriptorType : uint8_t {
         BUFFER  = 0,
         TEXTURE = 1,
-        SAMPLER = 2,
     };
 
     using DescriptorHandle = uint32_t;

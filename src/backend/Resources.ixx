@@ -6,8 +6,7 @@
 */
 module;
 #include "Tools.h"
-
-export module vireo.backend.buffer;
+export module vireo.backend.resources;
 
 export namespace vireo::backend {
 
@@ -40,6 +39,29 @@ export namespace vireo::backend {
         size_t  bufferSize{0};
         size_t  alignmentSize{0};
         void*   mappedAddress{nullptr};
+    };
+
+
+    enum class Filter : uint8_t {
+        NEAREST = 0,
+        LINEAR  = 1,
+    };
+
+    enum class AddressMode : uint8_t {
+        REPEAT          = 0,
+        MIRRORED_REPEAT = 1,
+        CLAMP_TO_EDGE   = 2,
+        CLAMP_TO_BORDER = 3,
+    };
+
+    enum class MipMapMode : uint8_t {
+        NEAREST = 0,
+        LINEAR  = 1,
+    };
+
+    class Sampler {
+    public:
+        virtual ~Sampler() = default;
     };
 
 }

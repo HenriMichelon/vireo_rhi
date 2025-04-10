@@ -36,16 +36,14 @@ add_executable(${MY_TARGET}
         ${SRC_DIR}/os/windows/Win32Application.cpp
         ${SRC_DIR}/os/windows/WinMain.cpp
         ${SRC_DIR}/backend/Descriptors.cpp
-        ${SRC_DIR}/backend/directx/DXBuffer.cpp
+        ${SRC_DIR}/backend/directx/DXResources.cpp
         ${SRC_DIR}/backend/directx/DXDescriptors.cpp
         ${SRC_DIR}/backend/directx/DXDevice.cpp
         ${SRC_DIR}/backend/directx/DXRenderingBackEnd.cpp
-        ${SRC_DIR}/backend/directx/DXSamplers.cpp
-        ${SRC_DIR}/backend/vulkan/VKBuffer.cpp
+        ${SRC_DIR}/backend/vulkan/VKResources.cpp
         ${SRC_DIR}/backend/vulkan/VKDevice.cpp
         ${SRC_DIR}/backend/vulkan/VKDescriptors.cpp
         ${SRC_DIR}/backend/vulkan/VKRenderingBackEnd.cpp
-        ${SRC_DIR}/backend/vulkan/VKSamplers.cpp
         ${SRC_DIR}/backend/vulkan/Vulkan.cpp
 )
 
@@ -55,24 +53,21 @@ target_sources(${MY_TARGET}
     FILES
         ${SRC_DIR}/Application.ixx
         ${SRC_DIR}/os/windows/Win32Application.ixx
-        ${SRC_DIR}/backend/Buffer.ixx
         ${SRC_DIR}/backend/Descriptors.ixx
         ${SRC_DIR}/backend/Device.ixx
         ${SRC_DIR}/backend/FrameData.ixx
         ${SRC_DIR}/backend/RenderingBackEnd.ixx
-        ${SRC_DIR}/backend/Samplers.ixx
-        ${SRC_DIR}/backend/directx/DXBuffer.ixx
+        ${SRC_DIR}/backend/Resources.ixx
+        ${SRC_DIR}/backend/directx/DXResources.ixx
         ${SRC_DIR}/backend/directx/DXDescriptors.ixx
         ${SRC_DIR}/backend/directx/DXDevice.ixx
         ${SRC_DIR}/backend/directx/DXFrameData.ixx
         ${SRC_DIR}/backend/directx/DXRenderingBackEnd.ixx
-        ${SRC_DIR}/backend/directx/DXSamplers.ixx
-        ${SRC_DIR}/backend/vulkan/VKBuffer.ixx
+        ${SRC_DIR}/backend/vulkan/VKResources.ixx
         ${SRC_DIR}/backend/vulkan/VKDevice.ixx
         ${SRC_DIR}/backend/vulkan/VKDescriptors.ixx
         ${SRC_DIR}/backend/vulkan/VKFrameData.ixx
         ${SRC_DIR}/backend/vulkan/VKRenderingBackEnd.ixx
-        ${SRC_DIR}/backend/vulkan/VKSamplers.ixx
 )
 compile_options(${MY_TARGET})
 

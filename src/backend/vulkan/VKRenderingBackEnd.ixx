@@ -10,15 +10,14 @@ module;
 export module vireo.backend.vulkan;
 
 import vireo.backend;
-import vireo.backend.buffer;
 import vireo.backend.framedata;
 import vireo.backend.descriptors;
 import vireo.backend.device;
-import vireo.backend.samplers;
+import vireo.backend.resources;
 
-import vireo.backend.vulkan.buffer;
 import vireo.backend.vulkan.device;
 import vireo.backend.vulkan.descriptors;
+import vireo.backend.vulkan.resources;
 
 export namespace vireo::backend {
 

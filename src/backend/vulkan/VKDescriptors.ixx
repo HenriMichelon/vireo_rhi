@@ -8,9 +8,8 @@ module;
 #include "backend/vulkan/Libraries.h"
 export module vireo.backend.vulkan.descriptors;
 
-import vireo.backend.buffer;
 import vireo.backend.descriptors;
-import vireo.backend.samplers;
+import vireo.backend.resources;
 
 export namespace vireo::backend {
 

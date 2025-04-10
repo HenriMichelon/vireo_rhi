@@ -6,10 +6,9 @@
 */
 module;
 #include "backend/directx/Libraries.h"
+export module vireo.backend.directx.resources;
 
-export module vireo.backend.directx.buffer;
-
-import vireo.backend.buffer;
+import vireo.backend.resources;
 
 export namespace vireo::backend {
 
@@ -44,6 +43,33 @@ export namespace vireo::backend {
         ComPtr<ID3D12Resource>      buffer;
         D3D12_VERTEX_BUFFER_VIEW    bufferView;
         CD3DX12_RESOURCE_DESC       resourceDesc;
+    };
+
+
+    class DXSampler : public Sampler {
+    public:
+        static constexpr D3D12_TEXTURE_ADDRESS_MODE addressModes[] {
+            D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+            D3D12_TEXTURE_ADDRESS_MODE_MIRROR,
+            D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+            D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+        };
+
+        DXSampler(
+            Filter minFilter,
+            Filter magFilter,
+            AddressMode addressModeU,
+            AddressMode addressModeV,
+            AddressMode addressModeW,
+            float minLod = 0.0f,
+            float maxLod = 1.0f,
+            bool anisotropyEnable = true,
+            MipMapMode mipMapMode = MipMapMode::LINEAR);
+
+        auto getSamplerDesc() const { return samplerDesc; }
+
+    private:
+        D3D12_STATIC_SAMPLER_DESC samplerDesc;
     };
 
 }

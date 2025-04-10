@@ -12,20 +12,7 @@ namespace dxvk {
 
 
 
-    void DXApplication::PopulateCommandList() {
-
-        ID3D12DescriptorHeap* ppHeaps[] = { m_srvCbvHeap.Get() };
-        m_commandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-
-        D3D12_GPU_DESCRIPTOR_HANDLE gpuHeapHandle = m_srvCbvHeap->GetGPUDescriptorHandleForHeapStart();
-        m_commandList->SetGraphicsRootDescriptorTable(ROOT_PARAMETER_INDEX_SRV, gpuHeapHandle);
-        D3D12_GPU_DESCRIPTOR_HANDLE srvHandle = { gpuHeapHandle.ptr + m_srvCbvDescriptorSize };
-        m_commandList->SetGraphicsRootDescriptorTable(ROOT_PARAMETER_INDEX_CBV, srvHandle);
-    }
-
     void DXApplication::LoadAssets() {
-
-
 
         // Note: ComPtr's are CPU objects but this resource needs to stay in scope until
         // the command list that references it has finished executing on the GPU.
@@ -95,23 +82,6 @@ namespace dxvk {
 
     }
 
-    void DXApplication::LoadPipeline() {
-        // Create descriptor heaps.
-        {
-            // TEXTURE : Describe and create a shader resource view (SRV) heap for the texture.
-            // Describe and create a constant buffer view (CBV) descriptor heap.
-            // Flags indicate that this descriptor heap can be bound to the pipeline
-            // and that descriptors contained in it can be referenced by a root table.
-            D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-            srvHeapDesc.NumDescriptors = 2;
-            srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-            srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-            ThrowIfFailed(device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&m_srvCbvHeap)));
-            m_srvCbvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-        }
-
-    }
 
 
 }

@@ -6,10 +6,9 @@
 */
 module;
 #include "backend/vulkan/Tools.h"
+export module vireo.backend.vulkan.resources;
 
-export module vireo.backend.vulkan.buffer;
-
-import vireo.backend.buffer;
+import vireo.backend.resources;
 import vireo.backend.vulkan.device;
 
 export namespace vireo::backend {
@@ -46,6 +45,31 @@ export namespace vireo::backend {
         const VKDevice& device;
         VkBuffer        buffer{VK_NULL_HANDLE};
         VkDeviceMemory  bufferMemory{VK_NULL_HANDLE};
+    };
+
+
+    class VKSampler : public Sampler {
+    public:
+        VKSampler(
+            const VKPhysicalDevice& physicalDevice,
+            VkDevice device,
+            Filter minFilter,
+            Filter magFilter,
+            AddressMode addressModeU,
+            AddressMode addressModeV,
+            AddressMode addressModeW,
+            float minLod = 0.0f,
+            float maxLod = 1.0f,
+            bool anisotropyEnable = true,
+            MipMapMode mipMapMode = MipMapMode::LINEAR);
+
+        ~VKSampler() override;
+
+        auto getSampler() const { return sampler; }
+
+    private:
+        VkDevice  device;
+        VkSampler sampler;
     };
 
 }

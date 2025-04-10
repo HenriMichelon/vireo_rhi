@@ -11,10 +11,9 @@ module vireo.backend.directx;
 
 import vireo.app.win32;
 
-import vireo.backend.directx.buffer;
 import vireo.backend.directx.descriptors;
 import vireo.backend.directx.framedata;
-import vireo.backend.directx.samplers;
+import vireo.backend.directx.resources;
 
 namespace vireo::backend {
 

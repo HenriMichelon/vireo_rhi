@@ -6,14 +6,12 @@
 */
 module;
 #include "backend/directx/Libraries.h"
-
 export module vireo.backend.directx;
 
 import vireo.backend;
-import vireo.backend.buffer;
 import vireo.backend.descriptors;
 import vireo.backend.framedata;
-import vireo.backend.samplers;
+import vireo.backend.resources;
 
 import vireo.backend.directx.device;
 

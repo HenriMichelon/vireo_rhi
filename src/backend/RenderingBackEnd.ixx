@@ -8,11 +8,10 @@ module;
 #include "Tools.h"
 export module vireo.backend;
 
-export import vireo.backend.buffer;
 export import vireo.backend.descriptors;
 export import vireo.backend.device;
 export import vireo.backend.framedata;
-export import vireo.backend.samplers;
+export import vireo.backend.resources;
 
 export namespace vireo::backend {
 

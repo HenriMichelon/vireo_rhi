@@ -13,7 +13,7 @@ import vireo.app.win32;
 
 import vireo.backend.vulkan.descriptors;
 import vireo.backend.vulkan.framedata;
-import vireo.backend.vulkan.samplers;
+import vireo.backend.vulkan.resources;
 
 namespace vireo::backend {
 

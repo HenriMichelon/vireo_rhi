@@ -8,7 +8,7 @@ module;
 #include "backend/directx/Tools.h"
 module vireo.backend.directx.descriptors;
 
-import vireo.backend.directx.buffer;
+import vireo.backend.directx.resources;
 
 namespace vireo::backend {
 
