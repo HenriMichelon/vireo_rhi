@@ -75,6 +75,8 @@ export namespace vireo::backend {
 
         void upload(Buffer& destination, const void* source) override;
 
+        void upload(Image& destination, const void* source) override {};
+
         void cleanup() override;
 
         auto getCommandList() { return commandList; }
@@ -208,12 +210,29 @@ export namespace vireo::backend {
             ShaderModule& fragmentShader,
             const std::wstring& name = L"Pipeline") const override;
 
-        std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1, size_t alignment = 1, const std::wstring& name = L"Buffer") const override;
+        std::shared_ptr<Buffer> createBuffer(
+            Buffer::Type type,
+            size_t size,
+            size_t count = 1,
+            size_t alignment = 1,
+            const std::wstring& name = L"Buffer") const override;
+
+        std::shared_ptr<Image> createImage(
+            ImageFormat format,
+            uint32_t width,
+            uint32_t height,
+            const std::wstring& name = L"Image") const override { return  nullptr; };
 
         std::shared_ptr<DescriptorSet> createDescriptorSet(
             DescriptorType type,
             uint32_t capacity,
             const std::wstring& name) override;
+
+        std::shared_ptr<DescriptorSet> createDescriptorSet(
+            DescriptorType type,
+            uint32_t capacity,
+            const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
+            const std::wstring& name = L"DescriptorSet") override {return nullptr; };
 
         std::shared_ptr<Sampler> createSampler(
                Filter minFilter,

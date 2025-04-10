@@ -20,6 +20,8 @@ export namespace vireo::backend {
 
         void update(DescriptorHandle handle, Buffer& buffer) override;
 
+        void update(DescriptorHandle handle, Image& buffer) override {}
+
         D3D12_GPU_DESCRIPTOR_HANDLE getGPUHandle(DescriptorHandle handle) const;
 
         auto getHeap() const { return heap; }

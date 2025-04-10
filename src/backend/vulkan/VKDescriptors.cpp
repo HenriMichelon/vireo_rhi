@@ -12,7 +12,12 @@ import vireo.backend.vulkan.resources;
 
 namespace vireo::backend {
 
-    VKDescriptorSet::VKDescriptorSet(const DescriptorType type, VkDevice device, size_t capacity, const std::wstring& name):
+    VKDescriptorSet::VKDescriptorSet(
+        const DescriptorType type,
+        const VkDevice device,
+        const size_t capacity,
+        const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
+        const std::wstring& name):
         DescriptorSet{type, capacity},
         device{device} {
         const VkDescriptorType vkType =
@@ -20,8 +25,8 @@ namespace vireo::backend {
             VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
 
         const auto poolSize = VkDescriptorPoolSize {
-            .type =vkType,
-            .descriptorCount = static_cast<uint32_t>(capacity)
+            .type = vkType,
+            .descriptorCount = static_cast<uint32_t>(capacity + staticSamplers.size()),
         };
         const auto poolInfo = VkDescriptorPoolCreateInfo {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
@@ -31,12 +36,20 @@ namespace vireo::backend {
         };
         vkCreateDescriptorPool(device, &poolInfo, nullptr, &pool);
 
-        const auto binding = VkDescriptorSetLayoutBinding {
+        auto binding =  VkDescriptorSetLayoutBinding {
             .binding = 0,
             .descriptorType = vkType,
             .descriptorCount = static_cast<uint32_t>(capacity),
             .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
         };
+
+        std::vector<VkSampler> samplers(staticSamplers.size());
+        for (int i = 0; i < staticSamplers.size(); i++) {
+            samplers[i] = static_pointer_cast<VKSampler>(staticSamplers[i])->getSampler();
+        }
+        binding.descriptorCount += static_cast<uint32_t>(samplers.size());
+        binding.pImmutableSamplers = samplers.empty() ? nullptr : samplers.data();
+
         const auto layoutInfo = VkDescriptorSetLayoutCreateInfo {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
             .bindingCount = 1,
@@ -81,24 +94,24 @@ namespace vireo::backend {
         vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
     }
 
-    // void VKDescriptorSet::update(const DescriptorHandle handle, Sampler& sampler) {
-    //     assert(type == DescriptorType::SAMPLER);
-    //     const auto& vkSampler = static_cast<VKSampler&>(sampler);
-    //     const auto imageInfo = VkDescriptorImageInfo {
-    //         .sampler = vkSampler.getSampler(),
-    //         .imageView = VK_NULL_HANDLE,
-    //         .imageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-    //     };
-    //     const auto write = VkWriteDescriptorSet {
-    //         .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-    //         .dstSet = set,
-    //         .dstBinding = 0,
-    //         .dstArrayElement = handle,
-    //         .descriptorCount = 1,
-    //         .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER,
-    //         .pImageInfo = &imageInfo,
-    //     };
-    //     vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
-    // }
+    void VKDescriptorSet::update(const DescriptorHandle handle, Image& sampler) {
+        assert(type == DescriptorType::TEXTURE);
+        const auto& vkImage = static_cast<VKImage&>(sampler);
+        const auto imageInfo = VkDescriptorImageInfo {
+            .sampler = VK_NULL_HANDLE,
+            .imageView = vkImage.getImageView(),
+            .imageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        };
+        const auto write = VkWriteDescriptorSet {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = set,
+            .dstBinding = 0,
+            .dstArrayElement = handle,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
+            .pImageInfo = &imageInfo,
+        };
+        vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
+    }
 
 }

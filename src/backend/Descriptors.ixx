@@ -31,6 +31,8 @@ export namespace vireo::backend {
 
         virtual void update(DescriptorHandle handle, Buffer& buffer) = 0;
 
+        virtual void update(DescriptorHandle handle, Image& buffer) = 0;
+
         auto getCapacity() const { return capacity; }
 
         auto getType() const { return type; }

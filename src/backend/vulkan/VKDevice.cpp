@@ -180,20 +180,6 @@ namespace vireo::backend {
         } else {
             die("Failed to find a suitable GPU!");
         }
-
-        {
-            VkPhysicalDeviceMemoryProperties memoryProperties{};
-            vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
-            for (int i = 0; i < memoryProperties.memoryTypeCount; i++) {
-                if ((memoryProperties.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) ==
-                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
-                    memoryTypeDeviceLocalIndex = i;
-                } else if ((memoryProperties.memoryTypes[i].propertyFlags & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) ==
-                    (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
-                    memoryTypeHostVisibleIndex = i;
-                }
-            }
-        }
     }
 
      VKPhysicalDevice::QueueFamilyIndices VKPhysicalDevice::findQueueFamilies(const VkPhysicalDevice vkPhysicalDevice) const {
@@ -265,6 +251,17 @@ namespace vireo::backend {
 
     VKPhysicalDevice::~VKPhysicalDevice() {
         vkDestroySurfaceKHR(instance, surface, nullptr);
+    }
+
+    uint32_t VKPhysicalDevice::findMemoryType(const uint32_t typeFilter, const VkMemoryPropertyFlags properties) const {
+        VkPhysicalDeviceMemoryProperties memProperties;
+        vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+        for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+            if ((typeFilter & (1 << i)) &&
+                (memProperties.memoryTypes[i].propertyFlags & properties) == properties) { return i; }
+        }
+        die("failed to find suitable memory type!");
+        return 0;
     }
 
     uint32_t VKPhysicalDevice::rateDeviceSuitability(

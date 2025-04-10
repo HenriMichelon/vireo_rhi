@@ -28,6 +28,25 @@ namespace vireo {
         renderingBackEnd->setClearColor({ 0.0f, 0.2f, 0.4f, 1.0f });
         const auto aspectRatio = renderingBackEnd->getSwapChain()->getAspectRatio();
 
+        staticSamplers.push_back(renderingBackEnd->createSampler(
+            backend::Filter::NEAREST,
+            backend::Filter::NEAREST,
+            backend::AddressMode::CLAMP_TO_BORDER,
+            backend::AddressMode::CLAMP_TO_BORDER,
+            backend::AddressMode::CLAMP_TO_BORDER,
+            0.0f, 1.0f,
+            false,
+            backend::MipMapMode::NEAREST));
+        staticSamplers.push_back(renderingBackEnd->createSampler(
+            backend::Filter::LINEAR,
+            backend::Filter::LINEAR,
+            backend::AddressMode::CLAMP_TO_BORDER,
+            backend::AddressMode::CLAMP_TO_BORDER,
+            backend::AddressMode::CLAMP_TO_BORDER,
+            0.0f, 1.0f,
+            false,
+            backend::MipMapMode::LINEAR));
+
         const auto triangleVertices = std::vector<Vertex> {
                 { { 0.0f, 0.25f * aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
                 { { 0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
@@ -44,8 +63,26 @@ namespace vireo {
             1,
             L"TriangleVertexBuffer");
         uploadCommandList->upload(*vertexBuffer, &triangleVertices[0]);
+
+        checkerBoardTexture = renderingBackEnd->createImage(
+            backend::ImageFormat::R8G8B8A8_SRGB,
+            TextureWidth,
+            TextureHeight,
+            L"CheckerBoardTexture");
+        uploadCommandList->upload(*checkerBoardTexture, generateTextureData().data());
+
         uploadCommandList->end();
         renderingBackEnd->getTransferCommandQueue()->submit({uploadCommandList});
+        renderingBackEnd->getTransferCommandQueue()->waitIdle();
+        uploadCommandList->cleanup();
+
+        texturesDescriptorSet = renderingBackEnd->createDescriptorSet(
+            backend::DescriptorType::TEXTURE,
+            1,
+            staticSamplers,
+            L"Textures");
+        checkerBoardHandle = texturesDescriptorSet->allocate();
+        texturesDescriptorSet->update(checkerBoardHandle, *checkerBoardTexture);
 
         uniformDescriptorSet = renderingBackEnd->createDescriptorSet(
             backend::DescriptorType::BUFFER,
@@ -70,26 +107,8 @@ namespace vireo {
         uboHandle2 = uniformDescriptorSet->allocate();
         uniformDescriptorSet->update(uboHandle2, *uboBuffer2);
 
-        staticSamplers.push_back(renderingBackEnd->createSampler(
-            backend::Filter::NEAREST,
-            backend::Filter::NEAREST,
-            backend::AddressMode::CLAMP_TO_BORDER,
-            backend::AddressMode::CLAMP_TO_BORDER,
-            backend::AddressMode::CLAMP_TO_BORDER,
-            0.0f, 1.0f,
-            false,
-            backend::MipMapMode::NEAREST));
-        staticSamplers.push_back(renderingBackEnd->createSampler(
-            backend::Filter::LINEAR,
-            backend::Filter::LINEAR,
-            backend::AddressMode::CLAMP_TO_BORDER,
-            backend::AddressMode::CLAMP_TO_BORDER,
-            backend::AddressMode::CLAMP_TO_BORDER,
-            0.0f, 1.0f,
-            false,
-            backend::MipMapMode::LINEAR));
         pipelineResources["default"] = renderingBackEnd->createPipelineResources(
-            { uniformDescriptorSet },
+            { uniformDescriptorSet, texturesDescriptorSet },
             staticSamplers,
             L"default");
 
@@ -112,9 +131,6 @@ namespace vireo {
             graphicCommandAllocator[i] = renderingBackEnd->createCommandAllocator(backend::CommandList::GRAPHIC);
             graphicCommandList[i] = graphicCommandAllocator[i]->createCommandList(*pipelines["default"]);
         }
-
-        renderingBackEnd->getTransferCommandQueue()->waitIdle();
-        uploadCommandList->cleanup();
 
     }
 

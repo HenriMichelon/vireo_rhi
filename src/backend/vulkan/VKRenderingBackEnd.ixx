@@ -73,6 +73,8 @@ export namespace vireo::backend {
 
         void upload(Buffer& destination, const void* source) override;
 
+        void upload(Image& destination, const void* source) override;
+
         auto getCommandBuffer() const { return commandBuffer; }
 
         void pipelineBarrier(
@@ -207,7 +209,6 @@ export namespace vireo::backend {
     private:
         VkDevice device;
         VkPipelineLayout pipelineLayout;
-        VkDescriptorSetLayout staticSamplersSetLayout{VK_NULL_HANDLE};
         std::vector<VkDescriptorSet> descriptorSets;
     };
 
@@ -268,10 +269,22 @@ export namespace vireo::backend {
             size_t alignment = 1,
             const std::wstring& name = L"Buffer") const override;
 
+        std::shared_ptr<Image> createImage(
+            ImageFormat format,
+            uint32_t width,
+            uint32_t height,
+            const std::wstring& name = L"Image") const override;
+
         std::shared_ptr<DescriptorSet> createDescriptorSet(
             DescriptorType type,
             uint32_t capacity,
             const std::wstring& name) override;
+
+        std::shared_ptr<DescriptorSet> createDescriptorSet(
+            DescriptorType type,
+            uint32_t capacity,
+            const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
+            const std::wstring& name = L"DescriptorSet") override;
 
         std::shared_ptr<Sampler> createSampler(
            Filter minFilter,

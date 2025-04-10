@@ -102,14 +102,36 @@ namespace vireo::backend {
         );
     }
 
-    std::shared_ptr<Buffer> VKRenderingBackEnd::createBuffer(Buffer::Type type, size_t size, size_t count, const size_t alignment, const std::wstring& name) const  {
-        return make_shared<VKBuffer>(
+    std::shared_ptr<Buffer> VKRenderingBackEnd::createBuffer(
+        const Buffer::Type type,
+        const size_t size,
+        const size_t count,
+        const size_t alignment,
+        const std::wstring& name) const  {
+        return std::make_shared<VKBuffer>(
            *getVKDevice(), type,
            size, count, alignment,
            name);
     }
 
-    void VKRenderingBackEnd::beginRendering(FrameData& frameData, PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) {
+    std::shared_ptr<Image> VKRenderingBackEnd::createImage(
+            ImageFormat format,
+            uint32_t width,
+            uint32_t height,
+            const std::wstring& name) const {
+        return std::make_shared<VKImage>(
+            *getVKDevice(),
+            format,
+            width,
+            height,
+            name);
+    }
+
+    void VKRenderingBackEnd::beginRendering(
+        FrameData& frameData,
+        PipelineResources& pipelineResources,
+        Pipeline& pipeline,
+        CommandList& commandList) {
         const auto& data = static_cast<VKFrameData&>(frameData);
         const auto& vkCommandList = static_cast<VKCommandList&>(commandList);
         const auto& vkPipelineResources = static_cast<VKPipelineResources&>(pipelineResources);
@@ -205,7 +227,16 @@ namespace vireo::backend {
         DescriptorType type,
         uint32_t capacity,
         const std::wstring& name) {
-        return std::make_shared<VKDescriptorSet>(type, getVKDevice()->getDevice(), capacity, name);
+        std::vector<std::shared_ptr<Sampler>> dummy{};
+        return std::make_shared<VKDescriptorSet>(type, getVKDevice()->getDevice(), capacity, dummy, name);
+    }
+
+    std::shared_ptr<DescriptorSet> VKRenderingBackEnd::createDescriptorSet(
+    DescriptorType type,
+    uint32_t capacity,
+    const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
+    const std::wstring& name) {
+        return std::make_shared<VKDescriptorSet>(type, getVKDevice()->getDevice(), capacity, staticSamplers, name);
     }
 
     std::shared_ptr<Sampler> VKRenderingBackEnd::createSampler(
@@ -266,33 +297,10 @@ namespace vireo::backend {
     VKPipelineResources::VKPipelineResources(
         const VkDevice device,
         const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets,
-        const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
+        const std::vector<std::shared_ptr<Sampler>>&,
         const std::wstring& name):
         device{device} {
         auto setLayouts = std::vector<VkDescriptorSetLayout>{};
-        if (!staticSamplers.empty()) {
-            std::vector<VkSampler> samplers(staticSamplers.size());
-            for (int i = 0; i < staticSamplers.size(); i++) {
-                samplers[i] = std::static_pointer_cast<VKSampler>(staticSamplers[i])->getSampler();
-            }
-            const auto samplersLayoutBinding = VkDescriptorSetLayoutBinding {
-                .binding = 0,
-                .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER,
-                .descriptorCount = static_cast<uint32_t>(samplers.size()),
-                .stageFlags = VK_SHADER_STAGE_ALL,
-                .pImmutableSamplers = samplers.data(),
-            };
-            const auto samplesLayoutCreateInfo = VkDescriptorSetLayoutCreateInfo {
-                .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-                .bindingCount = 1,
-                .pBindings = &samplersLayoutBinding,
-            };
-
-            DieIfFailed(vkCreateDescriptorSetLayout(device, &samplesLayoutCreateInfo, nullptr, &staticSamplersSetLayout));
-            setLayouts.push_back(staticSamplersSetLayout);
-            vkSetObjectName(device, reinterpret_cast<uint64_t>(staticSamplersSetLayout), VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT,
-                wstring_to_string(L"Set Layout : Static Samplers"));
-        }
 
         this->descriptorSets.resize(descriptorSets.size());
         for (int i = 0; i < descriptorSets.size(); i++) {
@@ -314,9 +322,6 @@ namespace vireo::backend {
     }
 
     VKPipelineResources::~VKPipelineResources() {
-        if (staticSamplersSetLayout) {
-            vkDestroyDescriptorSetLayout(device, staticSamplersSetLayout, nullptr);
-        }
         vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
     }
 
@@ -595,7 +600,7 @@ namespace vireo::backend {
             device,
             buffer.getSize(),
             VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            device.getPhysicalDevice().getMemoryTypeHostVisibleIndex(),
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
             stagingBuffer, stagingBufferMemory);
 
         void* stagingData;
@@ -614,6 +619,71 @@ namespace vireo::backend {
             buffer.getBuffer(),
             1,
             &copyRegion);
+
+        stagingBuffers.push_back(stagingBuffer);
+        stagingBuffersMemory.push_back(stagingBufferMemory);
+    }
+
+    void VKCommandList::upload(Image& destination, const void* source) {
+        const auto& image = static_cast<VKImage&>(destination);
+        VkBuffer       stagingBuffer{VK_NULL_HANDLE};
+        VkDeviceMemory stagingBufferMemory{VK_NULL_HANDLE};
+        VKBuffer::createBuffer(
+            device,
+            image.getSize(),
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            stagingBuffer, stagingBufferMemory);
+
+        void* stagingData;
+        vkMapMemory(device.getDevice(), stagingBufferMemory, 0, image.getSize(), 0, &stagingData);
+        memcpy(stagingData, source, image.getSize());
+        vkUnmapMemory(device.getDevice(), stagingBufferMemory);
+
+        // https://vulkan-tutorial.com/Texture_mapping/Images#page_Copying-buffer-to-image
+        const auto region = VkBufferImageCopy {
+            .bufferOffset = 0,
+            .bufferRowLength = 0,
+            .bufferImageHeight = 0,
+            .imageSubresource = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .mipLevel = 0,
+                .baseArrayLayer = 0,
+                .layerCount = 1,
+            },
+            .imageOffset = {0, 0, 0},
+            .imageExtent = {image.getWidth(), image.getHeight(), 1},
+        };
+
+        pipelineBarrier(
+        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+        VK_PIPELINE_STAGE_TRANSFER_BIT,
+        {
+            imageMemoryBarrier(
+                image.getImage(),
+                0,
+                VK_ACCESS_TRANSFER_WRITE_BIT,
+                VK_IMAGE_LAYOUT_UNDEFINED,
+                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+        });
+        vkCmdCopyBufferToImage(
+                commandBuffer,
+                stagingBuffer,
+                image.getImage(),
+                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                1,
+                &region);
+        pipelineBarrier(
+           VK_PIPELINE_STAGE_TRANSFER_BIT,
+           VK_PIPELINE_STAGE_TRANSFER_BIT,
+           {
+               imageMemoryBarrier(
+                   image.getImage(),
+                   VK_ACCESS_TRANSFER_READ_BIT,
+                   0,
+                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+       });
 
         stagingBuffers.push_back(stagingBuffer);
         stagingBuffersMemory.push_back(stagingBufferMemory);

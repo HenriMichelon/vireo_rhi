@@ -65,11 +65,9 @@ export namespace vireo::backend {
         // Find a dedicated compute & transfer queue
         uint32_t findComputeQueueFamily() const;
 
+        uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
+
         auto getSurface() const { return surface; }
-
-        auto getMemoryTypeDeviceLocalIndex() const { return memoryTypeDeviceLocalIndex; }
-
-        auto getMemoryTypeHostVisibleIndex() const { return memoryTypeHostVisibleIndex; }
 
     private:
         VkInstance                   instance{VK_NULL_HANDLE};
@@ -83,8 +81,6 @@ export namespace vireo::backend {
         VkPhysicalDeviceIDProperties physDeviceIDProps{
             VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES
         };
-        uint32_t                     memoryTypeDeviceLocalIndex;
-        uint32_t                     memoryTypeHostVisibleIndex;
 
         struct SwapChainSupportDetails {
             VkSurfaceCapabilitiesKHR        capabilities;

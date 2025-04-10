@@ -47,7 +47,6 @@ export namespace vireo::backend {
         VkDeviceMemory  bufferMemory{VK_NULL_HANDLE};
     };
 
-
     class VKSampler : public Sampler {
     public:
         VKSampler(
@@ -70,6 +69,33 @@ export namespace vireo::backend {
     private:
         VkDevice  device;
         VkSampler sampler;
+    };
+
+    class VKImage : public Image {
+    public:
+        static constexpr  VkFormat vkFormats[] {
+            VK_FORMAT_R8G8B8_SRGB,
+            VK_FORMAT_R8G8B8A8_SRGB,
+        };
+
+        VKImage(
+            const VKDevice& device,
+            ImageFormat format,
+            uint32_t    width,
+            uint32_t    height,
+            const std::wstring& name);
+
+        ~VKImage() override;
+
+        auto getImage() const { return image; }
+
+        auto getImageView() const { return imageView; }
+
+    private:
+        const VKDevice& device;
+        VkImage        image{VK_NULL_HANDLE};
+        VkDeviceMemory imageMemory{VK_NULL_HANDLE};
+        VkImageView    imageView{VK_NULL_HANDLE};
     };
 
 }

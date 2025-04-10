@@ -15,11 +15,13 @@ export namespace vireo::backend {
 
     class VKDescriptorSet : public DescriptorSet {
     public:
-        VKDescriptorSet(DescriptorType type, VkDevice device, size_t capacity, const std::wstring& name);
+        VKDescriptorSet(DescriptorType type, VkDevice device, size_t capacity, const std::vector<std::shared_ptr<Sampler>>& staticSamplers, const std::wstring& name);
 
         ~VKDescriptorSet() override;
 
         void update(DescriptorHandle handle, Buffer& buffer) override;
+
+        void update(DescriptorHandle handle, Image& buffer) override;
 
         auto getSetLayout() const { return setLayout; }
 

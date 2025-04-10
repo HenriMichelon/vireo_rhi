@@ -64,4 +64,37 @@ export namespace vireo::backend {
         virtual ~Sampler() = default;
     };
 
+    enum class ImageFormat : uint8_t {
+        R8G8B8_SRGB     = 0,
+        R8G8B8A8_SRGB   = 1,
+    };
+
+    class Image {
+    public:
+        static constexpr uint8_t pixelSize[] {
+            3,
+            4
+        };
+
+        Image(const ImageFormat format, const uint32_t width, const uint32_t height) :
+            format{format},
+            width{width},
+            height{height} {}
+
+        virtual ~Image() = default;
+
+        auto getFormat() const { return format; }
+
+        auto getWidth() const { return width; }
+
+        auto getHeight() const { return height; }
+
+        auto getSize() const { return width * height * pixelSize[static_cast<int>(format)]; }
+
+    private:
+        ImageFormat format;
+        uint32_t width;
+        uint32_t height;
+    };
+
 }
