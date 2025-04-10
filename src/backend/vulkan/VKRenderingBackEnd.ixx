@@ -192,7 +192,7 @@ export namespace vireo::backend {
 
     class VKPipelineResources : public PipelineResources {
     public:
-        VKPipelineResources(VkDevice device);
+        VKPipelineResources(VkDevice device, const std::wstring& name);
 
         ~VKPipelineResources() override;
 
@@ -241,7 +241,7 @@ export namespace vireo::backend {
 
         std::shared_ptr<ShaderModule> createShaderModule(const std::string& fileName) const override;
 
-        std::shared_ptr<PipelineResources> createPipelineResources() const override;
+        std::shared_ptr<PipelineResources> createPipelineResources(const std::wstring& name = L"PipelineResource") const override;
 
         std::shared_ptr<Pipeline> createPipeline(
             PipelineResources& pipelineResources,

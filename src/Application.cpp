@@ -64,7 +64,7 @@ namespace vireo {
             0.0f, 1.0f,
             false,
             backend::MipMapMode::NEAREST);
-        pipelineResources["default"] = renderingBackEnd->createPipelineResources();
+        pipelineResources["default"] = renderingBackEnd->createPipelineResources(L"default");
 
         const auto attributes = std::vector{
             backend::VertexInputLayout::AttributeDescription{"POSITION", backend::VertexInputLayout::R32G32B32_FLOAT, 0},

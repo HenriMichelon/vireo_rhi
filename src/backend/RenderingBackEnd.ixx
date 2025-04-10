@@ -157,7 +157,7 @@ export namespace vireo::backend {
         virtual std::shared_ptr<ShaderModule> createShaderModule(
             const std::string& fileName) const = 0;
 
-        virtual std::shared_ptr<PipelineResources> createPipelineResources() const = 0;
+        virtual std::shared_ptr<PipelineResources> createPipelineResources(const std::wstring& name = L"PipelineResource") const = 0;
 
         virtual std::shared_ptr<Pipeline> createPipeline(
             PipelineResources& pipelineResources,

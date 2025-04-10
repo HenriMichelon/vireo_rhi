@@ -57,8 +57,8 @@ namespace vireo::backend {
         return std::make_shared<DXFrameData>();
     }
 
-    std::shared_ptr<PipelineResources> DXRenderingBackEnd::createPipelineResources() const {
-        return std::make_shared<DXPipelineResources>(getDXDevice()->getDevice());
+    std::shared_ptr<PipelineResources> DXRenderingBackEnd::createPipelineResources(const std::wstring& name ) const {
+        return std::make_shared<DXPipelineResources>(getDXDevice()->getDevice(), name);
     }
 
     std::shared_ptr<Pipeline> DXRenderingBackEnd::createPipeline(
@@ -428,7 +428,7 @@ namespace vireo::backend {
         shaderFile.read(static_cast<char*>(shader->GetBufferPointer()), size);
     }
 
-    DXPipelineResources::DXPipelineResources(const ComPtr<ID3D12Device>& device) {
+    DXPipelineResources::DXPipelineResources(const ComPtr<ID3D12Device>& device, const std::wstring& name) {
         CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
         rootSignatureDesc.Init(
             0,

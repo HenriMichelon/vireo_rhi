@@ -78,8 +78,8 @@ namespace vireo::backend {
         return std::make_shared<VKShaderModule>(getVKDevice()->getDevice(), fileName);
     }
 
-    std::shared_ptr<PipelineResources> VKRenderingBackEnd::createPipelineResources() const {
-        return std::make_shared<VKPipelineResources>(getVKDevice()->getDevice());
+    std::shared_ptr<PipelineResources> VKRenderingBackEnd::createPipelineResources(const std::wstring& name) const {
+        return std::make_shared<VKPipelineResources>(getVKDevice()->getDevice(), name);
     }
 
     std::shared_ptr<Pipeline> VKRenderingBackEnd::createPipeline(
@@ -225,14 +225,15 @@ namespace vireo::backend {
             .pCode = reinterpret_cast<const uint32_t*>(buffer.data())
         };
         DieIfFailed(vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule));
-        vkSetObjectName(device, reinterpret_cast<uint64_t>(shaderModule), VK_OBJECT_TYPE_SHADER_MODULE, fileName.c_str());
+        vkSetObjectName(device, reinterpret_cast<uint64_t>(shaderModule), VK_OBJECT_TYPE_SHADER_MODULE,
+            "VKShaderModule : " + fileName);
     }
 
     VKShaderModule::~VKShaderModule() {
         vkDestroyShaderModule(device, shaderModule, nullptr);
     }
 
-    VKPipelineResources::VKPipelineResources(VkDevice device):
+    VKPipelineResources::VKPipelineResources(const VkDevice device, const std::wstring& name):
         device{device} {
         auto pipelineLayoutInfo = VkPipelineLayoutCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
@@ -242,6 +243,8 @@ namespace vireo::backend {
             .pPushConstantRanges = nullptr,
         };
         DieIfFailed(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout));
+        vkSetObjectName(device, reinterpret_cast<uint64_t>(pipelineLayout), VK_OBJECT_TYPE_PIPELINE_LAYOUT,
+            wstring_to_string(L"VKPipelineResources : " + name));
     }
 
     VKPipelineResources::~VKPipelineResources() {
@@ -370,7 +373,8 @@ namespace vireo::backend {
             .basePipelineIndex = -1,
         };
         DieIfFailed(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline));
-        vkSetObjectName(device, reinterpret_cast<uint64_t>(pipeline), VK_OBJECT_TYPE_PIPELINE, wstring_to_string(name));
+        vkSetObjectName(device, reinterpret_cast<uint64_t>(pipeline), VK_OBJECT_TYPE_PIPELINE,
+            wstring_to_string(L"VKPipeline : " + name));
     }
 
     VKPipeline::~VKPipeline() {

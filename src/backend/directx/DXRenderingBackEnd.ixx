@@ -151,7 +151,7 @@ export namespace vireo::backend {
 
     class DXPipelineResources : public PipelineResources {
     public:
-        DXPipelineResources(const ComPtr<ID3D12Device>& device);
+        DXPipelineResources(const ComPtr<ID3D12Device>& device, const std::wstring& name);
 
         auto getRootSignature() const { return rootSignature; }
 
@@ -191,7 +191,7 @@ export namespace vireo::backend {
 
         std::shared_ptr<ShaderModule> createShaderModule(const std::string& fileName) const override;
 
-        std::shared_ptr<PipelineResources> createPipelineResources() const override;
+        std::shared_ptr<PipelineResources> createPipelineResources(const std::wstring& name = L"PipelineResource") const override;
 
         std::shared_ptr<Pipeline> createPipeline(
             PipelineResources& pipelineResources,
