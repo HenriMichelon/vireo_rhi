@@ -47,14 +47,28 @@ namespace vireo {
         uploadCommandList->end();
         renderingBackEnd->getTransferCommandQueue()->submit({uploadCommandList});
 
-        uniformDescriptorSet = renderingBackEnd->createDescriptorSet(backend::DescriptorType::BUFFER, 100);
-        sceneConstantBufferHandle =  uniformDescriptorSet->allocate();
-        sceneConstantBuffer = renderingBackEnd->createBuffer(
+        uniformDescriptorSet = renderingBackEnd->createDescriptorSet(
+            backend::DescriptorType::BUFFER,
+            2,
+            L"UBOs");
+
+        uboBuffer1 = renderingBackEnd->createBuffer(
             backend::Buffer::UNIFORM,
-            sizeof(SceneConstantBuffer),
+            sizeof(GlobalUBO1),
             1, 256,
-            L"ConstantBuffer");
-        uniformDescriptorSet->update(sceneConstantBufferHandle, *sceneConstantBuffer);
+            L"UBO1");
+        uboBuffer1->map();
+        uboHandle1 = uniformDescriptorSet->allocate();
+        uniformDescriptorSet->update(uboHandle1, *uboBuffer1);
+
+        uboBuffer2 = renderingBackEnd->createBuffer(
+            backend::Buffer::UNIFORM,
+            sizeof(GlobalUBO2),
+            1, 256,
+            L"UBO2");
+        uboBuffer2->map();
+        uboHandle2 = uniformDescriptorSet->allocate();
+        uniformDescriptorSet->update(uboHandle2, *uboBuffer2);
 
         staticSamplers.push_back(renderingBackEnd->createSampler(
             backend::Filter::NEAREST,
@@ -75,6 +89,7 @@ namespace vireo {
             false,
             backend::MipMapMode::LINEAR));
         pipelineResources["default"] = renderingBackEnd->createPipelineResources(
+            { uniformDescriptorSet },
             staticSamplers,
             L"default");
 
@@ -100,9 +115,27 @@ namespace vireo {
 
         renderingBackEnd->getTransferCommandQueue()->waitIdle();
         uploadCommandList->cleanup();
+
     }
 
     void Application::onUpdate() {
+        const float translationSpeed = 0.005f;
+        const float offsetBounds = 1.25f;
+        ubo1.offset.x += translationSpeed;
+        if (ubo1.offset.x > offsetBounds) {
+            ubo1.offset.x = -offsetBounds;
+        }
+        ubo1.scale += 0.001f * scaleIncrement;
+        if ((ubo1.scale > 1.5f) || (ubo1.scale < 0.5f)) {
+            scaleIncrement = -scaleIncrement;
+        }
+        uboBuffer1->write(&ubo1);
+
+        ubo2.color += 0.01f * colorIncrement;
+        if ((ubo2.color.x > 0.5f) || (ubo2.color.x < 0.0f)) {
+            colorIncrement = -colorIncrement;
+        }
+        uboBuffer2->write(&ubo2);
     }
 
     void Application::onRender() {
@@ -132,7 +165,10 @@ namespace vireo {
     }
 
     void Application::onDestroy() {
-        uniformDescriptorSet->free(sceneConstantBufferHandle);
+        uboBuffer1->unmap();
+        uboBuffer2->unmap();
+        uniformDescriptorSet->free(uboHandle1);
+        uniformDescriptorSet->free(uboHandle2);
         renderingBackEnd->waitIdle();
         for (uint32_t i = 0; i < backend::SwapChain::FRAMES_IN_FLIGHT; i++) {
             renderingBackEnd->destroyFrameData(*framesData[i]);

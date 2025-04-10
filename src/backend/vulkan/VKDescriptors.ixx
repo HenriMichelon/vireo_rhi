@@ -16,15 +16,15 @@ export namespace vireo::backend {
 
     class VKDescriptorSet : public DescriptorSet {
     public:
-        VKDescriptorSet(DescriptorType type, VkDevice device, size_t capacity);
+        VKDescriptorSet(DescriptorType type, VkDevice device, size_t capacity, const std::wstring& name);
 
         ~VKDescriptorSet() override;
 
         void update(DescriptorHandle handle, Buffer& buffer) override;
 
-        uint64_t getGPUHandle(DescriptorHandle handle) const override;
-
         auto getSetLayout() const { return setLayout; }
+
+        auto getSet() const { return set; }
 
     private:
         VkDevice              device;

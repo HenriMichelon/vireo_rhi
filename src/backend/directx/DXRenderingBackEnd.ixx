@@ -151,7 +151,11 @@ export namespace vireo::backend {
 
     class DXPipelineResources : public PipelineResources {
     public:
-        DXPipelineResources(const ComPtr<ID3D12Device>& device, const std::vector<std::shared_ptr<Sampler>>& staticSamplers, const std::wstring& name);
+        DXPipelineResources(
+            const ComPtr<ID3D12Device>& device,
+            const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets,
+            const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
+            const std::wstring& name);
 
         auto getRootSignature() const { return rootSignature; }
 
@@ -192,6 +196,7 @@ export namespace vireo::backend {
         std::shared_ptr<ShaderModule> createShaderModule(const std::string& fileName) const override;
 
         std::shared_ptr<PipelineResources> createPipelineResources(
+            const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets,
             const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
             const std::wstring& name = L"PipelineResource") const override;
 
@@ -204,7 +209,10 @@ export namespace vireo::backend {
 
         std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1, size_t alignment = 1, const std::wstring& name = L"Buffer") const override;
 
-        std::shared_ptr<DescriptorSet> createDescriptorSet(DescriptorType type, uint32_t capacity) override;
+        std::shared_ptr<DescriptorSet> createDescriptorSet(
+            DescriptorType type,
+            uint32_t capacity,
+            const std::wstring& name) override;
 
         std::shared_ptr<Sampler> createSampler(
                Filter minFilter,

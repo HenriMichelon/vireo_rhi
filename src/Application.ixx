@@ -36,9 +36,15 @@ export namespace vireo {
             glm::vec3 pos;
             glm::vec4 color;
         };
-        struct SceneConstantBuffer {
+        struct GlobalUBO1 {
             glm::vec4 offset;
+            alignas(16) float scale{1.0f};
         };
+        GlobalUBO1 ubo1{};
+        struct GlobalUBO2 {
+            glm::vec3 color;
+        };
+        GlobalUBO2 ubo2{};
 
         std::wstring title;
         std::unique_ptr<backend::RenderingBackEnd> renderingBackEnd;
@@ -50,8 +56,12 @@ export namespace vireo {
         std::map<std::string, std::shared_ptr<backend::PipelineResources>> pipelineResources;
         std::map<std::string, std::shared_ptr<backend::Pipeline>> pipelines;
         std::shared_ptr<backend::Buffer> vertexBuffer;
-        std::shared_ptr<backend::Buffer> sceneConstantBuffer;
-        backend::DescriptorHandle sceneConstantBufferHandle;
+        std::shared_ptr<backend::Buffer> uboBuffer1;
+        std::shared_ptr<backend::Buffer> uboBuffer2;
+        backend::DescriptorHandle uboHandle1;
+        backend::DescriptorHandle uboHandle2;
+        float colorIncrement{1.0f};
+        float scaleIncrement{1.0f};
 
     };
 }

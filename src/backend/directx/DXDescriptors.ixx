@@ -16,12 +16,12 @@ export namespace vireo::backend {
 
     class DXDescriptorSet : public DescriptorSet {
     public:
-        DXDescriptorSet(DescriptorType type, const ComPtr<ID3D12Device>& device, size_t capacity);
+        DXDescriptorSet(DescriptorType type, const ComPtr<ID3D12Device>& device, size_t capacity, const std::wstring& name);
         ~DXDescriptorSet() override;
 
         void update(DescriptorHandle handle, Buffer& buffer) override;
 
-        uint64_t getGPUHandle(DescriptorHandle handle) const override;
+        D3D12_GPU_DESCRIPTOR_HANDLE getGPUHandle(DescriptorHandle handle) const;
 
     private:
         ComPtr<ID3D12Device>         device;

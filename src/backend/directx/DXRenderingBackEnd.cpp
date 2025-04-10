@@ -58,9 +58,10 @@ namespace vireo::backend {
     }
 
     std::shared_ptr<PipelineResources> DXRenderingBackEnd::createPipelineResources(
+    const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets,
         const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
         const std::wstring& name ) const {
-        return std::make_shared<DXPipelineResources>(getDXDevice()->getDevice(), staticSamplers, name);
+        return std::make_shared<DXPipelineResources>(getDXDevice()->getDevice(), descriptorSets, staticSamplers, name);
     }
 
     std::shared_ptr<Pipeline> DXRenderingBackEnd::createPipeline(
@@ -96,8 +97,11 @@ namespace vireo::backend {
         return make_shared<DXBuffer>(getDXDevice()->getDevice(), type, size, count, alignment, name);
     }
 
-    std::shared_ptr<DescriptorSet> DXRenderingBackEnd::createDescriptorSet(DescriptorType type, uint32_t capacity) {
-        return std::make_shared<DXDescriptorSet>(type, getDXDevice()->getDevice(), capacity);
+    std::shared_ptr<DescriptorSet> DXRenderingBackEnd::createDescriptorSet(
+        DescriptorType type,
+        uint32_t capacity,
+        const std::wstring& name) {
+        return std::make_shared<DXDescriptorSet>(type, getDXDevice()->getDevice(), capacity, name);
     }
 
     std::shared_ptr<Sampler> DXRenderingBackEnd::createSampler(
@@ -432,6 +436,7 @@ namespace vireo::backend {
 
     DXPipelineResources::DXPipelineResources(
         const ComPtr<ID3D12Device>& device,
+        const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets,
         const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
         const std::wstring& name) {
 

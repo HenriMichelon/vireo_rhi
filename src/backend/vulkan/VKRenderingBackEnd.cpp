@@ -79,9 +79,10 @@ namespace vireo::backend {
     }
 
     std::shared_ptr<PipelineResources> VKRenderingBackEnd::createPipelineResources(
+    const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets,
         const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
         const std::wstring& name) const {
-        return std::make_shared<VKPipelineResources>(getVKDevice()->getDevice(), staticSamplers, name);
+        return std::make_shared<VKPipelineResources>(getVKDevice()->getDevice(), descriptorSets, staticSamplers, name);
     }
 
     std::shared_ptr<Pipeline> VKRenderingBackEnd::createPipeline(
@@ -111,6 +112,7 @@ namespace vireo::backend {
     void VKRenderingBackEnd::beginRendering(FrameData& frameData, PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) {
         const auto& data = static_cast<VKFrameData&>(frameData);
         const auto& vkCommandList = static_cast<VKCommandList&>(commandList);
+        const auto& vkPipelineResources = static_cast<VKPipelineResources&>(pipelineResources);
         const auto& swapChain = *getVKSwapChain();
 
         vkCommandList.pipelineBarrier(
@@ -165,6 +167,29 @@ namespace vireo::backend {
         vkCmdSetViewportWithCount(commandBuffer, 1, &viewport);
         vkCmdSetScissorWithCount(commandBuffer, 1, &scissor);
         vkCmdSetCullMode(commandBuffer, VK_CULL_MODE_NONE);
+
+        if (!vkPipelineResources.getDescriptorSets().empty()) {
+            vkCmdBindDescriptorSets(commandBuffer,
+                                    VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                    vkPipelineResources.getPipelineLayout(),
+                                    1, // first layout = static samplers
+                                    vkPipelineResources.getDescriptorSets().size(),
+                                    vkPipelineResources.getDescriptorSets().data(), // TODO PER FRAME
+                                    0,
+                                    nullptr);
+        }
+
+        // for (int i = 0; i < vkPipelineResources.getDescriptorSets().size(); i++) {
+        //     auto set = vkPipelineResources.getDescriptorSets()[i];
+        //     vkCmdBindDescriptorSets(commandBuffer,
+        //                             VK_PIPELINE_BIND_POINT_GRAPHICS,
+        //                             vkPipelineResources.getPipelineLayout(),
+        //                             i,
+        //                             1,
+        //                             &set, // TODO PER FRAME
+        //                             0,
+        //                             nullptr);
+        // }
     }
 
     void VKRenderingBackEnd::endRendering(CommandList& commandList) {
@@ -176,8 +201,11 @@ namespace vireo::backend {
         vkDeviceWaitIdle(getVKDevice()->getDevice());
     }
 
-    std::shared_ptr<DescriptorSet> VKRenderingBackEnd::createDescriptorSet(DescriptorType type, uint32_t capacity) {
-        return std::make_shared<VKDescriptorSet>(type, getVKDevice()->getDevice(), capacity);
+    std::shared_ptr<DescriptorSet> VKRenderingBackEnd::createDescriptorSet(
+        DescriptorType type,
+        uint32_t capacity,
+        const std::wstring& name) {
+        return std::make_shared<VKDescriptorSet>(type, getVKDevice()->getDevice(), capacity, name);
     }
 
     std::shared_ptr<Sampler> VKRenderingBackEnd::createSampler(
@@ -237,6 +265,7 @@ namespace vireo::backend {
 
     VKPipelineResources::VKPipelineResources(
         const VkDevice device,
+        const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets,
         const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
         const std::wstring& name):
         device{device} {
@@ -250,7 +279,7 @@ namespace vireo::backend {
                 .binding = 0,
                 .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER,
                 .descriptorCount = static_cast<uint32_t>(samplers.size()),
-                .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+                .stageFlags = VK_SHADER_STAGE_ALL,
                 .pImmutableSamplers = samplers.data(),
             };
             const auto samplesLayoutCreateInfo = VkDescriptorSetLayoutCreateInfo {
@@ -262,8 +291,16 @@ namespace vireo::backend {
             DieIfFailed(vkCreateDescriptorSetLayout(device, &samplesLayoutCreateInfo, nullptr, &staticSamplersSetLayout));
             setLayouts.push_back(staticSamplersSetLayout);
             vkSetObjectName(device, reinterpret_cast<uint64_t>(staticSamplersSetLayout), VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT,
-                wstring_to_string(L"Static Samplers Set Layout"));
+                wstring_to_string(L"Set Layout : Static Samplers"));
         }
+
+        this->descriptorSets.resize(descriptorSets.size());
+        for (int i = 0; i < descriptorSets.size(); i++) {
+            const auto set = std::static_pointer_cast<VKDescriptorSet>(descriptorSets[i]);
+            this->descriptorSets[i] = set->getSet();
+            setLayouts.push_back(set->getSetLayout());
+        }
+
         const auto pipelineLayoutInfo = VkPipelineLayoutCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
             .setLayoutCount = static_cast<uint32_t>(setLayouts.size()),
@@ -388,6 +425,7 @@ namespace vireo::backend {
         const auto pipelineInfo = VkGraphicsPipelineCreateInfo {
             .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
             .pNext = &dynamicRenderingCreateInfo,
+            .flags = 0,
             .stageCount = static_cast<uint32_t>(shaderStages.size()),
             .pStages = shaderStages.data(),
             .pVertexInputState = &vertexInputInfo,
@@ -766,7 +804,7 @@ namespace vireo::backend {
 
     VkPresentModeKHR VKSwapChain::chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes) {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain#page_Presentation-mode
-        constexpr  auto mode = VK_PRESENT_MODE_MAILBOX_KHR; //static_cast<VkPresentModeKHR>(app().getConfig().vSyncMode);
+        constexpr  auto mode = VK_PRESENT_MODE_FIFO_KHR; //static_cast<VkPresentModeKHR>(app().getConfig().vSyncMode);
         for (const auto &availablePresentMode : availablePresentModes) {
             if (availablePresentMode == mode) {
                 return availablePresentMode;

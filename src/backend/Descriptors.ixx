@@ -33,8 +33,6 @@ export namespace vireo::backend {
 
         virtual void update(DescriptorHandle handle, Buffer& buffer) = 0;
 
-        virtual uint64_t getGPUHandle(DescriptorHandle handle) const = 0;
-
     protected:
         DescriptorType                type;
     private:

@@ -13,7 +13,7 @@ import vireo.backend.vulkan.samplers;
 
 namespace vireo::backend {
 
-    VKDescriptorSet::VKDescriptorSet(const DescriptorType type, VkDevice device, size_t capacity):
+    VKDescriptorSet::VKDescriptorSet(const DescriptorType type, VkDevice device, size_t capacity, const std::wstring& name):
         DescriptorSet{type, capacity},
         device{device} {
         const VkDescriptorType vkType =
@@ -37,7 +37,7 @@ namespace vireo::backend {
             .binding = 0,
             .descriptorType = vkType,
             .descriptorCount = static_cast<uint32_t>(capacity),
-            .stageFlags = VK_SHADER_STAGE_ALL,
+            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
         };
         const auto layoutInfo = VkDescriptorSetLayoutCreateInfo {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
@@ -45,6 +45,8 @@ namespace vireo::backend {
             .pBindings = &binding,
         };
         vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &setLayout);
+        vkSetObjectName(device, reinterpret_cast<uint64_t>(setLayout), VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT,
+            wstring_to_string(L"Set Layout : " + name).c_str());
 
         const auto allocInfo = VkDescriptorSetAllocateInfo {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
@@ -53,6 +55,8 @@ namespace vireo::backend {
             .pSetLayouts = &setLayout,
         };
         vkAllocateDescriptorSets(device, &allocInfo, &set);
+        vkSetObjectName(device, reinterpret_cast<uint64_t>(set), VK_OBJECT_TYPE_DESCRIPTOR_SET,
+            wstring_to_string(L"Set : " + name).c_str());
     }
 
     VKDescriptorSet::~VKDescriptorSet() {
@@ -98,9 +102,5 @@ namespace vireo::backend {
     //     };
     //     vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
     // }
-
-    uint64_t VKDescriptorSet::getGPUHandle(DescriptorHandle handle) const {
-        return handle;
-    }
 
 }

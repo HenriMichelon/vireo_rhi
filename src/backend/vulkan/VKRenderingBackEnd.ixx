@@ -193,17 +193,23 @@ export namespace vireo::backend {
 
     class VKPipelineResources : public PipelineResources {
     public:
-        VKPipelineResources(VkDevice device, const std::vector<std::shared_ptr<Sampler>>& staticSamplers, const std::wstring& name);
+        VKPipelineResources(
+            VkDevice device,
+            const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets,
+            const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
+            const std::wstring& name);
 
         ~VKPipelineResources() override;
 
         auto getPipelineLayout() const { return pipelineLayout; }
 
+        const auto& getDescriptorSets() const { return descriptorSets; }
+
     private:
         VkDevice device;
         VkPipelineLayout pipelineLayout;
         VkDescriptorSetLayout staticSamplersSetLayout{VK_NULL_HANDLE};
-        std::vector<std::shared_ptr<VKDescriptorSet>> descriptorSets;
+        std::vector<VkDescriptorSet> descriptorSets;
     };
 
     class VKPipeline : public Pipeline {
@@ -245,6 +251,7 @@ export namespace vireo::backend {
         std::shared_ptr<ShaderModule> createShaderModule(const std::string& fileName) const override;
 
         std::shared_ptr<PipelineResources> createPipelineResources(
+            const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets,
             const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
             const std::wstring& name = L"PipelineResource") const override;
 
@@ -262,7 +269,10 @@ export namespace vireo::backend {
             size_t alignment = 1,
             const std::wstring& name = L"Buffer") const override;
 
-        std::shared_ptr<DescriptorSet> createDescriptorSet(DescriptorType type, uint32_t capacity) override;
+        std::shared_ptr<DescriptorSet> createDescriptorSet(
+            DescriptorType type,
+            uint32_t capacity,
+            const std::wstring& name) override;
 
         std::shared_ptr<Sampler> createSampler(
            Filter minFilter,

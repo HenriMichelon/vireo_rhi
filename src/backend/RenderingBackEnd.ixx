@@ -159,6 +159,7 @@ export namespace vireo::backend {
             const std::string& fileName) const = 0;
 
         virtual std::shared_ptr<PipelineResources> createPipelineResources(
+            const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets,
             const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
             const std::wstring& name = L"PipelineResource") const = 0;
 
@@ -178,7 +179,8 @@ export namespace vireo::backend {
 
         virtual std::shared_ptr<DescriptorSet> createDescriptorSet(
             DescriptorType type,
-            uint32_t capacity) = 0;
+            uint32_t capacity,
+            const std::wstring& name = L"DescriptorSet") = 0;
 
         virtual std::shared_ptr<Sampler> createSampler(
             Filter minFilter,
