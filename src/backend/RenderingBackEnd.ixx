@@ -143,7 +143,9 @@ export namespace vireo::backend {
     public:
         virtual ~RenderingBackEnd() = default;
 
-        virtual std::shared_ptr<FrameData> createFrameData(uint32_t frameIndex) = 0;
+        virtual std::shared_ptr<FrameData> createFrameData(
+            uint32_t frameIndex,
+            const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSet) = 0;
 
         virtual void destroyFrameData(FrameData& frameData) {}
 
@@ -160,7 +162,7 @@ export namespace vireo::backend {
             const std::string& fileName) const = 0;
 
         virtual std::shared_ptr<PipelineResources> createPipelineResources(
-            const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets,
+            const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
             const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
             const std::wstring& name = L"PipelineResource") const = 0;
 
@@ -184,15 +186,19 @@ export namespace vireo::backend {
             uint32_t height,
             const std::wstring& name = L"Image") const = 0;
 
-        virtual std::shared_ptr<DescriptorSet> createDescriptorSet(
+        virtual std::shared_ptr<DescriptorLayout> createDescriptorLayout(
             DescriptorType type,
             uint32_t capacity,
-            const std::wstring& name = L"DescriptorSet") = 0;
+            const std::wstring& name = L"DescriptorLayout") = 0;
 
-        virtual std::shared_ptr<DescriptorSet> createDescriptorSet(
+        virtual std::shared_ptr<DescriptorLayout> createDescriptorLayout(
             DescriptorType type,
             uint32_t capacity,
             const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
+            const std::wstring& name = L"DescriptorLayout") = 0;
+
+        virtual std::shared_ptr<DescriptorSet> createDescriptorSet(
+            DescriptorLayout& layout,
             const std::wstring& name = L"DescriptorSet") = 0;
 
         virtual std::shared_ptr<Sampler> createSampler(

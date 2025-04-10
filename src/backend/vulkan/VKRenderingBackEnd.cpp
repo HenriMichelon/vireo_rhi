@@ -33,8 +33,10 @@ namespace vireo::backend {
         vkDestroyFence(getVKDevice()->getDevice(), data.inFlightFence, nullptr);
     }
 
-    std::shared_ptr<FrameData> VKRenderingBackEnd::createFrameData(const uint32_t frameIndex) {
-        auto data = std::make_shared<VKFrameData>();
+    std::shared_ptr<FrameData> VKRenderingBackEnd::createFrameData(
+        const uint32_t frameIndex,
+        const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSet) {
+        auto data = std::make_shared<VKFrameData>(descriptorSet);
         constexpr VkSemaphoreCreateInfo semaphoreInfo{
             .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
         };
@@ -79,10 +81,10 @@ namespace vireo::backend {
     }
 
     std::shared_ptr<PipelineResources> VKRenderingBackEnd::createPipelineResources(
-    const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets,
+        const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
         const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
         const std::wstring& name) const {
-        return std::make_shared<VKPipelineResources>(getVKDevice()->getDevice(), descriptorSets, staticSamplers, name);
+        return std::make_shared<VKPipelineResources>(getVKDevice()->getDevice(), descriptorLayouts, staticSamplers, name);
     }
 
     std::shared_ptr<Pipeline> VKRenderingBackEnd::createPipeline(
@@ -190,13 +192,17 @@ namespace vireo::backend {
         vkCmdSetScissorWithCount(commandBuffer, 1, &scissor);
         vkCmdSetCullMode(commandBuffer, VK_CULL_MODE_NONE);
 
-        if (!vkPipelineResources.getDescriptorSets().empty()) {
+        if (!data.descriptorSets.empty()) {
+            std::vector<VkDescriptorSet> descriptorSets(data.descriptorSets.size());
+            for (int i = 0; i < data.descriptorSets.size(); i++) {
+                descriptorSets[i] = static_pointer_cast<VKDescriptorSet>(data.descriptorSets[i])->getSet();
+            }
             vkCmdBindDescriptorSets(commandBuffer,
                                     VK_PIPELINE_BIND_POINT_GRAPHICS,
                                     vkPipelineResources.getPipelineLayout(),
                                     0,
-                                    vkPipelineResources.getDescriptorSets().size(),
-                                    vkPipelineResources.getDescriptorSets().data(), // TODO PER FRAME
+                                    descriptorSets.size(),
+                                    descriptorSets.data(),
                                     0,
                                     nullptr);
         }
@@ -211,20 +217,26 @@ namespace vireo::backend {
         vkDeviceWaitIdle(getVKDevice()->getDevice());
     }
 
-    std::shared_ptr<DescriptorSet> VKRenderingBackEnd::createDescriptorSet(
+    std::shared_ptr<DescriptorLayout> VKRenderingBackEnd::createDescriptorLayout(
         DescriptorType type,
         uint32_t capacity,
         const std::wstring& name) {
         std::vector<std::shared_ptr<Sampler>> dummy{};
-        return std::make_shared<VKDescriptorSet>(type, getVKDevice()->getDevice(), capacity, dummy, name);
+        return std::make_shared<VKDescriptorLayout>(type, getVKDevice()->getDevice(), capacity, dummy, name);
     }
 
-    std::shared_ptr<DescriptorSet> VKRenderingBackEnd::createDescriptorSet(
+    std::shared_ptr<DescriptorLayout> VKRenderingBackEnd::createDescriptorLayout(
     DescriptorType type,
     uint32_t capacity,
     const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
     const std::wstring& name) {
-        return std::make_shared<VKDescriptorSet>(type, getVKDevice()->getDevice(), capacity, staticSamplers, name);
+        return std::make_shared<VKDescriptorLayout>(type, getVKDevice()->getDevice(), capacity, staticSamplers, name);
+    }
+
+    std::shared_ptr<DescriptorSet> VKRenderingBackEnd::createDescriptorSet(
+            DescriptorLayout& layout,
+            const std::wstring& name) {
+        return std::make_shared<VKDescriptorSet>(layout, name);
     }
 
     std::shared_ptr<Sampler> VKRenderingBackEnd::createSampler(
@@ -284,19 +296,14 @@ namespace vireo::backend {
 
     VKPipelineResources::VKPipelineResources(
         const VkDevice device,
-        const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets,
+        const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
         const std::vector<std::shared_ptr<Sampler>>&,
         const std::wstring& name):
         device{device} {
-        auto setLayouts = std::vector<VkDescriptorSetLayout>{};
-
-        this->descriptorSets.resize(descriptorSets.size());
-        for (int i = 0; i < descriptorSets.size(); i++) {
-            const auto set = std::static_pointer_cast<VKDescriptorSet>(descriptorSets[i]);
-            this->descriptorSets[i] = set->getSet();
-            setLayouts.push_back(set->getSetLayout());
+        for (int i = 0; i < descriptorLayouts.size(); i++) {
+            const auto layout = std::static_pointer_cast<VKDescriptorLayout>(descriptorLayouts[i]);
+            setLayouts.push_back(layout->getSetLayout());
         }
-
         const auto pipelineLayoutInfo = VkPipelineLayoutCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
             .setLayoutCount = static_cast<uint32_t>(setLayouts.size()),
@@ -615,8 +622,8 @@ namespace vireo::backend {
     }
 
     void VKCommandList::upload(Image& destination, const void* source) {
-        const auto& image = static_cast<VKImage&>(destination);
-        VkBuffer       stagingBuffer{VK_NULL_HANDLE};
+        auto& image = static_cast<VKImage&>(destination);
+        VkBuffer stagingBuffer{VK_NULL_HANDLE};
         VkDeviceMemory stagingBufferMemory{VK_NULL_HANDLE};
         VKBuffer::createBuffer(
             device,
@@ -673,7 +680,7 @@ namespace vireo::backend {
                    0,
                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-       });
+        });
 
         stagingBuffers.push_back(stagingBuffer);
         stagingBuffersMemory.push_back(stagingBufferMemory);

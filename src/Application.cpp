@@ -81,26 +81,12 @@ namespace vireo {
         renderingBackEnd->getTransferCommandQueue()->waitIdle();
         uploadCommandList->cleanup();
 
-        texturesDescriptorSet = renderingBackEnd->createDescriptorSet(
-            backend::DescriptorType::TEXTURE,
-            1,
-            staticSamplers,
-            L"Textures");
-        checkerBoardHandle = texturesDescriptorSet->allocate();
-        texturesDescriptorSet->update(checkerBoardHandle, *checkerBoardTexture);
-
-        uniformDescriptorSet = renderingBackEnd->createDescriptorSet(
-            backend::DescriptorType::BUFFER,
-            2,
-            L"UBOs");
-
         uboBuffer1 = renderingBackEnd->createBuffer(
             backend::Buffer::UNIFORM,
             sizeof(GlobalUBO1),
             1, 256,
             L"UBO1");
         uboBuffer1->map();
-        uboHandle1 = uniformDescriptorSet->allocate();
 
         uboBuffer2 = renderingBackEnd->createBuffer(
             backend::Buffer::UNIFORM,
@@ -108,12 +94,28 @@ namespace vireo {
             1, 256,
             L"UBO2");
         uboBuffer2->map();
-        uboHandle2 = uniformDescriptorSet->allocate();
 
+        texturesDescriptorLayout = renderingBackEnd->createDescriptorLayout(
+            backend::DescriptorType::TEXTURE,
+            1,
+            staticSamplers,
+            L"Textures");
+        uniformDescriptorLayout = renderingBackEnd->createDescriptorLayout(
+            backend::DescriptorType::BUFFER,
+            2,
+            L"UBOs");
+
+        texturesDescriptorSet = renderingBackEnd->createDescriptorSet(*texturesDescriptorLayout, L"Textures");
+        uniformDescriptorSet = renderingBackEnd->createDescriptorSet(*uniformDescriptorLayout, L"Uniform");
+
+        checkerBoardHandle = texturesDescriptorSet->allocate();
+        texturesDescriptorSet->update(checkerBoardHandle, *checkerBoardTexture);
+        uboHandle1 = uniformDescriptorSet->allocate();
+        uboHandle2 = uniformDescriptorSet->allocate();
         uniformDescriptorSet->update({uboHandle1, uboHandle2}, {uboBuffer1, uboBuffer2});
 
         pipelineResources["default"] = renderingBackEnd->createPipelineResources(
-            { uniformDescriptorSet, texturesDescriptorSet },
+            { uniformDescriptorLayout, texturesDescriptorLayout },
             staticSamplers,
             L"default");
 
@@ -133,7 +135,7 @@ namespace vireo {
             L"default");
 
         for (uint32_t i = 0; i < backend::SwapChain::FRAMES_IN_FLIGHT; i++) {
-            framesData[i] = renderingBackEnd->createFrameData(i);
+            framesData[i] = renderingBackEnd->createFrameData(i, {uniformDescriptorSet, texturesDescriptorSet});
             graphicCommandAllocator[i] = renderingBackEnd->createCommandAllocator(backend::CommandList::GRAPHIC);
             graphicCommandList[i] = graphicCommandAllocator[i]->createCommandList(*pipelines["default"]);
         }

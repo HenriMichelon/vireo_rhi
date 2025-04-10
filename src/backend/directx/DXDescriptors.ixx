@@ -13,9 +13,15 @@ import vireo.backend.resources;
 
 export namespace vireo::backend {
 
+    class DXDescriptorLayout : public DescriptorLayout {
+    public:
+        DXDescriptorLayout(DescriptorType type, size_t capacity) : DescriptorLayout(type, capacity) {}
+    };
+
     class DXDescriptorSet : public DescriptorSet {
     public:
-        DXDescriptorSet(DescriptorType type, const ComPtr<ID3D12Device>& device, size_t capacity, const std::wstring& name);
+        DXDescriptorSet(DescriptorLayout& layout, const ComPtr<ID3D12Device>& device, const std::wstring& name);
+
         ~DXDescriptorSet() override;
 
         void update(DescriptorHandle handle, Buffer& buffer) override;

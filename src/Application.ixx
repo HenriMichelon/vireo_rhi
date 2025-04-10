@@ -52,6 +52,8 @@ export namespace vireo {
         std::vector<std::shared_ptr<backend::FrameData>> framesData{backend::SwapChain::FRAMES_IN_FLIGHT};
         std::vector<std::shared_ptr<backend::CommandAllocator>> graphicCommandAllocator{backend::SwapChain::FRAMES_IN_FLIGHT};
         std::vector<std::shared_ptr<backend::CommandList>> graphicCommandList{backend::SwapChain::FRAMES_IN_FLIGHT};
+        std::shared_ptr<backend::DescriptorLayout> uniformDescriptorLayout;
+        std::shared_ptr<backend::DescriptorLayout> texturesDescriptorLayout;
         std::shared_ptr<backend::DescriptorSet> uniformDescriptorSet;
         std::shared_ptr<backend::DescriptorSet> texturesDescriptorSet;
         std::vector<std::shared_ptr<backend::Sampler>> staticSamplers;

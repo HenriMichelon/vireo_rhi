@@ -10,11 +10,14 @@ module;
 export module vireo.backend.directx.framedata;
 
 import vireo.backend.framedata;
+import vireo.backend.descriptors;
 
 export namespace vireo::backend {
 
     struct DXFrameData : FrameData {
         UINT64 inFlightFenceValue{0};
+
+        DXFrameData(const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSet): FrameData{descriptorSet} {}
     };
 
 }

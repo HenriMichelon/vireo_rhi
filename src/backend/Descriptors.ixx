@@ -19,10 +19,23 @@ export namespace vireo::backend {
 
     using DescriptorHandle = uint32_t;
 
+    class DescriptorLayout {
+    public:
+        virtual ~DescriptorLayout() = default;
+
+        auto getCapacity() const { return capacity; }
+
+        auto getType() const { return type; }
+
+    protected:
+        DescriptorType                type;
+        const size_t                  capacity;
+
+        DescriptorLayout(DescriptorType type, size_t capacity);
+    };
+
     class DescriptorSet {
     public:
-        DescriptorSet(DescriptorType type, size_t capacity);
-
         virtual ~DescriptorSet() = default;
 
         DescriptorHandle allocate();
@@ -35,14 +48,11 @@ export namespace vireo::backend {
 
         virtual void update(DescriptorHandle handle, Image& buffer) = 0;
 
-        auto getCapacity() const { return capacity; }
-
-        auto getType() const { return type; }
-
     protected:
-        DescriptorType                type;
-        const size_t                  capacity;
+        const DescriptorLayout&       layout;
         std::vector<DescriptorHandle> freeHandles{};
+
+        DescriptorSet(const DescriptorLayout& layout);
     };
 
 

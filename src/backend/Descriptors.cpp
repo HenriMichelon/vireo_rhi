@@ -10,11 +10,15 @@ module vireo.backend.descriptors;
 
 namespace vireo::backend {
 
-    DescriptorSet::DescriptorSet(const DescriptorType type, const size_t capacity) :
+    DescriptorLayout::DescriptorLayout(const DescriptorType type, const size_t capacity) :
         type{type},
         capacity{capacity} {
-        for (DescriptorHandle i = 0; i < capacity; i++) {
-            freeHandles.push_back(capacity - 1 - i);
+    }
+
+    DescriptorSet::DescriptorSet(const DescriptorLayout& layout):
+        layout{layout} {
+        for (DescriptorHandle i = 0; i < layout.getCapacity(); i++) {
+            freeHandles.push_back(layout.getCapacity() - 1 - i);
         }
     }
 
@@ -26,7 +30,7 @@ namespace vireo::backend {
     }
 
     void DescriptorSet::free(DescriptorHandle handle){
-        assert(handle < capacity);
+        assert(handle < layout.getCapacity());
         freeHandles.push_back(handle);
     }
 

@@ -12,12 +12,12 @@ import vireo.backend.directx.resources;
 
 namespace vireo::backend {
 
-    DXDescriptorSet::DXDescriptorSet(const DescriptorType type, const ComPtr<ID3D12Device>& device, size_t capacity, const std::wstring& name):
-        DescriptorSet{type, capacity},
+    DXDescriptorSet::DXDescriptorSet(DescriptorLayout& layout, const ComPtr<ID3D12Device>& device, const std::wstring& name):
+        DescriptorSet{layout},
         device{device} {
         const auto heapDesc = D3D12_DESCRIPTOR_HEAP_DESC {
             .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-            .NumDescriptors = static_cast<UINT>(capacity),
+            .NumDescriptors = static_cast<UINT>(layout.getCapacity()),
             .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
         };
         DieIfFailed(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&heap)));
@@ -32,7 +32,7 @@ namespace vireo::backend {
     }
 
     void DXDescriptorSet::update(const DescriptorHandle handle, Buffer& buffer) {
-        assert(type == DescriptorType::BUFFER);
+        assert(layout.getType() == DescriptorType::BUFFER);
         const auto dxBuffer = static_cast<DXBuffer&>(buffer);
         const auto bufferViewDesc = D3D12_CONSTANT_BUFFER_VIEW_DESC{
             .BufferLocation = dxBuffer.getBuffer()->GetGPUVirtualAddress(),

@@ -196,7 +196,7 @@ export namespace vireo::backend {
     public:
         VKPipelineResources(
             VkDevice device,
-            const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets,
+            const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
             const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
             const std::wstring& name);
 
@@ -204,12 +204,12 @@ export namespace vireo::backend {
 
         auto getPipelineLayout() const { return pipelineLayout; }
 
-        const auto& getDescriptorSets() const { return descriptorSets; }
+        const auto& getSetLayouts() const { return setLayouts; }
 
     private:
         VkDevice device;
         VkPipelineLayout pipelineLayout;
-        std::vector<VkDescriptorSet> descriptorSets;
+        std::vector<VkDescriptorSetLayout> setLayouts;
     };
 
     class VKPipeline : public Pipeline {
@@ -240,7 +240,9 @@ export namespace vireo::backend {
 
         std::shared_ptr<CommandAllocator> createCommandAllocator(CommandList::Type type) const override;
 
-        std::shared_ptr<FrameData> createFrameData(uint32_t frameIndex) override;
+        std::shared_ptr<FrameData> createFrameData(
+            uint32_t frameIndex,
+            const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSet) override;
 
         void destroyFrameData(FrameData& frameData) override;
 
@@ -251,7 +253,7 @@ export namespace vireo::backend {
         std::shared_ptr<ShaderModule> createShaderModule(const std::string& fileName) const override;
 
         std::shared_ptr<PipelineResources> createPipelineResources(
-            const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets,
+            const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
             const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
             const std::wstring& name = L"PipelineResource") const override;
 
@@ -275,16 +277,20 @@ export namespace vireo::backend {
             uint32_t height,
             const std::wstring& name = L"Image") const override;
 
-        std::shared_ptr<DescriptorSet> createDescriptorSet(
+        std::shared_ptr<DescriptorLayout> createDescriptorLayout(
             DescriptorType type,
             uint32_t capacity,
             const std::wstring& name) override;
 
-        std::shared_ptr<DescriptorSet> createDescriptorSet(
+        std::shared_ptr<DescriptorLayout> createDescriptorLayout(
             DescriptorType type,
             uint32_t capacity,
             const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
-            const std::wstring& name = L"DescriptorSet") override;
+            const std::wstring& name) override;
+
+        std::shared_ptr<DescriptorSet> createDescriptorSet(
+            DescriptorLayout& layout,
+            const std::wstring& name) override;
 
         std::shared_ptr<Sampler> createSampler(
            Filter minFilter,

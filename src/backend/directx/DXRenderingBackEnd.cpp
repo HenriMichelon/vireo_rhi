@@ -52,15 +52,17 @@ namespace vireo::backend {
             height);
     }
 
-    std::shared_ptr<FrameData> DXRenderingBackEnd::createFrameData(const uint32_t frameIndex) {
-        return std::make_shared<DXFrameData>();
+    std::shared_ptr<FrameData> DXRenderingBackEnd::createFrameData(
+        const uint32_t frameIndex,
+        const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSet) {
+        return std::make_shared<DXFrameData>(descriptorSet);
     }
 
     std::shared_ptr<PipelineResources> DXRenderingBackEnd::createPipelineResources(
-    const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets,
+        const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
         const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
         const std::wstring& name ) const {
-        return std::make_shared<DXPipelineResources>(getDXDevice()->getDevice(), descriptorSets, staticSamplers, name);
+        return std::make_shared<DXPipelineResources>(getDXDevice()->getDevice(), descriptorLayouts, staticSamplers, name);
     }
 
     std::shared_ptr<Pipeline> DXRenderingBackEnd::createPipeline(
@@ -96,11 +98,17 @@ namespace vireo::backend {
         return make_shared<DXBuffer>(getDXDevice()->getDevice(), type, size, count, alignment, name);
     }
 
-    std::shared_ptr<DescriptorSet> DXRenderingBackEnd::createDescriptorSet(
+    std::shared_ptr<DescriptorLayout> DXRenderingBackEnd::createDescriptorLayout(
         DescriptorType type,
         uint32_t capacity,
         const std::wstring& name) {
-        return std::make_shared<DXDescriptorSet>(type, getDXDevice()->getDevice(), capacity, name);
+        return std::make_shared<DXDescriptorLayout>(type, capacity);
+    }
+
+    std::shared_ptr<DescriptorSet> DXRenderingBackEnd::createDescriptorSet(
+        DescriptorLayout& layout,
+        const std::wstring& name) {
+        return std::make_shared<DXDescriptorSet>(layout, getDXDevice()->getDevice(), name);
     }
 
     std::shared_ptr<Sampler> DXRenderingBackEnd::createSampler(
@@ -118,7 +126,7 @@ namespace vireo::backend {
             minLod, maxLod, anisotropyEnable, mipMapMode);
     }
 
-    void DXRenderingBackEnd::beginRendering(FrameData&,
+    void DXRenderingBackEnd::beginRendering(FrameData&data,
                                             PipelineResources& pipelineResources,
                                             Pipeline& pipeline,
                                             CommandList& commandList) {
@@ -151,13 +159,15 @@ namespace vireo::backend {
             nullptr);
         dxCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-        dxCommandList->SetDescriptorHeaps(
-            dxPipelineResources.getDescriptorHeaps().size(),
-            dxPipelineResources.getDescriptorHeaps().data());
-        for (int i = 0; i < dxPipelineResources.getDescriptorHeaps().size(); i++) {
+        std::vector<ID3D12DescriptorHeap*> descriptorHeaps(data.descriptorSets.size());
+        for (int i = 0; i < data.descriptorSets.size(); i++) {
+            descriptorHeaps[i] = static_pointer_cast<DXDescriptorSet>(data.descriptorSets[i])->getHeap().Get();
+        }
+        dxCommandList->SetDescriptorHeaps(descriptorHeaps.size(), descriptorHeaps.data());
+        for (int i = 0; i < descriptorHeaps.size(); i++) {
             dxCommandList->SetGraphicsRootDescriptorTable(
                 i,
-                dxPipelineResources.getDescriptorHeaps()[i]->GetGPUDescriptorHandleForHeapStart());
+                descriptorHeaps[i]->GetGPUDescriptorHandleForHeapStart());
         }
     }
 
@@ -443,7 +453,7 @@ namespace vireo::backend {
 
     DXPipelineResources::DXPipelineResources(
         const ComPtr<ID3D12Device>& device,
-        const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets,
+        const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
         const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
         const std::wstring& name) {
 
@@ -468,11 +478,10 @@ namespace vireo::backend {
             featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
         }
 
-        descriptorHeaps.resize(descriptorSets.size());
-        std::vector<CD3DX12_DESCRIPTOR_RANGE1> ranges(descriptorSets.size());
-        std::vector<CD3DX12_ROOT_PARAMETER1> rootParameters(descriptorSets.size());
-        for (int i = 0; i < descriptorSets.size(); i++) {
-            const auto set = std::static_pointer_cast<DXDescriptorSet>(descriptorSets[i]);
+        std::vector<CD3DX12_DESCRIPTOR_RANGE1> ranges(descriptorLayouts.size());
+        std::vector<CD3DX12_ROOT_PARAMETER1> rootParameters(descriptorLayouts.size());
+        for (int i = 0; i < descriptorLayouts.size(); i++) {
+            const auto set = std::static_pointer_cast<DXDescriptorLayout>(descriptorLayouts[i]);
             ranges[i].Init(
                 set->getType() == DescriptorType::BUFFER ? D3D12_DESCRIPTOR_RANGE_TYPE_CBV : D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
                 set->getCapacity(),
@@ -483,7 +492,6 @@ namespace vireo::backend {
                 1,
                 &ranges[i],
                 D3D12_SHADER_VISIBILITY_ALL);
-            descriptorHeaps[i] = set->getHeap().Get();
         }
 
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
