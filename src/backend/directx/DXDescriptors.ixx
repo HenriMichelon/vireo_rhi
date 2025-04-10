@@ -10,12 +10,13 @@ export module vireo.backend.directx.descriptors;
 
 import vireo.backend.buffer;
 import vireo.backend.descriptors;
+import vireo.backend.samplers;
 
 export namespace vireo::backend {
 
     class DXDescriptorSet : public DescriptorSet {
     public:
-        DXDescriptorSet(DescriptorType type, const ComPtr<ID3D12Device>& device, uint32_t capacity);
+        DXDescriptorSet(DescriptorType type, const ComPtr<ID3D12Device>& device, size_t capacity);
         ~DXDescriptorSet() override;
 
         void update(DescriptorHandle handle, Buffer& buffer) override;

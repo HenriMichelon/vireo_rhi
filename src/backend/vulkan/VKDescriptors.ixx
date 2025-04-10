@@ -10,18 +10,21 @@ export module vireo.backend.vulkan.descriptors;
 
 import vireo.backend.buffer;
 import vireo.backend.descriptors;
+import vireo.backend.samplers;
 
 export namespace vireo::backend {
 
     class VKDescriptorSet : public DescriptorSet {
     public:
-        VKDescriptorSet(DescriptorType type, VkDevice device, uint32_t capacity);
+        VKDescriptorSet(DescriptorType type, VkDevice device, size_t capacity);
 
         ~VKDescriptorSet() override;
 
         void update(DescriptorHandle handle, Buffer& buffer) override;
 
         uint64_t getGPUHandle(DescriptorHandle handle) const override;
+
+        auto getSetLayout() const { return setLayout; }
 
     private:
         VkDevice              device;

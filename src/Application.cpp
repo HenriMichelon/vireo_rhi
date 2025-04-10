@@ -55,7 +55,7 @@ namespace vireo {
             L"ConstantBuffer");
         uniformDescriptorSet->update(sceneConstantBufferHandle, *sceneConstantBuffer);
 
-        defaultSampler = renderingBackEnd->createSampler(
+        nearestBorderSampler = renderingBackEnd->createSampler(
             backend::Filter::NEAREST,
             backend::Filter::NEAREST,
             backend::AddressMode::CLAMP_TO_BORDER,
@@ -64,7 +64,18 @@ namespace vireo {
             0.0f, 1.0f,
             false,
             backend::MipMapMode::NEAREST);
-        pipelineResources["default"] = renderingBackEnd->createPipelineResources(L"default");
+        linearBorderSampler = renderingBackEnd->createSampler(
+            backend::Filter::LINEAR,
+            backend::Filter::LINEAR,
+            backend::AddressMode::CLAMP_TO_BORDER,
+            backend::AddressMode::CLAMP_TO_BORDER,
+            backend::AddressMode::CLAMP_TO_BORDER,
+            0.0f, 1.0f,
+            false,
+            backend::MipMapMode::LINEAR);
+        pipelineResources["default"] = renderingBackEnd->createPipelineResources(
+            {nearestBorderSampler, linearBorderSampler},
+            L"default");
 
         const auto attributes = std::vector{
             backend::VertexInputLayout::AttributeDescription{"POSITION", backend::VertexInputLayout::R32G32B32_FLOAT, 0},

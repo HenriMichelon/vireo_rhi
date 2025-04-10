@@ -148,7 +148,8 @@ export namespace vireo::backend {
 
         virtual void waitIdle() = 0;
 
-        virtual std::shared_ptr<CommandAllocator> createCommandAllocator(CommandList::Type type) const = 0;
+        virtual std::shared_ptr<CommandAllocator> createCommandAllocator(
+            CommandList::Type type) const = 0;
 
         virtual std::shared_ptr<VertexInputLayout> createVertexLayout(
             size_t size,
@@ -157,7 +158,9 @@ export namespace vireo::backend {
         virtual std::shared_ptr<ShaderModule> createShaderModule(
             const std::string& fileName) const = 0;
 
-        virtual std::shared_ptr<PipelineResources> createPipelineResources(const std::wstring& name = L"PipelineResource") const = 0;
+        virtual std::shared_ptr<PipelineResources> createPipelineResources(
+            const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
+            const std::wstring& name = L"PipelineResource") const = 0;
 
         virtual std::shared_ptr<Pipeline> createPipeline(
             PipelineResources& pipelineResources,
@@ -173,7 +176,9 @@ export namespace vireo::backend {
             size_t alignment = 1,
             const std::wstring& name = L"Buffer") const = 0;
 
-        virtual std::shared_ptr<DescriptorSet> createDescriptorSet(DescriptorType type, uint32_t capacity) = 0;
+        virtual std::shared_ptr<DescriptorSet> createDescriptorSet(
+            DescriptorType type,
+            uint32_t capacity) = 0;
 
         virtual std::shared_ptr<Sampler> createSampler(
             Filter minFilter,
@@ -186,7 +191,11 @@ export namespace vireo::backend {
             bool anisotropyEnable = true,
             MipMapMode mipMapMode = MipMapMode::LINEAR) const = 0;
 
-        virtual void beginRendering(FrameData& frameData, PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) = 0;
+        virtual void beginRendering(
+            FrameData& frameData,
+            PipelineResources& pipelineResources,
+            Pipeline& pipeline,
+            CommandList& commandList) = 0;
 
         virtual void endRendering(CommandList& commandList) = 0;
 

@@ -18,6 +18,7 @@ import vireo.backend.samplers;
 
 import vireo.backend.vulkan.buffer;
 import vireo.backend.vulkan.device;
+import vireo.backend.vulkan.descriptors;
 
 export namespace vireo::backend {
 
@@ -192,15 +193,17 @@ export namespace vireo::backend {
 
     class VKPipelineResources : public PipelineResources {
     public:
-        VKPipelineResources(VkDevice device, const std::wstring& name);
+        VKPipelineResources(VkDevice device, const std::vector<std::shared_ptr<Sampler>>& staticSamplers, const std::wstring& name);
 
         ~VKPipelineResources() override;
 
         auto getPipelineLayout() const { return pipelineLayout; }
 
     private:
-        VkDevice         device;
+        VkDevice device;
         VkPipelineLayout pipelineLayout;
+        VkDescriptorSetLayout staticSamplersSetLayout{VK_NULL_HANDLE};
+        std::vector<std::shared_ptr<VKDescriptorSet>> descriptorSets;
     };
 
     class VKPipeline : public Pipeline {
@@ -241,7 +244,9 @@ export namespace vireo::backend {
 
         std::shared_ptr<ShaderModule> createShaderModule(const std::string& fileName) const override;
 
-        std::shared_ptr<PipelineResources> createPipelineResources(const std::wstring& name = L"PipelineResource") const override;
+        std::shared_ptr<PipelineResources> createPipelineResources(
+            const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
+            const std::wstring& name = L"PipelineResource") const override;
 
         std::shared_ptr<Pipeline> createPipeline(
             PipelineResources& pipelineResources,
@@ -250,7 +255,12 @@ export namespace vireo::backend {
             ShaderModule& fragmentShader,
             const std::wstring& name = L"Pipeline") const override;
 
-        std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1, size_t alignment = 1, const std::wstring& name = L"Buffer") const override;
+        std::shared_ptr<Buffer> createBuffer(
+            Buffer::Type type,
+            size_t size,
+            size_t count = 1,
+            size_t alignment = 1,
+            const std::wstring& name = L"Buffer") const override;
 
         std::shared_ptr<DescriptorSet> createDescriptorSet(DescriptorType type, uint32_t capacity) override;
 

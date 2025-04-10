@@ -12,12 +12,12 @@ import vireo.backend.directx.buffer;
 
 namespace vireo::backend {
 
-    DXDescriptorSet::DXDescriptorSet(const DescriptorType type, const ComPtr<ID3D12Device>& device, uint32_t capacity):
+    DXDescriptorSet::DXDescriptorSet(const DescriptorType type, const ComPtr<ID3D12Device>& device, size_t capacity):
         DescriptorSet{type, capacity},
         device{device} {
         const auto heapDesc = D3D12_DESCRIPTOR_HEAP_DESC {
             .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-            .NumDescriptors = capacity,
+            .NumDescriptors = static_cast<UINT>(capacity),
             .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
         };
         DieIfFailed(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&heap)));
@@ -30,7 +30,7 @@ namespace vireo::backend {
         // heap->Release();
     }
 
-    void DXDescriptorSet::update(DescriptorHandle handle, Buffer& buffer) {
+    void DXDescriptorSet::update(const DescriptorHandle handle, Buffer& buffer) {
         assert(type == DescriptorType::BUFFER);
         const auto dxBuffer = static_cast<DXBuffer&>(buffer);
         const auto bufferViewDesc = D3D12_CONSTANT_BUFFER_VIEW_DESC{
@@ -41,7 +41,7 @@ namespace vireo::backend {
         device->CreateConstantBufferView(&bufferViewDesc, descriptorHandle);
     }
 
-    uint64_t DXDescriptorSet::getGPUHandle(DescriptorHandle handle) const {
+    uint64_t DXDescriptorSet::getGPUHandle(const DescriptorHandle handle) const {
         return gpuBase.ptr + handle * descriptorSize;
     }
 

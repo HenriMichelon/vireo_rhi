@@ -191,7 +191,9 @@ export namespace vireo::backend {
 
         std::shared_ptr<ShaderModule> createShaderModule(const std::string& fileName) const override;
 
-        std::shared_ptr<PipelineResources> createPipelineResources(const std::wstring& name = L"PipelineResource") const override;
+        std::shared_ptr<PipelineResources> createPipelineResources(
+            const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
+            const std::wstring& name = L"PipelineResource") const override;
 
         std::shared_ptr<Pipeline> createPipeline(
             PipelineResources& pipelineResources,

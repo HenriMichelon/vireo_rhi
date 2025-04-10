@@ -10,7 +10,7 @@ module vireo.backend.descriptors;
 
 namespace vireo::backend {
 
-    DescriptorSet::DescriptorSet(const DescriptorType type, const uint32_t capacity) :
+    DescriptorSet::DescriptorSet(const DescriptorType type, const size_t capacity) :
         type{type},
         capacity{capacity} {
         for (DescriptorHandle i = 0; i < capacity; i++) {

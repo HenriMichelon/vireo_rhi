@@ -9,19 +9,21 @@ module;
 export module vireo.backend.descriptors;
 
 import vireo.backend.buffer;
+import vireo.backend.samplers;
 
 export namespace vireo::backend {
 
     enum class DescriptorType : uint8_t {
         BUFFER  = 0,
-        TEXTURE = 1
+        TEXTURE = 1,
+        SAMPLER = 2,
     };
 
     using DescriptorHandle = uint32_t;
 
     class DescriptorSet {
     public:
-        DescriptorSet(DescriptorType type, uint32_t capacity);
+        DescriptorSet(DescriptorType type, size_t capacity);
 
         virtual ~DescriptorSet() = default;
 
@@ -36,7 +38,7 @@ export namespace vireo::backend {
     protected:
         DescriptorType                type;
     private:
-        const uint32_t                capacity;
+        const size_t                  capacity;
         std::vector<DescriptorHandle> freeHandles{};
     };
 

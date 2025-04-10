@@ -30,6 +30,8 @@ export namespace vireo::backend {
 
         ~VKSampler() override;
 
+        auto getSampler() const { return sampler; }
+
     private:
         VkDevice  device;
         VkSampler sampler;

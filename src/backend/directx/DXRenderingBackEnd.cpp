@@ -57,7 +57,9 @@ namespace vireo::backend {
         return std::make_shared<DXFrameData>();
     }
 
-    std::shared_ptr<PipelineResources> DXRenderingBackEnd::createPipelineResources(const std::wstring& name ) const {
+    std::shared_ptr<PipelineResources> DXRenderingBackEnd::createPipelineResources(
+        const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
+        const std::wstring& name ) const {
         return std::make_shared<DXPipelineResources>(getDXDevice()->getDevice(), name);
     }
 

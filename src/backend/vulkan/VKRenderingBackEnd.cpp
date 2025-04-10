@@ -78,8 +78,10 @@ namespace vireo::backend {
         return std::make_shared<VKShaderModule>(getVKDevice()->getDevice(), fileName);
     }
 
-    std::shared_ptr<PipelineResources> VKRenderingBackEnd::createPipelineResources(const std::wstring& name) const {
-        return std::make_shared<VKPipelineResources>(getVKDevice()->getDevice(), name);
+    std::shared_ptr<PipelineResources> VKRenderingBackEnd::createPipelineResources(
+        const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
+        const std::wstring& name) const {
+        return std::make_shared<VKPipelineResources>(getVKDevice()->getDevice(), staticSamplers, name);
     }
 
     std::shared_ptr<Pipeline> VKRenderingBackEnd::createPipeline(
@@ -233,12 +235,39 @@ namespace vireo::backend {
         vkDestroyShaderModule(device, shaderModule, nullptr);
     }
 
-    VKPipelineResources::VKPipelineResources(const VkDevice device, const std::wstring& name):
+    VKPipelineResources::VKPipelineResources(
+        const VkDevice device,
+        const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
+        const std::wstring& name):
         device{device} {
-        auto pipelineLayoutInfo = VkPipelineLayoutCreateInfo {
+        auto setLayouts = std::vector<VkDescriptorSetLayout>{};
+        if (!staticSamplers.empty()) {
+            std::vector<VkSampler> samplers(staticSamplers.size());
+            for (int i = 0; i < staticSamplers.size(); i++) {
+                samplers[i] = std::static_pointer_cast<VKSampler>(staticSamplers[i])->getSampler();
+            }
+            const auto samplersLayoutBinding = VkDescriptorSetLayoutBinding {
+                .binding = 0,
+                .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER,
+                .descriptorCount = static_cast<uint32_t>(samplers.size()),
+                .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+                .pImmutableSamplers = samplers.data(),
+            };
+            const auto samplesLayoutCreateInfo = VkDescriptorSetLayoutCreateInfo {
+                .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+                .bindingCount = 1,
+                .pBindings = &samplersLayoutBinding,
+            };
+
+            DieIfFailed(vkCreateDescriptorSetLayout(device, &samplesLayoutCreateInfo, nullptr, &staticSamplersSetLayout));
+            setLayouts.push_back(staticSamplersSetLayout);
+            vkSetObjectName(device, reinterpret_cast<uint64_t>(staticSamplersSetLayout), VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT,
+                wstring_to_string(L"Static Samplers Set Layout"));
+        }
+        const auto pipelineLayoutInfo = VkPipelineLayoutCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-            .setLayoutCount = 0,
-            .pSetLayouts = nullptr,
+            .setLayoutCount = static_cast<uint32_t>(setLayouts.size()),
+            .pSetLayouts = setLayouts.empty() ? nullptr : setLayouts.data(),
             .pushConstantRangeCount = 0,
             .pPushConstantRanges = nullptr,
         };
@@ -248,6 +277,9 @@ namespace vireo::backend {
     }
 
     VKPipelineResources::~VKPipelineResources() {
+        if (staticSamplersSetLayout) {
+            vkDestroyDescriptorSetLayout(device, staticSamplersSetLayout, nullptr);
+        }
         vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
     }
 

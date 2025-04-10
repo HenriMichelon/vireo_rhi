@@ -9,19 +9,25 @@ module;
 module vireo.backend.vulkan.descriptors;
 
 import vireo.backend.vulkan.buffer;
+import vireo.backend.vulkan.samplers;
 
 namespace vireo::backend {
 
-    VKDescriptorSet::VKDescriptorSet(const DescriptorType type, VkDevice device, uint32_t capacity):
+    VKDescriptorSet::VKDescriptorSet(const DescriptorType type, VkDevice device, size_t capacity):
         DescriptorSet{type, capacity},
         device{device} {
+        const VkDescriptorType vkType =
+            type == DescriptorType::BUFFER ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER :
+            type == DescriptorType::TEXTURE ? VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE :
+            VK_DESCRIPTOR_TYPE_SAMPLER;
+
         const auto poolSize = VkDescriptorPoolSize {
-            .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = capacity
+            .type =vkType,
+            .descriptorCount = static_cast<uint32_t>(capacity)
         };
         const auto poolInfo = VkDescriptorPoolCreateInfo {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-            .maxSets = capacity,
+            .maxSets = static_cast<uint32_t>(capacity),
             .poolSizeCount = 1,
             .pPoolSizes = &poolSize,
         };
@@ -29,13 +35,10 @@ namespace vireo::backend {
 
         const auto binding = VkDescriptorSetLayoutBinding {
             .binding = 0,
-            .descriptorType = type == DescriptorType::BUFFER ?
-                VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER :
-                VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-            .descriptorCount = capacity,
+            .descriptorType = vkType,
+            .descriptorCount = static_cast<uint32_t>(capacity),
             .stageFlags = VK_SHADER_STAGE_ALL,
         };
-
         const auto layoutInfo = VkDescriptorSetLayoutCreateInfo {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
             .bindingCount = 1,
@@ -75,6 +78,26 @@ namespace vireo::backend {
         };
         vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
     }
+
+    // void VKDescriptorSet::update(const DescriptorHandle handle, Sampler& sampler) {
+    //     assert(type == DescriptorType::SAMPLER);
+    //     const auto& vkSampler = static_cast<VKSampler&>(sampler);
+    //     const auto imageInfo = VkDescriptorImageInfo {
+    //         .sampler = vkSampler.getSampler(),
+    //         .imageView = VK_NULL_HANDLE,
+    //         .imageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+    //     };
+    //     const auto write = VkWriteDescriptorSet {
+    //         .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+    //         .dstSet = set,
+    //         .dstBinding = 0,
+    //         .dstArrayElement = handle,
+    //         .descriptorCount = 1,
+    //         .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER,
+    //         .pImageInfo = &imageInfo,
+    //     };
+    //     vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
+    // }
 
     uint64_t VKDescriptorSet::getGPUHandle(DescriptorHandle handle) const {
         return handle;
