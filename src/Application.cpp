@@ -105,15 +105,6 @@ namespace vireo {
             2,
             L"UBOs");
 
-        texturesDescriptorSet = renderingBackEnd->createDescriptorSet(*texturesDescriptorLayout, L"Textures");
-        uniformDescriptorSet = renderingBackEnd->createDescriptorSet(*uniformDescriptorLayout, L"Uniform");
-
-        checkerBoardHandle = texturesDescriptorSet->allocate();
-        texturesDescriptorSet->update(checkerBoardHandle, *checkerBoardTexture);
-        uboHandle1 = uniformDescriptorSet->allocate();
-        uboHandle2 = uniformDescriptorSet->allocate();
-        uniformDescriptorSet->update({uboHandle1, uboHandle2}, {uboBuffer1, uboBuffer2});
-
         pipelineResources["default"] = renderingBackEnd->createPipelineResources(
             { uniformDescriptorLayout, texturesDescriptorLayout },
             staticSamplers,
@@ -135,6 +126,15 @@ namespace vireo {
             L"default");
 
         for (uint32_t i = 0; i < backend::SwapChain::FRAMES_IN_FLIGHT; i++) {
+            auto texturesDescriptorSet = renderingBackEnd->createDescriptorSet(*texturesDescriptorLayout, L"Textures");
+            auto uniformDescriptorSet = renderingBackEnd->createDescriptorSet(*uniformDescriptorLayout, L"Uniform");
+
+            auto checkerBoardHandle = texturesDescriptorSet->allocate();
+            texturesDescriptorSet->update(checkerBoardHandle, *checkerBoardTexture);
+            auto uboHandle1 = uniformDescriptorSet->allocate();
+            auto uboHandle2 = uniformDescriptorSet->allocate();
+            uniformDescriptorSet->update({uboHandle1, uboHandle2}, {uboBuffer1, uboBuffer2});
+
             framesData[i] = renderingBackEnd->createFrameData(i, {uniformDescriptorSet, texturesDescriptorSet});
             graphicCommandAllocator[i] = renderingBackEnd->createCommandAllocator(backend::CommandList::GRAPHIC);
             graphicCommandList[i] = graphicCommandAllocator[i]->createCommandList(*pipelines["default"]);
@@ -190,8 +190,6 @@ namespace vireo {
     void Application::onDestroy() {
         uboBuffer1->unmap();
         uboBuffer2->unmap();
-        uniformDescriptorSet->free(uboHandle1);
-        uniformDescriptorSet->free(uboHandle2);
         renderingBackEnd->waitIdle();
         for (uint32_t i = 0; i < backend::SwapChain::FRAMES_IN_FLIGHT; i++) {
             renderingBackEnd->destroyFrameData(*framesData[i]);

@@ -24,7 +24,6 @@ namespace vireo::backend {
             type == DescriptorType::BUFFER ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER :
             VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
 
-        std::vector<VkDescriptorPoolSize> poolSizes;
         poolSizes.push_back({
             .type = vkType,
             .descriptorCount = static_cast<uint32_t>(capacity),
@@ -35,16 +34,6 @@ namespace vireo::backend {
                 .descriptorCount = static_cast<uint32_t>(staticSamplers.size()),
             });
         }
-
-        const auto poolInfo = VkDescriptorPoolCreateInfo {
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-            .maxSets = static_cast<uint32_t>(capacity),
-            .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
-            .pPoolSizes = poolSizes.data(),
-        };
-        vkCreateDescriptorPool(device, &poolInfo, nullptr, &pool);
-        vkSetObjectName(device, reinterpret_cast<uint64_t>(pool), VK_OBJECT_TYPE_DESCRIPTOR_POOL,
-             wstring_to_string(L"Pool : " + name).c_str());
 
         std::vector<VkDescriptorSetLayoutBinding> bindings;
         bindings.push_back({
@@ -79,7 +68,6 @@ namespace vireo::backend {
     }
 
     VKDescriptorLayout::~VKDescriptorLayout() {
-        vkDestroyDescriptorPool(device, pool, nullptr);
         vkDestroyDescriptorSetLayout(device, setLayout, nullptr);
     }
 
@@ -89,18 +77,31 @@ namespace vireo::backend {
         DescriptorSet {layout} {
         const auto& vkLayout = static_cast<const VKDescriptorLayout&>(layout);
         const auto setLayout = vkLayout.getSetLayout();
+        device = vkLayout.getDevice();
+
+        const auto poolInfo = VkDescriptorPoolCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+            .maxSets = static_cast<uint32_t>(vkLayout.getCapacity()),
+            .poolSizeCount = static_cast<uint32_t>(vkLayout.getPoolSizes().size()),
+            .pPoolSizes = vkLayout.getPoolSizes().data(),
+        };
+        vkCreateDescriptorPool(device, &poolInfo, nullptr, &pool);
+        vkSetObjectName(device, reinterpret_cast<uint64_t>(pool), VK_OBJECT_TYPE_DESCRIPTOR_POOL,
+             wstring_to_string(L"Pool : " + name).c_str());
+
         const auto allocInfo = VkDescriptorSetAllocateInfo {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-            .descriptorPool = vkLayout.getPool(),
+            .descriptorPool = pool,
             .descriptorSetCount = 1,
             .pSetLayouts = &setLayout,
         };
-        vkAllocateDescriptorSets(vkLayout.getDevice(), &allocInfo, &set);
-        vkSetObjectName(vkLayout.getDevice(), reinterpret_cast<uint64_t>(set), VK_OBJECT_TYPE_DESCRIPTOR_SET,
+        vkAllocateDescriptorSets(device, &allocInfo, &set);
+        vkSetObjectName(device, reinterpret_cast<uint64_t>(set), VK_OBJECT_TYPE_DESCRIPTOR_SET,
             wstring_to_string(L"Set : " + name).c_str());
     }
 
     VKDescriptorSet::~VKDescriptorSet() {
+        vkDestroyDescriptorPool(device, pool, nullptr);
         // vkFreeDescriptorSets(static_cast<const VKDescriptorLayout&>(layout).getDevice(), set, nullptr);
     }
 

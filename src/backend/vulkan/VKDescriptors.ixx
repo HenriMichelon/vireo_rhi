@@ -28,12 +28,12 @@ export namespace vireo::backend {
 
         auto getDevice() const { return device; }
 
-        auto getPool() const { return pool; }
+        const auto& getPoolSizes() const { return poolSizes; }
 
     private:
-        VkDevice              device;
-        VkDescriptorPool      pool;
+        VkDevice device;
         VkDescriptorSetLayout setLayout;
+        std::vector<VkDescriptorPoolSize> poolSizes;
     };
 
     class VKDescriptorSet : public DescriptorSet {
@@ -50,8 +50,12 @@ export namespace vireo::backend {
 
         auto getSet() const { return set; }
 
+        auto getPool() const { return pool; }
+
     private:
+        VkDevice device;
         VkDescriptorSet       set;
+        VkDescriptorPool      pool;
     };
 
 }

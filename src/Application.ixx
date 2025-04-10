@@ -54,17 +54,12 @@ export namespace vireo {
         std::vector<std::shared_ptr<backend::CommandList>> graphicCommandList{backend::SwapChain::FRAMES_IN_FLIGHT};
         std::shared_ptr<backend::DescriptorLayout> uniformDescriptorLayout;
         std::shared_ptr<backend::DescriptorLayout> texturesDescriptorLayout;
-        std::shared_ptr<backend::DescriptorSet> uniformDescriptorSet;
-        std::shared_ptr<backend::DescriptorSet> texturesDescriptorSet;
         std::vector<std::shared_ptr<backend::Sampler>> staticSamplers;
         std::map<std::string, std::shared_ptr<backend::PipelineResources>> pipelineResources;
         std::map<std::string, std::shared_ptr<backend::Pipeline>> pipelines;
         std::shared_ptr<backend::Buffer> vertexBuffer;
         std::shared_ptr<backend::Buffer> uboBuffer1;
         std::shared_ptr<backend::Buffer> uboBuffer2;
-        backend::DescriptorHandle uboHandle1;
-        backend::DescriptorHandle uboHandle2;
-        backend::DescriptorHandle checkerBoardHandle;
         float colorIncrement{1.0f};
         float scaleIncrement{1.0f};
         std::shared_ptr<backend::Image> checkerBoardTexture;
