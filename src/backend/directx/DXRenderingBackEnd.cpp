@@ -127,23 +127,22 @@ namespace vireo::backend {
         const auto dxSwapChain = getDXSwapChain();
         const auto frameIndex = swapChain->getCurrentFrameIndex();
         const auto& dxPipelineResources = static_cast<DXPipelineResources&>(pipelineResources);
-        // auto& dxPipeline = static_cast<DXPipeline&>(pipeline);
+        // const auto& dxPipeline = static_cast<DXPipeline&>(pipeline);
 
         dxCommandList->SetGraphicsRootSignature(dxPipelineResources.getRootSignature().Get());
         dxCommandList->RSSetViewports(1, &viewport);
         dxCommandList->RSSetScissorRects(1, &scissorRect);
 
-        auto swapChainBarrier = CD3DX12_RESOURCE_BARRIER::Transition(dxSwapChain->getRenderTargets()[frameIndex].Get(),
+        const auto swapChainBarrier = CD3DX12_RESOURCE_BARRIER::Transition(dxSwapChain->getRenderTargets()[frameIndex].Get(),
                                                                      D3D12_RESOURCE_STATE_PRESENT,
                                                                      D3D12_RESOURCE_STATE_RENDER_TARGET);
         dxCommandList->ResourceBarrier(1, &swapChainBarrier);
 
-        CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(
+        const CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(
             dxSwapChain->getHeap()->GetCPUDescriptorHandleForHeapStart(),
             frameIndex,
             dxSwapChain->getDescriptorSize());
         dxCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
-
 
         const float dxClearColor[] = {clearColor.r, clearColor.g, clearColor.b, clearColor.a};
         dxCommandList->ClearRenderTargetView(
@@ -152,6 +151,15 @@ namespace vireo::backend {
             0,
             nullptr);
         dxCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+        dxCommandList->SetDescriptorHeaps(
+            dxPipelineResources.getDescriptorHeaps().size(),
+            dxPipelineResources.getDescriptorHeaps().data());
+        for (int i = 0; i < dxPipelineResources.getDescriptorHeaps().size(); i++) {
+            dxCommandList->SetGraphicsRootDescriptorTable(
+                i,
+                dxPipelineResources.getDescriptorHeaps()[i]->GetGPUDescriptorHandleForHeapStart());
+        }
     }
 
     void DXRenderingBackEnd::endRendering(CommandList& commandList) {
@@ -461,10 +469,28 @@ namespace vireo::backend {
             featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
         }
 
+        descriptorHeaps.resize(descriptorSets.size());
+        std::vector<CD3DX12_DESCRIPTOR_RANGE1> ranges(descriptorSets.size());
+        std::vector<CD3DX12_ROOT_PARAMETER1> rootParameters(descriptorSets.size());
+        for (int i = 0; i < descriptorSets.size(); i++) {
+            const auto set = std::static_pointer_cast<DXDescriptorSet>(descriptorSets[i]);
+            ranges[i].Init(
+                set->getType() == DescriptorType::BUFFER ? D3D12_DESCRIPTOR_RANGE_TYPE_CBV : D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+                set->getCapacity(),
+                0,
+                i,
+                D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+            rootParameters[i].InitAsDescriptorTable(
+                1,
+                &ranges[i],
+                D3D12_SHADER_VISIBILITY_ALL);
+            descriptorHeaps[i] = set->getHeap().Get();
+        }
+
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
         rootSignatureDesc.Init_1_1(
-            0,
-            nullptr,
+            rootParameters.size(),
+            rootParameters.empty() ? nullptr : rootParameters.data(),
             staticSamplersDesc.size(),
             staticSamplersDesc.empty() ? nullptr : staticSamplersDesc.data(),
             rootSignatureFlags);

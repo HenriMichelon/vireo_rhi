@@ -23,6 +23,8 @@ export namespace vireo::backend {
 
         D3D12_GPU_DESCRIPTOR_HANDLE getGPUHandle(DescriptorHandle handle) const;
 
+        auto getHeap() const { return heap; }
+
     private:
         ComPtr<ID3D12Device>         device;
         ComPtr<ID3D12DescriptorHeap> heap;

@@ -159,8 +159,11 @@ export namespace vireo::backend {
 
         auto getRootSignature() const { return rootSignature; }
 
+        const auto& getDescriptorHeaps() const { return descriptorHeaps; }
+
     private:
         ComPtr<ID3D12RootSignature> rootSignature;
+        std::vector<ID3D12DescriptorHeap*> descriptorHeaps;
     };
 
     class DXPipeline : public Pipeline {

@@ -33,9 +33,12 @@ export namespace vireo::backend {
 
         virtual void update(DescriptorHandle handle, Buffer& buffer) = 0;
 
+        auto getCapacity() const { return capacity; }
+
+        auto getType() const { return type; }
+
     protected:
         DescriptorType                type;
-    private:
         const size_t                  capacity;
         std::vector<DescriptorHandle> freeHandles{};
     };

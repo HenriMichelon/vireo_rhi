@@ -10,23 +10,7 @@ import vireo.backend.directx;
 
 namespace dxvk {
 
-    DXApplication::DXApplication(UINT width, UINT height, std::wstring name) : Application(width, height, name),
-       m_constantBufferData{},
-       m_pCbvDataBegin(nullptr)
-    {
-    }
 
-    void DXApplication::OnUpdate() {
-        const float translationSpeed = 0.005f;
-        const float offsetBounds = 1.25f;
-
-        m_constantBufferData.offset.x += translationSpeed;
-        if (m_constantBufferData.offset.x > offsetBounds)
-        {
-            m_constantBufferData.offset.x = -offsetBounds;
-        }
-        memcpy(m_pCbvDataBegin, &m_constantBufferData, sizeof(m_constantBufferData));
-    }
 
     void DXApplication::PopulateCommandList() {
 
@@ -40,57 +24,7 @@ namespace dxvk {
     }
 
     void DXApplication::LoadAssets() {
-        // Create the root signature.
-        {
 
-            D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
-
-            // This is the highest version the sample supports. If CheckFeatureSupport succeeds, the HighestVersion returned will not be greater than this.
-            featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
-
-            if (FAILED(m_device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData))))
-            {
-                featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
-            }
-
-            CD3DX12_DESCRIPTOR_RANGE1 ranges[2];
-            ranges[ROOT_PARAMETER_INDEX_SRV].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
-            ranges[ROOT_PARAMETER_INDEX_CBV].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
-
-            CD3DX12_ROOT_PARAMETER1 rootParameters[2];
-            rootParameters[ROOT_PARAMETER_INDEX_SRV].InitAsDescriptorTable(1, &ranges[ROOT_PARAMETER_INDEX_SRV], D3D12_SHADER_VISIBILITY_PIXEL);
-            rootParameters[ROOT_PARAMETER_INDEX_CBV].InitAsDescriptorTable(1, &ranges[ROOT_PARAMETER_INDEX_CBV], D3D12_SHADER_VISIBILITY_VERTEX);
-
-            D3D12_STATIC_SAMPLER_DESC sampler = {};
-            sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
-            sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-            sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-            sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-            sampler.MipLODBias = 0;
-            sampler.MaxAnisotropy = 0;
-            sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
-            sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
-            sampler.MinLOD = 0.0f;
-            sampler.MaxLOD = D3D12_FLOAT32_MAX;
-            sampler.ShaderRegister = 0;
-            sampler.RegisterSpace = 0;
-            sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-
-            // Allow input layout and deny uneccessary access to certain pipeline stages.
-            D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
-                D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
-                D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-                D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-                D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
-
-            CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-            rootSignatureDesc.Init_1_1(_countof(rootParameters), rootParameters, 1, &sampler, rootSignatureFlags);
-
-            ComPtr<ID3DBlob> signature;
-            ComPtr<ID3DBlob> error;
-            ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, featureData.HighestVersion, &signature, &error));
-            ThrowIfFailed(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
-        }
 
 
         // Note: ComPtr's are CPU objects but this resource needs to stay in scope until
@@ -158,49 +92,7 @@ namespace dxvk {
             m_device->CreateShaderResourceView(m_texture.Get(), &srvDesc, srvHandle);
         }
 
-        // Create the constant buffer.
-        {
-            const UINT constantBufferSize = sizeof(SceneConstantBuffer);    // CB size is required to be 256-byte aligned.
 
-            auto heapUpload = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-            auto bufferSize = CD3DX12_RESOURCE_DESC::Buffer(constantBufferSize);
-            ThrowIfFailed(m_device->CreateCommittedResource(
-                &heapUpload,
-                D3D12_HEAP_FLAG_NONE,
-                &bufferSize,
-                D3D12_RESOURCE_STATE_GENERIC_READ,
-                nullptr,
-                IID_PPV_ARGS(&m_constantBuffer)));
-
-            // Describe and create a constant buffer view.
-            D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-            cbvDesc.BufferLocation = m_constantBuffer->GetGPUVirtualAddress();
-            cbvDesc.SizeInBytes = constantBufferSize;
-            D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle = { srvHandle.ptr + m_srvCbvDescriptorSize };
-            m_device->CreateConstantBufferView(&cbvDesc, cbvHandle);
-
-            // Map and initialize the constant buffer. We don't unmap this until the
-            // app closes. Keeping things mapped for the lifetime of the resource is okay.
-            CD3DX12_RANGE readRange(0, 0);        // We do not intend to read from this resource on the CPU.
-            ThrowIfFailed(m_constantBuffer->Map(0, &readRange, reinterpret_cast<void**>(&m_pCbvDataBegin)));
-            // m_constantBufferData.offset = XMFLOAT4(0.5, 0.5, 0.5, 0.5);
-            memcpy(m_pCbvDataBegin, &m_constantBufferData, sizeof(m_constantBufferData));
-        }
-
-        // Close the command list and execute it to begin the initial GPU setup.
-        ThrowIfFailed(m_commandList->Close());
-        ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
-        m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-
-        // Create synchronization objects and wait until assets have been uploaded to the GPU.
-        {
-
-
-            // Wait for the command list to execute; we are reusing the same command
-            // list in our main loop but for now, we just want to wait for setup to
-            // complete before continuing.
-            WaitForPreviousFrame();
-        }
     }
 
     void DXApplication::LoadPipeline() {
