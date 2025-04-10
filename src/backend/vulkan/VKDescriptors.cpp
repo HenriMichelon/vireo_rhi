@@ -24,36 +24,54 @@ namespace vireo::backend {
             type == DescriptorType::BUFFER ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER :
             VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
 
-        const auto poolSize = VkDescriptorPoolSize {
+        std::vector<VkDescriptorPoolSize> poolSizes;
+        poolSizes.push_back({
             .type = vkType,
-            .descriptorCount = static_cast<uint32_t>(capacity + staticSamplers.size()),
-        };
+            .descriptorCount = static_cast<uint32_t>(capacity),
+        });
+        if (!staticSamplers.empty()) {
+            poolSizes.push_back({
+                .type = VK_DESCRIPTOR_TYPE_SAMPLER,
+                .descriptorCount = static_cast<uint32_t>(staticSamplers.size()),
+            });
+        }
+
         const auto poolInfo = VkDescriptorPoolCreateInfo {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
             .maxSets = static_cast<uint32_t>(capacity),
-            .poolSizeCount = 1,
-            .pPoolSizes = &poolSize,
+            .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
+            .pPoolSizes = poolSizes.data(),
         };
         vkCreateDescriptorPool(device, &poolInfo, nullptr, &pool);
+        vkSetObjectName(device, reinterpret_cast<uint64_t>(pool), VK_OBJECT_TYPE_DESCRIPTOR_POOL,
+             wstring_to_string(L"Pool : " + name).c_str());
 
-        auto binding =  VkDescriptorSetLayoutBinding {
+        std::vector<VkDescriptorSetLayoutBinding> bindings;
+        bindings.push_back({
             .binding = 0,
             .descriptorType = vkType,
             .descriptorCount = static_cast<uint32_t>(capacity),
             .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-        };
+        });
 
         std::vector<VkSampler> samplers(staticSamplers.size());
-        for (int i = 0; i < staticSamplers.size(); i++) {
-            samplers[i] = static_pointer_cast<VKSampler>(staticSamplers[i])->getSampler();
+        if (!staticSamplers.empty()) {
+            for (int i = 0; i < staticSamplers.size(); i++) {
+                samplers[i] = static_pointer_cast<VKSampler>(staticSamplers[i])->getSampler();
+            }
+            bindings.push_back({
+                .binding = 1,
+                .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER,
+                .descriptorCount = static_cast<uint32_t>(samplers.size()),
+                .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                .pImmutableSamplers = samplers.data()
+            });
         }
-        binding.descriptorCount += static_cast<uint32_t>(samplers.size());
-        binding.pImmutableSamplers = samplers.empty() ? nullptr : samplers.data();
 
         const auto layoutInfo = VkDescriptorSetLayoutCreateInfo {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-            .bindingCount = 1,
-            .pBindings = &binding,
+            .bindingCount = static_cast<uint32_t>(bindings.size()),
+            .pBindings = bindings.data(),
         };
         vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &setLayout);
         vkSetObjectName(device, reinterpret_cast<uint64_t>(setLayout), VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT,
@@ -92,6 +110,29 @@ namespace vireo::backend {
             .pBufferInfo = &bufferInfo,
         };
         vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
+    }
+
+    void VKDescriptorSet::update(std::vector<DescriptorHandle> handles, const std::vector<std::shared_ptr<Buffer>>& buffer) {
+        assert(type == DescriptorType::BUFFER);
+        assert(handles.size() == buffer.size());
+
+        std::vector<VkWriteDescriptorSet> writes(handles.size());
+        std::vector<VkDescriptorBufferInfo> buffersInfo(handles.size());
+
+        for (int i = 0; i < handles.size(); i++) {
+            const auto vkBuffer = static_pointer_cast<VKBuffer>(buffer[i]);
+            buffersInfo[i].buffer = vkBuffer->getBuffer();
+            buffersInfo[i].range = vkBuffer->getSize();
+            writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            writes[i].dstSet = set;
+            writes[i].dstBinding = 0;
+            writes[i].dstArrayElement = handles[i];
+            writes[i].descriptorCount = 1;
+            writes[i].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            writes[i].pBufferInfo = &buffersInfo[i];
+        }
+
+        vkUpdateDescriptorSets(device, writes.size(), writes.data(), 0, nullptr);
     }
 
     void VKDescriptorSet::update(const DescriptorHandle handle, Image& sampler) {

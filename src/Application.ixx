@@ -34,7 +34,8 @@ export namespace vireo {
     private:
         struct Vertex {
             glm::vec3 pos;
-            glm::vec4 color;
+            glm::vec2 uv;
+            // glm::vec4 color;
         };
         struct GlobalUBO1 {
             glm::vec4 offset;

@@ -31,6 +31,8 @@ export namespace vireo::backend {
 
         virtual void update(DescriptorHandle handle, Buffer& buffer) = 0;
 
+        virtual void update(std::vector<DescriptorHandle> handles, const std::vector<std::shared_ptr<Buffer>>& buffer) = 0;
+
         virtual void update(DescriptorHandle handle, Image& buffer) = 0;
 
         auto getCapacity() const { return capacity; }

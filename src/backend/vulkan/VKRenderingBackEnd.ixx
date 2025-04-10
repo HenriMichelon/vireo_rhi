@@ -23,7 +23,7 @@ export namespace vireo::backend {
 
     class VKSubmitQueue : public SubmitQueue {
     public:
-        VKSubmitQueue(CommandList::Type type, const VKDevice& device);
+        VKSubmitQueue(CommandList::Type type, const VKDevice& device, const std::string& name);
 
         auto getCommandQueue() const { return commandQueue; }
 

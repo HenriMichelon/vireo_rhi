@@ -48,14 +48,19 @@ namespace vireo {
             backend::MipMapMode::LINEAR));
 
         const auto triangleVertices = std::vector<Vertex> {
-                { { 0.0f, 0.25f * aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-                { { 0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-                { { -0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
+                { { 0.0f, 0.25f * aspectRatio, 0.0f }, { 0.5f, 0.0f } },
+                { { 0.25f, -0.25f * aspectRatio, 0.0f }, { 1.0f, 1.0f } },
+                { { -0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f } }
+                // { { 0.0f, 0.25f * aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+                // { { 0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+                // { { -0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
         };
+
         const auto uploadCommandAllocator = renderingBackEnd->createCommandAllocator(backend::CommandList::TRANSFER);
         auto uploadCommandList = uploadCommandAllocator->createCommandList();
         uploadCommandList->reset();
         uploadCommandList->begin();
+
         vertexBuffer = renderingBackEnd->createBuffer(
             backend::Buffer::Type::VERTEX,
             sizeof(Vertex),
@@ -96,7 +101,6 @@ namespace vireo {
             L"UBO1");
         uboBuffer1->map();
         uboHandle1 = uniformDescriptorSet->allocate();
-        uniformDescriptorSet->update(uboHandle1, *uboBuffer1);
 
         uboBuffer2 = renderingBackEnd->createBuffer(
             backend::Buffer::UNIFORM,
@@ -105,7 +109,8 @@ namespace vireo {
             L"UBO2");
         uboBuffer2->map();
         uboHandle2 = uniformDescriptorSet->allocate();
-        uniformDescriptorSet->update(uboHandle2, *uboBuffer2);
+
+        uniformDescriptorSet->update({uboHandle1, uboHandle2}, {uboBuffer1, uboBuffer2});
 
         pipelineResources["default"] = renderingBackEnd->createPipelineResources(
             { uniformDescriptorSet, texturesDescriptorSet },
@@ -114,7 +119,8 @@ namespace vireo {
 
         const auto attributes = std::vector{
             backend::VertexInputLayout::AttributeDescription{"POSITION", backend::VertexInputLayout::R32G32B32_FLOAT, 0},
-            backend::VertexInputLayout::AttributeDescription{"COLOR",    backend::VertexInputLayout::R32G32B32A32_FLOAT, 12}
+            backend::VertexInputLayout::AttributeDescription{"TEXCOORD",    backend::VertexInputLayout::R32G32_FLOAT, 12}
+            // backend::VertexInputLayout::AttributeDescription{"COLOR",    backend::VertexInputLayout::R32G32B32A32_FLOAT, 12}
         };
         const auto defaultVertexInputLayout = renderingBackEnd->createVertexLayout(sizeof(Vertex), attributes);
         const auto vertexShader = renderingBackEnd->createShaderModule("shaders/shaders1_vert");
@@ -131,7 +137,6 @@ namespace vireo {
             graphicCommandAllocator[i] = renderingBackEnd->createCommandAllocator(backend::CommandList::GRAPHIC);
             graphicCommandList[i] = graphicCommandAllocator[i]->createCommandList(*pipelines["default"]);
         }
-
     }
 
     void Application::onUpdate() {

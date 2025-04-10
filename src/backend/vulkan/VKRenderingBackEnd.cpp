@@ -21,8 +21,8 @@ namespace vireo::backend {
         instance = std::make_shared<VKInstance>();
         physicalDevice = std::make_shared<VKPhysicalDevice>(getVKInstance()->getInstance());
         device = std::make_shared<VKDevice>(*getVKPhysicalDevice(), getVKInstance()->getRequestedLayers());
-        graphicCommandQueue = std::make_shared<VKSubmitQueue>(CommandList::GRAPHIC, *getVKDevice());
-        transferCommandQueue = std::make_shared<VKSubmitQueue>(CommandList::TRANSFER, *getVKDevice());
+        graphicCommandQueue = std::make_shared<VKSubmitQueue>(CommandList::GRAPHIC, *getVKDevice(), "Graphic");
+        transferCommandQueue = std::make_shared<VKSubmitQueue>(CommandList::TRANSFER, *getVKDevice(), "Transfer");
         swapChain = std::make_shared<VKSwapChain>(*getVKPhysicalDevice(), *getVKDevice());
     }
 
@@ -194,24 +194,12 @@ namespace vireo::backend {
             vkCmdBindDescriptorSets(commandBuffer,
                                     VK_PIPELINE_BIND_POINT_GRAPHICS,
                                     vkPipelineResources.getPipelineLayout(),
-                                    1, // first layout = static samplers
+                                    0,
                                     vkPipelineResources.getDescriptorSets().size(),
                                     vkPipelineResources.getDescriptorSets().data(), // TODO PER FRAME
                                     0,
                                     nullptr);
         }
-
-        // for (int i = 0; i < vkPipelineResources.getDescriptorSets().size(); i++) {
-        //     auto set = vkPipelineResources.getDescriptorSets()[i];
-        //     vkCmdBindDescriptorSets(commandBuffer,
-        //                             VK_PIPELINE_BIND_POINT_GRAPHICS,
-        //                             vkPipelineResources.getPipelineLayout(),
-        //                             i,
-        //                             1,
-        //                             &set, // TODO PER FRAME
-        //                             0,
-        //                             nullptr);
-        // }
     }
 
     void VKRenderingBackEnd::endRendering(CommandList& commandList) {
@@ -456,7 +444,7 @@ namespace vireo::backend {
         vkDestroyPipeline(device, pipeline, nullptr);
     }
 
-    VKSubmitQueue::VKSubmitQueue(const CommandList::Type type, const VKDevice& device) {
+    VKSubmitQueue::VKSubmitQueue(const CommandList::Type type, const VKDevice& device, const std::string& name) {
         vkGetDeviceQueue(
             device.getDevice(),
             type == CommandList::COMPUTE ? device.getComputeQueueFamilyIndex() :
@@ -464,6 +452,8 @@ namespace vireo::backend {
             device.getGraphicsQueueFamilyIndex(),
             0,
             &commandQueue);
+        vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(commandQueue), VK_OBJECT_TYPE_QUEUE,
+            "VKSubmitQueue : " + name);
     }
 
     void VKSubmitQueue::waitIdle() {
@@ -679,7 +669,7 @@ namespace vireo::backend {
            {
                imageMemoryBarrier(
                    image.getImage(),
-                   VK_ACCESS_TRANSFER_READ_BIT,
+                   VK_ACCESS_TRANSFER_WRITE_BIT,
                    0,
                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)

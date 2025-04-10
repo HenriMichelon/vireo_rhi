@@ -145,7 +145,7 @@ namespace vireo::backend {
         };
         DieIfFailed(vkCreateImage(device.getDevice(), &imageInfo, nullptr, &image));
         vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(image), VK_OBJECT_TYPE_IMAGE,
-            wstring_to_string((L"Image : " + name)));
+            wstring_to_string((L"VKImage : " + name)));
 
         VkMemoryRequirements memRequirements;
         vkGetImageMemoryRequirements(device.getDevice(), image, &memRequirements);
@@ -174,6 +174,8 @@ namespace vireo::backend {
             }
         };
         DieIfFailed(vkCreateImageView(device.getDevice(), &viewInfo, nullptr, &imageView));
+        vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(image), VK_OBJECT_TYPE_IMAGE,
+            wstring_to_string((L"VKImageView : " + name)));
     }
 
     VKImage::~VKImage() {
