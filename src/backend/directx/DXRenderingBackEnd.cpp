@@ -60,7 +60,7 @@ namespace vireo::backend {
     std::shared_ptr<PipelineResources> DXRenderingBackEnd::createPipelineResources(
         const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
         const std::wstring& name ) const {
-        return std::make_shared<DXPipelineResources>(getDXDevice()->getDevice(), name);
+        return std::make_shared<DXPipelineResources>(getDXDevice()->getDevice(), staticSamplers, name);
     }
 
     std::shared_ptr<Pipeline> DXRenderingBackEnd::createPipeline(
@@ -430,26 +430,54 @@ namespace vireo::backend {
         shaderFile.read(static_cast<char*>(shader->GetBufferPointer()), size);
     }
 
-    DXPipelineResources::DXPipelineResources(const ComPtr<ID3D12Device>& device, const std::wstring& name) {
-        CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-        rootSignatureDesc.Init(
+    DXPipelineResources::DXPipelineResources(
+        const ComPtr<ID3D12Device>& device,
+        const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
+        const std::wstring& name) {
+
+        constexpr D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
+               D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+               D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+               D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+               D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+
+        std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplersDesc(staticSamplers.size());
+        for (int i = 0; i < staticSamplers.size(); i++) {
+            staticSamplersDesc[i] = std::static_pointer_cast<DXSampler>(staticSamplers[i])->getSamplerDesc();
+            staticSamplersDesc[i].ShaderRegister = i;
+            staticSamplersDesc[i].RegisterSpace = 0;
+            assert(staticSamplersDesc[i].Filter <= D3D12_FILTER_ANISOTROPIC);
+            assert(staticSamplersDesc[i].MinLOD <= staticSamplersDesc[i].MaxLOD);
+        }
+
+        D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
+        featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
+        if (FAILED(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData)))) {
+            featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
+        }
+
+        CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
+        rootSignatureDesc.Init_1_1(
             0,
             nullptr,
-            0,
-            nullptr,
-            D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+            staticSamplersDesc.size(),
+            staticSamplersDesc.empty() ? nullptr : staticSamplersDesc.data(),
+            rootSignatureFlags);
+
         ComPtr<ID3DBlob> signature;
         ComPtr<ID3DBlob> error;
-        DieIfFailed(D3D12SerializeRootSignature(
+        DieIfFailed(D3DX12SerializeVersionedRootSignature(
             &rootSignatureDesc,
-            D3D_ROOT_SIGNATURE_VERSION_1,
+            featureData.HighestVersion,
             &signature,
             &error));
+
         DieIfFailed(device->CreateRootSignature(
             0,
             signature->GetBufferPointer(),
             signature->GetBufferSize(),
             IID_PPV_ARGS(&rootSignature)));
+        rootSignature->SetName((L"DXPipelineResources : " + name).c_str());
     }
 
     DXPipeline::DXPipeline(
@@ -482,7 +510,7 @@ namespace vireo::backend {
         psoDesc.RTVFormats[0] = DXSwapChain::RENDER_FORMAT;
         psoDesc.SampleDesc.Count = 1;
         DieIfFailed(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)));
-        pipelineState->SetName(name.c_str());
+        pipelineState->SetName((L"DXPipeline : " + name).c_str());
     }
 
 

@@ -27,6 +27,7 @@ namespace vireo {
     void Application::onInit() {
         renderingBackEnd->setClearColor({ 0.0f, 0.2f, 0.4f, 1.0f });
         const auto aspectRatio = renderingBackEnd->getSwapChain()->getAspectRatio();
+
         const auto triangleVertices = std::vector<Vertex> {
                 { { 0.0f, 0.25f * aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
                 { { 0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
@@ -55,7 +56,7 @@ namespace vireo {
             L"ConstantBuffer");
         uniformDescriptorSet->update(sceneConstantBufferHandle, *sceneConstantBuffer);
 
-        nearestBorderSampler = renderingBackEnd->createSampler(
+        staticSamplers.push_back(renderingBackEnd->createSampler(
             backend::Filter::NEAREST,
             backend::Filter::NEAREST,
             backend::AddressMode::CLAMP_TO_BORDER,
@@ -63,8 +64,8 @@ namespace vireo {
             backend::AddressMode::CLAMP_TO_BORDER,
             0.0f, 1.0f,
             false,
-            backend::MipMapMode::NEAREST);
-        linearBorderSampler = renderingBackEnd->createSampler(
+            backend::MipMapMode::NEAREST));
+        staticSamplers.push_back(renderingBackEnd->createSampler(
             backend::Filter::LINEAR,
             backend::Filter::LINEAR,
             backend::AddressMode::CLAMP_TO_BORDER,
@@ -72,9 +73,9 @@ namespace vireo {
             backend::AddressMode::CLAMP_TO_BORDER,
             0.0f, 1.0f,
             false,
-            backend::MipMapMode::LINEAR);
+            backend::MipMapMode::LINEAR));
         pipelineResources["default"] = renderingBackEnd->createPipelineResources(
-            {nearestBorderSampler, linearBorderSampler},
+            staticSamplers,
             L"default");
 
         const auto attributes = std::vector{

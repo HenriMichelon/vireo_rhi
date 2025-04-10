@@ -124,8 +124,8 @@ int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR lpCmdLine, int nCmdS
     // result = static_cast<int>(msg.wParam);
 
     std::wstring title{L"Vireo Hello World - "};
-    vireo::backend::RenderingBackends backendType{vireo::backend::RenderingBackends::VULKAN}; title.append(L"Vulkan 1.3");
-    //vireo::backend::RenderingBackends backendType{vireo::backend::RenderingBackends::DIRECTX}; title.append(L"DirectX 12");
+    // vireo::backend::RenderingBackends backendType{vireo::backend::RenderingBackends::VULKAN}; title.append(L"Vulkan 1.3");
+    vireo::backend::RenderingBackends backendType{vireo::backend::RenderingBackends::DIRECTX}; title.append(L"DirectX 12");
 
     // vireo::backend::RenderingBackends backendType;
     //

@@ -151,7 +151,7 @@ export namespace vireo::backend {
 
     class DXPipelineResources : public PipelineResources {
     public:
-        DXPipelineResources(const ComPtr<ID3D12Device>& device, const std::wstring& name);
+        DXPipelineResources(const ComPtr<ID3D12Device>& device, const std::vector<std::shared_ptr<Sampler>>& staticSamplers, const std::wstring& name);
 
         auto getRootSignature() const { return rootSignature; }
 
