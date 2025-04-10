@@ -173,7 +173,7 @@ export namespace vireo::backend {
 
         virtual std::shared_ptr<Buffer> createBuffer(Buffer::Type type, size_t size, size_t count = 1, size_t alignment = 1, const std::wstring& name = L"Buffer") const = 0;
 
-        virtual std::shared_ptr<DescriptorAllocator> createDescriptorAllocator(DescriptorType type, uint32_t capacity) = 0;
+        virtual std::shared_ptr<DescriptorSet> createDescriptorAllocator(DescriptorType type, uint32_t capacity) = 0;
 
         virtual void beginRendering(FrameData& frameData, PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) = 0;
 

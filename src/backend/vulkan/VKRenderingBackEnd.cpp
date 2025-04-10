@@ -99,7 +99,7 @@ namespace vireo::backend {
 
     std::shared_ptr<Buffer> VKRenderingBackEnd::createBuffer(Buffer::Type type, size_t size, size_t count, const size_t alignment, const std::wstring& name) const  {
         return make_shared<VKBuffer>(
-           *getVKDevice(),Buffer::VERTEX,
+           *getVKDevice(), type,
            size, count, alignment,
            name);
     }
@@ -172,8 +172,8 @@ namespace vireo::backend {
         vkDeviceWaitIdle(getVKDevice()->getDevice());
     }
 
-    std::shared_ptr<DescriptorAllocator> VKRenderingBackEnd::createDescriptorAllocator(DescriptorType type, uint32_t capacity) {
-        return std::make_shared<VKDescriptorAllocator>(type, getVKDevice()->getDevice(), capacity);
+    std::shared_ptr<DescriptorSet> VKRenderingBackEnd::createDescriptorAllocator(DescriptorType type, uint32_t capacity) {
+        return std::make_shared<VKDescriptorSet>(type, getVKDevice()->getDevice(), capacity);
     }
 
     VKVertexInputLayout::VKVertexInputLayout(size_t size, const std::vector<AttributeDescription>& attributesDescriptions) {
@@ -207,6 +207,7 @@ namespace vireo::backend {
             .pCode = reinterpret_cast<const uint32_t*>(buffer.data())
         };
         DieIfFailed(vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule));
+        vkSetObjectName(device, reinterpret_cast<uint64_t>(shaderModule), VK_OBJECT_TYPE_SHADER_MODULE, fileName.c_str());
     }
 
     VKShaderModule::~VKShaderModule() {

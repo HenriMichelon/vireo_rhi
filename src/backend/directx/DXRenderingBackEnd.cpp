@@ -92,8 +92,8 @@ namespace vireo::backend {
         return make_shared<DXBuffer>(getDXDevice()->getDevice(), type, size, count, alignment, name);
     }
 
-    std::shared_ptr<DescriptorAllocator> DXRenderingBackEnd::createDescriptorAllocator(DescriptorType type, uint32_t capacity) {
-        return std::make_shared<DXDescriptorAllocator>(type, getDXDevice()->getDevice(), capacity);
+    std::shared_ptr<DescriptorSet> DXRenderingBackEnd::createDescriptorAllocator(DescriptorType type, uint32_t capacity) {
+        return std::make_shared<DXDescriptorSet>(type, getDXDevice()->getDevice(), capacity);
     }
 
     void DXRenderingBackEnd::beginRendering(FrameData&,

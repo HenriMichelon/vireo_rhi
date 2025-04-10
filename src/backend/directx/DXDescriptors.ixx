@@ -13,10 +13,10 @@ import vireo.backend.descriptors;
 
 export namespace vireo::backend {
 
-    class DXDescriptorAllocator : public DescriptorAllocator {
+    class DXDescriptorSet : public DescriptorSet {
     public:
-        DXDescriptorAllocator(DescriptorType type, const ComPtr<ID3D12Device>& device, uint32_t capacity);
-        ~DXDescriptorAllocator() override;
+        DXDescriptorSet(DescriptorType type, const ComPtr<ID3D12Device>& device, uint32_t capacity);
+        ~DXDescriptorSet() override;
 
         void update(DescriptorHandle handle, Buffer& buffer) override;
 

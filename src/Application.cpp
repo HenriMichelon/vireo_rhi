@@ -46,14 +46,17 @@ namespace vireo {
         uploadCommandList->end();
         renderingBackEnd->getTransferCommandQueue()->submit({uploadCommandList});
 
-        uniformDescriptorAllocator = renderingBackEnd->createDescriptorAllocator(backend::DescriptorType::BUFFER, 100);
-        sceneConstantBufferHandle =  uniformDescriptorAllocator->allocate();
+        uniformDescriptorSet = renderingBackEnd->createDescriptorAllocator(backend::DescriptorType::BUFFER, 100);
+        sceneConstantBufferHandle =  uniformDescriptorSet->allocate();
         sceneConstantBuffer = renderingBackEnd->createBuffer(
             backend::Buffer::UNIFORM,
             sizeof(SceneConstantBuffer),
             1, 256,
             L"ConstantBuffer");
-        uniformDescriptorAllocator->update(sceneConstantBufferHandle, *sceneConstantBuffer);
+        uniformDescriptorSet->update(sceneConstantBufferHandle, *sceneConstantBuffer);
+
+
+        pipelineResources["default"] = renderingBackEnd->createPipelineResources();
 
         const auto attributes = std::vector{
             backend::VertexInputLayout::AttributeDescription{"POSITION", backend::VertexInputLayout::R32G32B32_FLOAT, 0},
@@ -62,7 +65,6 @@ namespace vireo {
         const auto defaultVertexInputLayout = renderingBackEnd->createVertexLayout(sizeof(Vertex), attributes);
         const auto vertexShader = renderingBackEnd->createShaderModule("shaders/shaders1_vert");
         const auto fragmentShader = renderingBackEnd->createShaderModule("shaders/shaders1_frag");
-        pipelineResources["default"] = renderingBackEnd->createPipelineResources();
         pipelines["default"] = renderingBackEnd->createPipeline(
             *pipelineResources["default"],
             *defaultVertexInputLayout,
@@ -110,7 +112,7 @@ namespace vireo {
     }
 
     void Application::onDestroy() {
-        uniformDescriptorAllocator->free(sceneConstantBufferHandle);
+        uniformDescriptorSet->free(sceneConstantBufferHandle);
         renderingBackEnd->waitIdle();
         for (uint32_t i = 0; i < backend::SwapChain::FRAMES_IN_FLIGHT; i++) {
             renderingBackEnd->destroyFrameData(*framesData[i]);

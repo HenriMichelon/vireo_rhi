@@ -19,11 +19,11 @@ export namespace vireo::backend {
 
     using DescriptorHandle = uint32_t;
 
-    class DescriptorAllocator {
+    class DescriptorSet {
     public:
-        DescriptorAllocator(DescriptorType type, uint32_t capacity);
+        DescriptorSet(DescriptorType type, uint32_t capacity);
 
-        virtual ~DescriptorAllocator() = default;
+        virtual ~DescriptorSet() = default;
 
         DescriptorHandle allocate();
 

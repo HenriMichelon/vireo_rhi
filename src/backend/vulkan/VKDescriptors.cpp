@@ -12,8 +12,8 @@ import vireo.backend.vulkan.buffer;
 
 namespace vireo::backend {
 
-    VKDescriptorAllocator::VKDescriptorAllocator(const DescriptorType type, VkDevice device, uint32_t capacity):
-        DescriptorAllocator{type, capacity},
+    VKDescriptorSet::VKDescriptorSet(const DescriptorType type, VkDevice device, uint32_t capacity):
+        DescriptorSet{type, capacity},
         device{device} {
         const auto poolSize = VkDescriptorPoolSize {
             .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
@@ -52,14 +52,14 @@ namespace vireo::backend {
         vkAllocateDescriptorSets(device, &allocInfo, &set);
     }
 
-    VKDescriptorAllocator::~VKDescriptorAllocator() {
+    VKDescriptorSet::~VKDescriptorSet() {
         vkDestroyDescriptorPool(device, pool, nullptr);
         vkDestroyDescriptorSetLayout(device, setLayout, nullptr);
     }
 
-    void VKDescriptorAllocator::update(DescriptorHandle handle, Buffer& buffer) {
+    void VKDescriptorSet::update(const DescriptorHandle handle, Buffer& buffer) {
         assert(type == DescriptorType::BUFFER);
-        const auto vkBuffer = static_cast<VKBuffer&>(buffer);
+        const auto& vkBuffer = static_cast<VKBuffer&>(buffer);
         const auto bufferInfo = VkDescriptorBufferInfo {
             .buffer = vkBuffer.getBuffer(),
             .range = vkBuffer.getSize(),
@@ -76,7 +76,7 @@ namespace vireo::backend {
         vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
     }
 
-    uint64_t VKDescriptorAllocator::getGPUHandle(DescriptorHandle handle) const {
+    uint64_t VKDescriptorSet::getGPUHandle(DescriptorHandle handle) const {
         return handle;
     }
 

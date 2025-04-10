@@ -44,8 +44,8 @@ export namespace vireo::backend {
 
     private:
         const VKDevice& device;
-        VkBuffer       buffer;
-        VkDeviceMemory bufferMemory;
+        VkBuffer        buffer{VK_NULL_HANDLE};
+        VkDeviceMemory  bufferMemory{VK_NULL_HANDLE};
     };
 
 }

@@ -48,11 +48,11 @@ export namespace vireo {
         std::vector<std::shared_ptr<backend::FrameData>> framesData{backend::SwapChain::FRAMES_IN_FLIGHT};
         std::vector<std::shared_ptr<backend::CommandAllocator>> graphicCommandAllocator{backend::SwapChain::FRAMES_IN_FLIGHT};
         std::vector<std::shared_ptr<backend::CommandList>> graphicCommandList{backend::SwapChain::FRAMES_IN_FLIGHT};
+        std::shared_ptr<backend::DescriptorSet> uniformDescriptorSet;
         std::map<std::string, std::shared_ptr<backend::PipelineResources>> pipelineResources;
         std::map<std::string, std::shared_ptr<backend::Pipeline>> pipelines;
         std::shared_ptr<backend::Buffer> vertexBuffer;
         std::shared_ptr<backend::Buffer> sceneConstantBuffer;
-        std::shared_ptr<backend::DescriptorAllocator> uniformDescriptorAllocator;
         backend::DescriptorHandle sceneConstantBufferHandle;
 
     };

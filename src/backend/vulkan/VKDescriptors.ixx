@@ -13,11 +13,11 @@ import vireo.backend.descriptors;
 
 export namespace vireo::backend {
 
-    class VKDescriptorAllocator : public DescriptorAllocator {
+    class VKDescriptorSet : public DescriptorSet {
     public:
-        VKDescriptorAllocator(DescriptorType type, VkDevice device, uint32_t capacity);
+        VKDescriptorSet(DescriptorType type, VkDevice device, uint32_t capacity);
 
-        ~VKDescriptorAllocator() override;
+        ~VKDescriptorSet() override;
 
         void update(DescriptorHandle handle, Buffer& buffer) override;
 
