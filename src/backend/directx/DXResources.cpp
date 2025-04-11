@@ -117,7 +117,7 @@ namespace vireo::backend {
             filter |= mipMapMode == MipMapMode::LINEAR ? D3D12_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR : D3D12_FILTER_MIN_LINEAR_MAG_MIP_POINT;
         }
 
-        samplerDesc = D3D12_STATIC_SAMPLER_DESC{
+        samplerDesc = D3D12_SAMPLER_DESC{
             .Filter = static_cast<D3D12_FILTER>(filter),
             .AddressU = addressModes[static_cast<int>(addressModeU)],
             .AddressV = addressModes[static_cast<int>(addressModeV)],
@@ -128,9 +128,6 @@ namespace vireo::backend {
             .BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK,
             .MinLOD = minLod,
             .MaxLOD = maxLod,
-            .ShaderRegister = 0,
-            .RegisterSpace = 0,
-            .ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL,
         };
     }
 

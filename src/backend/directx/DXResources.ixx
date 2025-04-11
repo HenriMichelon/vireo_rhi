@@ -67,10 +67,10 @@ export namespace vireo::backend {
             bool anisotropyEnable = true,
             MipMapMode mipMapMode = MipMapMode::LINEAR);
 
-        auto getSamplerDesc() const { return samplerDesc; }
+        const auto& getSamplerDesc() const { return samplerDesc; }
 
     private:
-        D3D12_STATIC_SAMPLER_DESC samplerDesc;
+        D3D12_SAMPLER_DESC samplerDesc;
     };
 
     class DXImage : public Image {

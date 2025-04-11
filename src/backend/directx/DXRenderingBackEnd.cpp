@@ -107,12 +107,12 @@ namespace vireo::backend {
 
     std::shared_ptr<DescriptorLayout> DXRenderingBackEnd::createDescriptorLayout(
         const std::wstring& name) {
-        return std::make_shared<DXDescriptorLayout>();
+        return std::make_shared<DXDescriptorLayout>(false);
     }
 
     std::shared_ptr<DescriptorLayout> DXRenderingBackEnd::createSamplerDescriptorLayout(
         const std::wstring& name) {
-        return std::make_shared<DXDescriptorLayout>();
+        return std::make_shared<DXDescriptorLayout>(true);
     }
 
     std::shared_ptr<DescriptorSet> DXRenderingBackEnd::createDescriptorSet(
@@ -539,33 +539,35 @@ namespace vireo::backend {
         }
 
         std::vector<CD3DX12_ROOT_PARAMETER1> rootParameters(descriptorLayouts.size());
-        std::shared_ptr<DXDescriptorLayout> layoutWithStaticSamplers{nullptr};
         for (int i = 0; i < descriptorLayouts.size(); i++) {
             const auto layout = std::static_pointer_cast<DXDescriptorLayout>(descriptorLayouts[i]);
+            for (auto& range : layout->getRanges()) {
+                range.RegisterSpace = i;
+            }
             rootParameters[i].InitAsDescriptorTable(
                 layout->getRanges().size(),
                 layout->getRanges().data(),
                 D3D12_SHADER_VISIBILITY_ALL);
-            if (!layout->getStaticSamplesDesc().empty()) {
-                layoutWithStaticSamplers = layout;
-            }
         }
 
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
         rootSignatureDesc.Init_1_1(
             rootParameters.size(),
             rootParameters.empty() ? nullptr : rootParameters.data(),
-            layoutWithStaticSamplers ? layoutWithStaticSamplers->getStaticSamplesDesc().size() : 0,
-            layoutWithStaticSamplers ? layoutWithStaticSamplers->getStaticSamplesDesc().data() : nullptr,
+            0,
+            nullptr,
             rootSignatureFlags);
 
         ComPtr<ID3DBlob> signature;
         ComPtr<ID3DBlob> error;
-        DieIfFailed(D3DX12SerializeVersionedRootSignature(
+        auto hr = D3DX12SerializeVersionedRootSignature(
             &rootSignatureDesc,
             featureData.HighestVersion,
             &signature,
-            &error));
+            &error);
+        if (FAILED(hr)){
+            die(static_cast<char*>(error->GetBufferPointer()));
+        }
 
         DieIfFailed(device->CreateRootSignature(
             0,

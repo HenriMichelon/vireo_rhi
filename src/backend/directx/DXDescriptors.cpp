@@ -27,11 +27,13 @@ namespace vireo::backend {
     DescriptorLayout& DXDescriptorLayout::add(const DescriptorIndex index, const DescriptorType type, const size_t count) {
         CD3DX12_DESCRIPTOR_RANGE1 range;
         range.Init(
-                type == DescriptorType::BUFFER ? D3D12_DESCRIPTOR_RANGE_TYPE_CBV : D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+                type == DescriptorType::BUFFER ? D3D12_DESCRIPTOR_RANGE_TYPE_CBV :
+                    type == DescriptorType::IMAGE ? D3D12_DESCRIPTOR_RANGE_TYPE_SRV :
+                    D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,
                 count,
                 index,
                 0,
-                D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+                type == DescriptorType::SAMPLER ? D3D12_DESCRIPTOR_RANGE_FLAG_NONE : D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
         ranges.push_back(range);
         capacity += count;
         return *this;
@@ -40,8 +42,9 @@ namespace vireo::backend {
     DXDescriptorSet::DXDescriptorSet(const DescriptorLayout& layout, const ComPtr<ID3D12Device>& device, const std::wstring& name):
         DescriptorSet{layout},
         device{device} {
+        const auto& dxLayout = static_cast<const DXDescriptorLayout&>(layout);
         const auto heapDesc = D3D12_DESCRIPTOR_HEAP_DESC {
-            .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+            .Type = dxLayout.getIsForSampler() ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
             .NumDescriptors = static_cast<UINT>(layout.getCapacity()),
             .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
         };
@@ -67,6 +70,13 @@ namespace vireo::backend {
         const auto dxImage = static_cast<DXImage&>(image);
         const auto cpuHandle= D3D12_CPU_DESCRIPTOR_HANDLE{ cpuBase.ptr + index * descriptorSize };
         device->CreateShaderResourceView(dxImage.getImage().Get(), &dxImage.getImageViewDesc(), cpuHandle);
+    }
+
+    void DXDescriptorSet::update(const DescriptorIndex index, Sampler& sampler) {
+        auto& dxSampler = static_cast<DXSampler&>(sampler);
+        auto samplerDesc = dxSampler.getSamplerDesc();
+        const auto cpuHandle= D3D12_CPU_DESCRIPTOR_HANDLE{ cpuBase.ptr + index * descriptorSize };
+        device->CreateSampler(&samplerDesc, cpuHandle);
     }
 
     D3D12_GPU_DESCRIPTOR_HANDLE DXDescriptorSet::getGPUHandle(const DescriptorIndex index) const {

@@ -15,13 +15,18 @@ export namespace vireo::backend {
 
     class DXDescriptorLayout : public DescriptorLayout {
     public:
+        DXDescriptorLayout(const bool isForSampler) : isForSampler{isForSampler} {}
+
         DescriptorLayout& add(DescriptorIndex index, DescriptorType type, size_t count = 1) override;
 
-        const auto& getRanges() const { return ranges; }
+        auto& getRanges() { return ranges; }
 
         const auto& getStaticSamplesDesc() const { return staticSamplersDesc; }
 
+        auto getIsForSampler() const { return isForSampler; }
+
     private:
+        bool isForSampler;
         std::vector<CD3DX12_DESCRIPTOR_RANGE1> ranges;
         std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplersDesc;
     };
@@ -36,7 +41,7 @@ export namespace vireo::backend {
 
         void update(DescriptorIndex index, Image& image) override;
 
-        void update(DescriptorIndex index, Sampler& image) override {  };
+        void update(DescriptorIndex index, Sampler& image) override;
 
         D3D12_GPU_DESCRIPTOR_HANDLE getGPUHandle(DescriptorIndex index) const;
 
