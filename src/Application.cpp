@@ -110,8 +110,8 @@ namespace vireo {
             L"default");
 
         const auto defaultVertexInputLayout = renderingBackEnd->createVertexLayout(sizeof(Vertex), vertexAttributes);
-        const auto vertexShader = renderingBackEnd->createShaderModule("shaders/shaders1_vert");
-        const auto fragmentShader = renderingBackEnd->createShaderModule("shaders/shaders1_frag");
+        const auto vertexShader = renderingBackEnd->createShaderModule("shaders/myshader_vert");
+        const auto fragmentShader = renderingBackEnd->createShaderModule("shaders/myshader_frag");
         pipelines["default"] = renderingBackEnd->createPipeline(
             *pipelineResources["default"],
             *defaultVertexInputLayout,

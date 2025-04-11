@@ -343,13 +343,13 @@ namespace vireo::backend {
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .stage = VK_SHADER_STAGE_VERTEX_BIT,
                 .module = vertexShaderModule,
-                .pName = "VSMain"
+                .pName = "main"
             },
             {
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
                 .module = fragmentShaderModule,
-                .pName = "PSMain"
+                .pName = "main"
             }
         };
         const auto vertexInputInfo = VkPipelineVertexInputStateCreateInfo {
