@@ -40,9 +40,15 @@ export namespace vireo::backend {
 
         virtual void update(DescriptorIndex index, Buffer& buffer) = 0;
 
-        virtual void update(DescriptorIndex index, Image& buffer) = 0;
+        virtual void update(DescriptorIndex index, Image& image) = 0;
 
-        virtual void update(DescriptorIndex index, Sampler& buffer) = 0;
+        virtual void update(DescriptorIndex index, Sampler& sampler) = 0;
+
+        virtual void update(DescriptorIndex index, const std::vector<std::shared_ptr<Image>>& images) = 0;
+
+        virtual void update(DescriptorIndex index, const std::vector<std::shared_ptr<Buffer>>& buffer) = 0;
+
+        virtual void update(DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& samplers) = 0;
 
     protected:
         const DescriptorLayout&       layout;

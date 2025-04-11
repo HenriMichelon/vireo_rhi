@@ -41,7 +41,13 @@ export namespace vireo::backend {
 
         void update(DescriptorIndex index, Image& image) override;
 
-        void update(DescriptorIndex index, Sampler& image) override;
+        void update(DescriptorIndex index, Sampler& sampler) override;
+
+        void update(DescriptorIndex index, const std::vector<std::shared_ptr<Buffer>>& buffers) override;
+
+        void update(DescriptorIndex index, const std::vector<std::shared_ptr<Image>>& images) override;
+
+        void update(DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& samplers) override;
 
         D3D12_GPU_DESCRIPTOR_HANDLE getGPUHandle(DescriptorIndex index) const;
 

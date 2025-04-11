@@ -47,12 +47,18 @@ namespace vireo {
             L"TriangleVertexBuffer");
         uploadCommandList->upload(*vertexBuffer, &triangleVertices[0]);
 
-        checkerBoardTexture = renderingBackEnd->createImage(
+        checkerBoardTexture1 = renderingBackEnd->createImage(
             backend::ImageFormat::R8G8B8A8_SRGB,
             TextureWidth,
             TextureHeight,
             L"CheckerBoardTexture");
-        uploadCommandList->upload(*checkerBoardTexture, generateTextureData().data());
+        uploadCommandList->upload(*checkerBoardTexture1, generateTextureData().data());
+        checkerBoardTexture2 = renderingBackEnd->createImage(
+            backend::ImageFormat::R8G8B8A8_SRGB,
+            TextureWidth / 2,
+            TextureHeight / 2,
+            L"CheckerBoardTexture");
+        uploadCommandList->upload(*checkerBoardTexture2, generateTextureData().data());
 
         uploadCommandList->end();
 
@@ -92,12 +98,11 @@ namespace vireo {
         descriptorLayout = renderingBackEnd->createDescriptorLayout(L"Global");
         descriptorLayout->add(BINDING_UBO1, backend::DescriptorType::BUFFER);
         descriptorLayout->add(BINDING_UBO2, backend::DescriptorType::BUFFER);
-        descriptorLayout->add(BINDING_TEXTURE, backend::DescriptorType::IMAGE);
+        descriptorLayout->add(BINDING_TEXTURE, backend::DescriptorType::IMAGE, 2);
         descriptorLayout->build();
 
         samplersDescriptorLayout = renderingBackEnd->createSamplerDescriptorLayout(L"Samplers");
-        samplersDescriptorLayout->add(BINDING_SAMPLER_NEAREST, backend::DescriptorType::SAMPLER);
-        samplersDescriptorLayout->add(BINDING_SAMPLER_LINEAR, backend::DescriptorType::SAMPLER);
+        samplersDescriptorLayout->add(BINDING_SAMPLERS, backend::DescriptorType::SAMPLER, 2);
         samplersDescriptorLayout->build();
 
         pipelineResources["default"] = renderingBackEnd->createPipelineResources(
@@ -118,11 +123,10 @@ namespace vireo {
             auto descriptorSet = renderingBackEnd->createDescriptorSet(*descriptorLayout, L"Global");
             auto samplerDescriptorSet = renderingBackEnd->createDescriptorSet(*samplersDescriptorLayout, L"Samplers");
 
-            descriptorSet->update(BINDING_TEXTURE, *checkerBoardTexture);
+            descriptorSet->update(BINDING_TEXTURE, {checkerBoardTexture1, checkerBoardTexture2} );
             descriptorSet->update(BINDING_UBO1, *uboBuffer1);
             descriptorSet->update(BINDING_UBO2, *uboBuffer2);
-            samplerDescriptorSet->update(BINDING_SAMPLER_NEAREST, *samplerNearest);
-            samplerDescriptorSet->update(BINDING_SAMPLER_LINEAR, *samplerLinear);
+            samplerDescriptorSet->update(BINDING_SAMPLERS, { samplerNearest, samplerLinear });
 
             framesData[i] = renderingBackEnd->createFrameData(i, {descriptorSet, samplerDescriptorSet});
             graphicCommandAllocator[i] = renderingBackEnd->createCommandAllocator(backend::CommandList::GRAPHIC);

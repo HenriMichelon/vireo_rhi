@@ -44,9 +44,15 @@ export namespace vireo::backend {
 
         void update(DescriptorIndex index, Buffer& buffer) override;
 
-        void update(DescriptorIndex index, Image& buffer) override;
+        void update(DescriptorIndex index, Image& image) override;
 
-        void update(DescriptorIndex index, Sampler& buffer) override;
+        void update(DescriptorIndex index, Sampler& sampler) override;
+
+        void update(DescriptorIndex index, const std::vector<std::shared_ptr<Buffer>>& buffers) override;
+
+        void update(DescriptorIndex index, const std::vector<std::shared_ptr<Image>>& images) override;
+
+        void update(DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& samplers) override;
 
         auto getSet() const { return set; }
 

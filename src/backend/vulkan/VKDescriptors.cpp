@@ -148,4 +148,61 @@ namespace vireo::backend {
         vkUpdateDescriptorSets(static_cast<const VKDescriptorLayout&>(layout).getDevice(), 1, &write, 0, nullptr);
     }
 
+    void VKDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Buffer>>& buffers) {
+        auto buffersInfo = std::vector<VkDescriptorBufferInfo>(buffers.size());
+        for (int i = 0; i < buffers.size(); i++) {
+            const auto& vkBuffer = static_pointer_cast<VKBuffer>(buffers[i]);
+            buffersInfo[i].buffer = vkBuffer->getBuffer();
+            buffersInfo[i].range = vkBuffer->getSize();
+        }
+        const auto write = VkWriteDescriptorSet {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = set,
+            .dstBinding = index,
+            .dstArrayElement = 0,
+            .descriptorCount = static_cast<uint32_t>(buffersInfo.size()),
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .pBufferInfo = buffersInfo.data(),
+        };
+        vkUpdateDescriptorSets(static_cast<const VKDescriptorLayout&>(layout).getDevice(), 1, &write, 0, nullptr);
+    }
+
+    void VKDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Image>>& images) {
+        auto imagesInfo = std::vector<VkDescriptorImageInfo>(images.size());
+        for (int i = 0; i < images.size(); i++) {
+            imagesInfo[i].sampler = VK_NULL_HANDLE;
+            imagesInfo[i].imageView = static_pointer_cast<VKImage>(images[i])->getImageView();
+            imagesInfo[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        }
+        const auto write = VkWriteDescriptorSet {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = set,
+            .dstBinding = index,
+            .dstArrayElement = 0,
+            .descriptorCount = static_cast<uint32_t>(imagesInfo.size()),
+            .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
+            .pImageInfo = imagesInfo.data(),
+        };
+        vkUpdateDescriptorSets(static_cast<const VKDescriptorLayout&>(layout).getDevice(), 1, &write, 0, nullptr);
+    }
+
+    void VKDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>&samplers) {
+        auto imagesInfo = std::vector<VkDescriptorImageInfo>(samplers.size());
+        for (int i = 0; i < samplers.size(); i++) {
+            imagesInfo[i].sampler = static_pointer_cast<VKSampler>(samplers[i])->getSampler();
+            imagesInfo[i].imageView = VK_NULL_HANDLE;
+            imagesInfo[i].imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        }
+        const auto write = VkWriteDescriptorSet {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = set,
+            .dstBinding = index,
+            .dstArrayElement = 0,
+            .descriptorCount = static_cast<uint32_t>(imagesInfo.size()),
+            .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER,
+            .pImageInfo = imagesInfo.data(),
+        };
+        vkUpdateDescriptorSets(static_cast<const VKDescriptorLayout&>(layout).getDevice(), 1, &write, 0, nullptr);
+
+    }
 }

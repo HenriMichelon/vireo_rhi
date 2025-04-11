@@ -51,8 +51,7 @@ export namespace vireo {
         const backend::DescriptorIndex BINDING_UBO2{1};
         const backend::DescriptorIndex BINDING_TEXTURE{2};
 
-        const backend::DescriptorIndex BINDING_SAMPLER_NEAREST{0};
-        const backend::DescriptorIndex BINDING_SAMPLER_LINEAR{1};
+        const backend::DescriptorIndex BINDING_SAMPLERS{0};
 
         const std::vector<backend::VertexInputLayout::AttributeDescription> vertexAttributes{
             {"POSITION", backend::VertexInputLayout::R32G32B32_FLOAT, 0},
@@ -74,7 +73,8 @@ export namespace vireo {
         std::shared_ptr<backend::Buffer> uboBuffer2;
         float colorIncrement{1.0f};
         float scaleIncrement{1.0f};
-        std::shared_ptr<backend::Image> checkerBoardTexture;
+        std::shared_ptr<backend::Image> checkerBoardTexture1;
+        std::shared_ptr<backend::Image> checkerBoardTexture2;
         std::shared_ptr<backend::Sampler> samplerNearest;
         std::shared_ptr<backend::Sampler> samplerLinear;
 
