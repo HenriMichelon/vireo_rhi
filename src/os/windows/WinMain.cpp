@@ -38,8 +38,18 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
+bool dirExists(const std::string& dirName_in) {
+    const DWORD ftyp = GetFileAttributesA(dirName_in.c_str());
+    return (ftyp != INVALID_FILE_ATTRIBUTES) && (ftyp & FILE_ATTRIBUTE_DIRECTORY);
+}
+
 
 int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR lpCmdLine, int nCmdShow) {
+    if (!dirExists("shaders")) {
+        MessageBox(nullptr, L"Shaders directory not found, please run the application from the root of the project", L"Error", MB_OK);
+        return 0;
+    }
+
     // SetProcessDPIAware();
     //
     // const auto className = L"ApiSelectorWindow";
