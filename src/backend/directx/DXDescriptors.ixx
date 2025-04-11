@@ -15,7 +15,7 @@ export namespace vireo::backend {
 
     class DXDescriptorLayout : public DescriptorLayout {
     public:
-        DXDescriptorLayout(DescriptorType type, size_t capacity) : DescriptorLayout(type, capacity) {}
+        DXDescriptorLayout(const DescriptorType type, const size_t capacity) : DescriptorLayout(type, capacity) {}
     };
 
     class DXDescriptorSet : public DescriptorSet {
@@ -26,9 +26,9 @@ export namespace vireo::backend {
 
         void update(DescriptorHandle handle, Buffer& buffer) override;
 
-        void update(std::vector<DescriptorHandle> handles, const std::vector<std::shared_ptr<Buffer>>& buffer) override {}
+        void update(std::vector<DescriptorHandle> handles, const std::vector<std::shared_ptr<Buffer>>& buffer) override;
 
-        void update(DescriptorHandle handle, Image& buffer) override {}
+        void update(DescriptorHandle handle, Image& buffer) override;
 
         D3D12_GPU_DESCRIPTOR_HANDLE getGPUHandle(DescriptorHandle handle) const;
 

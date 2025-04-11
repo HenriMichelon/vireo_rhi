@@ -42,9 +42,7 @@ export namespace vireo::backend {
         ComPtr<ID3D12Device>        device;
         ComPtr<ID3D12Resource>      buffer;
         D3D12_VERTEX_BUFFER_VIEW    bufferView;
-        CD3DX12_RESOURCE_DESC       resourceDesc;
     };
-
 
     class DXSampler : public Sampler {
     public:
@@ -70,6 +68,26 @@ export namespace vireo::backend {
 
     private:
         D3D12_STATIC_SAMPLER_DESC samplerDesc;
+    };
+
+    class DXImage : public Image {
+    public:
+        static constexpr DXGI_FORMAT dxFormats[] {
+            DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
+        };
+
+        DXImage(
+            const ComPtr<ID3D12Device> &device,
+            ImageFormat format,
+            uint32_t    width,
+            uint32_t    height,
+            const std::wstring& name);
+
+        auto getImage() const { return image; }
+
+    private:
+        ComPtr<ID3D12Device>            device;
+        ComPtr<ID3D12Resource>          image;
     };
 
 }

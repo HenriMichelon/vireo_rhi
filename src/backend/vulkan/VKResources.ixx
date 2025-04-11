@@ -74,7 +74,6 @@ export namespace vireo::backend {
     class VKImage : public Image {
     public:
         static constexpr  VkFormat vkFormats[] {
-            VK_FORMAT_R8G8B8_SRGB,
             VK_FORMAT_R8G8B8A8_SRGB,
         };
 

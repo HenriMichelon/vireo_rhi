@@ -65,14 +65,12 @@ export namespace vireo::backend {
     };
 
     enum class ImageFormat : uint8_t {
-        R8G8B8_SRGB     = 0,
-        R8G8B8A8_SRGB   = 1,
+        R8G8B8A8_SRGB   = 0,
     };
 
     class Image {
     public:
         static constexpr uint8_t pixelSize[] {
-            3,
             4
         };
 

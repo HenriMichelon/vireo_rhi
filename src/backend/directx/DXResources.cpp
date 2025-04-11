@@ -15,7 +15,7 @@ namespace vireo::backend {
         const Type type,
         const size_t size,
         const size_t count,
-        size_t minOffsetAlignment,
+        const size_t minOffsetAlignment,
         const std::wstring& name):
         Buffer{type} {
         alignmentSize = minOffsetAlignment > 0
@@ -25,7 +25,7 @@ namespace vireo::backend {
 
         // GPU Buffer
         const auto heapProperties = CD3DX12_HEAP_PROPERTIES(type == UNIFORM ? D3D12_HEAP_TYPE_UPLOAD : D3D12_HEAP_TYPE_DEFAULT);
-        resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
+        auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
         DieIfFailed(device->CreateCommittedResource(
             &heapProperties,
             D3D12_HEAP_FLAG_NONE,
@@ -53,10 +53,44 @@ namespace vireo::backend {
         if (size == WHOLE_SIZE) {
             memcpy(mappedAddress, data, bufferSize);
         } else {
-            memcpy(reinterpret_cast<unsigned char*>(mappedAddress) + offset, data, size);
+            memcpy(static_cast<unsigned char*>(mappedAddress) + offset, data, size);
         }
     }
 
+    DXImage::DXImage(
+            const ComPtr<ID3D12Device> &device,
+            const ImageFormat format,
+            const uint32_t    width,
+            const uint32_t    height,
+            const std::wstring& name):
+        Image{format, width, height} {
+        const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+        const auto imageDesc = D3D12_RESOURCE_DESC{
+            .Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
+            .Width = width,
+            .Height = height,
+            .DepthOrArraySize = 1,
+            .MipLevels = 1,
+            .Format = dxFormats[static_cast<int>(format)],
+            .SampleDesc = { 1, 0 },
+            .Flags = D3D12_RESOURCE_FLAG_NONE,
+        };
+        DieIfFailed(device->CreateCommittedResource(
+            &heapProperties,
+            D3D12_HEAP_FLAG_NONE,
+            &imageDesc,
+            D3D12_RESOURCE_STATE_COMMON,
+            nullptr,
+            IID_PPV_ARGS(&image)));
+        image->SetName(name.c_str());
+        // const auto imageView = D3D12_SHADER_RESOURCE_VIEW_DESC{
+        //     .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
+        //     .Format = imageDesc.Format,
+        //     .ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
+        //     .Texture2D.MipLevels = 1,
+        //     DieIfFailed(device->CreateShaderResourceView(image.Get(), &imageView, srvHandle));
+        // };
+    }
 
     DXSampler::DXSampler(
         const Filter minFilter,

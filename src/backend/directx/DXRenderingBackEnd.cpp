@@ -19,7 +19,7 @@ namespace vireo::backend {
 
     DXRenderingBackEnd::DXRenderingBackEnd() {
         // Detect RivaTuner which cause problem by incorrectly hooking IDXGISwapChain::Present
-        HANDLE hMap = OpenFileMapping(FILE_MAP_READ, FALSE, L"RTSSSharedMemoryV2");
+        const HANDLE hMap = OpenFileMapping(FILE_MAP_READ, FALSE, L"RTSSSharedMemoryV2");
         if (hMap) {
             MessageBox(
                 nullptr,

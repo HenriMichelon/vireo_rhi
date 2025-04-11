@@ -220,7 +220,7 @@ export namespace vireo::backend {
             ImageFormat format,
             uint32_t width,
             uint32_t height,
-            const std::wstring& name = L"Image") const override { return  nullptr; };
+            const std::wstring& name = L"Image") const override;
 
         std::shared_ptr<DescriptorLayout> createDescriptorLayout(
             DescriptorType type,
@@ -231,7 +231,7 @@ export namespace vireo::backend {
             DescriptorType type,
             uint32_t capacity,
             const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
-            const std::wstring& name ) override {return nullptr; }
+            const std::wstring& name ) override;
 
         std::shared_ptr<DescriptorSet> createDescriptorSet(
             DescriptorLayout& layout,
