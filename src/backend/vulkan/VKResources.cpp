@@ -30,10 +30,12 @@ namespace vireo::backend {
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT :
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
         createBuffer(device, bufferSize, usage, memType, buffer, bufferMemory);
+#ifdef _DEBUG
         vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(buffer), VK_OBJECT_TYPE_BUFFER,
             "VKBuffer : " + wstring_to_string(name));
         vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(bufferMemory), VK_OBJECT_TYPE_DEVICE_MEMORY,
         "VKBuffer Memory : " + wstring_to_string(name));
+#endif
     }
 
     void VKBuffer::map() {
@@ -147,8 +149,10 @@ namespace vireo::backend {
             .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
         };
         DieIfFailed(vkCreateImage(device.getDevice(), &imageInfo, nullptr, &image));
+#ifdef _DEBUG
         vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(image), VK_OBJECT_TYPE_IMAGE,
             wstring_to_string((L"VKImage : " + name)));
+#endif
 
         VkMemoryRequirements memRequirements;
         vkGetImageMemoryRequirements(device.getDevice(), image, &memRequirements);
@@ -163,9 +167,10 @@ namespace vireo::backend {
         DieIfFailed(vkAllocateMemory(device.getDevice(), &allocInfo, nullptr, &imageMemory));
         DieIfFailed(vkBindImageMemory(device.getDevice(), image, imageMemory, 0));
 
+#ifdef _DEBUG
         vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(imageMemory), VK_OBJECT_TYPE_DEVICE_MEMORY,
         "VKImage Memory : " + wstring_to_string(name));
-
+#endif
 
         const auto viewInfo = VkImageViewCreateInfo {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -181,8 +186,10 @@ namespace vireo::backend {
             }
         };
         DieIfFailed(vkCreateImageView(device.getDevice(), &viewInfo, nullptr, &imageView));
+#ifdef _DEBUG
         vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(imageView), VK_OBJECT_TYPE_IMAGE_VIEW,
             wstring_to_string((L"VKImage view : " + name)));
+#endif
     }
 
     VKImage::~VKImage() {

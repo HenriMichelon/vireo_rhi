@@ -63,12 +63,14 @@ namespace vireo::backend {
             .stageMask = VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
             .deviceIndex = 0
         };
+#ifdef _DEBUG
         vkSetObjectName(getVKDevice()->getDevice(), reinterpret_cast<uint64_t>(data->imageAvailableSemaphore), VK_OBJECT_TYPE_SEMAPHORE,
             "VKFrameData image Semaphore : " + std::to_string(frameIndex));
         vkSetObjectName(getVKDevice()->getDevice(), reinterpret_cast<uint64_t>(data->renderFinishedSemaphore), VK_OBJECT_TYPE_SEMAPHORE,
     "VKFrameData render Semaphore : " + std::to_string(frameIndex));
         vkSetObjectName(getVKDevice()->getDevice(), reinterpret_cast<uint64_t>(data->inFlightFence), VK_OBJECT_TYPE_FENCE,
     "VKFrameData Fence: " + std::to_string(frameIndex));
+#endif
         return data;
     }
 
@@ -285,8 +287,10 @@ namespace vireo::backend {
             .pCode = reinterpret_cast<const uint32_t*>(buffer.data())
         };
         DieIfFailed(vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule));
+#ifdef _DEBUG
         vkSetObjectName(device, reinterpret_cast<uint64_t>(shaderModule), VK_OBJECT_TYPE_SHADER_MODULE,
             "VKShaderModule : " + fileName);
+#endif
     }
 
     VKShaderModule::~VKShaderModule() {
@@ -298,8 +302,8 @@ namespace vireo::backend {
         const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
         const std::wstring& name):
         device{device} {
-        for (int i = 0; i < descriptorLayouts.size(); i++) {
-            const auto layout = std::static_pointer_cast<VKDescriptorLayout>(descriptorLayouts[i]);
+        for (const auto& descriptorLayout : descriptorLayouts) {
+            const auto layout = std::static_pointer_cast<VKDescriptorLayout>(descriptorLayout);
             setLayouts.push_back(layout->getSetLayout());
         }
         const auto pipelineLayoutInfo = VkPipelineLayoutCreateInfo {
@@ -310,8 +314,10 @@ namespace vireo::backend {
             .pPushConstantRanges = nullptr,
         };
         DieIfFailed(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout));
+#ifdef _DEBUG
         vkSetObjectName(device, reinterpret_cast<uint64_t>(pipelineLayout), VK_OBJECT_TYPE_PIPELINE_LAYOUT,
             wstring_to_string(L"VKPipelineResources : " + name));
+#endif
     }
 
     VKPipelineResources::~VKPipelineResources() {
@@ -441,8 +447,10 @@ namespace vireo::backend {
             .basePipelineIndex = -1,
         };
         DieIfFailed(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline));
+#ifdef _DEBUG
         vkSetObjectName(device, reinterpret_cast<uint64_t>(pipeline), VK_OBJECT_TYPE_PIPELINE,
             wstring_to_string(L"VKPipeline : " + name));
+#endif
     }
 
     VKPipeline::~VKPipeline() {
@@ -457,8 +465,10 @@ namespace vireo::backend {
             device.getGraphicsQueueFamilyIndex(),
             0,
             &commandQueue);
+#ifdef _DEBUG
         vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(commandQueue), VK_OBJECT_TYPE_QUEUE,
             "VKSubmitQueue : " + name);
+#endif
     }
 
     void VKSubmitQueue::waitIdle() {
@@ -780,8 +790,10 @@ namespace vireo::backend {
             }
             // Need VK_KHR_SWAPCHAIN extension, or it will crash (no validation error)
             DieIfFailed(vkCreateSwapchainKHR(device.getDevice(), &createInfo, nullptr, &swapChain));
+#ifdef _DEBUG
             vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(swapChain), VK_OBJECT_TYPE_SWAPCHAIN_KHR,
                 "VKSwapChain");
+#endif
         }
         vkGetSwapchainImagesKHR(device.getDevice(), swapChain, &imageCount, nullptr);
         swapChainImages.resize(imageCount);
@@ -797,11 +809,12 @@ namespace vireo::backend {
                                                      swapChainImageFormat,
                                                      VK_IMAGE_ASPECT_COLOR_BIT,
                                                      1);
+#ifdef _DEBUG
             vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(swapChainImageViews[i]), VK_OBJECT_TYPE_IMAGE_VIEW,
                 "VKSwapChain Image View " + std::to_string(i));
             vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(swapChainImages[i]), VK_OBJECT_TYPE_IMAGE,
                 "VKSwapChain Image " + std::to_string(i));
-
+#endif
         }
 
         // For bliting image to swapchain

@@ -6,7 +6,6 @@
 */
 module;
 #include "backend/vulkan/Tools.h"
-
 export module vireo.backend.vulkan;
 
 import vireo.backend;

@@ -68,12 +68,59 @@ target_sources(${MY_TARGET}
         ${SRC_DIR}/backend/vulkan/VKFrameData.ixx
         ${SRC_DIR}/backend/vulkan/VKRenderingBackEnd.ixx
 )
-compile_options(${MY_TARGET})
+
+#add_executable(tests
+#        tests/tests.cpp
+#        ${SRC_DIR}/backend/vulkan/Vulkan.cpp
+#)
+#target_sources(tests
+#        PUBLIC
+#        FILE_SET CXX_MODULES
+#        FILES
+#        ${SRC_DIR}/backend/Descriptors.ixx
+#        ${SRC_DIR}/backend/Device.ixx
+#        ${SRC_DIR}/backend/FrameData.ixx
+#        ${SRC_DIR}/backend/RenderingBackEnd.ixx
+#        ${SRC_DIR}/backend/Resources.ixx
+#        ${SRC_DIR}/backend/directx/DXResources.ixx
+#        ${SRC_DIR}/backend/directx/DXDescriptors.ixx
+#        ${SRC_DIR}/backend/directx/DXDevice.ixx
+#        ${SRC_DIR}/backend/directx/DXFrameData.ixx
+#        ${SRC_DIR}/backend/directx/DXRenderingBackEnd.ixx
+#        ${SRC_DIR}/backend/vulkan/VKResources.ixx
+#        ${SRC_DIR}/backend/vulkan/VKDevice.ixx
+#        ${SRC_DIR}/backend/vulkan/VKDescriptors.ixx
+#        ${SRC_DIR}/backend/vulkan/VKFrameData.ixx
+#        ${SRC_DIR}/backend/vulkan/VKRenderingBackEnd.ixx
+#)
 
 include(FetchContent)
 include(cmake/libraries.cmake)
 include(cmake/shaders.cmake)
 include(cmake/std.cmake)
+
+#######################################################
+compile_options(${MY_TARGET})
+target_include_directories(${MY_TARGET} PUBLIC ${INCLUDE_DIR})
+target_link_libraries(${MY_TARGET} std-cxx-modules Xinput dinput8 dxguid dxgi d3d12 d3dcompiler)
+if(MINGW)
+    target_link_options(${MY_TARGET} PRIVATE "-mwindows")
+endif()
+set_target_properties(${MY_TARGET} PROPERTIES
+        WIN32_EXECUTABLE TRUE)
+
+#######################################################
+# unit tests
+#compile_options(tests)
+#include(cmake/catch2.cmake)
+#target_include_directories(tests PUBLIC ${INCLUDE_DIR})
+#target_include_directories(tests PUBLIC ${Vulkan_INCLUDE_DIRS})
+#target_include_directories(tests PUBLIC ${DirectXH_DIR}/include/directx)
+#target_precompile_headers(tests PRIVATE ${GLM_DIR}/glm.hpp ${GLM_DIR}/gtx/quaternion.hpp ${GLM_DIR}/gtx/matrix_decompose.hpp)
+#target_link_libraries(tests PRIVATE Catch2::Catch2WithMain std-cxx-modules Xinput dinput8 dxguid dxgi d3d12 d3dcompiler DirectX-Headers glm::glm glm-modules)
+#include(CTest)
+#include(Catch)
+#catch_discover_tests(tests)
 
 #######################################################
 # HLSL shaders
@@ -83,15 +130,5 @@ file(GLOB_RECURSE HLSL_SOURCE_FILES
 )
 add_shaders(${MY_TARGET}_shaders ${SHADERS_BUILD_DIR} ${SHADERS_SRC_DIR} ${HLSL_SOURCE_FILES})
 add_dependencies(${MY_TARGET} ${MY_TARGET}_shaders)
-
-#######################################################
-target_include_directories(${MY_TARGET} PUBLIC ${INCLUDE_DIR})
-target_include_directories(${MY_TARGET} PUBLIC ${D2D12Lite_DIR})
-target_link_libraries(${MY_TARGET} Xinput dinput8 dxguid dxgi d3d12 d3dcompiler)
-if(MINGW)
-    target_link_options(${MY_TARGET} PRIVATE "-mwindows")
-endif()
-set_target_properties(${MY_TARGET} PROPERTIES
-        WIN32_EXECUTABLE TRUE)
 
 #######################################################

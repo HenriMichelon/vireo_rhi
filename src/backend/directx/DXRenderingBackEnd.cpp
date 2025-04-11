@@ -334,7 +334,9 @@ namespace vireo::backend {
                 D3D12_RESOURCE_STATE_GENERIC_READ,
                 nullptr,
                 IID_PPV_ARGS(&stagingBuffer)));
+#ifdef _DEBUG
             stagingBuffer->SetName(L"stagingBuffer buffer");
+#endif
         }
 
         {
@@ -379,7 +381,9 @@ namespace vireo::backend {
                 D3D12_RESOURCE_STATE_GENERIC_READ,
                 nullptr,
                 IID_PPV_ARGS(&stagingBuffer)));
+#ifdef _DEBUG
             stagingBuffer->SetName(L"stagingBuffer image");
+#endif
         }
 
         {
@@ -452,7 +456,9 @@ namespace vireo::backend {
         };
         DieIfFailed(device.getDevice()->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap)));
         rtvDescriptorSize = device.getDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+#ifdef _DEBUG
         rtvHeap->SetName(L"SwapChain Heap");
+#endif
 
         // Create frame resources.
         CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(rtvHeap->GetCPUDescriptorHandleForHeapStart());
@@ -462,7 +468,9 @@ namespace vireo::backend {
         };
         for (UINT n = 0; n < FRAMES_IN_FLIGHT; n++) {
             DieIfFailed(swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTargets[n])));
+#ifdef _DEBUG
             renderTargets[n]->SetName(L"SwapChain BackBuffer " + n);
+#endif
             device.getDevice()->CreateRenderTargetView(renderTargets[n].Get(), &rtvDesc, rtvHandle);
             rtvHandle.Offset(1, rtvDescriptorSize);
         }
@@ -495,13 +503,13 @@ namespace vireo::backend {
     }
 
     DXVertexInputLayout::DXVertexInputLayout(const std::vector<AttributeDescription>& attributesDescriptions) {
-        for (int i = 0; i < attributesDescriptions.size(); i++) {
+        for (const auto& attributesDescription : attributesDescriptions) {
             inputElementDescs.push_back({
-                .SemanticName = attributesDescriptions[i].binding.c_str(),
+                .SemanticName = attributesDescription.binding.c_str(),
                 .SemanticIndex = 0,
-                .Format = DXFormat[attributesDescriptions[i].format],
+                .Format = DXFormat[attributesDescription.format],
                 .InputSlot = 0,
-                .AlignedByteOffset = attributesDescriptions[i].offset,
+                .AlignedByteOffset = attributesDescription.offset,
                 .InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
                 .InstanceDataStepRate = 0
             });
@@ -574,7 +582,9 @@ namespace vireo::backend {
             signature->GetBufferPointer(),
             signature->GetBufferSize(),
             IID_PPV_ARGS(&rootSignature)));
+#ifdef _DEBUG
         rootSignature->SetName((L"DXPipelineResources : " + name).c_str());
+#endif
     }
 
     DXPipeline::DXPipeline(
@@ -607,7 +617,9 @@ namespace vireo::backend {
         psoDesc.RTVFormats[0] = DXSwapChain::RENDER_FORMAT;
         psoDesc.SampleDesc.Count = 1;
         DieIfFailed(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)));
+#ifdef _DEBUG
         pipelineState->SetName((L"DXPipeline : " + name).c_str());
+#endif
     }
 
 

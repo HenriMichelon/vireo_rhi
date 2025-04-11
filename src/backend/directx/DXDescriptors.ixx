@@ -37,11 +37,11 @@ export namespace vireo::backend {
 
         ~DXDescriptorSet() override;
 
-        void update(DescriptorIndex index, Buffer& buffer) override;
+        void update(DescriptorIndex index, const std::shared_ptr<Buffer>& buffer) override;
 
-        void update(DescriptorIndex index, Image& image) override;
+        void update(DescriptorIndex index, const std::shared_ptr<Image>& image) override;
 
-        void update(DescriptorIndex index, Sampler& sampler) override;
+        void update(DescriptorIndex index, const std::shared_ptr<Sampler>& sampler) override;
 
         void update(DescriptorIndex index, const std::vector<std::shared_ptr<Buffer>>& buffers) override;
 

@@ -37,7 +37,9 @@ namespace vireo::backend {
             .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
         };
         DieIfFailed(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&heap)));
+#ifdef _DEBUG
         heap->SetName((L"DXDescriptorSet : " + name).c_str());
+#endif
 
         descriptorSize = device->GetDescriptorHandleIncrementSize(heapDesc.Type);
         cpuBase = heap->GetCPUDescriptorHandleForHeapStart();
@@ -48,40 +50,40 @@ namespace vireo::backend {
         // heap->Release();
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, Buffer& buffer) {
-        const auto bufferViewDesc = static_cast<DXBuffer&>(buffer).getBufferViewDesc();
+    void DXDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<Buffer>& buffer) {
+        const auto bufferViewDesc = static_pointer_cast<DXBuffer>(buffer)->getBufferViewDesc();
         const auto cpuHandle = D3D12_CPU_DESCRIPTOR_HANDLE { cpuBase.ptr + index * descriptorSize };
         device->CreateConstantBufferView(&bufferViewDesc, cpuHandle);
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, Image& image) {
-        const auto dxImage = static_cast<DXImage&>(image);
+    void DXDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<Image>& image) {
+        const auto dxImage = static_pointer_cast<DXImage>(image);
         const auto cpuHandle= D3D12_CPU_DESCRIPTOR_HANDLE{ cpuBase.ptr + index * descriptorSize };
-        device->CreateShaderResourceView(dxImage.getImage().Get(), &dxImage.getImageViewDesc(), cpuHandle);
+        device->CreateShaderResourceView(dxImage->getImage().Get(), &dxImage->getImageViewDesc(), cpuHandle);
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, Sampler& sampler) {
-        auto& dxSampler = static_cast<DXSampler&>(sampler);
-        auto samplerDesc = dxSampler.getSamplerDesc();
+    void DXDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<Sampler>& sampler) {
+        auto dxSampler = static_pointer_cast<DXSampler>(sampler);
+        auto samplerDesc = dxSampler->getSamplerDesc();
         const auto cpuHandle= D3D12_CPU_DESCRIPTOR_HANDLE{ cpuBase.ptr + index * descriptorSize };
         device->CreateSampler(&samplerDesc, cpuHandle);
     }
 
     void DXDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Buffer>>& buffers) {
         for (int i = 0; i < buffers.size(); ++i) {
-            update(index + i, *buffers[i]);
+            update(index + i, buffers[i]);
         }
     }
 
     void DXDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Image>>& images) {
         for (int i = 0; i < images.size(); ++i) {
-            update(index + i, *images[i]);
+            update(index + i, images[i]);
         }
     }
 
     void DXDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& samplers) {
         for (int i = 0; i < samplers.size(); ++i) {
-            update(index + i, *samplers[i]);
+            update(index + i, samplers[i]);
         }
     }
 

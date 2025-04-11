@@ -33,7 +33,9 @@ namespace vireo::backend {
             type == UNIFORM ? D3D12_RESOURCE_STATE_GENERIC_READ : D3D12_RESOURCE_STATE_COMMON,
             nullptr,
             IID_PPV_ARGS(&buffer)));
+#ifdef _DEBUG
         buffer->SetName((L"DXBuffer : " + name).c_str());
+#endif
 
         bufferViewDesc.BufferLocation = buffer->GetGPUVirtualAddress();
         bufferViewDesc.SizeInBytes = static_cast<UINT>(bufferSize);
@@ -87,7 +89,9 @@ namespace vireo::backend {
             nullptr,
             IID_PPV_ARGS(&image)));
 
+#ifdef _DEBUG
         image->SetName((L"DXIMage : " + name).c_str());
+#endif
 
         imageViewDesc.Format = imageDesc.Format;
         imageViewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;

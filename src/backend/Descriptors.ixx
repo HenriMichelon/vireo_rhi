@@ -38,11 +38,11 @@ export namespace vireo::backend {
     public:
         virtual ~DescriptorSet() = default;
 
-        virtual void update(DescriptorIndex index, Buffer& buffer) = 0;
+        virtual void update(DescriptorIndex index, const std::shared_ptr<Buffer>& buffer) = 0;
 
-        virtual void update(DescriptorIndex index, Image& image) = 0;
+        virtual void update(DescriptorIndex index, const std::shared_ptr<Image>& image) = 0;
 
-        virtual void update(DescriptorIndex index, Sampler& sampler) = 0;
+        virtual void update(DescriptorIndex index, const std::shared_ptr<Sampler>& sampler) = 0;
 
         virtual void update(DescriptorIndex index, const std::vector<std::shared_ptr<Image>>& images) = 0;
 

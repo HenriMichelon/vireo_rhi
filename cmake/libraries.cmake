@@ -48,14 +48,5 @@ if(MSVC)
     target_precompile_headers(${MY_TARGET} PRIVATE ${GLM_DIR}/glm.hpp ${GLM_DIR}/gtx/quaternion.hpp ${GLM_DIR}/gtx/matrix_decompose.hpp)
 endif()
 
-###### Using FastGTLF to load models from binary glTF
-message(NOTICE "Fetching FastGTLF from https://github.com/spnda/fastgltf ...")
-FetchContent_Declare(
-        fetch_fastgltf
-        GIT_REPOSITORY https://github.com/spnda/fastgltf
-        GIT_TAG        v0.8.0
-)
-FetchContent_MakeAvailable(fetch_fastgltf)
-target_link_libraries(${MY_TARGET} fastgltf)
 
 

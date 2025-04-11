@@ -124,8 +124,8 @@ namespace vireo {
             auto samplerDescriptorSet = renderingBackEnd->createDescriptorSet(*samplersDescriptorLayout, L"Samplers");
 
             descriptorSet->update(BINDING_TEXTURE, {checkerBoardTexture1, checkerBoardTexture2} );
-            descriptorSet->update(BINDING_UBO1, *uboBuffer1);
-            descriptorSet->update(BINDING_UBO2, *uboBuffer2);
+            descriptorSet->update(BINDING_UBO1, uboBuffer1);
+            descriptorSet->update(BINDING_UBO2, uboBuffer2);
             samplerDescriptorSet->update(BINDING_SAMPLERS, { samplerNearest, samplerLinear });
 
             framesData[i] = renderingBackEnd->createFrameData(i, {descriptorSet, samplerDescriptorSet});
