@@ -6,10 +6,7 @@
 */
 module;
 #include "vireo/Tools.h"
-
 module vireo.app;
-
-import vireo.app.win32;
 
 import vireo.backend.directx;
 import vireo.backend.vulkan;

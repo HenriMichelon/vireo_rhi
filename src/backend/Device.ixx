@@ -5,8 +5,6 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "vireo/Tools.h"
-
 export module vireo.backend.device;
 
 import vireo.backend.framedata;

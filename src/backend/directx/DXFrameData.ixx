@@ -6,7 +6,6 @@
 */
 module;
 #include "vireo/backend/directx/Libraries.h"
-
 export module vireo.backend.directx.framedata;
 
 import vireo.backend.framedata;

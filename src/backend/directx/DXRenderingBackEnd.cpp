@@ -6,7 +6,6 @@
 */
 module;
 #include "vireo/backend/directx/Tools.h"
-
 module vireo.backend.directx;
 
 import vireo.app.win32;

@@ -5,7 +5,6 @@
 * https://opensource.org/licenses/MIT
 */
 #pragma once
-#include "Libraries.h"
 
 #include <d3d12.h>
 #include <d3dx12.h>
@@ -16,4 +15,5 @@
 
 using namespace DirectX;
 using namespace Microsoft::WRL;
+using Microsoft::WRL::ComPtr;
 

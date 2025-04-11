@@ -10,22 +10,19 @@
 //*********************************************************
 #pragma once
 #include "Libraries.h"
-#include "../../Tools.h"
+#include "vireo/Tools.h"
 
-// Note that while ComPtr is used to manage the lifetime of resources on the CPU,
-// it has no understanding of the lifetime of resources on the GPU. Apps must account
-// for the GPU lifetime of resources to avoid destroying objects that may still be
-// referenced by the GPU.
-using Microsoft::WRL::ComPtr;
+namespace vireo {
 
-inline std::string HrToString(const HRESULT hr) {
-    char s_str[64] = {};
-    sprintf_s(s_str, "HRESULT of 0x%08X", static_cast<UINT>(hr));
-    return std::string(s_str);
-}
+    inline std::string HrToString(const HRESULT hr) {
+        char s_str[64] = {};
+        sprintf_s(s_str, "HRESULT of 0x%08X", static_cast<UINT>(hr));
+        return std::string(s_str);
+    }
 
-inline void DieIfFailed(const HRESULT hr) {
-    if (FAILED(hr)) {
-        die(HrToString(hr));
+    inline void DieIfFailed(const HRESULT hr) {
+        if (FAILED(hr)) {
+            die(HrToString(hr));
+        }
     }
 }

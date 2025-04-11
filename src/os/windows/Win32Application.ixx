@@ -6,7 +6,6 @@
 */
 module;
 #include "vireo/Tools.h"
-
 export module vireo.app.win32;
 
 import vireo.app;
