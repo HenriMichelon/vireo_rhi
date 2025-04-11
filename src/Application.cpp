@@ -48,12 +48,9 @@ namespace vireo {
             backend::MipMapMode::LINEAR));
 
         const auto triangleVertices = std::vector<Vertex> {
-                { { 0.0f, 0.25f * aspectRatio, 0.0f }, { 0.5f, 0.0f } },
-                { { 0.25f, -0.25f * aspectRatio, 0.0f }, { 1.0f, 1.0f } },
-                { { -0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f } }
-                // { { 0.0f, 0.25f * aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-                // { { 0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-                // { { -0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
+            { { 0.0f, 0.25f * aspectRatio, 0.0f }, { 0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f} },
+            { { 0.25f, -0.25f * aspectRatio, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f, 0.0f } },
+            { { -0.25f, -0.25f * aspectRatio, 0.0f }, { 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f } }
         };
 
         const auto uploadCommandAllocator = renderingBackEnd->createCommandAllocator(backend::CommandList::TRANSFER);
@@ -110,12 +107,7 @@ namespace vireo {
             staticSamplers,
             L"default");
 
-        const auto attributes = std::vector{
-            backend::VertexInputLayout::AttributeDescription{"POSITION", backend::VertexInputLayout::R32G32B32_FLOAT, 0},
-            backend::VertexInputLayout::AttributeDescription{"TEXCOORD",    backend::VertexInputLayout::R32G32_FLOAT, 12}
-            // backend::VertexInputLayout::AttributeDescription{"COLOR",    backend::VertexInputLayout::R32G32B32A32_FLOAT, 12}
-        };
-        const auto defaultVertexInputLayout = renderingBackEnd->createVertexLayout(sizeof(Vertex), attributes);
+        const auto defaultVertexInputLayout = renderingBackEnd->createVertexLayout(sizeof(Vertex), vertexAttributes);
         const auto vertexShader = renderingBackEnd->createShaderModule("shaders/shaders1_vert");
         const auto fragmentShader = renderingBackEnd->createShaderModule("shaders/shaders1_frag");
         pipelines["default"] = renderingBackEnd->createPipeline(

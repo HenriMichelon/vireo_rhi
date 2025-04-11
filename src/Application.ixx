@@ -35,7 +35,7 @@ export namespace vireo {
         struct Vertex {
             glm::vec3 pos;
             glm::vec2 uv;
-            // glm::vec4 color;
+            glm::vec3 color;
         };
         struct GlobalUBO1 {
             glm::vec4 offset;
@@ -46,6 +46,12 @@ export namespace vireo {
             glm::vec3 color;
         };
         GlobalUBO2 ubo2{};
+
+        const std::vector<backend::VertexInputLayout::AttributeDescription> vertexAttributes{
+            {"POSITION", backend::VertexInputLayout::R32G32B32_FLOAT, 0},
+            {"TEXCOORD",    backend::VertexInputLayout::R32G32_FLOAT, 12},
+            {"COLOR",    backend::VertexInputLayout::R32G32B32_FLOAT, 20}
+        };
 
         std::wstring title;
         std::unique_ptr<backend::RenderingBackEnd> renderingBackEnd;

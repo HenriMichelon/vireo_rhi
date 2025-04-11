@@ -26,11 +26,13 @@ SamplerState samplerNearest : register(s0, space0);
 struct VSInput {
     [[vk::location(0)]] float4 position : POSITION;
     [[vk::location(1)]] float2 uv : TEXCOORD;
+    [[vk::location(2)]] float3 color : COLOR;
 };
 
 struct PSInput {
     [[vk::location(0)]] float4 position : SV_POSITION;
     [[vk::location(1)]] float2 uv : TEXCOORD;
+    [[vk::location(2)]] float3 color : COLOR;
 };
 
 PSInput VSMain(VSInput input) {
@@ -38,10 +40,11 @@ PSInput VSMain(VSInput input) {
 
     result.position = input.position + global.ubo1.offset;
     result.uv = input.uv;
+    result.color = input.color;
 
     return result;
 }
 
 float4 PSMain(PSInput input) : SV_TARGET {
-    return texture.Sample(samplerNearest, input.uv) + float4(global.ubo2.color, 1.0f);
+    return texture.Sample(samplerNearest, input.uv) + float4(global.ubo2.color + input.color, 1.0f);
 }
