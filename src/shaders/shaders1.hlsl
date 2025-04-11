@@ -12,16 +12,13 @@ struct UBO1{
 struct UBO2{
     float3 color;
 };
-struct ubos {
-    UBO1 ubo1;
-    UBO2 ubo2;
-};
 
-ConstantBuffer<ubos> global : register(b0, space0);
-Texture2D texture : register(t0, space1);
-
-[[vk::binding(1, 1)]]
-SamplerState samplerNearest : register(s0, space0);
+ConstantBuffer<UBO1> ubo1 : register(b0);
+ConstantBuffer<UBO2> ubo2 : register(b1);
+[[vk::binding(2)]]
+Texture2D texture : register(t0);
+[[vk::binding(3)]]
+SamplerState samplerNearest : register(s0);
 
 struct VSInput {
     [[vk::location(0)]] float4 position : POSITION;
@@ -38,7 +35,7 @@ struct PSInput {
 PSInput VSMain(VSInput input) {
     PSInput result;
 
-    result.position = input.position + global.ubo1.offset;
+    result.position = input.position + ubo1.offset;
     result.uv = input.uv;
     result.color = input.color;
 
@@ -46,5 +43,5 @@ PSInput VSMain(VSInput input) {
 }
 
 float4 PSMain(PSInput input) : SV_TARGET {
-    return texture.Sample(samplerNearest, input.uv) + float4(global.ubo2.color + input.color, 1.0f);
+    return texture.Sample(samplerNearest, input.uv) + float4(ubo2.color + input.color, 1.0f);
 }

@@ -75,7 +75,7 @@ export namespace vireo::backend {
 
         void upload(Buffer& destination, const void* source) override;
 
-        void upload(Image& destination, const void* source) override {};
+        void upload(Image& destination, const void* source) override;
 
         void cleanup() override;
 
@@ -223,15 +223,7 @@ export namespace vireo::backend {
             const std::wstring& name = L"Image") const override;
 
         std::shared_ptr<DescriptorLayout> createDescriptorLayout(
-            DescriptorType type,
-            uint32_t capacity,
             const std::wstring& name) override;
-
-        std::shared_ptr<DescriptorLayout> createDescriptorLayout(
-            DescriptorType type,
-            uint32_t capacity,
-            const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
-            const std::wstring& name ) override;
 
         std::shared_ptr<DescriptorSet> createDescriptorSet(
             DescriptorLayout& layout,

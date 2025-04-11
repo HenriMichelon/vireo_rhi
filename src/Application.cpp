@@ -84,7 +84,6 @@ namespace vireo {
             1, 256,
             L"UBO1");
         uboBuffer1->map();
-
         uboBuffer2 = renderingBackEnd->createBuffer(
             backend::Buffer::UNIFORM,
             sizeof(GlobalUBO2),
@@ -92,18 +91,15 @@ namespace vireo {
             L"UBO2");
         uboBuffer2->map();
 
-        texturesDescriptorLayout = renderingBackEnd->createDescriptorLayout(
-            backend::DescriptorType::IMAGE,
-            1,
-            staticSamplers,
-            L"Textures");
-        uniformDescriptorLayout = renderingBackEnd->createDescriptorLayout(
-            backend::DescriptorType::BUFFER,
-            2,
-            L"UBOs");
+        descriptorLayout = renderingBackEnd->createDescriptorLayout(L"Global set layout");
+        descriptorLayout->add(BINDING_UBO1, backend::DescriptorType::BUFFER);
+        descriptorLayout->add(BINDING_UBO2, backend::DescriptorType::BUFFER);
+        descriptorLayout->add(BINDING_TEXTURE, backend::DescriptorType::IMAGE);
+        descriptorLayout->add(BINDING_SAMPLERS, staticSamplers);
+        descriptorLayout->build();
 
         pipelineResources["default"] = renderingBackEnd->createPipelineResources(
-            { uniformDescriptorLayout, texturesDescriptorLayout },
+            { descriptorLayout },
             staticSamplers,
             L"default");
 
@@ -118,17 +114,13 @@ namespace vireo {
             L"default");
 
         for (uint32_t i = 0; i < backend::SwapChain::FRAMES_IN_FLIGHT; i++) {
-            auto texturesDescriptorSet = renderingBackEnd->createDescriptorSet(*texturesDescriptorLayout, L"Textures");
-            auto uniformDescriptorSet = renderingBackEnd->createDescriptorSet(*uniformDescriptorLayout, L"Uniform");
+            auto descriptorSet = renderingBackEnd->createDescriptorSet(*descriptorLayout, L"Global");
 
-            auto checkerBoardHandle = texturesDescriptorSet->allocate();
-            texturesDescriptorSet->update(checkerBoardHandle, *checkerBoardTexture);
-            auto uboHandle1 = uniformDescriptorSet->allocate();
-            auto uboHandle2 = uniformDescriptorSet->allocate();
-            uniformDescriptorSet->update(uboHandle1, *uboBuffer1);
-            uniformDescriptorSet->update(uboHandle2, *uboBuffer2);
+            descriptorSet->update(BINDING_TEXTURE, *checkerBoardTexture);
+            descriptorSet->update(BINDING_UBO1, *uboBuffer1);
+            descriptorSet->update(BINDING_UBO2, *uboBuffer2);
 
-            framesData[i] = renderingBackEnd->createFrameData(i, {uniformDescriptorSet, texturesDescriptorSet});
+            framesData[i] = renderingBackEnd->createFrameData(i, {descriptorSet});
             graphicCommandAllocator[i] = renderingBackEnd->createCommandAllocator(backend::CommandList::GRAPHIC);
             graphicCommandList[i] = graphicCommandAllocator[i]->createCommandList(*pipelines["default"]);
         }

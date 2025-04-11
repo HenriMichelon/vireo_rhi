@@ -35,7 +35,6 @@ add_executable(${MY_TARGET}
         ${SRC_DIR}/Application.cpp
         ${SRC_DIR}/os/windows/Win32Application.cpp
         ${SRC_DIR}/os/windows/WinMain.cpp
-        ${SRC_DIR}/backend/Descriptors.cpp
         ${SRC_DIR}/backend/directx/DXResources.cpp
         ${SRC_DIR}/backend/directx/DXDescriptors.cpp
         ${SRC_DIR}/backend/directx/DXDevice.cpp

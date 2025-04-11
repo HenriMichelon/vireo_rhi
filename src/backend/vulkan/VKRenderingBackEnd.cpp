@@ -218,19 +218,8 @@ namespace vireo::backend {
     }
 
     std::shared_ptr<DescriptorLayout> VKRenderingBackEnd::createDescriptorLayout(
-        DescriptorType type,
-        uint32_t capacity,
         const std::wstring& name) {
-        std::vector<std::shared_ptr<Sampler>> dummy{};
-        return std::make_shared<VKDescriptorLayout>(type, getVKDevice()->getDevice(), capacity, dummy, name);
-    }
-
-    std::shared_ptr<DescriptorLayout> VKRenderingBackEnd::createDescriptorLayout(
-    DescriptorType type,
-    uint32_t capacity,
-    const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
-    const std::wstring& name) {
-        return std::make_shared<VKDescriptorLayout>(type, getVKDevice()->getDevice(), capacity, staticSamplers, name);
+        return std::make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), name);
     }
 
     std::shared_ptr<DescriptorSet> VKRenderingBackEnd::createDescriptorSet(

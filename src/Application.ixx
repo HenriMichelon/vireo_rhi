@@ -47,6 +47,11 @@ export namespace vireo {
         };
         GlobalUBO2 ubo2{};
 
+        const backend::DescriptorIndex BINDING_UBO1{0};
+        const backend::DescriptorIndex BINDING_UBO2{1};
+        const backend::DescriptorIndex BINDING_TEXTURE{2};
+        const backend::DescriptorIndex BINDING_SAMPLERS{3};
+
         const std::vector<backend::VertexInputLayout::AttributeDescription> vertexAttributes{
             {"POSITION", backend::VertexInputLayout::R32G32B32_FLOAT, 0},
             {"TEXCOORD",    backend::VertexInputLayout::R32G32_FLOAT, 12},
@@ -58,8 +63,7 @@ export namespace vireo {
         std::vector<std::shared_ptr<backend::FrameData>> framesData{backend::SwapChain::FRAMES_IN_FLIGHT};
         std::vector<std::shared_ptr<backend::CommandAllocator>> graphicCommandAllocator{backend::SwapChain::FRAMES_IN_FLIGHT};
         std::vector<std::shared_ptr<backend::CommandList>> graphicCommandList{backend::SwapChain::FRAMES_IN_FLIGHT};
-        std::shared_ptr<backend::DescriptorLayout> uniformDescriptorLayout;
-        std::shared_ptr<backend::DescriptorLayout> texturesDescriptorLayout;
+        std::shared_ptr<backend::DescriptorLayout> descriptorLayout;
         std::vector<std::shared_ptr<backend::Sampler>> staticSamplers;
         std::map<std::string, std::shared_ptr<backend::PipelineResources>> pipelineResources;
         std::map<std::string, std::shared_ptr<backend::Pipeline>> pipelines;

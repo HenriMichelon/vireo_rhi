@@ -13,44 +13,39 @@ import vireo.backend.resources;
 export namespace vireo::backend {
 
     enum class DescriptorType : uint8_t {
-        BUFFER  = 0,
-        IMAGE = 1,
+        BUFFER = 0,
+        IMAGE  = 1,
     };
 
-    using DescriptorHandle = uint32_t;
+    using DescriptorIndex = uint32_t;
 
     class DescriptorLayout {
     public:
         virtual ~DescriptorLayout() = default;
 
+        virtual DescriptorLayout& add(DescriptorIndex index, DescriptorType type, size_t count = 1) = 0;
+
+        virtual DescriptorLayout& add(DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& staticSamplers) { return *this; }
+
+        virtual void build() {}
+
         auto getCapacity() const { return capacity; }
 
-        auto getType() const { return type; }
-
     protected:
-        DescriptorType                type;
-        const size_t                  capacity;
-
-        DescriptorLayout(DescriptorType type, size_t capacity);
+        size_t capacity{0};
     };
 
     class DescriptorSet {
     public:
         virtual ~DescriptorSet() = default;
 
-        DescriptorHandle allocate();
+        virtual void update(DescriptorIndex index, Buffer& buffer) = 0;
 
-        void free(DescriptorHandle handle);
-
-        virtual void update(DescriptorHandle handle, Buffer& buffer) = 0;
-
-        virtual void update(DescriptorHandle handle, Image& buffer) = 0;
+        virtual void update(DescriptorIndex index, Image& buffer) = 0;
 
     protected:
         const DescriptorLayout&       layout;
-        std::vector<DescriptorHandle> freeHandles{};
-
-        DescriptorSet(const DescriptorLayout& layout);
+        DescriptorSet(const DescriptorLayout& layout) : layout{layout} {}
     };
 
 

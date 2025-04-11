@@ -98,11 +98,17 @@ namespace vireo::backend {
         return make_shared<DXBuffer>(getDXDevice()->getDevice(), type, size, count, alignment, name);
     }
 
+    std::shared_ptr<Image> DXRenderingBackEnd::createImage(
+        ImageFormat format,
+        uint32_t width,
+        uint32_t height,
+        const std::wstring& name) const {
+        return std::make_shared<DXImage>(getDXDevice()->getDevice(), format, width, height, name);
+    }
+
     std::shared_ptr<DescriptorLayout> DXRenderingBackEnd::createDescriptorLayout(
-        DescriptorType type,
-        uint32_t capacity,
         const std::wstring& name) {
-        return std::make_shared<DXDescriptorLayout>(type, capacity);
+        return std::make_shared<DXDescriptorLayout>();
     }
 
     std::shared_ptr<DescriptorSet> DXRenderingBackEnd::createDescriptorSet(
@@ -140,34 +146,37 @@ namespace vireo::backend {
         dxCommandList->RSSetViewports(1, &viewport);
         dxCommandList->RSSetScissorRects(1, &scissorRect);
 
-        const auto swapChainBarrier = CD3DX12_RESOURCE_BARRIER::Transition(dxSwapChain->getRenderTargets()[frameIndex].Get(),
-                                                                     D3D12_RESOURCE_STATE_PRESENT,
-                                                                     D3D12_RESOURCE_STATE_RENDER_TARGET);
-        dxCommandList->ResourceBarrier(1, &swapChainBarrier);
+        {
+            const auto swapChainBarrier = CD3DX12_RESOURCE_BARRIER::Transition(dxSwapChain->getRenderTargets()[frameIndex].Get(),
+                                                                         D3D12_RESOURCE_STATE_PRESENT,
+                                                                         D3D12_RESOURCE_STATE_RENDER_TARGET);
+            dxCommandList->ResourceBarrier(1, &swapChainBarrier);
+        }
 
-        const CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(
-            dxSwapChain->getHeap()->GetCPUDescriptorHandleForHeapStart(),
-            frameIndex,
-            dxSwapChain->getDescriptorSize());
-        dxCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+        {
+            const CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(
+                dxSwapChain->getHeap()->GetCPUDescriptorHandleForHeapStart(),
+                frameIndex,
+                dxSwapChain->getDescriptorSize());
+            dxCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
-        const float dxClearColor[] = {clearColor.r, clearColor.g, clearColor.b, clearColor.a};
-        dxCommandList->ClearRenderTargetView(
-            rtvHandle,
-            dxClearColor,
-            0,
-            nullptr);
+            const float dxClearColor[] = {clearColor.r, clearColor.g, clearColor.b, clearColor.a};
+            dxCommandList->ClearRenderTargetView(
+                rtvHandle,
+                dxClearColor,
+                0,
+                nullptr);
+        }
+
         dxCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-        std::vector<ID3D12DescriptorHeap*> descriptorHeaps(data.descriptorSets.size());
+        std::vector<ID3D12DescriptorHeap*> heaps(data.descriptorSets.size());
         for (int i = 0; i < data.descriptorSets.size(); i++) {
-            descriptorHeaps[i] = static_pointer_cast<DXDescriptorSet>(data.descriptorSets[i])->getHeap().Get();
+            heaps[i] = static_pointer_cast<DXDescriptorSet>(data.descriptorSets[i])->getHeap().Get();
         }
-        dxCommandList->SetDescriptorHeaps(descriptorHeaps.size(), descriptorHeaps.data());
-        for (int i = 0; i < descriptorHeaps.size(); i++) {
-            dxCommandList->SetGraphicsRootDescriptorTable(
-                i,
-                descriptorHeaps[i]->GetGPUDescriptorHandleForHeapStart());
+        dxCommandList->SetDescriptorHeaps(heaps.size(), heaps.data());
+        for (int i = 0; i < data.descriptorSets.size(); i++) {
+            dxCommandList->SetGraphicsRootDescriptorTable(i, heaps[i]->GetGPUDescriptorHandleForHeapStart());
         }
     }
 
@@ -291,11 +300,14 @@ namespace vireo::backend {
     }
 
     void DXCommandList::cleanup() {
+        for (int i = 0; i < stagingBuffers.size(); i++) {
+            // stagingBuffers[i]->Release();
+        }
         stagingBuffers.clear();
     }
 
     void DXCommandList::bindVertexBuffer(Buffer& buffer) {
-        auto& vertexBuffer = static_cast<DXBuffer&>(buffer);
+        const auto& vertexBuffer = static_cast<DXBuffer&>(buffer);
         commandList->IASetVertexBuffers(0, 1, &vertexBuffer.getBufferView());
     }
 
@@ -304,42 +316,95 @@ namespace vireo::backend {
     }
 
     void DXCommandList::upload(Buffer& destination, const void* source) {
-        auto& buffer = static_cast<DXBuffer&>(destination);
+        const auto& buffer = static_cast<DXBuffer&>(destination);
 
         ComPtr<ID3D12Resource> stagingBuffer;
-        const auto stagingBufferSize = GetRequiredIntermediateSize(buffer.getBuffer().Get(), 0, 1);
-        const auto stagingHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-        const auto stagingResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(stagingBufferSize);
-        DieIfFailed(device->CreateCommittedResource(
-            &stagingHeapProps,
-            D3D12_HEAP_FLAG_NONE,
-            &stagingResourceDesc,
-            D3D12_RESOURCE_STATE_GENERIC_READ,
-            nullptr,
-            IID_PPV_ARGS(&stagingBuffer)));
+        {
+            const auto stagingBufferSize = GetRequiredIntermediateSize(buffer.getBuffer().Get(), 0, 1);
+            const auto stagingHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+            const auto stagingResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(stagingBufferSize);
+            DieIfFailed(device->CreateCommittedResource(
+                &stagingHeapProps,
+                D3D12_HEAP_FLAG_NONE,
+                &stagingResourceDesc,
+                D3D12_RESOURCE_STATE_GENERIC_READ,
+                nullptr,
+                IID_PPV_ARGS(&stagingBuffer)));
+            stagingBuffer->SetName(L"stagingBuffer buffer");
+        }
 
-        const auto copyData = D3D12_SUBRESOURCE_DATA{
-            .pData = source,
-            .RowPitch = static_cast<LONG_PTR>(buffer.getSize()),
-            .SlicePitch = static_cast<LONG_PTR>(buffer.getSize()),
-        };
-        UpdateSubresources(
-            commandList.Get(),
-            buffer.getBuffer().Get(),
-            stagingBuffer.Get(),
-            0,
-            0,
-            1,
-            &copyData);
-        const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            buffer.getBuffer().Get(),
-            D3D12_RESOURCE_STATE_COPY_DEST,
-            DXBuffer::ResourceStates[buffer.getType()]);
-        commandList->ResourceBarrier(1, &memoryBarrier);
+        {
+            const auto copyData = D3D12_SUBRESOURCE_DATA{
+                .pData = source,
+                .RowPitch = static_cast<LONG_PTR>(buffer.getSize()),
+                .SlicePitch = static_cast<LONG_PTR>(buffer.getSize()),
+            };
+            UpdateSubresources(
+                commandList.Get(),
+                buffer.getBuffer().Get(),
+                stagingBuffer.Get(),
+                0,
+                0,
+                1,
+                &copyData);
+        }
+
+        {
+            const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+                buffer.getBuffer().Get(),
+                D3D12_RESOURCE_STATE_COPY_DEST,
+                DXBuffer::ResourceStates[buffer.getType()]);
+            commandList->ResourceBarrier(1, &memoryBarrier);
+        }
 
         stagingBuffers.push_back(stagingBuffer);
     }
 
+    void DXCommandList::upload(Image& destination, const void* source) {
+        const auto& image = static_cast<DXImage&>(destination);
+
+        ComPtr<ID3D12Resource> stagingBuffer;
+        {
+            const auto stagingBufferSize = GetRequiredIntermediateSize(image.getImage().Get(), 0, 1);
+            const auto stagingHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+            const auto stagingResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(stagingBufferSize);
+            DieIfFailed(device->CreateCommittedResource(
+                &stagingHeapProps,
+                D3D12_HEAP_FLAG_NONE,
+                &stagingResourceDesc,
+                D3D12_RESOURCE_STATE_GENERIC_READ,
+                nullptr,
+                IID_PPV_ARGS(&stagingBuffer)));
+            stagingBuffer->SetName(L"stagingBuffer image");
+        }
+
+        {
+            const auto copyData = D3D12_SUBRESOURCE_DATA{
+                .pData = source,
+                .RowPitch = static_cast<LONG_PTR>(image.getRowPitch()),
+                .SlicePitch = static_cast<LONG_PTR>(image.getSize()),
+            };
+            UpdateSubresources(
+                commandList.Get(),
+                image.getImage().Get(),
+                stagingBuffer.Get(),
+                0,
+                0,
+                1,
+                &copyData);
+        }
+
+        {
+            const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+                image.getImage().Get(),
+                D3D12_RESOURCE_STATE_COPY_DEST,
+                D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE |
+                    D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE); // enforced by DATA_STATIC in the root signature
+            commandList->ResourceBarrier(1, &memoryBarrier);
+        }
+
+        stagingBuffers.push_back(stagingBuffer);
+    }
 
     DXSwapChain::DXSwapChain(
         const ComPtr<IDXGIFactory4>& factory,
@@ -383,6 +448,7 @@ namespace vireo::backend {
         };
         DieIfFailed(device.getDevice()->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap)));
         rtvDescriptorSize = device.getDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+        rtvHeap->SetName(L"SwapChain Heap");
 
         // Create frame resources.
         CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(rtvHeap->GetCPUDescriptorHandleForHeapStart());
@@ -392,7 +458,7 @@ namespace vireo::backend {
         };
         for (UINT n = 0; n < FRAMES_IN_FLIGHT; n++) {
             DieIfFailed(swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTargets[n])));
-            renderTargets[n]->SetName(L"BackBuffer");
+            renderTargets[n]->SetName(L"SwapChain BackBuffer " + n);
             device.getDevice()->CreateRenderTargetView(renderTargets[n].Get(), &rtvDesc, rtvHandle);
             rtvHandle.Offset(1, rtvDescriptorSize);
         }
@@ -478,19 +544,13 @@ namespace vireo::backend {
             featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
         }
 
-        std::vector<CD3DX12_DESCRIPTOR_RANGE1> ranges(descriptorLayouts.size());
         std::vector<CD3DX12_ROOT_PARAMETER1> rootParameters(descriptorLayouts.size());
         for (int i = 0; i < descriptorLayouts.size(); i++) {
-            const auto set = std::static_pointer_cast<DXDescriptorLayout>(descriptorLayouts[i]);
-            ranges[i].Init(
-                set->getType() == DescriptorType::BUFFER ? D3D12_DESCRIPTOR_RANGE_TYPE_CBV : D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-                set->getCapacity(),
-                0,
-                i,
-                D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+            const auto layout = std::static_pointer_cast<DXDescriptorLayout>(descriptorLayouts[i]);
+            const auto range = layout->getRanges()[i];
             rootParameters[i].InitAsDescriptorTable(
                 1,
-                &ranges[i],
+                &range,
                 D3D12_SHADER_VISIBILITY_ALL);
         }
 

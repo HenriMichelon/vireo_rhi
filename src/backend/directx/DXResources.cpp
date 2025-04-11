@@ -25,7 +25,7 @@ namespace vireo::backend {
 
         // GPU Buffer
         const auto heapProperties = CD3DX12_HEAP_PROPERTIES(type == UNIFORM ? D3D12_HEAP_TYPE_UPLOAD : D3D12_HEAP_TYPE_DEFAULT);
-        auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
+        const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
         DieIfFailed(device->CreateCommittedResource(
             &heapProperties,
             D3D12_HEAP_FLAG_NONE,
@@ -33,7 +33,11 @@ namespace vireo::backend {
             type == UNIFORM ? D3D12_RESOURCE_STATE_GENERIC_READ : D3D12_RESOURCE_STATE_COMMON,
             nullptr,
             IID_PPV_ARGS(&buffer)));
-        buffer->SetName(name.c_str());
+        buffer->SetName((L"DXBuffer : " + name).c_str());
+
+        bufferViewDesc.BufferLocation = buffer->GetGPUVirtualAddress();
+        bufferViewDesc.SizeInBytes = static_cast<UINT>(bufferSize);
+
         bufferView.BufferLocation = buffer->GetGPUVirtualAddress();
         bufferView.StrideInBytes = size;
         bufferView.SizeInBytes = bufferSize;
@@ -82,8 +86,13 @@ namespace vireo::backend {
             D3D12_RESOURCE_STATE_COMMON,
             nullptr,
             IID_PPV_ARGS(&image)));
-        image->SetName(name.c_str());
 
+        image->SetName((L"DXIMage : " + name).c_str());
+
+        imageViewDesc.Format = imageDesc.Format;
+        imageViewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+        imageViewDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+        imageViewDesc.Texture2D= { .MipLevels = 1 };
     }
 
     DXSampler::DXSampler(

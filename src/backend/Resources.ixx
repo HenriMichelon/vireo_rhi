@@ -89,6 +89,8 @@ export namespace vireo::backend {
 
         auto getSize() const { return width * height * pixelSize[static_cast<int>(format)]; }
 
+        auto getRowPitch() const { return width * pixelSize[static_cast<int>(format)]; }
+
     private:
         ImageFormat format;
         uint32_t width;

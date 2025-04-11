@@ -36,12 +36,15 @@ export namespace vireo::backend {
 
         const auto& getBufferView() const { return bufferView; }
 
+        const auto& getBufferViewDesc() const { return bufferViewDesc; }
+
         auto& getBuffer() const { return buffer; }
 
     private:
-        ComPtr<ID3D12Device>        device;
-        ComPtr<ID3D12Resource>      buffer;
-        D3D12_VERTEX_BUFFER_VIEW    bufferView;
+        ComPtr<ID3D12Device>            device;
+        ComPtr<ID3D12Resource>          buffer;
+        D3D12_VERTEX_BUFFER_VIEW        bufferView;
+        D3D12_CONSTANT_BUFFER_VIEW_DESC bufferViewDesc;
     };
 
     class DXSampler : public Sampler {
@@ -85,9 +88,12 @@ export namespace vireo::backend {
 
         auto getImage() const { return image; }
 
+        const auto& getImageViewDesc() const { return imageViewDesc; }
+
     private:
         ComPtr<ID3D12Device>            device;
         ComPtr<ID3D12Resource>          image;
+        D3D12_SHADER_RESOURCE_VIEW_DESC imageViewDesc;
     };
 
 }

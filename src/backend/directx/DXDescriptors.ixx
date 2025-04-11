@@ -15,20 +15,25 @@ export namespace vireo::backend {
 
     class DXDescriptorLayout : public DescriptorLayout {
     public:
-        DXDescriptorLayout(const DescriptorType type, const size_t capacity) : DescriptorLayout(type, capacity) {}
+        DescriptorLayout& add(DescriptorIndex index, DescriptorType type, size_t count = 1) override;
+
+        const auto& getRanges() const { return ranges; }
+
+    private:
+        std::vector<CD3DX12_DESCRIPTOR_RANGE1> ranges;
     };
 
     class DXDescriptorSet : public DescriptorSet {
     public:
-        DXDescriptorSet(DescriptorLayout& layout, const ComPtr<ID3D12Device>& device, const std::wstring& name);
+        DXDescriptorSet(const DescriptorLayout& layout, const ComPtr<ID3D12Device>& device, const std::wstring& name);
 
         ~DXDescriptorSet() override;
 
-        void update(DescriptorHandle handle, Buffer& buffer) override;
+        void update(DescriptorIndex index, Buffer& buffer) override;
 
-        void update(DescriptorHandle handle, Image& image) override;
+        void update(DescriptorIndex index, Image& image) override;
 
-        D3D12_GPU_DESCRIPTOR_HANDLE getGPUHandle(DescriptorHandle handle) const;
+        D3D12_GPU_DESCRIPTOR_HANDLE getGPUHandle(DescriptorIndex index) const;
 
         auto getHeap() const { return heap; }
 
