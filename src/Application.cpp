@@ -38,7 +38,6 @@ namespace vireo {
             triangleVertices.size(),
             1,
             L"TriangleVertexBuffer");
-
         textures.push_back(renderingBackEnd->createImage(
             backend::ImageFormat::R8G8B8A8_SRGB,
             TextureWidth,
@@ -54,9 +53,9 @@ namespace vireo {
         auto uploadCommandList = uploadCommandAllocator->createCommandList();
         uploadCommandList->reset();
         uploadCommandList->begin();
-        uploadCommandList->upload(*vertexBuffer, &triangleVertices[0]);
-        for (const auto & texture : textures) {
-            uploadCommandList->upload(*texture, generateTextureData().data());
+        uploadCommandList->upload(vertexBuffer, &triangleVertices[0]);
+        for (auto & texture : textures) {
+            uploadCommandList->upload(texture, generateTextureData().data());
         }
         uploadCommandList->end();
         renderingBackEnd->getTransferCommandQueue()->submit({uploadCommandList});
@@ -118,8 +117,8 @@ namespace vireo {
             L"default");
 
         for (uint32_t i = 0; i < backend::SwapChain::FRAMES_IN_FLIGHT; i++) {
-            auto descriptorSet = renderingBackEnd->createDescriptorSet(*descriptorLayout, L"Global");
-            auto samplerDescriptorSet = renderingBackEnd->createDescriptorSet(*samplersDescriptorLayout, L"Samplers");
+            auto descriptorSet = renderingBackEnd->createDescriptorSet(descriptorLayout, L"Global " + std::to_wstring(i));
+            auto samplerDescriptorSet = renderingBackEnd->createDescriptorSet(samplersDescriptorLayout, L"Samplers " + std::to_wstring(i));
 
             descriptorSet->update(BINDING_TEXTURE, textures);
             descriptorSet->update(BINDING_UBO1, uboBuffer1);
@@ -128,7 +127,7 @@ namespace vireo {
 
             framesData[i] = renderingBackEnd->createFrameData(i, {descriptorSet, samplerDescriptorSet});
             graphicCommandAllocator[i] = renderingBackEnd->createCommandAllocator(backend::CommandList::GRAPHIC);
-            graphicCommandList[i] = graphicCommandAllocator[i]->createCommandList(*pipelines["default"]);
+            graphicCommandList[i] = graphicCommandAllocator[i]->createCommandList(pipelines["default"]);
         }
 
         renderingBackEnd->getTransferCommandQueue()->waitIdle();
@@ -156,24 +155,24 @@ namespace vireo {
     }
 
     void Application::onRender() {
-        auto& swapChain = renderingBackEnd->getSwapChain();
-        auto& frameData = *framesData[swapChain->getCurrentFrameIndex()];
+        auto swapChain = renderingBackEnd->getSwapChain();
+        auto frameData = framesData[swapChain->getCurrentFrameIndex()];
 
         if (!swapChain->acquire(frameData)) { return; }
 
         auto& commandList = graphicCommandList[swapChain->getCurrentFrameIndex()];
-        auto& pipeline = *pipelines["default"];
+        auto pipeline = pipelines["default"];
 
         commandList->reset();
         commandList->begin(pipeline);
-        swapChain->begin(frameData, *commandList);
-        renderingBackEnd->beginRendering(frameData, *pipelineResources["default"], pipeline, *commandList);
+        swapChain->begin(frameData, commandList);
+        renderingBackEnd->beginRendering(frameData, pipelineResources["default"], pipeline, commandList);
 
-        commandList->bindVertexBuffer(*vertexBuffer);
+        commandList->bindVertexBuffer(vertexBuffer);
         commandList->drawInstanced(3);
 
-        renderingBackEnd->endRendering(*commandList);
-        swapChain->end(frameData, *commandList);
+        renderingBackEnd->endRendering(commandList);
+        swapChain->end(frameData, commandList);
         commandList->end();
         renderingBackEnd->getGraphicCommandQueue()->submit(frameData, {commandList});
 
@@ -186,7 +185,7 @@ namespace vireo {
         uboBuffer2->unmap();
         renderingBackEnd->waitIdle();
         for (uint32_t i = 0; i < backend::SwapChain::FRAMES_IN_FLIGHT; i++) {
-            renderingBackEnd->destroyFrameData(*framesData[i]);
+            renderingBackEnd->destroyFrameData(framesData[i]);
         }
     }
 

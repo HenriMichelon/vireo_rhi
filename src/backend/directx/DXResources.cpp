@@ -129,7 +129,7 @@ namespace vireo::backend {
             .MipLODBias = 0,
             .MaxAnisotropy = 0,
             .ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER,
-            .BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK,
+            .BorderColor = {0.0f, 0.0f, 0.0f, 0.0f},
             .MinLOD = minLod,
             .MaxLOD = maxLod,
         };

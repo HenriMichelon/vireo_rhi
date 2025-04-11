@@ -27,13 +27,13 @@ namespace vireo::backend {
         return *this;
     }
 
-    DXDescriptorSet::DXDescriptorSet(const DescriptorLayout& layout, const ComPtr<ID3D12Device>& device, const std::wstring& name):
+    DXDescriptorSet::DXDescriptorSet(const std::shared_ptr<DescriptorLayout>& layout, const ComPtr<ID3D12Device>& device, const std::wstring& name):
         DescriptorSet{layout},
         device{device} {
-        const auto& dxLayout = static_cast<const DXDescriptorLayout&>(layout);
+        const auto dxLayout = static_pointer_cast<const DXDescriptorLayout>(layout);
         const auto heapDesc = D3D12_DESCRIPTOR_HEAP_DESC {
-            .Type = dxLayout.getIsForSampler() ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-            .NumDescriptors = static_cast<UINT>(layout.getCapacity()),
+            .Type = dxLayout->getIsForSampler() ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+            .NumDescriptors = static_cast<UINT>(layout->getCapacity()),
             .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
         };
         DieIfFailed(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&heap)));

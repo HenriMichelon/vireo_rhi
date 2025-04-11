@@ -33,7 +33,7 @@ export namespace vireo::backend {
 
     class DXDescriptorSet : public DescriptorSet {
     public:
-        DXDescriptorSet(const DescriptorLayout& layout, const ComPtr<ID3D12Device>& device, const std::wstring& name);
+        DXDescriptorSet(const std::shared_ptr<DescriptorLayout>& layout, const ComPtr<ID3D12Device>& device, const std::wstring& name);
 
         ~DXDescriptorSet() override;
 

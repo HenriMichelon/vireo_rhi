@@ -38,7 +38,7 @@ export namespace vireo::backend {
 
     class VKDescriptorSet : public DescriptorSet {
     public:
-        VKDescriptorSet(const DescriptorLayout& layout, const std::wstring& name);
+        VKDescriptorSet(const std::shared_ptr<DescriptorLayout>& layout, const std::wstring& name);
 
         ~VKDescriptorSet() override;
 

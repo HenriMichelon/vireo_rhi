@@ -58,7 +58,7 @@ export namespace vireo::backend {
             COMPUTE,
         };
 
-        virtual void begin(Pipeline& pipeline) = 0;
+        virtual void begin(std::shared_ptr<Pipeline>& pipeline) = 0;
 
         virtual void reset() = 0;
 
@@ -66,13 +66,13 @@ export namespace vireo::backend {
 
         virtual void end() = 0;
 
-        virtual void bindVertexBuffer(Buffer& buffer) = 0;
+        virtual void bindVertexBuffer(std::shared_ptr<Buffer>& buffer) = 0;
 
         virtual void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) = 0;
 
-        virtual void upload(Buffer& destination, const void* source) = 0;
+        virtual void upload(std::shared_ptr<Buffer>& destination, const void* source) = 0;
 
-        virtual void upload(Image& destination, const void* source) = 0;
+        virtual void upload(std::shared_ptr<Image>& destination, const void* source) = 0;
 
         virtual void cleanup() = 0;
 
@@ -83,7 +83,7 @@ export namespace vireo::backend {
     public:
         CommandAllocator(const CommandList::Type type) : commandListType{type} {}
 
-        virtual std::shared_ptr<CommandList> createCommandList(Pipeline& pipeline) const  = 0;
+        virtual std::shared_ptr<CommandList> createCommandList(std::shared_ptr<Pipeline>& pipeline) const  = 0;
 
         virtual std::shared_ptr<CommandList> createCommandList() const  = 0;
 
@@ -97,7 +97,7 @@ export namespace vireo::backend {
 
     class SubmitQueue {
     public:
-        virtual void submit(const FrameData& frameData, std::vector<std::shared_ptr<CommandList>> commandLists) = 0;
+        virtual void submit(const std::shared_ptr<FrameData>& frameData, std::vector<std::shared_ptr<CommandList>> commandLists) = 0;
 
         virtual void submit(std::vector<std::shared_ptr<CommandList>> commandLists) = 0;
 
@@ -125,13 +125,13 @@ export namespace vireo::backend {
 
         virtual void nextSwapChain() = 0;
 
-        virtual bool acquire(FrameData& frameData) = 0;
+        virtual bool acquire(std::shared_ptr<FrameData>& frameData) = 0;
 
-        virtual void begin(FrameData& frameData, CommandList& commandList) {}
+        virtual void begin(std::shared_ptr<FrameData>& frameData, std::shared_ptr<CommandList>& commandList) {}
 
-        virtual void end(FrameData& frameData, CommandList& commandList) {}
+        virtual void end(std::shared_ptr<FrameData>& frameData, std::shared_ptr<CommandList>& commandList) {}
 
-        virtual void present(FrameData& frameData) = 0;
+        virtual void present(std::shared_ptr<FrameData>& frameData) = 0;
 
     protected:
         Extent      extent{};
@@ -147,7 +147,7 @@ export namespace vireo::backend {
             uint32_t frameIndex,
             const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSet) = 0;
 
-        virtual void destroyFrameData(FrameData& frameData) {}
+        virtual void destroyFrameData(std::shared_ptr<FrameData>& frameData) {}
 
         virtual void waitIdle() = 0;
 
@@ -192,7 +192,7 @@ export namespace vireo::backend {
             const std::wstring& name = L"createSamplerDescriptorLayout") = 0;
 
         virtual std::shared_ptr<DescriptorSet> createDescriptorSet(
-            DescriptorLayout& layout,
+            std::shared_ptr<DescriptorLayout>& layout,
             const std::wstring& name = L"DescriptorSet") = 0;
 
         virtual std::shared_ptr<Sampler> createSampler(
@@ -207,12 +207,12 @@ export namespace vireo::backend {
             MipMapMode mipMapMode = MipMapMode::LINEAR) const = 0;
 
         virtual void beginRendering(
-            FrameData& frameData,
-            PipelineResources& pipelineResources,
-            Pipeline& pipeline,
-            CommandList& commandList) = 0;
+            std::shared_ptr<FrameData>& frameData,
+            std::shared_ptr<PipelineResources>& pipelineResources,
+            std::shared_ptr<Pipeline>& pipeline,
+            std::shared_ptr<CommandList>& commandList) = 0;
 
-        virtual void endRendering(CommandList& commandList) = 0;
+        virtual void endRendering(std::shared_ptr<CommandList>& commandList) = 0;
 
         void setClearColor(const glm::vec4& color) { clearColor = color; }
 

@@ -57,20 +57,20 @@ namespace vireo::backend {
     }
 
     VKDescriptorSet::VKDescriptorSet(
-        const DescriptorLayout& layout,
+        const std::shared_ptr<DescriptorLayout>& layout,
         const std::wstring& name):
         DescriptorSet {layout} {
-        const auto& vkLayout = static_cast<const VKDescriptorLayout&>(layout);
-        const auto setLayout = vkLayout.getSetLayout();
-        device = vkLayout.getDevice();
+        const auto vkLayout = static_pointer_cast<const VKDescriptorLayout>(layout);
+        const auto setLayout = vkLayout->getSetLayout();
+        device = vkLayout->getDevice();
 
         std::vector<VkDescriptorPoolSize> poolSizes;
-        for (const auto &poolSize : vkLayout.getPoolSizes()) {
+        for (const auto &poolSize : vkLayout->getPoolSizes()) {
             poolSizes.push_back(poolSize.second);
         }
         const auto poolInfo = VkDescriptorPoolCreateInfo {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-            .maxSets = static_cast<uint32_t>(vkLayout.getCapacity()),
+            .maxSets = static_cast<uint32_t>(vkLayout->getCapacity()),
             .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
             .pPoolSizes = poolSizes.data(),
         };
@@ -112,7 +112,7 @@ namespace vireo::backend {
             .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             .pBufferInfo = &bufferInfo,
         };
-        vkUpdateDescriptorSets(static_cast<const VKDescriptorLayout&>(layout).getDevice(), 1, &write, 0, nullptr);
+        vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
     }
 
     void VKDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<Image>& image) {
@@ -131,7 +131,7 @@ namespace vireo::backend {
             .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
             .pImageInfo = &imageInfo,
         };
-        vkUpdateDescriptorSets(static_cast<const VKDescriptorLayout&>(layout).getDevice(), 1, &write, 0, nullptr);
+        vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
     }
 
     void VKDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<Sampler>& sampler) {
@@ -150,7 +150,7 @@ namespace vireo::backend {
             .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER,
             .pImageInfo = &imageInfo,
         };
-        vkUpdateDescriptorSets(static_cast<const VKDescriptorLayout&>(layout).getDevice(), 1, &write, 0, nullptr);
+        vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
     }
 
     void VKDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Buffer>>& buffers) {
@@ -169,7 +169,7 @@ namespace vireo::backend {
             .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             .pBufferInfo = buffersInfo.data(),
         };
-        vkUpdateDescriptorSets(static_cast<const VKDescriptorLayout&>(layout).getDevice(), 1, &write, 0, nullptr);
+        vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
     }
 
     void VKDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Image>>& images) {
@@ -188,7 +188,7 @@ namespace vireo::backend {
             .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
             .pImageInfo = imagesInfo.data(),
         };
-        vkUpdateDescriptorSets(static_cast<const VKDescriptorLayout&>(layout).getDevice(), 1, &write, 0, nullptr);
+        vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
     }
 
     void VKDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>&samplers) {
@@ -207,7 +207,7 @@ namespace vireo::backend {
             .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER,
             .pImageInfo = imagesInfo.data(),
         };
-        vkUpdateDescriptorSets(static_cast<const VKDescriptorLayout&>(layout).getDevice(), 1, &write, 0, nullptr);
+        vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
 
     }
 }

@@ -26,7 +26,7 @@ export namespace vireo::backend {
 
         auto getCommandQueue() const { return commandQueue; }
 
-        void submit(const FrameData& frameData, std::vector<std::shared_ptr<CommandList>> commandLists) override;
+        void submit(const std::shared_ptr<FrameData>& frameData, std::vector<std::shared_ptr<CommandList>> commandLists) override;
 
         void submit(std::vector<std::shared_ptr<CommandList>> commandLists) override;
 
@@ -41,7 +41,7 @@ export namespace vireo::backend {
         VKCommandAllocator(CommandList::Type type, const VKDevice& device);
         ~VKCommandAllocator() override;
 
-        std::shared_ptr<CommandList> createCommandList(Pipeline& pipeline) const override;
+        std::shared_ptr<CommandList> createCommandList(std::shared_ptr<Pipeline>& pipeline) const override;
 
         std::shared_ptr<CommandList> createCommandList() const override;
 
@@ -58,7 +58,7 @@ export namespace vireo::backend {
 
         void reset() override;
 
-        void begin(Pipeline& pipeline) override;
+        void begin(std::shared_ptr<Pipeline>& pipeline) override;
 
         void begin() override;
 
@@ -66,13 +66,13 @@ export namespace vireo::backend {
 
         void cleanup() override;
 
-        void bindVertexBuffer(Buffer& buffer) override;
+        void bindVertexBuffer(std::shared_ptr<Buffer>& buffer) override;
 
         void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) override;
 
-        void upload(Buffer& destination, const void* source) override;
+        void upload(std::shared_ptr<Buffer>& destination, const void* source) override;
 
-        void upload(Image& destination, const void* source) override;
+        void upload(std::shared_ptr<Image>& destination, const void* source) override;
 
         auto getCommandBuffer() const { return commandBuffer; }
 
@@ -112,13 +112,13 @@ export namespace vireo::backend {
 
         void nextSwapChain() override;
 
-        bool acquire(FrameData& frameData) override;
+        bool acquire(std::shared_ptr<FrameData>& frameData) override;
 
-        void begin(FrameData& frameData, CommandList& commandList) override;
+        void begin(std::shared_ptr<FrameData>& frameData, std::shared_ptr<CommandList>& commandList) override;
 
-        void end(FrameData& frameData, CommandList& commandList) override;
+        void end(std::shared_ptr<FrameData>& frameData, std::shared_ptr<CommandList>& commandList) override;
 
-        void present(FrameData& framesData) override;
+        void present(std::shared_ptr<FrameData>& framesData) override;
 
     private:
         // For Device::querySwapChainSupport()
@@ -242,7 +242,7 @@ export namespace vireo::backend {
             uint32_t frameIndex,
             const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSet) override;
 
-        void destroyFrameData(FrameData& frameData) override;
+        void destroyFrameData(std::shared_ptr<FrameData>& frameData) override;
 
         std::shared_ptr<VertexInputLayout> createVertexLayout(
             size_t size,
@@ -281,7 +281,7 @@ export namespace vireo::backend {
             const std::wstring& name = L"createSamplerDescriptorLayout") override;
 
         std::shared_ptr<DescriptorSet> createDescriptorSet(
-            DescriptorLayout& layout,
+            std::shared_ptr<DescriptorLayout>& layout,
             const std::wstring& name) override;
 
         std::shared_ptr<Sampler> createSampler(
@@ -295,9 +295,13 @@ export namespace vireo::backend {
            bool anisotropyEnable = true,
            MipMapMode mipMapMode = MipMapMode::LINEAR) const override;
 
-        void beginRendering(FrameData& frameData, PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) override;
+        void beginRendering(
+            std::shared_ptr<FrameData>& frameData,
+            std::shared_ptr<PipelineResources>& pipelineResources,
+            std::shared_ptr<Pipeline>& pipeline,
+            std::shared_ptr<CommandList>& commandList) override;
 
-        void endRendering(CommandList& commandList) override;
+        void endRendering(std::shared_ptr<CommandList>& commandList) override;
 
         auto getVKInstance() const { return std::reinterpret_pointer_cast<VKInstance>(instance); }
 

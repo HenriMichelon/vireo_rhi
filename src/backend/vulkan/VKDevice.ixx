@@ -89,7 +89,7 @@ export namespace vireo::backend {
         };
 
         // Rate physical device by properties to find the best suitable GPU
-        uint32_t VKPhysicalDevice::rateDeviceSuitability(
+        uint32_t rateDeviceSuitability(
             VkPhysicalDevice            vkPhysicalDevice,
             const std::vector<const char *> &deviceExtensions) const;
 

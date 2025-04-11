@@ -23,7 +23,7 @@ export namespace vireo::backend {
 
         auto getCommandQueue() { return commandQueue; }
 
-        void submit(const FrameData& frameData, std::vector<std::shared_ptr<CommandList>> commandLists) override;
+        void submit(const std::shared_ptr<FrameData>& frameData, std::vector<std::shared_ptr<CommandList>> commandLists) override;
 
         void submit(std::vector<std::shared_ptr<CommandList>> commandLists) override;
 
@@ -38,7 +38,7 @@ export namespace vireo::backend {
     public:
         DXCommandAllocator(CommandList::Type type, const ComPtr<ID3D12Device>& device);
 
-        std::shared_ptr<CommandList> createCommandList(Pipeline& pipeline) const override;
+        std::shared_ptr<CommandList> createCommandList(std::shared_ptr<Pipeline>& pipeline) const override;
 
         std::shared_ptr<CommandList> createCommandList() const override;
 
@@ -63,19 +63,19 @@ export namespace vireo::backend {
 
         void reset() override;
 
-        void begin(Pipeline& pipeline) override;
+        void begin(std::shared_ptr<Pipeline>& pipeline) override;
 
         void begin() override;
 
         void end() override;
 
-        void bindVertexBuffer(Buffer& buffer) override;
+        void bindVertexBuffer(std::shared_ptr<Buffer>& buffer) override;
 
         void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) override;
 
-        void upload(Buffer& destination, const void* source) override;
+        void upload(std::shared_ptr<Buffer>& destination, const void* source) override;
 
-        void upload(Image& destination, const void* source) override;
+        void upload(std::shared_ptr<Image>& destination, const void* source) override;
 
         void cleanup() override;
 
@@ -110,9 +110,9 @@ export namespace vireo::backend {
 
         void nextSwapChain() override;
 
-        bool acquire(FrameData& frameData) override;
+        bool acquire(std::shared_ptr<FrameData>& frameData) override;
 
-        void present(FrameData& frameData) override;
+        void present(std::shared_ptr<FrameData>& frameData) override;
 
     private:
         DXDevice&                    device;
@@ -227,7 +227,7 @@ export namespace vireo::backend {
             const std::wstring& name = L"createSamplerDescriptorLayout") override;
 
         std::shared_ptr<DescriptorSet> createDescriptorSet(
-            DescriptorLayout& layout,
+            std::shared_ptr<DescriptorLayout>& layout,
             const std::wstring& name) override;
 
         std::shared_ptr<Sampler> createSampler(
@@ -241,9 +241,13 @@ export namespace vireo::backend {
                bool anisotropyEnable = true,
                MipMapMode mipMapMode = MipMapMode::LINEAR) const override;
 
-        void beginRendering(FrameData& frameData, PipelineResources& pipelineResources, Pipeline& pipeline, CommandList& commandList) override;
+        void beginRendering(
+            std::shared_ptr<FrameData>& frameData,
+            std::shared_ptr<PipelineResources>& pipelineResources,
+            std::shared_ptr<Pipeline>& pipeline,
+            std::shared_ptr<CommandList>& commandList) override;
 
-        void endRendering(CommandList& commandList) override;
+        void endRendering(std::shared_ptr<CommandList>& commandList) override;
 
         auto getDXInstance() const { return std::reinterpret_pointer_cast<DXInstance>(instance); }
 

@@ -51,8 +51,8 @@ export namespace vireo::backend {
         virtual void update(DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& samplers) = 0;
 
     protected:
-        const DescriptorLayout&       layout;
-        DescriptorSet(const DescriptorLayout& layout) : layout{layout} {}
+        const std::shared_ptr<DescriptorLayout> layout;
+        DescriptorSet(const std::shared_ptr<DescriptorLayout>& layout) : layout{layout} {}
     };
 
 
