@@ -63,6 +63,12 @@ namespace vireo::backend {
             .stageMask = VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
             .deviceIndex = 0
         };
+        vkSetObjectName(getVKDevice()->getDevice(), reinterpret_cast<uint64_t>(data->imageAvailableSemaphore), VK_OBJECT_TYPE_SEMAPHORE,
+            "VKFrameData image Semaphore : " + std::to_string(frameIndex));
+        vkSetObjectName(getVKDevice()->getDevice(), reinterpret_cast<uint64_t>(data->renderFinishedSemaphore), VK_OBJECT_TYPE_SEMAPHORE,
+    "VKFrameData render Semaphore : " + std::to_string(frameIndex));
+        vkSetObjectName(getVKDevice()->getDevice(), reinterpret_cast<uint64_t>(data->inFlightFence), VK_OBJECT_TYPE_FENCE,
+    "VKFrameData Fence: " + std::to_string(frameIndex));
         return data;
     }
 
@@ -771,6 +777,8 @@ namespace vireo::backend {
             }
             // Need VK_KHR_SWAPCHAIN extension, or it will crash (no validation error)
             DieIfFailed(vkCreateSwapchainKHR(device.getDevice(), &createInfo, nullptr, &swapChain));
+            vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(swapChain), VK_OBJECT_TYPE_SWAPCHAIN_KHR,
+                "VKSwapChain");
         }
         vkGetSwapchainImagesKHR(device.getDevice(), swapChain, &imageCount, nullptr);
         swapChainImages.resize(imageCount);
@@ -786,6 +794,11 @@ namespace vireo::backend {
                                                      swapChainImageFormat,
                                                      VK_IMAGE_ASPECT_COLOR_BIT,
                                                      1);
+            vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(swapChainImageViews[i]), VK_OBJECT_TYPE_IMAGE_VIEW,
+                "VKSwapChain Image View " + std::to_string(i));
+            vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(swapChainImages[i]), VK_OBJECT_TYPE_IMAGE,
+                "VKSwapChain Image " + std::to_string(i));
+
         }
 
         // For bliting image to swapchain

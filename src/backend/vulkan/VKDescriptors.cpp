@@ -60,7 +60,7 @@ namespace vireo::backend {
         };
         vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &setLayout);
         vkSetObjectName(device, reinterpret_cast<uint64_t>(setLayout), VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT,
-            wstring_to_string(L"Set Layout : " + name).c_str());
+            wstring_to_string(L"VKDescriptorLayout : " + name).c_str());
     }
 
     VKDescriptorLayout::~VKDescriptorLayout() {
@@ -87,7 +87,7 @@ namespace vireo::backend {
         };
         vkCreateDescriptorPool(device, &poolInfo, nullptr, &pool);
         vkSetObjectName(device, reinterpret_cast<uint64_t>(pool), VK_OBJECT_TYPE_DESCRIPTOR_POOL,
-             wstring_to_string(L"Pool : " + name).c_str());
+             wstring_to_string(L"VKDescriptorSet Pool : " + name).c_str());
 
         const auto allocInfo = VkDescriptorSetAllocateInfo {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
@@ -97,7 +97,7 @@ namespace vireo::backend {
         };
         vkAllocateDescriptorSets(device, &allocInfo, &set);
         vkSetObjectName(device, reinterpret_cast<uint64_t>(set), VK_OBJECT_TYPE_DESCRIPTOR_SET,
-            wstring_to_string(L"Set : " + name).c_str());
+            wstring_to_string(L"VKDescriptorSet : " + name).c_str());
     }
 
     VKDescriptorSet::~VKDescriptorSet() {
@@ -128,7 +128,7 @@ namespace vireo::backend {
         const auto imageInfo = VkDescriptorImageInfo {
             .sampler = VK_NULL_HANDLE,
             .imageView = vkImage.getImageView(),
-            .imageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
         };
         const auto write = VkWriteDescriptorSet {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,

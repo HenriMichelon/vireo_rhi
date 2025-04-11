@@ -425,6 +425,7 @@ namespace vireo::backend {
                 .pEnabledFeatures = VK_NULL_HANDLE,
             };
             DieIfFailed(vkCreateDevice(physicalDevice.getPhysicalDevice(), &createInfo, nullptr, &device));
+            vkSetObjectName(device, reinterpret_cast<uint64_t>(device), VK_OBJECT_TYPE_DEVICE, "VKDevice");
             vulkanInitializeDevice(device);
         }
     }
