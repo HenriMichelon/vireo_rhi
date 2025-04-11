@@ -14,7 +14,7 @@ export namespace vireo::backend {
 
     enum class DescriptorType : uint8_t {
         BUFFER  = 0,
-        TEXTURE = 1,
+        IMAGE = 1,
     };
 
     using DescriptorHandle = uint32_t;
@@ -43,8 +43,6 @@ export namespace vireo::backend {
         void free(DescriptorHandle handle);
 
         virtual void update(DescriptorHandle handle, Buffer& buffer) = 0;
-
-        virtual void update(std::vector<DescriptorHandle> handles, const std::vector<std::shared_ptr<Buffer>>& buffer) = 0;
 
         virtual void update(DescriptorHandle handle, Image& buffer) = 0;
 

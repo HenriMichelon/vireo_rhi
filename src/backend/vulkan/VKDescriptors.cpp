@@ -124,31 +124,31 @@ namespace vireo::backend {
         vkUpdateDescriptorSets(static_cast<const VKDescriptorLayout&>(layout).getDevice(), 1, &write, 0, nullptr);
     }
 
-    void VKDescriptorSet::update(std::vector<DescriptorHandle> handles, const std::vector<std::shared_ptr<Buffer>>& buffer) {
-        assert(layout.getType() == DescriptorType::BUFFER);
-        assert(handles.size() == buffer.size());
-
-        std::vector<VkWriteDescriptorSet> writes(handles.size());
-        std::vector<VkDescriptorBufferInfo> buffersInfo(handles.size());
-
-        for (int i = 0; i < handles.size(); i++) {
-            const auto vkBuffer = static_pointer_cast<VKBuffer>(buffer[i]);
-            buffersInfo[i].buffer = vkBuffer->getBuffer();
-            buffersInfo[i].range = vkBuffer->getSize();
-            writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            writes[i].dstSet = set;
-            writes[i].dstBinding = 0;
-            writes[i].dstArrayElement = handles[i];
-            writes[i].descriptorCount = 1;
-            writes[i].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            writes[i].pBufferInfo = &buffersInfo[i];
-        }
-
-        vkUpdateDescriptorSets(static_cast<const VKDescriptorLayout&>(layout).getDevice(), writes.size(), writes.data(), 0, nullptr);
-    }
+    // void VKDescriptorSet::update(std::vector<DescriptorHandle> handles, const std::vector<std::shared_ptr<Buffer>>& buffer) {
+    //     assert(layout.getType() == DescriptorType::BUFFER);
+    //     assert(handles.size() == buffer.size());
+    //
+    //     std::vector<VkWriteDescriptorSet> writes(handles.size());
+    //     std::vector<VkDescriptorBufferInfo> buffersInfo(handles.size());
+    //
+    //     for (int i = 0; i < handles.size(); i++) {
+    //         const auto vkBuffer = static_pointer_cast<VKBuffer>(buffer[i]);
+    //         buffersInfo[i].buffer = vkBuffer->getBuffer();
+    //         buffersInfo[i].range = vkBuffer->getSize();
+    //         writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    //         writes[i].dstSet = set;
+    //         writes[i].dstBinding = 0;
+    //         writes[i].dstArrayElement = handles[i];
+    //         writes[i].descriptorCount = 1;
+    //         writes[i].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    //         writes[i].pBufferInfo = &buffersInfo[i];
+    //     }
+    //
+    //     vkUpdateDescriptorSets(static_cast<const VKDescriptorLayout&>(layout).getDevice(), writes.size(), writes.data(), 0, nullptr);
+    // }
 
     void VKDescriptorSet::update(const DescriptorHandle handle, Image& sampler) {
-        assert(layout.getType() == DescriptorType::TEXTURE);
+        assert(layout.getType() == DescriptorType::IMAGE);
         const auto& vkImage = static_cast<VKImage&>(sampler);
         const auto imageInfo = VkDescriptorImageInfo {
             .sampler = VK_NULL_HANDLE,

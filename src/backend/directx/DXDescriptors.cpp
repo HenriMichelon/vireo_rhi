@@ -42,6 +42,19 @@ namespace vireo::backend {
         device->CreateConstantBufferView(&bufferViewDesc, descriptorHandle);
     }
 
+    void DXDescriptorSet::update(const DescriptorHandle handle, Image& image) {
+        assert(layout.getType() == DescriptorType::IMAGE);
+        const auto dxImage = static_cast<DXImage&>(image);
+        const auto imageView = D3D12_SHADER_RESOURCE_VIEW_DESC{
+            .Format = DXImage::dxFormats[static_cast<int>(dxImage.getFormat())],
+            .ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
+            .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
+            .Texture2D= { .MipLevels = 1 },
+        };
+        const auto cpuHandle= D3D12_CPU_DESCRIPTOR_HANDLE{ cpuBase.ptr + handle * descriptorSize };
+        device->CreateShaderResourceView(dxImage.getImage().Get(), &imageView, cpuHandle);
+    }
+
     D3D12_GPU_DESCRIPTOR_HANDLE DXDescriptorSet::getGPUHandle(const DescriptorHandle handle) const {
         return {gpuBase.ptr + handle * descriptorSize};
     }

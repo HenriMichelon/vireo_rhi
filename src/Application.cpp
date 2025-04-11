@@ -93,7 +93,7 @@ namespace vireo {
         uboBuffer2->map();
 
         texturesDescriptorLayout = renderingBackEnd->createDescriptorLayout(
-            backend::DescriptorType::TEXTURE,
+            backend::DescriptorType::IMAGE,
             1,
             staticSamplers,
             L"Textures");
@@ -125,7 +125,8 @@ namespace vireo {
             texturesDescriptorSet->update(checkerBoardHandle, *checkerBoardTexture);
             auto uboHandle1 = uniformDescriptorSet->allocate();
             auto uboHandle2 = uniformDescriptorSet->allocate();
-            uniformDescriptorSet->update({uboHandle1, uboHandle2}, {uboBuffer1, uboBuffer2});
+            uniformDescriptorSet->update(uboHandle1, *uboBuffer1);
+            uniformDescriptorSet->update(uboHandle2, *uboBuffer2);
 
             framesData[i] = renderingBackEnd->createFrameData(i, {uniformDescriptorSet, texturesDescriptorSet});
             graphicCommandAllocator[i] = renderingBackEnd->createCommandAllocator(backend::CommandList::GRAPHIC);

@@ -44,8 +44,6 @@ export namespace vireo::backend {
 
         void update(DescriptorHandle handle, Buffer& buffer) override;
 
-        void update(std::vector<DescriptorHandle> handles, const std::vector<std::shared_ptr<Buffer>>& buffer) override;
-
         void update(DescriptorHandle handle, Image& buffer) override;
 
         auto getSet() const { return set; }

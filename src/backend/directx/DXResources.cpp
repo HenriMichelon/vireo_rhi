@@ -83,13 +83,7 @@ namespace vireo::backend {
             nullptr,
             IID_PPV_ARGS(&image)));
         image->SetName(name.c_str());
-        // const auto imageView = D3D12_SHADER_RESOURCE_VIEW_DESC{
-        //     .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
-        //     .Format = imageDesc.Format,
-        //     .ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
-        //     .Texture2D.MipLevels = 1,
-        //     DieIfFailed(device->CreateShaderResourceView(image.Get(), &imageView, srvHandle));
-        // };
+
     }
 
     DXSampler::DXSampler(
