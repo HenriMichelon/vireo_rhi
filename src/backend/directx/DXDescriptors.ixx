@@ -17,10 +17,15 @@ export namespace vireo::backend {
     public:
         DescriptorLayout& add(DescriptorIndex index, DescriptorType type, size_t count = 1) override;
 
+        DescriptorLayout& add(DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& staticSamplers) override;
+
         const auto& getRanges() const { return ranges; }
+
+        const auto& getStaticSamplesDesc() const { return staticSamplersDesc; }
 
     private:
         std::vector<CD3DX12_DESCRIPTOR_RANGE1> ranges;
+        std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplersDesc;
     };
 
     class DXDescriptorSet : public DescriptorSet {

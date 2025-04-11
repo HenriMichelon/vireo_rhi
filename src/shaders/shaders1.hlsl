@@ -15,10 +15,10 @@ struct UBO2{
 
 ConstantBuffer<UBO1> ubo1 : register(b0);
 ConstantBuffer<UBO2> ubo2 : register(b1);
-[[vk::binding(2)]]
-Texture2D texture : register(t0);
+Texture2D texture : register(t2);
+
 [[vk::binding(3)]]
-SamplerState samplerNearest : register(s0);
+SamplerState samplerNearest : register(s3);
 
 struct VSInput {
     [[vk::location(0)]] float4 position : POSITION;

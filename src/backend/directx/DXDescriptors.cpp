@@ -12,6 +12,18 @@ import vireo.backend.directx.resources;
 
 namespace vireo::backend {
 
+    DescriptorLayout& DXDescriptorLayout::add(const DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& staticSamplers) {
+        this->staticSamplersDesc.resize(staticSamplers.size());
+        for (int i = 0; i < staticSamplers.size(); i++) {
+            this->staticSamplersDesc[i] = static_pointer_cast<DXSampler>(staticSamplers[i])->getSamplerDesc();
+            staticSamplersDesc[i].ShaderRegister = index+i;
+            staticSamplersDesc[i].RegisterSpace = 0;
+            assert(staticSamplersDesc[i].Filter <= D3D12_FILTER_ANISOTROPIC);
+            assert(staticSamplersDesc[i].MinLOD <= staticSamplersDesc[i].MaxLOD);
+        }
+        return *this;
+    }
+
     DescriptorLayout& DXDescriptorLayout::add(const DescriptorIndex index, const DescriptorType type, const size_t count) {
         CD3DX12_DESCRIPTOR_RANGE1 range;
         range.Init(

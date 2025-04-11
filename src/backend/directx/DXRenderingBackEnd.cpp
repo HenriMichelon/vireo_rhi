@@ -529,15 +529,6 @@ namespace vireo::backend {
                D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
                D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 
-        std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplersDesc(staticSamplers.size());
-        for (int i = 0; i < staticSamplers.size(); i++) {
-            staticSamplersDesc[i] = std::static_pointer_cast<DXSampler>(staticSamplers[i])->getSamplerDesc();
-            staticSamplersDesc[i].ShaderRegister = i;
-            staticSamplersDesc[i].RegisterSpace = 0;
-            assert(staticSamplersDesc[i].Filter <= D3D12_FILTER_ANISOTROPIC);
-            assert(staticSamplersDesc[i].MinLOD <= staticSamplersDesc[i].MaxLOD);
-        }
-
         D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
         featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
         if (FAILED(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData)))) {
@@ -545,21 +536,24 @@ namespace vireo::backend {
         }
 
         std::vector<CD3DX12_ROOT_PARAMETER1> rootParameters(descriptorLayouts.size());
+        std::shared_ptr<DXDescriptorLayout> layoutWithStaticSamplers{nullptr};
         for (int i = 0; i < descriptorLayouts.size(); i++) {
             const auto layout = std::static_pointer_cast<DXDescriptorLayout>(descriptorLayouts[i]);
-            const auto range = layout->getRanges()[i];
             rootParameters[i].InitAsDescriptorTable(
-                1,
-                &range,
+                layout->getRanges().size(),
+                layout->getRanges().data(),
                 D3D12_SHADER_VISIBILITY_ALL);
+            if (!layout->getStaticSamplesDesc().empty()) {
+                layoutWithStaticSamplers = layout;
+            }
         }
 
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
         rootSignatureDesc.Init_1_1(
             rootParameters.size(),
             rootParameters.empty() ? nullptr : rootParameters.data(),
-            staticSamplersDesc.size(),
-            staticSamplersDesc.empty() ? nullptr : staticSamplersDesc.data(),
+            layoutWithStaticSamplers ? layoutWithStaticSamplers->getStaticSamplesDesc().size() : 0,
+            layoutWithStaticSamplers ? layoutWithStaticSamplers->getStaticSamplesDesc().data() : nullptr,
             rootSignatureFlags);
 
         ComPtr<ID3DBlob> signature;
