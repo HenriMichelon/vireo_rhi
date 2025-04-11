@@ -5,7 +5,7 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "Tools.h"
+#include "vireo/Tools.h"
 
 module vireo.app.win32;
 

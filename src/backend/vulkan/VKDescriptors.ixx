@@ -5,7 +5,7 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "backend/vulkan/Tools.h"
+#include "vireo/backend/vulkan/Tools.h"
 export module vireo.backend.vulkan.descriptors;
 
 import vireo.backend.descriptors;

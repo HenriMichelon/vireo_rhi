@@ -5,7 +5,7 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "Tools.h"
+#include "vireo/Tools.h"
 
 export module vireo.app;
 
@@ -15,7 +15,7 @@ export namespace vireo {
 
     class Application final {
     public:
-        Application(backend::RenderingBackends& backendType, const std::wstring& name);
+        Application(const backend::RenderingBackends& backendType, const std::wstring& name);
 
         void onInit();
         void onUpdate();
@@ -59,7 +59,11 @@ export namespace vireo {
             {"COLOR",    backend::VertexInputLayout::R32G32B32_FLOAT, 20}
         };
 
+
         std::wstring title;
+        float colorIncrement{1.0f};
+        float scaleIncrement{1.0f};
+
         std::unique_ptr<backend::RenderingBackEnd> renderingBackEnd;
         std::vector<std::shared_ptr<backend::FrameData>> framesData{backend::SwapChain::FRAMES_IN_FLIGHT};
         std::vector<std::shared_ptr<backend::CommandAllocator>> graphicCommandAllocator{backend::SwapChain::FRAMES_IN_FLIGHT};
@@ -71,12 +75,8 @@ export namespace vireo {
         std::shared_ptr<backend::Buffer> vertexBuffer;
         std::shared_ptr<backend::Buffer> uboBuffer1;
         std::shared_ptr<backend::Buffer> uboBuffer2;
-        float colorIncrement{1.0f};
-        float scaleIncrement{1.0f};
-        std::shared_ptr<backend::Image> checkerBoardTexture1;
-        std::shared_ptr<backend::Image> checkerBoardTexture2;
-        std::shared_ptr<backend::Sampler> samplerNearest;
-        std::shared_ptr<backend::Sampler> samplerLinear;
+        std::vector<std::shared_ptr<backend::Image>> textures;
+        std::vector<std::shared_ptr<backend::Sampler>> samplers;
 
     };
 }

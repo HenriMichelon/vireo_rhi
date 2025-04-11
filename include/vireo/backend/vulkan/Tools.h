@@ -27,9 +27,4 @@ inline void vkSetObjectName(const VkDevice device, const uint64_t objectHandle, 
         func(device, &nameInfo);
     }
 }
-
-#else
-inline void SetObjectName(VkDevice, uint64_t, VkObjectType, const char*) {
-}
-
 #endif

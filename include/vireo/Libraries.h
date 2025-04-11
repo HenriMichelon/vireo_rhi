@@ -5,10 +5,8 @@
 * https://opensource.org/licenses/MIT
 */
 #pragma once
-#ifndef WIN32_LEAN_AND_MEAN
+#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers.
-#endif
-
 #include <windows.h>
-
+#endif
 #include <glm/glm.hpp>

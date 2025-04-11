@@ -9,7 +9,7 @@
     #include <windows.h>
     HMODULE vulkanModule;
 #endif
-#include "backend/vulkan/Vulkan.h"
+#include "vireo/backend/vulkan/Vulkan.h"
 
 PFN_vkAllocateCommandBuffers vkAllocateCommandBuffers;
 PFN_vkAllocateDescriptorSets vkAllocateDescriptorSets;

@@ -5,7 +5,7 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "Tools.h"
+#include "vireo/Tools.h"
 export module vireo.backend.descriptors;
 
 import vireo.backend.resources;

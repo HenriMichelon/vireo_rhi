@@ -5,7 +5,7 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "backend/directx/Libraries.h"
+#include "vireo/backend/directx/Libraries.h"
 
 export module vireo.backend.directx.framedata;
 
