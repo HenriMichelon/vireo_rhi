@@ -197,7 +197,6 @@ export namespace vireo::backend {
         VKPipelineResources(
             VkDevice device,
             const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
-            const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
             const std::wstring& name);
 
         ~VKPipelineResources() override;
@@ -254,7 +253,6 @@ export namespace vireo::backend {
 
         std::shared_ptr<PipelineResources> createPipelineResources(
             const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
-            const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
             const std::wstring& name = L"PipelineResource") const override;
 
         std::shared_ptr<Pipeline> createPipeline(
@@ -279,6 +277,9 @@ export namespace vireo::backend {
 
         std::shared_ptr<DescriptorLayout> createDescriptorLayout(
             const std::wstring& name) override;
+
+        std::shared_ptr<DescriptorLayout> createSamplerDescriptorLayout(
+            const std::wstring& name = L"createSamplerDescriptorLayout") override;
 
         std::shared_ptr<DescriptorSet> createDescriptorSet(
             DescriptorLayout& layout,

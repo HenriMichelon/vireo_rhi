@@ -154,7 +154,6 @@ export namespace vireo::backend {
         DXPipelineResources(
             const ComPtr<ID3D12Device>& device,
             const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
-            const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
             const std::wstring& name);
 
         auto getRootSignature() const { return rootSignature; }
@@ -199,7 +198,6 @@ export namespace vireo::backend {
 
         std::shared_ptr<PipelineResources> createPipelineResources(
             const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
-            const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
             const std::wstring& name = L"PipelineResource") const override;
 
         std::shared_ptr<Pipeline> createPipeline(
@@ -224,6 +222,9 @@ export namespace vireo::backend {
 
         std::shared_ptr<DescriptorLayout> createDescriptorLayout(
             const std::wstring& name) override;
+
+        std::shared_ptr<DescriptorLayout> createSamplerDescriptorLayout(
+            const std::wstring& name = L"createSamplerDescriptorLayout") override;
 
         std::shared_ptr<DescriptorSet> createDescriptorSet(
             DescriptorLayout& layout,

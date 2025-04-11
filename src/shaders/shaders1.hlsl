@@ -17,8 +17,7 @@ ConstantBuffer<UBO1> ubo1 : register(b0);
 ConstantBuffer<UBO2> ubo2 : register(b1);
 Texture2D texture : register(t2);
 
-[[vk::binding(3)]]
-SamplerState samplerNearest : register(s3);
+SamplerState samplerNearest : register(s0, space1);
 
 struct VSInput {
     [[vk::location(0)]] float4 position : POSITION;

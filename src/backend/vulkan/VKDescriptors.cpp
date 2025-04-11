@@ -16,22 +16,12 @@ namespace vireo::backend {
         device{device}, name{name} {
     }
 
-    DescriptorLayout& VKDescriptorLayout::add(const DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& staticSamplers) {
-        poolSizes[index] = {
-             .type = VK_DESCRIPTOR_TYPE_SAMPLER,
-             .descriptorCount = static_cast<uint32_t>(staticSamplers.size()),
-        };
-        this->staticSamplers.resize(staticSamplers.size());
-        for (int i = 0; i < staticSamplers.size(); i++) {
-            this->staticSamplers[i] = static_pointer_cast<VKSampler>(staticSamplers[i])->getSampler();
-        }
-        capacity += staticSamplers.size();
-        return *this;
-    }
-
     DescriptorLayout& VKDescriptorLayout::add(const DescriptorIndex index, const DescriptorType type, const size_t count) {
         poolSizes[index] = {
-            .type = type == DescriptorType::BUFFER ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
+            .type =
+                type == DescriptorType::BUFFER ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER :
+                type == DescriptorType::IMAGE ? VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE :
+                VK_DESCRIPTOR_TYPE_SAMPLER,
             .descriptorCount = static_cast<uint32_t>(count),
         };
         capacity += count;
@@ -47,9 +37,6 @@ namespace vireo::backend {
                 .descriptorCount = poolSize.second.descriptorCount,
                 .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
             };
-            if (poolSize.second.type == VK_DESCRIPTOR_TYPE_SAMPLER) { // assuming we only have static samplers
-                binding.pImmutableSamplers = staticSamplers.data();
-            }
             bindings.push_back(binding);
         }
 
@@ -123,8 +110,8 @@ namespace vireo::backend {
         vkUpdateDescriptorSets(static_cast<const VKDescriptorLayout&>(layout).getDevice(), 1, &write, 0, nullptr);
     }
 
-    void VKDescriptorSet::update(const DescriptorIndex index, Image& sampler) {
-        const auto& vkImage = static_cast<VKImage&>(sampler);
+    void VKDescriptorSet::update(const DescriptorIndex index, Image& image) {
+        const auto& vkImage = static_cast<VKImage&>(image);
         const auto imageInfo = VkDescriptorImageInfo {
             .sampler = VK_NULL_HANDLE,
             .imageView = vkImage.getImageView(),
@@ -137,6 +124,25 @@ namespace vireo::backend {
             .dstArrayElement = 0,
             .descriptorCount = 1,
             .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
+            .pImageInfo = &imageInfo,
+        };
+        vkUpdateDescriptorSets(static_cast<const VKDescriptorLayout&>(layout).getDevice(), 1, &write, 0, nullptr);
+    }
+
+    void VKDescriptorSet::update(const DescriptorIndex index, Sampler& sampler) {
+        const auto& vkSampler = static_cast<VKSampler&>(sampler);
+        const auto imageInfo = VkDescriptorImageInfo {
+            .sampler = vkSampler.getSampler(),
+            .imageView = VK_NULL_HANDLE,
+            .imageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        };
+        const auto write = VkWriteDescriptorSet {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = set,
+            .dstBinding = index,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER,
             .pImageInfo = &imageInfo,
         };
         vkUpdateDescriptorSets(static_cast<const VKDescriptorLayout&>(layout).getDevice(), 1, &write, 0, nullptr);

@@ -21,8 +21,6 @@ export namespace vireo::backend {
 
         DescriptorLayout& add(DescriptorIndex index, DescriptorType type, size_t count = 1) override;
 
-        DescriptorLayout& add(DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& staticSamplers) override;
-
         void build() override;
 
         auto getSetLayout() const { return setLayout; }
@@ -35,7 +33,6 @@ export namespace vireo::backend {
         VkDevice device;
         VkDescriptorSetLayout setLayout{nullptr};
         const std::wstring name;
-        std::vector<VkSampler> staticSamplers;
         std::map<DescriptorIndex, VkDescriptorPoolSize> poolSizes;
     };
 
@@ -49,12 +46,14 @@ export namespace vireo::backend {
 
         void update(DescriptorIndex index, Image& buffer) override;
 
+        void update(DescriptorIndex index, Sampler& buffer) override;
+
         auto getSet() const { return set; }
 
         auto getPool() const { return pool; }
 
     private:
-        VkDevice device;
+        VkDevice              device;
         VkDescriptorSet       set;
         VkDescriptorPool      pool;
     };

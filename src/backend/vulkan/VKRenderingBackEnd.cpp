@@ -88,9 +88,8 @@ namespace vireo::backend {
 
     std::shared_ptr<PipelineResources> VKRenderingBackEnd::createPipelineResources(
         const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
-        const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
         const std::wstring& name) const {
-        return std::make_shared<VKPipelineResources>(getVKDevice()->getDevice(), descriptorLayouts, staticSamplers, name);
+        return std::make_shared<VKPipelineResources>(getVKDevice()->getDevice(), descriptorLayouts, name);
     }
 
     std::shared_ptr<Pipeline> VKRenderingBackEnd::createPipeline(
@@ -228,6 +227,11 @@ namespace vireo::backend {
         return std::make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), name);
     }
 
+    std::shared_ptr<DescriptorLayout> VKRenderingBackEnd::createSamplerDescriptorLayout(
+        const std::wstring& name) {
+        return std::make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), name);
+    }
+
     std::shared_ptr<DescriptorSet> VKRenderingBackEnd::createDescriptorSet(
             DescriptorLayout& layout,
             const std::wstring& name) {
@@ -292,7 +296,6 @@ namespace vireo::backend {
     VKPipelineResources::VKPipelineResources(
         const VkDevice device,
         const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
-        const std::vector<std::shared_ptr<Sampler>>&,
         const std::wstring& name):
         device{device} {
         for (int i = 0; i < descriptorLayouts.size(); i++) {

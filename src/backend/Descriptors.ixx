@@ -13,8 +13,9 @@ import vireo.backend.resources;
 export namespace vireo::backend {
 
     enum class DescriptorType : uint8_t {
-        BUFFER = 0,
-        IMAGE  = 1,
+        BUFFER  = 0,
+        IMAGE   = 1,
+        SAMPLER = 2,
     };
 
     using DescriptorIndex = uint32_t;
@@ -24,8 +25,6 @@ export namespace vireo::backend {
         virtual ~DescriptorLayout() = default;
 
         virtual DescriptorLayout& add(DescriptorIndex index, DescriptorType type, size_t count = 1) = 0;
-
-        virtual DescriptorLayout& add(DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& staticSamplers) { return *this; }
 
         virtual void build() {}
 
@@ -42,6 +41,8 @@ export namespace vireo::backend {
         virtual void update(DescriptorIndex index, Buffer& buffer) = 0;
 
         virtual void update(DescriptorIndex index, Image& buffer) = 0;
+
+        virtual void update(DescriptorIndex index, Sampler& buffer) = 0;
 
     protected:
         const DescriptorLayout&       layout;

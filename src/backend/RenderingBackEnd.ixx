@@ -163,7 +163,6 @@ export namespace vireo::backend {
 
         virtual std::shared_ptr<PipelineResources> createPipelineResources(
             const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
-            const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
             const std::wstring& name = L"PipelineResource") const = 0;
 
         virtual std::shared_ptr<Pipeline> createPipeline(
@@ -188,6 +187,9 @@ export namespace vireo::backend {
 
         virtual std::shared_ptr<DescriptorLayout> createDescriptorLayout(
             const std::wstring& name = L"DescriptorLayout") = 0;
+
+        virtual std::shared_ptr<DescriptorLayout> createSamplerDescriptorLayout(
+            const std::wstring& name = L"createSamplerDescriptorLayout") = 0;
 
         virtual std::shared_ptr<DescriptorSet> createDescriptorSet(
             DescriptorLayout& layout,

@@ -28,25 +28,6 @@ namespace vireo {
         renderingBackEnd->setClearColor({ 0.0f, 0.2f, 0.4f, 1.0f });
         const auto aspectRatio = renderingBackEnd->getSwapChain()->getAspectRatio();
 
-        staticSamplers.push_back(renderingBackEnd->createSampler(
-            backend::Filter::NEAREST,
-            backend::Filter::NEAREST,
-            backend::AddressMode::CLAMP_TO_BORDER,
-            backend::AddressMode::CLAMP_TO_BORDER,
-            backend::AddressMode::CLAMP_TO_BORDER,
-            0.0f, 1.0f,
-            false,
-            backend::MipMapMode::NEAREST));
-        staticSamplers.push_back(renderingBackEnd->createSampler(
-            backend::Filter::LINEAR,
-            backend::Filter::LINEAR,
-            backend::AddressMode::CLAMP_TO_BORDER,
-            backend::AddressMode::CLAMP_TO_BORDER,
-            backend::AddressMode::CLAMP_TO_BORDER,
-            0.0f, 1.0f,
-            false,
-            backend::MipMapMode::LINEAR));
-
         const auto triangleVertices = std::vector<Vertex> {
             { { 0.0f, 0.25f * aspectRatio, 0.0f }, { 0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f} },
             { { 0.25f, -0.25f * aspectRatio, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f, 0.0f } },
@@ -74,9 +55,6 @@ namespace vireo {
         uploadCommandList->upload(*checkerBoardTexture, generateTextureData().data());
 
         uploadCommandList->end();
-        renderingBackEnd->getTransferCommandQueue()->submit({uploadCommandList});
-        renderingBackEnd->getTransferCommandQueue()->waitIdle();
-        uploadCommandList->cleanup();
 
         uboBuffer1 = renderingBackEnd->createBuffer(
             backend::Buffer::UNIFORM,
@@ -91,16 +69,39 @@ namespace vireo {
             L"UBO2");
         uboBuffer2->map();
 
-        descriptorLayout = renderingBackEnd->createDescriptorLayout(L"Global set layout");
+        samplerNearest = renderingBackEnd->createSampler(
+            backend::Filter::NEAREST,
+            backend::Filter::NEAREST,
+            backend::AddressMode::CLAMP_TO_BORDER,
+            backend::AddressMode::CLAMP_TO_BORDER,
+            backend::AddressMode::CLAMP_TO_BORDER,
+            0.0f, 1.0f,
+            false,
+            backend::MipMapMode::NEAREST);
+        samplerLinear = renderingBackEnd->createSampler(
+            backend::Filter::LINEAR,
+            backend::Filter::LINEAR,
+            backend::AddressMode::CLAMP_TO_BORDER,
+            backend::AddressMode::CLAMP_TO_BORDER,
+            backend::AddressMode::CLAMP_TO_BORDER,
+            0.0f, 1.0f,
+            false,
+            backend::MipMapMode::LINEAR);
+
+
+        descriptorLayout = renderingBackEnd->createDescriptorLayout(L"Global");
         descriptorLayout->add(BINDING_UBO1, backend::DescriptorType::BUFFER);
         descriptorLayout->add(BINDING_UBO2, backend::DescriptorType::BUFFER);
         descriptorLayout->add(BINDING_TEXTURE, backend::DescriptorType::IMAGE);
-        descriptorLayout->add(BINDING_SAMPLERS, staticSamplers);
         descriptorLayout->build();
 
+        samplersDescriptorLayout = renderingBackEnd->createSamplerDescriptorLayout(L"Samplers");
+        samplersDescriptorLayout->add(BINDING_SAMPLER_NEAREST, backend::DescriptorType::SAMPLER);
+        samplersDescriptorLayout->add(BINDING_SAMPLER_LINEAR, backend::DescriptorType::SAMPLER);
+        samplersDescriptorLayout->build();
+
         pipelineResources["default"] = renderingBackEnd->createPipelineResources(
-            { descriptorLayout },
-            staticSamplers,
+            { descriptorLayout, samplersDescriptorLayout },
             L"default");
 
         const auto defaultVertexInputLayout = renderingBackEnd->createVertexLayout(sizeof(Vertex), vertexAttributes);
@@ -115,15 +116,22 @@ namespace vireo {
 
         for (uint32_t i = 0; i < backend::SwapChain::FRAMES_IN_FLIGHT; i++) {
             auto descriptorSet = renderingBackEnd->createDescriptorSet(*descriptorLayout, L"Global");
+            auto samplerDescriptorSet = renderingBackEnd->createDescriptorSet(*samplersDescriptorLayout, L"Samplers");
 
             descriptorSet->update(BINDING_TEXTURE, *checkerBoardTexture);
             descriptorSet->update(BINDING_UBO1, *uboBuffer1);
             descriptorSet->update(BINDING_UBO2, *uboBuffer2);
+            samplerDescriptorSet->update(BINDING_SAMPLER_NEAREST, *samplerNearest);
+            samplerDescriptorSet->update(BINDING_SAMPLER_LINEAR, *samplerLinear);
 
-            framesData[i] = renderingBackEnd->createFrameData(i, {descriptorSet});
+            framesData[i] = renderingBackEnd->createFrameData(i, {descriptorSet, samplerDescriptorSet});
             graphicCommandAllocator[i] = renderingBackEnd->createCommandAllocator(backend::CommandList::GRAPHIC);
             graphicCommandList[i] = graphicCommandAllocator[i]->createCommandList(*pipelines["default"]);
         }
+
+        renderingBackEnd->getTransferCommandQueue()->submit({uploadCommandList});
+        renderingBackEnd->getTransferCommandQueue()->waitIdle();
+        uploadCommandList->cleanup();
     }
 
     void Application::onUpdate() {

@@ -60,9 +60,8 @@ namespace vireo::backend {
 
     std::shared_ptr<PipelineResources> DXRenderingBackEnd::createPipelineResources(
         const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
-        const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
         const std::wstring& name ) const {
-        return std::make_shared<DXPipelineResources>(getDXDevice()->getDevice(), descriptorLayouts, staticSamplers, name);
+        return std::make_shared<DXPipelineResources>(getDXDevice()->getDevice(), descriptorLayouts, name);
     }
 
     std::shared_ptr<Pipeline> DXRenderingBackEnd::createPipeline(
@@ -107,6 +106,11 @@ namespace vireo::backend {
     }
 
     std::shared_ptr<DescriptorLayout> DXRenderingBackEnd::createDescriptorLayout(
+        const std::wstring& name) {
+        return std::make_shared<DXDescriptorLayout>();
+    }
+
+    std::shared_ptr<DescriptorLayout> DXRenderingBackEnd::createSamplerDescriptorLayout(
         const std::wstring& name) {
         return std::make_shared<DXDescriptorLayout>();
     }
@@ -520,7 +524,6 @@ namespace vireo::backend {
     DXPipelineResources::DXPipelineResources(
         const ComPtr<ID3D12Device>& device,
         const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
-        const std::vector<std::shared_ptr<Sampler>>& staticSamplers,
         const std::wstring& name) {
 
         constexpr D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =

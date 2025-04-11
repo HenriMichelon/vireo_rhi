@@ -50,7 +50,9 @@ export namespace vireo {
         const backend::DescriptorIndex BINDING_UBO1{0};
         const backend::DescriptorIndex BINDING_UBO2{1};
         const backend::DescriptorIndex BINDING_TEXTURE{2};
-        const backend::DescriptorIndex BINDING_SAMPLERS{3};
+
+        const backend::DescriptorIndex BINDING_SAMPLER_NEAREST{0};
+        const backend::DescriptorIndex BINDING_SAMPLER_LINEAR{1};
 
         const std::vector<backend::VertexInputLayout::AttributeDescription> vertexAttributes{
             {"POSITION", backend::VertexInputLayout::R32G32B32_FLOAT, 0},
@@ -64,7 +66,7 @@ export namespace vireo {
         std::vector<std::shared_ptr<backend::CommandAllocator>> graphicCommandAllocator{backend::SwapChain::FRAMES_IN_FLIGHT};
         std::vector<std::shared_ptr<backend::CommandList>> graphicCommandList{backend::SwapChain::FRAMES_IN_FLIGHT};
         std::shared_ptr<backend::DescriptorLayout> descriptorLayout;
-        std::vector<std::shared_ptr<backend::Sampler>> staticSamplers;
+        std::shared_ptr<backend::DescriptorLayout> samplersDescriptorLayout;
         std::map<std::string, std::shared_ptr<backend::PipelineResources>> pipelineResources;
         std::map<std::string, std::shared_ptr<backend::Pipeline>> pipelines;
         std::shared_ptr<backend::Buffer> vertexBuffer;
@@ -73,6 +75,8 @@ export namespace vireo {
         float colorIncrement{1.0f};
         float scaleIncrement{1.0f};
         std::shared_ptr<backend::Image> checkerBoardTexture;
+        std::shared_ptr<backend::Sampler> samplerNearest;
+        std::shared_ptr<backend::Sampler> samplerLinear;
 
     };
 }

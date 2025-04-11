@@ -17,8 +17,6 @@ export namespace vireo::backend {
     public:
         DescriptorLayout& add(DescriptorIndex index, DescriptorType type, size_t count = 1) override;
 
-        DescriptorLayout& add(DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& staticSamplers) override;
-
         const auto& getRanges() const { return ranges; }
 
         const auto& getStaticSamplesDesc() const { return staticSamplersDesc; }
@@ -37,6 +35,8 @@ export namespace vireo::backend {
         void update(DescriptorIndex index, Buffer& buffer) override;
 
         void update(DescriptorIndex index, Image& image) override;
+
+        void update(DescriptorIndex index, Sampler& image) override {  };
 
         D3D12_GPU_DESCRIPTOR_HANDLE getGPUHandle(DescriptorIndex index) const;
 
