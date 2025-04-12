@@ -16,7 +16,7 @@ namespace vireo::backend {
         const size_t size,
         const size_t count,
         const size_t minOffsetAlignment,
-        const std::wstring& name):
+        const wstring& name):
         Buffer{type} {
         alignmentSize = minOffsetAlignment > 0
             ? (size + minOffsetAlignment - 1) & ~(minOffsetAlignment - 1)
@@ -68,7 +68,7 @@ namespace vireo::backend {
             const ImageFormat format,
             const uint32_t    width,
             const uint32_t    height,
-            const std::wstring& name):
+            const wstring& name):
         Image{format, width, height} {
         const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
         const auto imageDesc = D3D12_RESOURCE_DESC{

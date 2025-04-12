@@ -15,7 +15,7 @@ export namespace vireo::backend {
 
     class VKDescriptorLayout : public DescriptorLayout {
     public:
-        VKDescriptorLayout(VkDevice device, const std::wstring& name);
+        VKDescriptorLayout(VkDevice device, const wstring& name);
 
         ~VKDescriptorLayout() override;
 
@@ -32,27 +32,27 @@ export namespace vireo::backend {
     private:
         VkDevice device;
         VkDescriptorSetLayout setLayout{nullptr};
-        const std::wstring name;
-        std::map<DescriptorIndex, VkDescriptorPoolSize> poolSizes;
+        const wstring name;
+        map<DescriptorIndex, VkDescriptorPoolSize> poolSizes;
     };
 
     class VKDescriptorSet : public DescriptorSet {
     public:
-        VKDescriptorSet(const std::shared_ptr<DescriptorLayout>& layout, const std::wstring& name);
+        VKDescriptorSet(const shared_ptr<DescriptorLayout>& layout, const wstring& name);
 
         ~VKDescriptorSet() override;
 
-        void update(DescriptorIndex index, const std::shared_ptr<Buffer>& buffer) override;
+        void update(DescriptorIndex index, const shared_ptr<Buffer>& buffer) override;
 
-        void update(DescriptorIndex index, const std::shared_ptr<Image>& image) override;
+        void update(DescriptorIndex index, const shared_ptr<Image>& image) override;
 
-        void update(DescriptorIndex index, const std::shared_ptr<Sampler>& sampler) override;
+        void update(DescriptorIndex index, const shared_ptr<Sampler>& sampler) override;
 
-        void update(DescriptorIndex index, const std::vector<std::shared_ptr<Buffer>>& buffers) override;
+        void update(DescriptorIndex index, const vector<shared_ptr<Buffer>>& buffers) override;
 
-        void update(DescriptorIndex index, const std::vector<std::shared_ptr<Image>>& images) override;
+        void update(DescriptorIndex index, const vector<shared_ptr<Image>>& images) override;
 
-        void update(DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& samplers) override;
+        void update(DescriptorIndex index, const vector<shared_ptr<Sampler>>& samplers) override;
 
         auto getSet() const { return set; }
 

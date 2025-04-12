@@ -9,12 +9,12 @@
 
 namespace vireo {
 
-    void die(std::convertible_to<std::string_view> auto&& ...s) {
-        std::stringstream stringstream;
-        for (const auto v : std::initializer_list<std::string_view>{ s... }) {
+    void die(convertible_to<string_view> auto&& ...s) {
+        stringstream stringstream;
+        for (const auto v : initializer_list<string_view>{ s... }) {
             stringstream << v << " ";
         }
-        std::cerr << stringstream.str() << std::endl;
+        cerr << stringstream.str() << endl;
 #if defined(_DEBUG)
 #if defined(__has_builtin)
         __builtin_debugtrap();
@@ -26,13 +26,13 @@ namespace vireo {
 #endif
     }
 
-    inline std::string wstring_to_string(const std::wstring &wstr) {
-        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
+    inline string wstring_to_string(const wstring &wstr) {
+        wstring_convert<codecvt_utf8_utf16<wchar_t>> conv;
         return conv.to_bytes(wstr);
     }
 
-    inline std::wstring string_to_wstring(const std::string &str) {
-        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
+    inline wstring string_to_wstring(const string &str) {
+        wstring_convert<codecvt_utf8_utf16<wchar_t>> conv;
         return conv.from_bytes(str);
     }
 

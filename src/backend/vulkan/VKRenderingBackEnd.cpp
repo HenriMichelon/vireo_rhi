@@ -19,29 +19,29 @@ namespace vireo::backend {
     hWnd{static_cast<HWND>(windowHandle)}
 #endif
     {
-        instance = std::make_shared<VKInstance>();
-        physicalDevice = std::make_shared<VKPhysicalDevice>(getVKInstance()->getInstance(), hWnd);
-        device = std::make_shared<VKDevice>(*getVKPhysicalDevice(), getVKInstance()->getRequestedLayers());
-        graphicCommandQueue = std::make_shared<VKSubmitQueue>(CommandList::GRAPHIC, *getVKDevice(), "Graphic");
-        transferCommandQueue = std::make_shared<VKSubmitQueue>(CommandList::TRANSFER, *getVKDevice(), "Transfer");
-        swapChain = std::make_shared<VKSwapChain>(*getVKPhysicalDevice(), *getVKDevice(),
+        instance = make_shared<VKInstance>();
+        physicalDevice = make_shared<VKPhysicalDevice>(getVKInstance()->getInstance(), hWnd);
+        device = make_shared<VKDevice>(*getVKPhysicalDevice(), getVKInstance()->getRequestedLayers());
+        graphicCommandQueue = make_shared<VKSubmitQueue>(CommandList::GRAPHIC, *getVKDevice(), "Graphic");
+        transferCommandQueue = make_shared<VKSubmitQueue>(CommandList::TRANSFER, *getVKDevice(), "Transfer");
+        swapChain = make_shared<VKSwapChain>(*getVKPhysicalDevice(), *getVKDevice(),
 #ifdef _WIN32
             hWnd
 #endif
         );
     }
 
-    void VKRenderingBackEnd::destroyFrameData(std::shared_ptr<FrameData>& frameData) {
+    void VKRenderingBackEnd::destroyFrameData(shared_ptr<FrameData>& frameData) {
         const auto data = static_pointer_cast<VKFrameData>(frameData);
         vkDestroySemaphore(getVKDevice()->getDevice(), data->imageAvailableSemaphore, nullptr);
         vkDestroySemaphore(getVKDevice()->getDevice(), data->renderFinishedSemaphore, nullptr);
         vkDestroyFence(getVKDevice()->getDevice(), data->inFlightFence, nullptr);
     }
 
-    std::shared_ptr<FrameData> VKRenderingBackEnd::createFrameData(
+    shared_ptr<FrameData> VKRenderingBackEnd::createFrameData(
         const uint32_t frameIndex,
-        const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSet) {
-        auto data = std::make_shared<VKFrameData>(descriptorSet);
+        const vector<shared_ptr<DescriptorSet>>& descriptorSet) {
+        auto data = make_shared<VKFrameData>(descriptorSet);
         constexpr VkSemaphoreCreateInfo semaphoreInfo{
             .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
         };
@@ -70,41 +70,41 @@ namespace vireo::backend {
         };
 #ifdef _DEBUG
         vkSetObjectName(getVKDevice()->getDevice(), reinterpret_cast<uint64_t>(data->imageAvailableSemaphore), VK_OBJECT_TYPE_SEMAPHORE,
-            "VKFrameData image Semaphore : " + std::to_string(frameIndex));
+            "VKFrameData image Semaphore : " + to_string(frameIndex));
         vkSetObjectName(getVKDevice()->getDevice(), reinterpret_cast<uint64_t>(data->renderFinishedSemaphore), VK_OBJECT_TYPE_SEMAPHORE,
-    "VKFrameData render Semaphore : " + std::to_string(frameIndex));
+    "VKFrameData render Semaphore : " + to_string(frameIndex));
         vkSetObjectName(getVKDevice()->getDevice(), reinterpret_cast<uint64_t>(data->inFlightFence), VK_OBJECT_TYPE_FENCE,
-    "VKFrameData Fence: " + std::to_string(frameIndex));
+    "VKFrameData Fence: " + to_string(frameIndex));
 #endif
         return data;
     }
 
-    std::shared_ptr<VertexInputLayout> VKRenderingBackEnd::createVertexLayout(
+    shared_ptr<VertexInputLayout> VKRenderingBackEnd::createVertexLayout(
            size_t size,
-           const std::vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) const {
+           const vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) const {
         return make_shared<VKVertexInputLayout>(size, attributesDescriptions);
     }
 
-    std::shared_ptr<CommandAllocator> VKRenderingBackEnd::createCommandAllocator(CommandList::Type type) const {
-        return std::make_shared<VKCommandAllocator>(type, *getVKDevice());
+    shared_ptr<CommandAllocator> VKRenderingBackEnd::createCommandAllocator(CommandList::Type type) const {
+        return make_shared<VKCommandAllocator>(type, *getVKDevice());
     }
 
-    std::shared_ptr<ShaderModule> VKRenderingBackEnd::createShaderModule(const std::string& fileName) const {
-        return std::make_shared<VKShaderModule>(getVKDevice()->getDevice(), fileName);
+    shared_ptr<ShaderModule> VKRenderingBackEnd::createShaderModule(const string& fileName) const {
+        return make_shared<VKShaderModule>(getVKDevice()->getDevice(), fileName);
     }
 
-    std::shared_ptr<PipelineResources> VKRenderingBackEnd::createPipelineResources(
-        const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
-        const std::wstring& name) const {
-        return std::make_shared<VKPipelineResources>(getVKDevice()->getDevice(), descriptorLayouts, name);
+    shared_ptr<PipelineResources> VKRenderingBackEnd::createPipelineResources(
+        const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts,
+        const wstring& name) const {
+        return make_shared<VKPipelineResources>(getVKDevice()->getDevice(), descriptorLayouts, name);
     }
 
-    std::shared_ptr<Pipeline> VKRenderingBackEnd::createPipeline(
+    shared_ptr<Pipeline> VKRenderingBackEnd::createPipeline(
         PipelineResources& pipelineResources,
         VertexInputLayout& vertexInputLayout,
         ShaderModule& vertexShader,
         ShaderModule& fragmentShader,
-        const std::wstring& name) const {
+        const wstring& name) const {
         return make_shared<VKPipeline>(
             getVKDevice()->getDevice(),
             *getVKSwapChain(),
@@ -116,24 +116,24 @@ namespace vireo::backend {
         );
     }
 
-    std::shared_ptr<Buffer> VKRenderingBackEnd::createBuffer(
+    shared_ptr<Buffer> VKRenderingBackEnd::createBuffer(
         const Buffer::Type type,
         const size_t size,
         const size_t count,
         const size_t alignment,
-        const std::wstring& name) const  {
-        return std::make_shared<VKBuffer>(
+        const wstring& name) const  {
+        return make_shared<VKBuffer>(
            *getVKDevice(), type,
            size, count, alignment,
            name);
     }
 
-    std::shared_ptr<Image> VKRenderingBackEnd::createImage(
+    shared_ptr<Image> VKRenderingBackEnd::createImage(
             ImageFormat format,
             uint32_t width,
             uint32_t height,
-            const std::wstring& name) const {
-        return std::make_shared<VKImage>(
+            const wstring& name) const {
+        return make_shared<VKImage>(
             *getVKDevice(),
             format,
             width,
@@ -142,10 +142,10 @@ namespace vireo::backend {
     }
 
     void VKRenderingBackEnd::beginRendering(
-        std::shared_ptr<FrameData>& frameData,
-        std::shared_ptr<PipelineResources>& pipelineResources,
-        std::shared_ptr<Pipeline>& pipeline,
-        std::shared_ptr<CommandList>& commandList) {
+        shared_ptr<FrameData>& frameData,
+        shared_ptr<PipelineResources>& pipelineResources,
+        shared_ptr<Pipeline>& pipeline,
+        shared_ptr<CommandList>& commandList) {
         const auto data = static_pointer_cast<VKFrameData>(frameData);
         const auto vkCommandList = static_pointer_cast<VKCommandList>(commandList);
         const auto vkPipelineResources = static_pointer_cast<VKPipelineResources>(pipelineResources);
@@ -205,7 +205,7 @@ namespace vireo::backend {
         vkCmdSetCullMode(commandBuffer, VK_CULL_MODE_NONE);
 
         if (!data->descriptorSets.empty()) {
-            std::vector<VkDescriptorSet> descriptorSets(data->descriptorSets.size());
+            vector<VkDescriptorSet> descriptorSets(data->descriptorSets.size());
             for (int i = 0; i < data->descriptorSets.size(); i++) {
                 descriptorSets[i] = static_pointer_cast<VKDescriptorSet>(data->descriptorSets[i])->getSet();
             }
@@ -220,7 +220,7 @@ namespace vireo::backend {
         }
     }
 
-    void VKRenderingBackEnd::endRendering(std::shared_ptr<CommandList>& commandList) {
+    void VKRenderingBackEnd::endRendering(shared_ptr<CommandList>& commandList) {
         const auto vkCommandList = static_pointer_cast<VKCommandList>(commandList);
         vkCmdEndRendering(vkCommandList->getCommandBuffer());
     }
@@ -229,23 +229,23 @@ namespace vireo::backend {
         vkDeviceWaitIdle(getVKDevice()->getDevice());
     }
 
-    std::shared_ptr<DescriptorLayout> VKRenderingBackEnd::createDescriptorLayout(
-        const std::wstring& name) {
-        return std::make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), name);
+    shared_ptr<DescriptorLayout> VKRenderingBackEnd::createDescriptorLayout(
+        const wstring& name) {
+        return make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), name);
     }
 
-    std::shared_ptr<DescriptorLayout> VKRenderingBackEnd::createSamplerDescriptorLayout(
-        const std::wstring& name) {
-        return std::make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), name);
+    shared_ptr<DescriptorLayout> VKRenderingBackEnd::createSamplerDescriptorLayout(
+        const wstring& name) {
+        return make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), name);
     }
 
-    std::shared_ptr<DescriptorSet> VKRenderingBackEnd::createDescriptorSet(
-            std::shared_ptr<DescriptorLayout>& layout,
-            const std::wstring& name) {
-        return std::make_shared<VKDescriptorSet>(layout, name);
+    shared_ptr<DescriptorSet> VKRenderingBackEnd::createDescriptorSet(
+            shared_ptr<DescriptorLayout>& layout,
+            const wstring& name) {
+        return make_shared<VKDescriptorSet>(layout, name);
     }
 
-    std::shared_ptr<Sampler> VKRenderingBackEnd::createSampler(
+    shared_ptr<Sampler> VKRenderingBackEnd::createSampler(
            Filter minFilter,
            Filter magFilter,
            AddressMode addressModeU,
@@ -255,13 +255,13 @@ namespace vireo::backend {
            float maxLod,
            bool anisotropyEnable,
            MipMapMode mipMapMode) const {
-        return std::make_shared<VKSampler>(
+        return make_shared<VKSampler>(
             *getVKPhysicalDevice(), getVKDevice()->getDevice(),
             minFilter, magFilter, addressModeU, addressModeV, addressModeW,
             minLod, maxLod, anisotropyEnable, mipMapMode);
     }
 
-    VKVertexInputLayout::VKVertexInputLayout(size_t size, const std::vector<AttributeDescription>& attributesDescriptions) {
+    VKVertexInputLayout::VKVertexInputLayout(size_t size, const vector<AttributeDescription>& attributesDescriptions) {
         vertexBindingDescription.binding = 0;
         vertexBindingDescription.stride = size;
         vertexBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
@@ -275,14 +275,14 @@ namespace vireo::backend {
         }
     }
 
-    VKShaderModule::VKShaderModule(const VkDevice device, const std::string& fileName):
+    VKShaderModule::VKShaderModule(const VkDevice device, const string& fileName):
         device{device} {
-        std::ifstream file(fileName + ".spv", std::ios::ate | std::ios::binary);
+        ifstream file(fileName + ".spv", ios::ate | ios::binary);
         if (!file.is_open()) {
             die("failed to open shader file!");
         }
         const auto fileSize = static_cast<size_t>(file.tellg());
-        std::vector<char> buffer(fileSize);
+        vector<char> buffer(fileSize);
         file.seekg(0);
         file.read(buffer.data(), fileSize);
         file.close();
@@ -304,11 +304,11 @@ namespace vireo::backend {
 
     VKPipelineResources::VKPipelineResources(
         const VkDevice device,
-        const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
-        const std::wstring& name):
+        const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts,
+        const wstring& name):
         device{device} {
         for (const auto& descriptorLayout : descriptorLayouts) {
-            const auto layout = std::static_pointer_cast<VKDescriptorLayout>(descriptorLayout);
+            const auto layout = static_pointer_cast<VKDescriptorLayout>(descriptorLayout);
             setLayouts.push_back(layout->getSetLayout());
         }
         const auto pipelineLayoutInfo = VkPipelineLayoutCreateInfo {
@@ -336,14 +336,14 @@ namespace vireo::backend {
            VertexInputLayout& vertexInputLayout,
            ShaderModule& vertexShader,
            ShaderModule& fragmentShader,
-           const std::wstring& name):
+           const wstring& name):
         device{device} {
         const auto vertexShaderModule = static_cast<VKShaderModule&>(vertexShader).getShaderModule();
         const auto fragmentShaderModule = static_cast<VKShaderModule&>(fragmentShader).getShaderModule();
         const auto& vkVertexInputLayout = static_cast<VKVertexInputLayout&>(vertexInputLayout);
         const auto& vkPipelineLayout = static_cast<VKPipelineResources&>(pipelineResources);
 
-        const auto shaderStages = std::vector<VkPipelineShaderStageCreateInfo> {
+        const auto shaderStages = vector<VkPipelineShaderStageCreateInfo> {
             {
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .stage = VK_SHADER_STAGE_VERTEX_BIT,
@@ -370,7 +370,7 @@ namespace vireo::backend {
             .primitiveRestartEnable = VK_FALSE,
         };
 
-        const std::vector dynamicStates = {
+        const vector dynamicStates = {
             VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT,
             VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT,
             VK_DYNAMIC_STATE_CULL_MODE
@@ -462,7 +462,7 @@ namespace vireo::backend {
         vkDestroyPipeline(device, pipeline, nullptr);
     }
 
-    VKSubmitQueue::VKSubmitQueue(const CommandList::Type type, const VKDevice& device, const std::string& name) {
+    VKSubmitQueue::VKSubmitQueue(const CommandList::Type type, const VKDevice& device, const string& name) {
         vkGetDeviceQueue(
             device.getDevice(),
             type == CommandList::COMPUTE ? device.getComputeQueueFamilyIndex() :
@@ -480,9 +480,9 @@ namespace vireo::backend {
         vkQueueWaitIdle(commandQueue);
     }
 
-    void VKSubmitQueue::submit(const std::shared_ptr<FrameData>& frameData, std::vector<std::shared_ptr<CommandList>> commandLists) {
+    void VKSubmitQueue::submit(const shared_ptr<FrameData>& frameData, vector<shared_ptr<CommandList>> commandLists) {
         auto data = static_pointer_cast<const VKFrameData>(frameData);
-        std::vector<VkCommandBufferSubmitInfo> submitInfos(commandLists.size());
+        vector<VkCommandBufferSubmitInfo> submitInfos(commandLists.size());
         for (int i = 0; i < commandLists.size(); i++) {
             submitInfos[i] = {
                 .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
@@ -501,8 +501,8 @@ namespace vireo::backend {
         DieIfFailed(vkQueueSubmit2(commandQueue, 1, &submitInfo, data->inFlightFence));
     }
 
-    void VKSubmitQueue::submit(std::vector<std::shared_ptr<CommandList>> commandLists) {
-        std::vector<VkCommandBufferSubmitInfo> submitInfos(commandLists.size());
+    void VKSubmitQueue::submit(vector<shared_ptr<CommandList>> commandLists) {
+        vector<VkCommandBufferSubmitInfo> submitInfos(commandLists.size());
         for (int i = 0; i < commandLists.size(); i++) {
             submitInfos[i] = {
                 .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
@@ -536,12 +536,12 @@ namespace vireo::backend {
         vkDestroyCommandPool(device.getDevice(), commandPool, nullptr);
     }
 
-    std::shared_ptr<CommandList> VKCommandAllocator::createCommandList(std::shared_ptr<Pipeline>&) const {
+    shared_ptr<CommandList> VKCommandAllocator::createCommandList(shared_ptr<Pipeline>&) const {
         return createCommandList();
     }
 
-    std::shared_ptr<CommandList> VKCommandAllocator::createCommandList() const {
-        return std::make_shared<VKCommandList>(device, commandPool);
+    shared_ptr<CommandList> VKCommandAllocator::createCommandList() const {
+        return make_shared<VKCommandList>(device, commandPool);
     }
 
     VKCommandList::VKCommandList(const VKDevice& device, const VkCommandPool commandPool) : device{device} {
@@ -554,7 +554,7 @@ namespace vireo::backend {
         DieIfFailed(vkAllocateCommandBuffers(device.getDevice(), &allocInfo, &commandBuffer));
     }
 
-    void VKCommandList::bindVertexBuffer(std::shared_ptr<Buffer>& buffer) {
+    void VKCommandList::bindVertexBuffer(shared_ptr<Buffer>& buffer) {
         const auto vkBuffer = static_pointer_cast<VKBuffer>(buffer);
         const VkBuffer         buffers[] = {vkBuffer->getBuffer()};
         constexpr VkDeviceSize offsets[] = {0};
@@ -572,7 +572,7 @@ namespace vireo::backend {
         vkResetCommandBuffer(commandBuffer, 0);
     }
 
-    void VKCommandList::begin(std::shared_ptr<Pipeline>& pipeline) {
+    void VKCommandList::begin(shared_ptr<Pipeline>& pipeline) {
         constexpr VkCommandBufferBeginInfo beginInfo{
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         };
@@ -602,7 +602,7 @@ namespace vireo::backend {
         stagingBuffersMemory.clear();
     }
 
-    void VKCommandList::upload(std::shared_ptr<Buffer>& destination, const void* source) {
+    void VKCommandList::upload(shared_ptr<Buffer>& destination, const void* source) {
         const auto buffer = static_pointer_cast<VKBuffer>(destination);
         VkBuffer       stagingBuffer{VK_NULL_HANDLE};
         VkDeviceMemory stagingBufferMemory{VK_NULL_HANDLE};
@@ -634,7 +634,7 @@ namespace vireo::backend {
         stagingBuffersMemory.push_back(stagingBufferMemory);
     }
 
-    void VKCommandList::upload(std::shared_ptr<Image>& destination, const void* source) {
+    void VKCommandList::upload(shared_ptr<Image>& destination, const void* source) {
         auto image = static_pointer_cast<VKImage>(destination);
         VkBuffer stagingBuffer{VK_NULL_HANDLE};
         VkDeviceMemory stagingBufferMemory{VK_NULL_HANDLE};
@@ -702,7 +702,7 @@ namespace vireo::backend {
     void VKCommandList::pipelineBarrier(
        const VkPipelineStageFlags srcStageMask,
        const VkPipelineStageFlags dstStageMask,
-       const std::vector<VkImageMemoryBarrier>& barriers) const {
+       const vector<VkImageMemoryBarrier>& barriers) const {
         vkCmdPipelineBarrier(commandBuffer,
             srcStageMask,
             dstStageMask,
@@ -820,9 +820,9 @@ namespace vireo::backend {
                                                      1);
 #ifdef _DEBUG
             vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(swapChainImageViews[i]), VK_OBJECT_TYPE_IMAGE_VIEW,
-                "VKSwapChain Image View " + std::to_string(i));
+                "VKSwapChain Image View " + to_string(i));
             vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(swapChainImages[i]), VK_OBJECT_TYPE_IMAGE,
-                "VKSwapChain Image " + std::to_string(i));
+                "VKSwapChain Image " + to_string(i));
 #endif
         }
 
@@ -885,7 +885,7 @@ namespace vireo::backend {
         return details;
     }
 
-    VkSurfaceFormatKHR VKSwapChain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats) {
+    VkSurfaceFormatKHR VKSwapChain::chooseSwapSurfaceFormat(const vector<VkSurfaceFormatKHR> &availableFormats) {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain#page_Choosing-the-right-settings-for-the-swap-chain
         for (const auto &availableFormat : availableFormats) {
             // Using sRGB no-linear color space
@@ -896,7 +896,7 @@ namespace vireo::backend {
         return availableFormats[0];
     }
 
-    VkPresentModeKHR VKSwapChain::chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes) {
+    VkPresentModeKHR VKSwapChain::chooseSwapPresentMode(const vector<VkPresentModeKHR> &availablePresentModes) {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain#page_Presentation-mode
         constexpr  auto mode = VK_PRESENT_MODE_FIFO_KHR; //static_cast<VkPresentModeKHR>(app().getConfig().vSyncMode);
         for (const auto &availablePresentMode : availablePresentModes) {
@@ -932,7 +932,7 @@ namespace vireo::backend {
         currentFrameIndex = (currentFrameIndex + 1) % FRAMES_IN_FLIGHT;
     }
 
-    void VKSwapChain::present(std::shared_ptr<FrameData>& frameData) {
+    void VKSwapChain::present(shared_ptr<FrameData>& frameData) {
         auto data = static_pointer_cast<VKFrameData>(frameData);
 
         {
@@ -955,10 +955,10 @@ namespace vireo::backend {
         }
     }
 
-    void VKSwapChain::begin(std::shared_ptr<FrameData>&, std::shared_ptr<CommandList>&) {
+    void VKSwapChain::begin(shared_ptr<FrameData>&, shared_ptr<CommandList>&) {
     }
 
-    void VKSwapChain::end(std::shared_ptr<FrameData>& frameData, std::shared_ptr<CommandList>& commandList) {
+    void VKSwapChain::end(shared_ptr<FrameData>& frameData, shared_ptr<CommandList>& commandList) {
         const auto data = static_pointer_cast<VKFrameData>(frameData);
         static_pointer_cast<VKCommandList>(commandList)->pipelineBarrier(
             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
@@ -970,7 +970,7 @@ namespace vireo::backend {
             });
     }
 
-    bool VKSwapChain::acquire(std::shared_ptr<FrameData>& frameData) {
+    bool VKSwapChain::acquire(shared_ptr<FrameData>& frameData) {
         auto data = static_pointer_cast<VKFrameData>(frameData);
         // wait until the GPU has finished rendering the frame.
         if (vkWaitForFences(device.getDevice(), 1, &data->inFlightFence, VK_TRUE, UINT64_MAX) == VK_TIMEOUT) {
@@ -992,7 +992,7 @@ namespace vireo::backend {
                 return false;
             }
             if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-                die("failed to acquire swap chain image :", std::to_string(result));
+                die("failed to acquire swap chain image :", to_string(result));
             }
         }
         vkResetFences(device.getDevice(), 1, &data->inFlightFence);

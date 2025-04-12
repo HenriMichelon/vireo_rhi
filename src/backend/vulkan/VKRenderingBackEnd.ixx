@@ -22,13 +22,13 @@ export namespace vireo::backend {
 
     class VKSubmitQueue : public SubmitQueue {
     public:
-        VKSubmitQueue(CommandList::Type type, const VKDevice& device, const std::string& name);
+        VKSubmitQueue(CommandList::Type type, const VKDevice& device, const string& name);
 
         auto getCommandQueue() const { return commandQueue; }
 
-        void submit(const std::shared_ptr<FrameData>& frameData, std::vector<std::shared_ptr<CommandList>> commandLists) override;
+        void submit(const shared_ptr<FrameData>& frameData, vector<shared_ptr<CommandList>> commandLists) override;
 
-        void submit(std::vector<std::shared_ptr<CommandList>> commandLists) override;
+        void submit(vector<shared_ptr<CommandList>> commandLists) override;
 
         void waitIdle() override;
 
@@ -41,9 +41,9 @@ export namespace vireo::backend {
         VKCommandAllocator(CommandList::Type type, const VKDevice& device);
         ~VKCommandAllocator() override;
 
-        std::shared_ptr<CommandList> createCommandList(std::shared_ptr<Pipeline>& pipeline) const override;
+        shared_ptr<CommandList> createCommandList(shared_ptr<Pipeline>& pipeline) const override;
 
-        std::shared_ptr<CommandList> createCommandList() const override;
+        shared_ptr<CommandList> createCommandList() const override;
 
     private:
         const VKDevice& device;
@@ -58,7 +58,7 @@ export namespace vireo::backend {
 
         void reset() override;
 
-        void begin(std::shared_ptr<Pipeline>& pipeline) override;
+        void begin(shared_ptr<Pipeline>& pipeline) override;
 
         void begin() override;
 
@@ -66,20 +66,20 @@ export namespace vireo::backend {
 
         void cleanup() override;
 
-        void bindVertexBuffer(std::shared_ptr<Buffer>& buffer) override;
+        void bindVertexBuffer(shared_ptr<Buffer>& buffer) override;
 
         void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) override;
 
-        void upload(std::shared_ptr<Buffer>& destination, const void* source) override;
+        void upload(shared_ptr<Buffer>& destination, const void* source) override;
 
-        void upload(std::shared_ptr<Image>& destination, const void* source) override;
+        void upload(shared_ptr<Image>& destination, const void* source) override;
 
         auto getCommandBuffer() const { return commandBuffer; }
 
         void pipelineBarrier(
             VkPipelineStageFlags srcStageMask,
             VkPipelineStageFlags dstStageMask,
-            const std::vector<VkImageMemoryBarrier>& barriers) const;
+            const vector<VkImageMemoryBarrier>& barriers) const;
 
         static VkImageMemoryBarrier imageMemoryBarrier(
            VkImage image,
@@ -92,8 +92,8 @@ export namespace vireo::backend {
     private:
         const VKDevice& device;
         VkCommandBuffer commandBuffer;
-        std::vector<VkBuffer> stagingBuffers{};
-        std::vector<VkDeviceMemory> stagingBuffersMemory{};
+        vector<VkBuffer> stagingBuffers{};
+        vector<VkDeviceMemory> stagingBuffersMemory{};
     };
 
     class VKSwapChain : public SwapChain {
@@ -112,30 +112,30 @@ export namespace vireo::backend {
 
         void nextSwapChain() override;
 
-        bool acquire(std::shared_ptr<FrameData>& frameData) override;
+        bool acquire(shared_ptr<FrameData>& frameData) override;
 
-        void begin(std::shared_ptr<FrameData>& frameData, std::shared_ptr<CommandList>& commandList) override;
+        void begin(shared_ptr<FrameData>& frameData, shared_ptr<CommandList>& commandList) override;
 
-        void end(std::shared_ptr<FrameData>& frameData, std::shared_ptr<CommandList>& commandList) override;
+        void end(shared_ptr<FrameData>& frameData, shared_ptr<CommandList>& commandList) override;
 
-        void present(std::shared_ptr<FrameData>& framesData) override;
+        void present(shared_ptr<FrameData>& framesData) override;
 
     private:
         // For Device::querySwapChainSupport()
         struct SwapChainSupportDetails {
             VkSurfaceCapabilitiesKHR        capabilities;
-            std::vector<VkSurfaceFormatKHR> formats;
-            std::vector<VkPresentModeKHR>   presentModes;
+            vector<VkSurfaceFormatKHR> formats;
+            vector<VkPresentModeKHR>   presentModes;
         };
 
         const VKDevice&             device;
         const VKPhysicalDevice&     physicalDevice;
         VkSurfaceKHR                surface;
         VkSwapchainKHR              swapChain;
-        std::vector<VkImage>        swapChainImages;
+        vector<VkImage>        swapChainImages;
         VkFormat                    swapChainImageFormat;
         VkExtent2D                  swapChainExtent;
-        std::vector<VkImageView>    swapChainImageViews;
+        vector<VkImageView>    swapChainImageViews;
         VkQueue                     presentQueue;
 
 #ifdef _WIN32
@@ -153,11 +153,11 @@ export namespace vireo::backend {
 
         // Get the swap chain format, default for sRGB/NON-LINEAR
         static VkSurfaceFormatKHR chooseSwapSurfaceFormat(
-                const std::vector<VkSurfaceFormatKHR> &availableFormats);
+                const vector<VkSurfaceFormatKHR> &availableFormats);
 
         // Get the swap chain present mode, default to MAILBOX, if not available FIFO (V-SYNC)
         static VkPresentModeKHR chooseSwapPresentMode(
-                const std::vector<VkPresentModeKHR> &availablePresentModes);
+                const vector<VkPresentModeKHR> &availablePresentModes);
 
         // Get the swap chain images sizes
         VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities) const;
@@ -171,7 +171,7 @@ export namespace vireo::backend {
             VK_FORMAT_R32G32B32A32_SFLOAT
         };
 
-        VKVertexInputLayout(size_t size, const std::vector<AttributeDescription>& attributesDescriptions);
+        VKVertexInputLayout(size_t size, const vector<AttributeDescription>& attributesDescriptions);
 
         const auto& getVertexBindingDescription() const { return vertexBindingDescription; }
 
@@ -179,12 +179,12 @@ export namespace vireo::backend {
 
     private:
         VkVertexInputBindingDescription                vertexBindingDescription;
-        std::vector<VkVertexInputAttributeDescription> vertexAttributeDescriptions;
+        vector<VkVertexInputAttributeDescription> vertexAttributeDescriptions;
     };
 
     class VKShaderModule: public ShaderModule {
     public:
-        VKShaderModule(VkDevice device, const std::string& fileName);
+        VKShaderModule(VkDevice device, const string& fileName);
 
         ~VKShaderModule() override;
 
@@ -199,8 +199,8 @@ export namespace vireo::backend {
     public:
         VKPipelineResources(
             VkDevice device,
-            const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
-            const std::wstring& name);
+            const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts,
+            const wstring& name);
 
         ~VKPipelineResources() override;
 
@@ -211,7 +211,7 @@ export namespace vireo::backend {
     private:
         VkDevice device;
         VkPipelineLayout pipelineLayout;
-        std::vector<VkDescriptorSetLayout> setLayouts;
+        vector<VkDescriptorSetLayout> setLayouts;
     };
 
     class VKPipeline : public Pipeline {
@@ -223,7 +223,7 @@ export namespace vireo::backend {
            VertexInputLayout& vertexInputLayout,
            ShaderModule& vertexShader,
            ShaderModule& fragmentShader,
-           const std::wstring& name);
+           const wstring& name);
 
         auto getPipeline() const { return pipeline; }
 
@@ -240,55 +240,55 @@ export namespace vireo::backend {
 
         void waitIdle() override;
 
-        std::shared_ptr<CommandAllocator> createCommandAllocator(CommandList::Type type) const override;
+        shared_ptr<CommandAllocator> createCommandAllocator(CommandList::Type type) const override;
 
-        std::shared_ptr<FrameData> createFrameData(
+        shared_ptr<FrameData> createFrameData(
             uint32_t frameIndex,
-            const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSet) override;
+            const vector<shared_ptr<DescriptorSet>>& descriptorSet) override;
 
-        void destroyFrameData(std::shared_ptr<FrameData>& frameData) override;
+        void destroyFrameData(shared_ptr<FrameData>& frameData) override;
 
-        std::shared_ptr<VertexInputLayout> createVertexLayout(
+        shared_ptr<VertexInputLayout> createVertexLayout(
             size_t size,
-            const std::vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) const override;
+            const vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) const override;
 
-        std::shared_ptr<ShaderModule> createShaderModule(const std::string& fileName) const override;
+        shared_ptr<ShaderModule> createShaderModule(const string& fileName) const override;
 
-        std::shared_ptr<PipelineResources> createPipelineResources(
-            const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
-            const std::wstring& name = L"PipelineResource") const override;
+        shared_ptr<PipelineResources> createPipelineResources(
+            const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts,
+            const wstring& name = L"PipelineResource") const override;
 
-        std::shared_ptr<Pipeline> createPipeline(
+        shared_ptr<Pipeline> createPipeline(
             PipelineResources& pipelineResources,
             VertexInputLayout& vertexInputLayout,
             ShaderModule& vertexShader,
             ShaderModule& fragmentShader,
-            const std::wstring& name = L"Pipeline") const override;
+            const wstring& name = L"Pipeline") const override;
 
-        std::shared_ptr<Buffer> createBuffer(
+        shared_ptr<Buffer> createBuffer(
             Buffer::Type type,
             size_t size,
             size_t count = 1,
             size_t alignment = 1,
-            const std::wstring& name = L"Buffer") const override;
+            const wstring& name = L"Buffer") const override;
 
-        std::shared_ptr<Image> createImage(
+        shared_ptr<Image> createImage(
             ImageFormat format,
             uint32_t width,
             uint32_t height,
-            const std::wstring& name = L"Image") const override;
+            const wstring& name = L"Image") const override;
 
-        std::shared_ptr<DescriptorLayout> createDescriptorLayout(
-            const std::wstring& name) override;
+        shared_ptr<DescriptorLayout> createDescriptorLayout(
+            const wstring& name) override;
 
-        std::shared_ptr<DescriptorLayout> createSamplerDescriptorLayout(
-            const std::wstring& name = L"createSamplerDescriptorLayout") override;
+        shared_ptr<DescriptorLayout> createSamplerDescriptorLayout(
+            const wstring& name = L"createSamplerDescriptorLayout") override;
 
-        std::shared_ptr<DescriptorSet> createDescriptorSet(
-            std::shared_ptr<DescriptorLayout>& layout,
-            const std::wstring& name) override;
+        shared_ptr<DescriptorSet> createDescriptorSet(
+            shared_ptr<DescriptorLayout>& layout,
+            const wstring& name) override;
 
-        std::shared_ptr<Sampler> createSampler(
+        shared_ptr<Sampler> createSampler(
            Filter minFilter,
            Filter magFilter,
            AddressMode addressModeU,
@@ -300,22 +300,22 @@ export namespace vireo::backend {
            MipMapMode mipMapMode = MipMapMode::LINEAR) const override;
 
         void beginRendering(
-            std::shared_ptr<FrameData>& frameData,
-            std::shared_ptr<PipelineResources>& pipelineResources,
-            std::shared_ptr<Pipeline>& pipeline,
-            std::shared_ptr<CommandList>& commandList) override;
+            shared_ptr<FrameData>& frameData,
+            shared_ptr<PipelineResources>& pipelineResources,
+            shared_ptr<Pipeline>& pipeline,
+            shared_ptr<CommandList>& commandList) override;
 
-        void endRendering(std::shared_ptr<CommandList>& commandList) override;
+        void endRendering(shared_ptr<CommandList>& commandList) override;
 
-        auto getVKInstance() const { return std::reinterpret_pointer_cast<VKInstance>(instance); }
+        auto getVKInstance() const { return reinterpret_pointer_cast<VKInstance>(instance); }
 
-        auto getVKPhysicalDevice() const { return std::reinterpret_pointer_cast<VKPhysicalDevice>(physicalDevice); }
+        auto getVKPhysicalDevice() const { return reinterpret_pointer_cast<VKPhysicalDevice>(physicalDevice); }
 
-        auto getVKDevice() const { return std::reinterpret_pointer_cast<VKDevice>(device); }
+        auto getVKDevice() const { return reinterpret_pointer_cast<VKDevice>(device); }
 
-        auto getVKSwapChain() const { return std::reinterpret_pointer_cast<VKSwapChain>(swapChain); }
+        auto getVKSwapChain() const { return reinterpret_pointer_cast<VKSwapChain>(swapChain); }
 
-        auto getVKGraphicCommandQueue() const { return std::reinterpret_pointer_cast<VKSubmitQueue>(graphicCommandQueue); }
+        auto getVKGraphicCommandQueue() const { return reinterpret_pointer_cast<VKSubmitQueue>(graphicCommandQueue); }
 
     private:
 #ifdef _WIN32

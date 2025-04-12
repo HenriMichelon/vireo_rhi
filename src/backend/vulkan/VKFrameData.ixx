@@ -21,7 +21,7 @@ export namespace vireo::backend {
         VkFence                 inFlightFence{VK_NULL_HANDLE};
         uint32_t                imageIndex{0};
 
-        VKFrameData(const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSet): FrameData{descriptorSet} {}
+        VKFrameData(const vector<shared_ptr<DescriptorSet>>& descriptorSet): FrameData{descriptorSet} {}
     };
 
 }

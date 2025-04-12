@@ -36,12 +36,12 @@ namespace vireo::backend {
         viewport = CD3DX12_VIEWPORT{0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)},
         scissorRect = CD3DX12_RECT{0, 0, static_cast<LONG>(width), static_cast<LONG>(height)};
 
-        instance = std::make_shared<DXInstance>(hWnd);
-        physicalDevice = std::make_shared<DXPhysicalDevice>(getDXInstance()->getFactory());
-        device = std::make_shared<DXDevice>(getDXPhysicalDevice()->getHardwareAdapter());
-        graphicCommandQueue = std::make_shared<DXSubmitQueue>(CommandList::GRAPHIC, getDXDevice()->getDevice());
-        transferCommandQueue = std::make_shared<DXSubmitQueue>(CommandList::GRAPHIC, getDXDevice()->getDevice());
-        swapChain = std::make_shared<DXSwapChain>(
+        instance = make_shared<DXInstance>(hWnd);
+        physicalDevice = make_shared<DXPhysicalDevice>(getDXInstance()->getFactory());
+        device = make_shared<DXDevice>(getDXPhysicalDevice()->getHardwareAdapter());
+        graphicCommandQueue = make_shared<DXSubmitQueue>(CommandList::GRAPHIC, getDXDevice()->getDevice());
+        transferCommandQueue = make_shared<DXSubmitQueue>(CommandList::GRAPHIC, getDXDevice()->getDevice());
+        swapChain = make_shared<DXSwapChain>(
             getDXInstance()->getFactory(),
             *getDXDevice(),
             getDXGraphicCommandQueue()->getCommandQueue(),
@@ -50,25 +50,25 @@ namespace vireo::backend {
             hWnd);
     }
 
-    std::shared_ptr<FrameData> DXRenderingBackEnd::createFrameData(
+    shared_ptr<FrameData> DXRenderingBackEnd::createFrameData(
         const uint32_t frameIndex,
-        const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSet) {
-        return std::make_shared<DXFrameData>(descriptorSet);
+        const vector<shared_ptr<DescriptorSet>>& descriptorSet) {
+        return make_shared<DXFrameData>(descriptorSet);
     }
 
-    std::shared_ptr<PipelineResources> DXRenderingBackEnd::createPipelineResources(
-        const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
-        const std::wstring& name ) const {
-        return std::make_shared<DXPipelineResources>(getDXDevice()->getDevice(), descriptorLayouts, name);
+    shared_ptr<PipelineResources> DXRenderingBackEnd::createPipelineResources(
+        const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts,
+        const wstring& name ) const {
+        return make_shared<DXPipelineResources>(getDXDevice()->getDevice(), descriptorLayouts, name);
     }
 
-    std::shared_ptr<Pipeline> DXRenderingBackEnd::createPipeline(
+    shared_ptr<Pipeline> DXRenderingBackEnd::createPipeline(
         PipelineResources& pipelineResources,
         VertexInputLayout& vertexInputLayout,
         ShaderModule& vertexShader,
         ShaderModule& fragmentShader,
-        const std::wstring& name) const {
-        return std::make_shared<DXPipeline>(
+        const wstring& name) const {
+        return make_shared<DXPipeline>(
             getDXDevice()->getDevice(),
             pipelineResources,
             vertexInputLayout,
@@ -77,49 +77,49 @@ namespace vireo::backend {
             name);
     }
 
-    std::shared_ptr<VertexInputLayout> DXRenderingBackEnd::createVertexLayout(
+    shared_ptr<VertexInputLayout> DXRenderingBackEnd::createVertexLayout(
         size_t,
-        const std::vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) const {
-        return std::make_shared<DXVertexInputLayout>(attributesDescriptions);
+        const vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) const {
+        return make_shared<DXVertexInputLayout>(attributesDescriptions);
     }
 
-    std::shared_ptr<ShaderModule> DXRenderingBackEnd::createShaderModule(const std::string& fileName) const {
-        return std::make_shared<DXShaderModule>(fileName);
+    shared_ptr<ShaderModule> DXRenderingBackEnd::createShaderModule(const string& fileName) const {
+        return make_shared<DXShaderModule>(fileName);
     }
 
-    std::shared_ptr<Buffer> DXRenderingBackEnd::createBuffer(const Buffer::Type type,
+    shared_ptr<Buffer> DXRenderingBackEnd::createBuffer(const Buffer::Type type,
                                                              const size_t size,
                                                              const size_t count,
                                                              const size_t alignment,
-                                                             const std::wstring& name) const {
+                                                             const wstring& name) const {
         return make_shared<DXBuffer>(getDXDevice()->getDevice(), type, size, count, alignment, name);
     }
 
-    std::shared_ptr<Image> DXRenderingBackEnd::createImage(
+    shared_ptr<Image> DXRenderingBackEnd::createImage(
         ImageFormat format,
         uint32_t width,
         uint32_t height,
-        const std::wstring& name) const {
-        return std::make_shared<DXImage>(getDXDevice()->getDevice(), format, width, height, name);
+        const wstring& name) const {
+        return make_shared<DXImage>(getDXDevice()->getDevice(), format, width, height, name);
     }
 
-    std::shared_ptr<DescriptorLayout> DXRenderingBackEnd::createDescriptorLayout(
-        const std::wstring& name) {
-        return std::make_shared<DXDescriptorLayout>(false);
+    shared_ptr<DescriptorLayout> DXRenderingBackEnd::createDescriptorLayout(
+        const wstring& name) {
+        return make_shared<DXDescriptorLayout>(false);
     }
 
-    std::shared_ptr<DescriptorLayout> DXRenderingBackEnd::createSamplerDescriptorLayout(
-        const std::wstring& name) {
-        return std::make_shared<DXDescriptorLayout>(true);
+    shared_ptr<DescriptorLayout> DXRenderingBackEnd::createSamplerDescriptorLayout(
+        const wstring& name) {
+        return make_shared<DXDescriptorLayout>(true);
     }
 
-    std::shared_ptr<DescriptorSet> DXRenderingBackEnd::createDescriptorSet(
-        std::shared_ptr<DescriptorLayout>& layout,
-        const std::wstring& name) {
-        return std::make_shared<DXDescriptorSet>(layout, getDXDevice()->getDevice(), name);
+    shared_ptr<DescriptorSet> DXRenderingBackEnd::createDescriptorSet(
+        shared_ptr<DescriptorLayout>& layout,
+        const wstring& name) {
+        return make_shared<DXDescriptorSet>(layout, getDXDevice()->getDevice(), name);
     }
 
-    std::shared_ptr<Sampler> DXRenderingBackEnd::createSampler(
+    shared_ptr<Sampler> DXRenderingBackEnd::createSampler(
            Filter minFilter,
            Filter magFilter,
            AddressMode addressModeU,
@@ -129,15 +129,15 @@ namespace vireo::backend {
            float maxLod,
            bool anisotropyEnable,
            MipMapMode mipMapMode) const {
-        return std::make_shared<DXSampler>(
+        return make_shared<DXSampler>(
             minFilter, magFilter, addressModeU, addressModeV, addressModeW,
             minLod, maxLod, anisotropyEnable, mipMapMode);
     }
 
-    void DXRenderingBackEnd::beginRendering(std::shared_ptr<FrameData>&data,
-                                            std::shared_ptr<PipelineResources>& pipelineResources,
-                                            std::shared_ptr<Pipeline>& pipeline,
-                                            std::shared_ptr<CommandList>& commandList) {
+    void DXRenderingBackEnd::beginRendering(shared_ptr<FrameData>&data,
+                                            shared_ptr<PipelineResources>& pipelineResources,
+                                            shared_ptr<Pipeline>& pipeline,
+                                            shared_ptr<CommandList>& commandList) {
         const auto dxCommandList = static_pointer_cast<DXCommandList>(commandList)->getCommandList();
         const auto dxSwapChain = getDXSwapChain();
         const auto frameIndex = swapChain->getCurrentFrameIndex();
@@ -172,7 +172,7 @@ namespace vireo::backend {
 
         dxCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-        std::vector<ID3D12DescriptorHeap*> heaps(data->descriptorSets.size());
+        vector<ID3D12DescriptorHeap*> heaps(data->descriptorSets.size());
         for (int i = 0; i < data->descriptorSets.size(); i++) {
             heaps[i] = static_pointer_cast<DXDescriptorSet>(data->descriptorSets[i])->getHeap().Get();
         }
@@ -182,7 +182,7 @@ namespace vireo::backend {
         }
     }
 
-    void DXRenderingBackEnd::endRendering(std::shared_ptr<CommandList>& commandList) {
+    void DXRenderingBackEnd::endRendering(shared_ptr<CommandList>& commandList) {
         const auto dxCommandList = static_pointer_cast<DXCommandList>(commandList)->getCommandList();
         const auto dxSwapChain = getDXSwapChain();
         const auto frameIndex = swapChain->getCurrentFrameIndex();
@@ -194,8 +194,8 @@ namespace vireo::backend {
         dxCommandList->ResourceBarrier(1, &swapChainBarrier);
     }
 
-    std::shared_ptr<CommandAllocator> DXRenderingBackEnd::createCommandAllocator(CommandList::Type type) const {
-        return std::make_shared<DXCommandAllocator>(type, getDXDevice()->getDevice());
+    shared_ptr<CommandAllocator> DXRenderingBackEnd::createCommandAllocator(CommandList::Type type) const {
+        return make_shared<DXCommandAllocator>(type, getDXDevice()->getDevice());
     }
 
     void DXRenderingBackEnd::waitIdle() {
@@ -211,12 +211,12 @@ namespace vireo::backend {
         DieIfFailed(device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&commandQueue)));
     }
 
-    void DXSubmitQueue::submit(const std::shared_ptr<FrameData>& frameData, std::vector<std::shared_ptr<CommandList>> commandLists) {
+    void DXSubmitQueue::submit(const shared_ptr<FrameData>& frameData, vector<shared_ptr<CommandList>> commandLists) {
         submit(commandLists);
     }
 
-    void DXSubmitQueue::submit(const std::vector<std::shared_ptr<CommandList>> commandLists) {
-        auto dxCommandLists = std::vector<ID3D12CommandList*>(commandLists.size());
+    void DXSubmitQueue::submit(const vector<shared_ptr<CommandList>> commandLists) {
+        auto dxCommandLists = vector<ID3D12CommandList*>(commandLists.size());
         for (int i = 0; i < commandLists.size(); i++) {
             dxCommandLists[i] = static_pointer_cast<DXCommandList>(commandLists[i])->getCommandList().Get();
         }
@@ -252,16 +252,16 @@ namespace vireo::backend {
             IID_PPV_ARGS(&commandAllocator)));
     }
 
-    std::shared_ptr<CommandList> DXCommandAllocator::createCommandList(std::shared_ptr<Pipeline>& pipeline) const {
-        return std::make_shared<DXCommandList>(
+    shared_ptr<CommandList> DXCommandAllocator::createCommandList(shared_ptr<Pipeline>& pipeline) const {
+        return make_shared<DXCommandList>(
             getCommandListType(),
             device,
             commandAllocator,
             static_pointer_cast<DXPipeline>(pipeline)->getPipelineState());
     }
 
-    std::shared_ptr<CommandList> DXCommandAllocator::createCommandList() const {
-        return std::make_shared<DXCommandList>(
+    shared_ptr<CommandList> DXCommandAllocator::createCommandList() const {
+        return make_shared<DXCommandList>(
             getCommandListType(),
             device,
             commandAllocator,
@@ -288,7 +288,7 @@ namespace vireo::backend {
         DieIfFailed(commandAllocator->Reset());
     }
 
-    void DXCommandList::begin(std::shared_ptr<Pipeline>& pipeline) {
+    void DXCommandList::begin(shared_ptr<Pipeline>& pipeline) {
         auto dxPipeline = static_pointer_cast<DXPipeline>(pipeline);
         DieIfFailed(commandList->Reset(commandAllocator.Get(), dxPipeline->getPipelineState().Get()));
     }
@@ -308,7 +308,7 @@ namespace vireo::backend {
         stagingBuffers.clear();
     }
 
-    void DXCommandList::bindVertexBuffer(std::shared_ptr<Buffer>& buffer) {
+    void DXCommandList::bindVertexBuffer(shared_ptr<Buffer>& buffer) {
         const auto& vertexBuffer = static_pointer_cast<DXBuffer>(buffer);
         commandList->IASetVertexBuffers(0, 1, &vertexBuffer->getBufferView());
     }
@@ -317,7 +317,7 @@ namespace vireo::backend {
         commandList->DrawInstanced(vertexCountPerInstance, instanceCount, 0, 0);
     }
 
-    void DXCommandList::upload(std::shared_ptr<Buffer>& destination, const void* source) {
+    void DXCommandList::upload(shared_ptr<Buffer>& destination, const void* source) {
         const auto buffer = static_pointer_cast<DXBuffer>(destination);
 
         ComPtr<ID3D12Resource> stagingBuffer;
@@ -364,7 +364,7 @@ namespace vireo::backend {
         stagingBuffers.push_back(stagingBuffer);
     }
 
-    void DXCommandList::upload(std::shared_ptr<Image>& destination, const void* source) {
+    void DXCommandList::upload(shared_ptr<Image>& destination, const void* source) {
         const auto image = static_pointer_cast<DXImage>(destination);
 
         ComPtr<ID3D12Resource> stagingBuffer;
@@ -481,7 +481,7 @@ namespace vireo::backend {
         assert(currentFrameIndex < FRAMES_IN_FLIGHT);
     }
 
-    bool DXSwapChain::acquire(std::shared_ptr<FrameData>& frameData) {
+    bool DXSwapChain::acquire(shared_ptr<FrameData>& frameData) {
         auto data = static_pointer_cast<DXFrameData>(frameData);
         const auto currentFenceValue = data->inFlightFenceValue;
         DieIfFailed(presentCommandQueue->Signal(device.getInFlightFence().Get(), currentFenceValue));
@@ -496,13 +496,13 @@ namespace vireo::backend {
         return true;
     }
 
-    void DXSwapChain::present(std::shared_ptr<FrameData>& frameData) {
+    void DXSwapChain::present(shared_ptr<FrameData>& frameData) {
         auto data = static_pointer_cast<DXFrameData>(frameData);
         DieIfFailed(swapChain->Present(1, 0));
         data->inFlightFenceValue += 1;
     }
 
-    DXVertexInputLayout::DXVertexInputLayout(const std::vector<AttributeDescription>& attributesDescriptions) {
+    DXVertexInputLayout::DXVertexInputLayout(const vector<AttributeDescription>& attributesDescriptions) {
         for (const auto& attributesDescription : attributesDescriptions) {
             inputElementDescs.push_back({
                 .SemanticName = attributesDescription.binding.c_str(),
@@ -516,13 +516,13 @@ namespace vireo::backend {
         }
     }
 
-    DXShaderModule::DXShaderModule(const std::string& fileName) {
-        std::ifstream shaderFile(fileName + ".dxil", std::ios::binary | std::ios::ate);
+    DXShaderModule::DXShaderModule(const string& fileName) {
+        ifstream shaderFile(fileName + ".dxil", ios::binary | ios::ate);
         if (!shaderFile) {
             die("Error loading shader " + fileName);
         }
-        std::streamsize size = shaderFile.tellg();
-        shaderFile.seekg(0, std::ios::beg);
+        streamsize size = shaderFile.tellg();
+        shaderFile.seekg(0, ios::beg);
         if (FAILED(D3DCreateBlob(size, &shader))) {
             die("Error creating blob for  shader " + fileName);
         }
@@ -531,8 +531,8 @@ namespace vireo::backend {
 
     DXPipelineResources::DXPipelineResources(
         const ComPtr<ID3D12Device>& device,
-        const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
-        const std::wstring& name) {
+        const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts,
+        const wstring& name) {
 
         constexpr D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
                D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
@@ -546,9 +546,9 @@ namespace vireo::backend {
             featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
         }
 
-        std::vector<CD3DX12_ROOT_PARAMETER1> rootParameters(descriptorLayouts.size());
+        vector<CD3DX12_ROOT_PARAMETER1> rootParameters(descriptorLayouts.size());
         for (int i = 0; i < descriptorLayouts.size(); i++) {
-            const auto layout = std::static_pointer_cast<DXDescriptorLayout>(descriptorLayouts[i]);
+            const auto layout = static_pointer_cast<DXDescriptorLayout>(descriptorLayouts[i]);
             for (auto& range : layout->getRanges()) {
                 range.RegisterSpace = i;
             }
@@ -593,7 +593,7 @@ namespace vireo::backend {
         VertexInputLayout& vertexInputLayout,
         ShaderModule& vertexShader,
         ShaderModule& fragmentShader,
-        const std::wstring& name) {
+        const wstring& name) {
         auto& dxVertexInputLayout = static_cast<DXVertexInputLayout&>(vertexInputLayout);
         auto& dxPipelineResources = static_cast<DXPipelineResources&>(pipelineResources);
         auto& dxVertexShader = static_cast<DXShaderModule&>(vertexShader);

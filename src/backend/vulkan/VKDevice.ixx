@@ -28,7 +28,7 @@ export namespace vireo::backend {
         // Used to redirect validation layers to the logging system
         VkDebugUtilsMessengerEXT debugMessenger;
         // All the vulkan layers used
-        std::vector<const char *>requestedLayers{};
+        vector<const char *>requestedLayers{};
     };
 
     class VKPhysicalDevice : public PhysicalDevice {
@@ -43,10 +43,10 @@ export namespace vireo::backend {
         const auto& getDeviceProperties() const { return deviceProperties.properties; }
 
         struct QueueFamilyIndices {
-            std::optional<uint32_t> graphicsFamily;
-            std::optional<uint32_t> presentFamily;
-            std::optional<uint32_t> transferFamily;
-            std::optional<uint32_t> computeFamily;
+            optional<uint32_t> graphicsFamily;
+            optional<uint32_t> presentFamily;
+            optional<uint32_t> transferFamily;
+            optional<uint32_t> computeFamily;
 
             bool isComplete() const {
                 return graphicsFamily.has_value() &&
@@ -73,7 +73,7 @@ export namespace vireo::backend {
         VkInstance                   instance{VK_NULL_HANDLE};
         VkSurfaceKHR                 surface;
         VkPhysicalDevice             physicalDevice{VK_NULL_HANDLE};
-        std::vector<const char*>     deviceExtensions;
+        vector<const char*>     deviceExtensions;
         VkPhysicalDeviceFeatures     deviceFeatures {};
         VkPhysicalDeviceProperties2  deviceProperties{
             VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2
@@ -84,18 +84,18 @@ export namespace vireo::backend {
 
         struct SwapChainSupportDetails {
             VkSurfaceCapabilitiesKHR        capabilities;
-            std::vector<VkSurfaceFormatKHR> formats;
-            std::vector<VkPresentModeKHR>   presentModes;
+            vector<VkSurfaceFormatKHR> formats;
+            vector<VkPresentModeKHR>   presentModes;
         };
 
         // Rate physical device by properties to find the best suitable GPU
         uint32_t rateDeviceSuitability(
             VkPhysicalDevice            vkPhysicalDevice,
-            const std::vector<const char *> &deviceExtensions) const;
+            const vector<const char *> &deviceExtensions) const;
 
         static bool checkDeviceExtensionSupport
             (VkPhysicalDevice            vkPhysicalDevice,
-            const std::vector<const char *> &deviceExtensions);
+            const vector<const char *> &deviceExtensions);
 
         // Get the swap chain capabilities
         SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice vkPhysicalDevice) const;
@@ -103,7 +103,7 @@ export namespace vireo::backend {
 
     class VKDevice : public Device {
     public:
-        VKDevice(const VKPhysicalDevice& physicalDevice, const std::vector<const char *>& requestedLayers);
+        VKDevice(const VKPhysicalDevice& physicalDevice, const vector<const char *>& requestedLayers);
         ~VKDevice() override;
 
         inline auto getDevice() const { return device; }

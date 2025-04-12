@@ -27,27 +27,27 @@ export namespace vireo::backend {
 
     private:
         bool isForSampler;
-        std::vector<CD3DX12_DESCRIPTOR_RANGE1> ranges;
-        std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplersDesc;
+        vector<CD3DX12_DESCRIPTOR_RANGE1> ranges;
+        vector<D3D12_STATIC_SAMPLER_DESC> staticSamplersDesc;
     };
 
     class DXDescriptorSet : public DescriptorSet {
     public:
-        DXDescriptorSet(const std::shared_ptr<DescriptorLayout>& layout, const ComPtr<ID3D12Device>& device, const std::wstring& name);
+        DXDescriptorSet(const shared_ptr<DescriptorLayout>& layout, const ComPtr<ID3D12Device>& device, const wstring& name);
 
         ~DXDescriptorSet() override;
 
-        void update(DescriptorIndex index, const std::shared_ptr<Buffer>& buffer) override;
+        void update(DescriptorIndex index, const shared_ptr<Buffer>& buffer) override;
 
-        void update(DescriptorIndex index, const std::shared_ptr<Image>& image) override;
+        void update(DescriptorIndex index, const shared_ptr<Image>& image) override;
 
-        void update(DescriptorIndex index, const std::shared_ptr<Sampler>& sampler) override;
+        void update(DescriptorIndex index, const shared_ptr<Sampler>& sampler) override;
 
-        void update(DescriptorIndex index, const std::vector<std::shared_ptr<Buffer>>& buffers) override;
+        void update(DescriptorIndex index, const vector<shared_ptr<Buffer>>& buffers) override;
 
-        void update(DescriptorIndex index, const std::vector<std::shared_ptr<Image>>& images) override;
+        void update(DescriptorIndex index, const vector<shared_ptr<Image>>& images) override;
 
-        void update(DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& samplers) override;
+        void update(DescriptorIndex index, const vector<shared_ptr<Sampler>>& samplers) override;
 
         D3D12_GPU_DESCRIPTOR_HANDLE getGPUHandle(DescriptorIndex index) const;
 

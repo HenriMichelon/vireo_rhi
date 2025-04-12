@@ -48,10 +48,10 @@ namespace vireo::backend {
         DXGI_ADAPTER_DESC3 desc;
         const HRESULT hr = hardwareAdapter4->GetDesc3(&desc);
         if (SUCCEEDED(hr)) {
-            std::wstring adapterName = desc.Description;
-            std::wcout << L"Display Adapter Name: " << adapterName << std::endl;
+            wstring adapterName = desc.Description;
+            wcout << L"Display Adapter Name: " << adapterName << endl;
         } else {
-            std::cerr << "Failed to get adapter description." << std::endl;
+            cerr << "Failed to get adapter description." << endl;
         }
     }
 

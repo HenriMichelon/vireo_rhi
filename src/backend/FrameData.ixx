@@ -13,11 +13,11 @@ import vireo.backend.descriptors;
 export namespace vireo::backend {
 
     struct FrameData {
-        FrameData(const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSets): descriptorSets{descriptorSets} {}
+        FrameData(const vector<shared_ptr<DescriptorSet>>& descriptorSets): descriptorSets{descriptorSets} {}
 
         virtual ~FrameData() = default;
 
-        std::vector<std::shared_ptr<DescriptorSet>> descriptorSets;
+        vector<shared_ptr<DescriptorSet>> descriptorSets;
     };
 
 }
