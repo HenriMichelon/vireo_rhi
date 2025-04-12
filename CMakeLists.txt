@@ -27,6 +27,7 @@ include(FetchContent)
 include(cmake/shaders.cmake)
 include(cmake/std.cmake)
 include(cmake/compile_options.cmake)
+include(cmake/libraries.cmake)
 
 #######################################################
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -69,13 +70,14 @@ target_sources(${VIREO_TARGET}
 )
 
 compile_options(${VIREO_TARGET})
-target_include_directories(${VIREO_TARGET} PUBLIC ${INCLUDE_DIR})
+target_include_directories(${VIREO_TARGET} PUBLIC ${INCLUDE_DIR} ${Vulkan_INCLUDE_DIRS} ${DirectXH_DIR}/include/directx)
+target_link_libraries(${VIREO_TARGET} std-cxx-modules)
 if(WIN32)
-target_link_libraries(${VIREO_TARGET} std-cxx-modules Xinput dinput8 dxguid dxgi d3d12 d3dcompiler)
-if(MINGW)
-    target_link_options(${VIREO_TARGET} PRIVATE "-mwindows")
-endif()
-set_target_properties(${VIREO_TARGET} PROPERTIES WIN32_EXECUTABLE TRUE)
+    target_link_libraries(${VIREO_TARGET} DirectX-Headers Xinput dinput8 dxguid dxgi d3d12 d3dcompiler)
+    if(MINGW)
+        target_link_options(${VIREO_TARGET} PRIVATE "-mwindows")
+    endif()
+    set_target_properties(${VIREO_TARGET} PROPERTIES WIN32_EXECUTABLE TRUE)
 endif()
 
 #######################################################
@@ -87,4 +89,3 @@ file(GLOB_RECURSE SHADERS_SOURCE_FILES
 add_shaders(${VIREO_TARGET}_shaders ${SHADERS_BUILD_DIR} ${SHADERS_SRC_DIR} ${SHADERS_SOURCE_FILES})
 add_dependencies(${VIREO_TARGET} ${VIREO_TARGET}_shaders)
 
-include(cmake/libraries.cmake)
