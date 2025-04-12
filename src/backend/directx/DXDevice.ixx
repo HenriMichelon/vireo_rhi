@@ -14,7 +14,7 @@ export namespace vireo::backend {
 
     class DXInstance : public Instance {
     public:
-        DXInstance();
+        DXInstance(HWND hWnd);
 
         auto getFactory() { return factory; }
 

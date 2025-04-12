@@ -98,7 +98,7 @@ export namespace vireo::backend {
             const ComPtr<IDXGIFactory4>& factory,
             DXDevice& device,
             const ComPtr<ID3D12CommandQueue>& commandQueue,
-            uint32_t width, uint32_t height);
+            uint32_t width, uint32_t height, HWND hWnd);
 
         auto getSwapChain() { return swapChain; }
 
@@ -121,6 +121,7 @@ export namespace vireo::backend {
         ComPtr<ID3D12Resource>       renderTargets[FRAMES_IN_FLIGHT];
         ComPtr<ID3D12DescriptorHeap> rtvHeap;
         UINT                         rtvDescriptorSize{0};
+        HWND                         hWnd;
     };
 
     class DXVertexInputLayout : public VertexInputLayout {
@@ -180,7 +181,7 @@ export namespace vireo::backend {
 
     class DXRenderingBackEnd : public RenderingBackEnd {
     public:
-        DXRenderingBackEnd();
+        DXRenderingBackEnd(HWND hWnd);
 
         void waitIdle() override;
 
@@ -262,6 +263,7 @@ export namespace vireo::backend {
         auto getDXSwapChain() const { return std::reinterpret_pointer_cast<DXSwapChain>(swapChain); }
 
     private:
+        HWND hWnd;
         CD3DX12_VIEWPORT viewport;
         CD3DX12_RECT scissorRect;
     };

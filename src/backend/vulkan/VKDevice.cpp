@@ -8,8 +8,6 @@ module;
 #include "vireo/backend/vulkan/Tools.h"
 module vireo.backend.vulkan.device;
 
-import vireo.app.win32;
-
 namespace vireo::backend {
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT,
@@ -114,7 +112,7 @@ namespace vireo::backend {
     PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
 #endif
 
-    VKPhysicalDevice::VKPhysicalDevice(const VkInstance instance):
+    VKPhysicalDevice::VKPhysicalDevice(const VkInstance instance, void* windowHandle):
         instance(instance),
     // Requested device extensions
         deviceExtensions {
@@ -147,9 +145,9 @@ namespace vireo::backend {
         const VkWin32SurfaceCreateInfoKHR surfaceCreateInfo{
                 .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
                 .hinstance = GetModuleHandle(nullptr),
-                .hwnd = Win32Application::getHwnd(),
+                .hwnd = static_cast<HWND>(windowHandle),
         };
-        vkCreateWin32SurfaceKHR = (PFN_vkCreateWin32SurfaceKHR)vkGetInstanceProcAddr(instance, "vkCreateWin32SurfaceKHR");
+        vkCreateWin32SurfaceKHR = reinterpret_cast<PFN_vkCreateWin32SurfaceKHR>(vkGetInstanceProcAddr(instance, "vkCreateWin32SurfaceKHR"));
         DieIfFailed(vkCreateWin32SurfaceKHR(instance, &surfaceCreateInfo, nullptr, &surface));
 #endif
 

@@ -8,11 +8,9 @@ module;
 #include "vireo/backend/directx/Tools.h"
 module vireo.backend.directx.device;
 
-import vireo.app.win32;
-
 namespace vireo::backend {
 
-    DXInstance::DXInstance() {
+    DXInstance::DXInstance(HWND hWnd) {
         UINT dxgiFactoryFlags = 0;
 #if defined(_DEBUG)
         {
@@ -25,7 +23,7 @@ namespace vireo::backend {
 #endif
         DieIfFailed(CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&factory)));
         // This sample does not support fullscreen transitions.
-        DieIfFailed(factory->MakeWindowAssociation(Win32Application::getHwnd(), DXGI_MWA_NO_ALT_ENTER));
+        DieIfFailed(factory->MakeWindowAssociation(hWnd, DXGI_MWA_NO_ALT_ENTER));
     }
 
     DXPhysicalDevice::DXPhysicalDevice(const ComPtr<IDXGIFactory4>& factory) {

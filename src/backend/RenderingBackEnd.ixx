@@ -147,7 +147,8 @@ export namespace vireo::backend {
             uint32_t frameIndex,
             const std::vector<std::shared_ptr<DescriptorSet>>& descriptorSet) = 0;
 
-        virtual void destroyFrameData(std::shared_ptr<FrameData>& frameData) {}
+        virtual void destroyFrameData(
+            std::shared_ptr<FrameData>& frameData) {}
 
         virtual void waitIdle() = 0;
 
@@ -214,7 +215,11 @@ export namespace vireo::backend {
 
         virtual void endRendering(std::shared_ptr<CommandList>& commandList) = 0;
 
-        void setClearColor(const glm::vec4& color) { clearColor = color; }
+        void setClearColor(const float r, const float g, const float b) {
+            clearColor[0] = r;
+            clearColor[1] = g;
+            clearColor[2] = b;
+        }
 
         auto& getInstance() const { return instance; }
 
@@ -229,7 +234,7 @@ export namespace vireo::backend {
         auto& getSwapChain() const { return swapChain; }
 
     protected:
-        glm::vec4                        clearColor{0.0f};
+        float                            clearColor[3] = {};
         std::shared_ptr<Instance>        instance;
         std::shared_ptr<PhysicalDevice>  physicalDevice;
         std::shared_ptr<Device>          device;

@@ -98,7 +98,7 @@ export namespace vireo::backend {
 
     class VKSwapChain : public SwapChain {
     public:
-        VKSwapChain(const VKPhysicalDevice& physicalDevice, const VKDevice& device);
+        VKSwapChain(const VKPhysicalDevice& physicalDevice, const VKDevice& device, void* windowHandle);
 
         ~VKSwapChain() override;
 
@@ -137,6 +137,10 @@ export namespace vireo::backend {
         VkExtent2D                  swapChainExtent;
         std::vector<VkImageView>    swapChainImageViews;
         VkQueue                     presentQueue;
+
+#ifdef _WIN32
+        HWND hWnd;
+#endif
 
         void recreate();
 
@@ -232,7 +236,7 @@ export namespace vireo::backend {
 
     class VKRenderingBackEnd : public RenderingBackEnd {
     public:
-        VKRenderingBackEnd();
+        VKRenderingBackEnd(void *windowHandle);
 
         void waitIdle() override;
 
@@ -314,6 +318,9 @@ export namespace vireo::backend {
         auto getVKGraphicCommandQueue() const { return std::reinterpret_pointer_cast<VKSubmitQueue>(graphicCommandQueue); }
 
     private:
+#ifdef _WIN32
+        HWND hWnd;
+#endif
         const VkClearValue depthClearValue{.depthStencil = {1.0f, 0}};
     };
 

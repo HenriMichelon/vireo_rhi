@@ -8,21 +8,27 @@ module;
 #include "vireo/backend/vulkan/Tools.h"
 module vireo.backend.vulkan;
 
-import vireo.app.win32;
-
 import vireo.backend.vulkan.descriptors;
 import vireo.backend.vulkan.framedata;
 import vireo.backend.vulkan.resources;
 
 namespace vireo::backend {
 
-    VKRenderingBackEnd::VKRenderingBackEnd() {
+    VKRenderingBackEnd::VKRenderingBackEnd(void *windowHandle) :
+#ifdef _WIN32
+    hWnd{static_cast<HWND>(windowHandle)}
+#endif
+    {
         instance = std::make_shared<VKInstance>();
-        physicalDevice = std::make_shared<VKPhysicalDevice>(getVKInstance()->getInstance());
+        physicalDevice = std::make_shared<VKPhysicalDevice>(getVKInstance()->getInstance(), hWnd);
         device = std::make_shared<VKDevice>(*getVKPhysicalDevice(), getVKInstance()->getRequestedLayers());
         graphicCommandQueue = std::make_shared<VKSubmitQueue>(CommandList::GRAPHIC, *getVKDevice(), "Graphic");
         transferCommandQueue = std::make_shared<VKSubmitQueue>(CommandList::TRANSFER, *getVKDevice(), "Transfer");
-        swapChain = std::make_shared<VKSwapChain>(*getVKPhysicalDevice(), *getVKDevice());
+        swapChain = std::make_shared<VKSwapChain>(*getVKPhysicalDevice(), *getVKDevice(),
+#ifdef _WIN32
+            hWnd
+#endif
+        );
     }
 
     void VKRenderingBackEnd::destroyFrameData(std::shared_ptr<FrameData>& frameData) {
@@ -153,7 +159,7 @@ namespace vireo::backend {
                     VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)});
 
         const auto vkClearColor = VkClearValue{{
-            clearColor.r, clearColor.g, clearColor.b, clearColor.a
+            clearColor[0], clearColor[1], clearColor[2], clearColor[3]
         }};
         const VkExtent2D extent = {swapChain.getExtent().width, swapChain.getExtent().height};
 
@@ -735,10 +741,14 @@ namespace vireo::backend {
         };
     }
 
-    VKSwapChain::VKSwapChain(const VKPhysicalDevice& physicalDevice, const VKDevice& device):
+    VKSwapChain::VKSwapChain(const VKPhysicalDevice& physicalDevice, const VKDevice& device, void* windowHandle):
         device{device},
         physicalDevice{physicalDevice},
-        surface{physicalDevice.getSurface()} {
+        surface{physicalDevice.getSurface()},
+#ifdef _WIN32
+        hWnd{static_cast<HWND>(windowHandle)}
+#endif
+    {
         vkGetDeviceQueue(
             device.getDevice(),
             device.getPresentQueueFamilyIndex(),
@@ -899,14 +909,16 @@ namespace vireo::backend {
 
     VkExtent2D VKSwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities) const {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain#page_Swap-extent
+#ifdef _WIN32
         RECT windowRect{};
-        if (GetClientRect(Win32Application::getHwnd(), &windowRect) == 0) {
+        if (GetClientRect(hWnd, &windowRect) == 0) {
             die("Error getting window rect");
         }
         VkExtent2D actualExtent{
             .width = static_cast<uint32_t>(windowRect.right - windowRect.left),
             .height = static_cast<uint32_t>(windowRect.bottom - windowRect.top)
         };
+#endif
         // actualExtent.width = glm::max(
         //         capabilities.minImageExtent.width,
         //         glm::min(capabilities.maxImageExtent.width, actualExtent.width));

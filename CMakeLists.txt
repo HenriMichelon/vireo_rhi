@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.29)
 
 #######################################################
 project(vireo_ral)
-set(MY_TARGET ${PROJECT_NAME})
+set(VIREO_TARGET ${PROJECT_NAME})
 
 #######################################################
 set(CMAKE_CXX_STANDARD 23)
@@ -35,10 +35,7 @@ set(SHADERS_SRC_DIR ${SRC_DIR}/shaders)
 set(SHADERS_BUILD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
 
 #######################################################
-add_executable(${MY_TARGET}
-        ${SRC_DIR}/Application.cpp
-        ${SRC_DIR}/os/windows/Win32Application.cpp
-        ${SRC_DIR}/os/windows/WinMain.cpp
+add_library(${VIREO_TARGET} STATIC
         ${SRC_DIR}/backend/directx/DXResources.cpp
         ${SRC_DIR}/backend/directx/DXDescriptors.cpp
         ${SRC_DIR}/backend/directx/DXDevice.cpp
@@ -50,12 +47,10 @@ add_executable(${MY_TARGET}
         ${SRC_DIR}/backend/vulkan/Vulkan.cpp
 )
 
-target_sources(${MY_TARGET}
+target_sources(${VIREO_TARGET}
     PUBLIC
     FILE_SET CXX_MODULES
     FILES
-        ${SRC_DIR}/Application.ixx
-        ${SRC_DIR}/os/windows/Win32Application.ixx
         ${SRC_DIR}/backend/Descriptors.ixx
         ${SRC_DIR}/backend/Device.ixx
         ${SRC_DIR}/backend/FrameData.ixx
@@ -73,23 +68,23 @@ target_sources(${MY_TARGET}
         ${SRC_DIR}/backend/vulkan/VKRenderingBackEnd.ixx
 )
 
-compile_options(${MY_TARGET})
-target_include_directories(${MY_TARGET} PUBLIC ${INCLUDE_DIR})
+compile_options(${VIREO_TARGET})
+target_include_directories(${VIREO_TARGET} PUBLIC ${INCLUDE_DIR})
 if(WIN32)
-target_link_libraries(${MY_TARGET} std-cxx-modules Xinput dinput8 dxguid dxgi d3d12 d3dcompiler)
+target_link_libraries(${VIREO_TARGET} std-cxx-modules Xinput dinput8 dxguid dxgi d3d12 d3dcompiler)
 if(MINGW)
-    target_link_options(${MY_TARGET} PRIVATE "-mwindows")
+    target_link_options(${VIREO_TARGET} PRIVATE "-mwindows")
 endif()
-set_target_properties(${MY_TARGET} PROPERTIES WIN32_EXECUTABLE TRUE)
+set_target_properties(${VIREO_TARGET} PROPERTIES WIN32_EXECUTABLE TRUE)
 endif()
 
 #######################################################
-# HLSL shaders
+# Slang shaders
 file(MAKE_DIRECTORY ${SHADERS_BUILD_DIR})
 file(GLOB_RECURSE SHADERS_SOURCE_FILES
     "${SHADERS_SRC_DIR}/*.slang"
 )
-add_shaders(${MY_TARGET}_shaders ${SHADERS_BUILD_DIR} ${SHADERS_SRC_DIR} ${SHADERS_SOURCE_FILES})
-add_dependencies(${MY_TARGET} ${MY_TARGET}_shaders)
+add_shaders(${VIREO_TARGET}_shaders ${SHADERS_BUILD_DIR} ${SHADERS_SRC_DIR} ${SHADERS_SOURCE_FILES})
+add_dependencies(${VIREO_TARGET} ${VIREO_TARGET}_shaders)
 
 include(cmake/libraries.cmake)

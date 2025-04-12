@@ -5,7 +5,7 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "vireo/Tools.h"
+#include "vireo/Libraries.h"
 export module vireo.backend.resources;
 
 export namespace vireo::backend {

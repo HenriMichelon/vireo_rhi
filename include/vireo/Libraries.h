@@ -19,9 +19,5 @@
     #include <windows.h>
 #endif
 
-import glm;
 import std;
-
-#ifdef __clang__
-    #include <cstdint>
-#endif
+#include <cstdint>

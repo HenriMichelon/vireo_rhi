@@ -8,15 +8,13 @@ module;
 #include "vireo/backend/directx/Tools.h"
 module vireo.backend.directx;
 
-import vireo.app.win32;
-
 import vireo.backend.directx.descriptors;
 import vireo.backend.directx.framedata;
 import vireo.backend.directx.resources;
 
 namespace vireo::backend {
 
-    DXRenderingBackEnd::DXRenderingBackEnd() {
+    DXRenderingBackEnd::DXRenderingBackEnd(HWND hWnd): hWnd{hWnd} {
         // Detect RivaTuner which cause problem by incorrectly hooking IDXGISwapChain::Present
         const HANDLE hMap = OpenFileMapping(FILE_MAP_READ, FALSE, L"RTSSSharedMemoryV2");
         if (hMap) {
@@ -30,7 +28,7 @@ namespace vireo::backend {
         }
 
         RECT windowRect{};
-        if (GetClientRect(Win32Application::getHwnd(), &windowRect) == 0) {
+        if (GetClientRect(hWnd, &windowRect) == 0) {
             die("Error getting window rect");
         }
         auto width = windowRect.right - windowRect.left;
@@ -38,7 +36,7 @@ namespace vireo::backend {
         viewport = CD3DX12_VIEWPORT{0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)},
         scissorRect = CD3DX12_RECT{0, 0, static_cast<LONG>(width), static_cast<LONG>(height)};
 
-        instance = std::make_shared<DXInstance>();
+        instance = std::make_shared<DXInstance>(hWnd);
         physicalDevice = std::make_shared<DXPhysicalDevice>(getDXInstance()->getFactory());
         device = std::make_shared<DXDevice>(getDXPhysicalDevice()->getHardwareAdapter());
         graphicCommandQueue = std::make_shared<DXSubmitQueue>(CommandList::GRAPHIC, getDXDevice()->getDevice());
@@ -48,7 +46,8 @@ namespace vireo::backend {
             *getDXDevice(),
             getDXGraphicCommandQueue()->getCommandQueue(),
             width,
-            height);
+            height,
+            hWnd);
     }
 
     std::shared_ptr<FrameData> DXRenderingBackEnd::createFrameData(
@@ -163,7 +162,7 @@ namespace vireo::backend {
                 dxSwapChain->getDescriptorSize());
             dxCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
-            const float dxClearColor[] = {clearColor.r, clearColor.g, clearColor.b, clearColor.a};
+            const float dxClearColor[] = {clearColor[0], clearColor[1], clearColor[2], clearColor[3]};
             dxCommandList->ClearRenderTargetView(
                 rtvHandle,
                 dxClearColor,
@@ -418,9 +417,11 @@ namespace vireo::backend {
         DXDevice& dxdevice,
         const ComPtr<ID3D12CommandQueue>& commandQueue,
         const uint32_t width,
-        const uint32_t height) :
+        const uint32_t height,
+        HWND hWnd) :
         device{dxdevice},
-        presentCommandQueue{commandQueue} {
+        presentCommandQueue{commandQueue},
+        hWnd{hWnd} {
         extent = {width, height};
         aspectRatio = static_cast<float>(width) / static_cast<float>(height);
 
@@ -438,7 +439,7 @@ namespace vireo::backend {
         DieIfFailed(factory->CreateSwapChainForHwnd(
             commandQueue.Get(),
             // Swap chain needs the queue so that it can force a flush on it.
-            Win32Application::getHwnd(),
+            hWnd,
             &swapChainDesc,
             nullptr,
             nullptr,

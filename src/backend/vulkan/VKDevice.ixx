@@ -33,7 +33,7 @@ export namespace vireo::backend {
 
     class VKPhysicalDevice : public PhysicalDevice {
     public:
-        VKPhysicalDevice(VkInstance instance);
+        VKPhysicalDevice(VkInstance instance, void* windowHandle);
         ~VKPhysicalDevice() override;
 
         auto getPhysicalDevice() const { return physicalDevice; }
