@@ -289,6 +289,8 @@ export namespace vireo {
     public:
         static unique_ptr<RenderingBackEnd> create(const Configuration& configuration);
 
+        RenderingBackEnd(const Configuration& configuration) : configuration{configuration} {}
+
         virtual ~RenderingBackEnd() = default;
 
         virtual shared_ptr<FrameData> createFrameData(
@@ -382,6 +384,7 @@ export namespace vireo {
         auto& getSwapChain() const { return swapChain; }
 
     protected:
+        const Configuration&        configuration;
         float                       clearColor[3] = {};
         shared_ptr<Instance>        instance;
         shared_ptr<PhysicalDevice>  physicalDevice;

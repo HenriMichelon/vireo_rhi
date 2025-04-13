@@ -14,9 +14,10 @@ import vireo.vulkan.pipelines;
 
 namespace vireo {
 
-    VKRenderingBackEnd::VKRenderingBackEnd(void *windowHandle) :
+    VKRenderingBackEnd::VKRenderingBackEnd(const Configuration& configuration) :
+    RenderingBackEnd{configuration},
 #ifdef _WIN32
-    hWnd{static_cast<HWND>(windowHandle)}
+    hWnd{static_cast<HWND>(configuration.windowHandle)}
 #endif
     {
         instance = make_shared<VKInstance>();
@@ -26,8 +27,9 @@ namespace vireo {
         transferCommandQueue = make_shared<VKSubmitQueue>(CommandList::TRANSFER, *getVKDevice(), "Transfer");
         swapChain = make_shared<VKSwapChain>(*getVKPhysicalDevice(), *getVKDevice(),
 #ifdef _WIN32
-            hWnd
+            hWnd,
 #endif
+            configuration.vSyncMode
         );
     }
 

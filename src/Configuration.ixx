@@ -26,9 +26,9 @@ export namespace vireo {
         X64  = 6
     };
 
-    enum class VSyncMode {
-        IMMEDIATE,
-        VSYNC,
+    enum class VSyncMode : uint8_t {
+        IMMEDIATE = 0,
+        VSYNC     = 1,
     };
 
     enum class Backends {
@@ -43,7 +43,5 @@ export namespace vireo {
         MSAA             msaa           {MSAA::NONE};
         //! Presentation mode
         VSyncMode        vSyncMode      {VSyncMode::VSYNC};
-        //! Number of simultaneous frames during rendering
-        uint32_t         framesInFlight {2};
     };
 }

@@ -9,6 +9,7 @@ module;
 export module vireo.directx;
 
 import vireo;
+import vireo.config;
 import vireo.directx.commands;
 import vireo.directx.devices;
 import vireo.directx.swapchains;
@@ -17,7 +18,7 @@ export namespace vireo {
 
     class DXRenderingBackEnd : public RenderingBackEnd {
     public:
-        DXRenderingBackEnd(HWND hWnd);
+        DXRenderingBackEnd(const Configuration& configuration);
 
         void waitIdle() override;
 

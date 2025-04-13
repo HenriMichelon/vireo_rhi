@@ -15,7 +15,9 @@ import vireo.directx.resources;
 
 namespace vireo {
 
-    DXRenderingBackEnd::DXRenderingBackEnd(HWND hWnd): hWnd{hWnd} {
+    DXRenderingBackEnd::DXRenderingBackEnd(const Configuration& configuration):
+        RenderingBackEnd{configuration},
+        hWnd{static_cast<HWND>(configuration.windowHandle)} {
         // Detect RivaTuner which cause problem by incorrectly hooking IDXGISwapChain::Present
         const HANDLE hMap = OpenFileMapping(FILE_MAP_READ, FALSE, L"RTSSSharedMemoryV2");
         if (hMap) {
@@ -48,7 +50,8 @@ namespace vireo {
             getDXGraphicCommandQueue()->getCommandQueue(),
             width,
             height,
-            hWnd);
+            hWnd,
+            configuration.vSyncMode);
     }
 
     shared_ptr<FrameData> DXRenderingBackEnd::createFrameData(

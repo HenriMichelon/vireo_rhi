@@ -9,6 +9,7 @@ module;
 export module vireo.vulkan;
 
 import vireo;
+import vireo.config;
 import vireo.vulkan.commands;
 import vireo.vulkan.devices;
 import vireo.vulkan.resources;
@@ -18,7 +19,7 @@ export namespace vireo {
 
     class VKRenderingBackEnd : public RenderingBackEnd {
     public:
-        VKRenderingBackEnd(void *windowHandle);
+        VKRenderingBackEnd(const Configuration& configuration);
 
         void waitIdle() override;
 

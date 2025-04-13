@@ -13,10 +13,14 @@ import vireo.vulkan.framedata;
 
 namespace vireo {
 
-    VKSwapChain::VKSwapChain(const VKPhysicalDevice& physicalDevice, const VKDevice& device, void* windowHandle):
+    VKSwapChain::VKSwapChain(
+        const VKPhysicalDevice& physicalDevice,
+        const VKDevice& device,
+        void* windowHandle,
+        const VSyncMode vSyncMode):
         device{device},
         physicalDevice{physicalDevice},
-        surface{physicalDevice.getSurface()},
+        vSyncMode{vSyncMode},
 #ifdef _WIN32
         hWnd{static_cast<HWND>(windowHandle)}
 #endif
@@ -33,7 +37,7 @@ namespace vireo {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain
         const SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice.getPhysicalDevice(), physicalDevice.getSurface());
         const VkSurfaceFormatKHR surfaceFormat= chooseSwapSurfaceFormat(swapChainSupport.formats);
-        const VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
+        const VkPresentModeKHR presentMode = chooseSwapPresentMode(vSyncMode, swapChainSupport.presentModes);
         swapChainExtent = chooseSwapExtent(swapChainSupport.capabilities);
 
         uint32_t imageCount = FRAMES_IN_FLIGHT;
@@ -45,15 +49,16 @@ namespace vireo {
         {
             VkSwapchainCreateInfoKHR createInfo = {
                 .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-                .surface = surface,
+                .surface = physicalDevice.getSurface(),
                 .minImageCount = imageCount,
                 .imageFormat = surfaceFormat.format,
                 .imageColorSpace = surfaceFormat.colorSpace,
                 .imageExtent = swapChainExtent,
                 .imageArrayLayers = 1,
-                // VK_IMAGE_USAGE_TRANSFER_DST_BIT for Blit or Revolve (see presentToSwapChain())
-                .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-                VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+                .imageUsage =
+                    VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+                    // VK_IMAGE_USAGE_TRANSFER_DST_BIT | // VK_IMAGE_USAGE_TRANSFER_DST_BIT for Blit or Resolve (see presentToSwapChain())
+                    VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
                 .preTransform = swapChainSupport.capabilities.currentTransform,
                 .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
                 .presentMode = presentMode,
@@ -135,7 +140,7 @@ namespace vireo {
 
     VKSwapChain::SwapChainSupportDetails VKSwapChain::querySwapChainSupport(
         const VkPhysicalDevice vkPhysicalDevice,
-        const VkSurfaceKHR surface) const {
+        const VkSurfaceKHR surface) {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain#page_Querying-details-of-swap-chain-support
         SwapChainSupportDetails details;
         vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vkPhysicalDevice, surface, &details.capabilities);
@@ -168,11 +173,12 @@ namespace vireo {
         return availableFormats[0];
     }
 
-    VkPresentModeKHR VKSwapChain::chooseSwapPresentMode(const vector<VkPresentModeKHR> &availablePresentModes) {
+    VkPresentModeKHR VKSwapChain::chooseSwapPresentMode(
+        const VSyncMode vSyncMode,
+        const vector<VkPresentModeKHR> &availablePresentModes) {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain#page_Presentation-mode
-        constexpr  auto mode = VK_PRESENT_MODE_FIFO_KHR; //static_cast<VkPresentModeKHR>(app().getConfig().vSyncMode);
         for (const auto &availablePresentMode : availablePresentModes) {
-            if (availablePresentMode == mode) {
+            if (availablePresentMode == vkPresentModes[static_cast<int>(vSyncMode)]) {
                 return availablePresentMode;
             }
         }
@@ -205,8 +211,7 @@ namespace vireo {
     }
 
     void VKSwapChain::present(shared_ptr<FrameData>& frameData) {
-        auto data = static_pointer_cast<VKFrameData>(frameData);
-
+        const auto data = static_pointer_cast<VKFrameData>(frameData);
         {
             const VkSwapchainKHR   swapChains[] = { swapChain };
             const VkPresentInfoKHR presentInfo{

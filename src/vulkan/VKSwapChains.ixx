@@ -9,13 +9,18 @@ module;
 export module vireo.vulkan.swapchains;
 
 import vireo;
+import vireo.config;
 import vireo.vulkan.devices;
 
 export namespace vireo {
 
     class VKSwapChain : public SwapChain {
     public:
-        VKSwapChain(const VKPhysicalDevice& physicalDevice, const VKDevice& device, void* windowHandle);
+        VKSwapChain(
+            const VKPhysicalDevice& physicalDevice,
+            const VKDevice& device,
+            void* windowHandle,
+            VSyncMode vSyncMode);
 
         ~VKSwapChain() override;
 
@@ -38,6 +43,10 @@ export namespace vireo {
         void present(shared_ptr<FrameData>& framesData) override;
 
     private:
+        static constexpr VkPresentModeKHR vkPresentModes[] {
+            VK_PRESENT_MODE_IMMEDIATE_KHR,
+            VK_PRESENT_MODE_FIFO_KHR
+        };
         // For Device::querySwapChainSupport()
         struct SwapChainSupportDetails {
             VkSurfaceCapabilitiesKHR        capabilities;
@@ -45,15 +54,15 @@ export namespace vireo {
             vector<VkPresentModeKHR>   presentModes;
         };
 
-        const VKDevice&             device;
-        const VKPhysicalDevice&     physicalDevice;
-        VkSurfaceKHR                surface;
-        VkSwapchainKHR              swapChain;
-        vector<VkImage>        swapChainImages;
-        VkFormat                    swapChainImageFormat;
-        VkExtent2D                  swapChainExtent;
-        vector<VkImageView>    swapChainImageViews;
-        VkQueue                     presentQueue;
+        const VKDevice&         device;
+        const VKPhysicalDevice& physicalDevice;
+        const VSyncMode         vSyncMode;
+        VkSwapchainKHR          swapChain;
+        vector<VkImage>         swapChainImages;
+        VkFormat                swapChainImageFormat;
+        VkExtent2D              swapChainExtent;
+        vector<VkImageView>     swapChainImageViews;
+        VkQueue                 presentQueue;
 
 #ifdef _WIN32
         HWND hWnd;
@@ -66,14 +75,15 @@ export namespace vireo {
         void cleanup() const;
 
         // Get the swap chain capabilities
-        SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice vkPhysicalDevice, VkSurfaceKHR surface) const;
+        static SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice vkPhysicalDevice, VkSurfaceKHR surface);
 
         // Get the swap chain format, default for sRGB/NON-LINEAR
         static VkSurfaceFormatKHR chooseSwapSurfaceFormat(
                 const vector<VkSurfaceFormatKHR> &availableFormats);
 
-        // Get the swap chain present mode, default to MAILBOX, if not available FIFO (V-SYNC)
+        // Get the swap chain present mode
         static VkPresentModeKHR chooseSwapPresentMode(
+                VSyncMode vSyncMode,
                 const vector<VkPresentModeKHR> &availablePresentModes);
 
         // Get the swap chain images sizes

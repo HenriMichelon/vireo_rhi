@@ -9,17 +9,19 @@ module;
 module vireo.directx.swapchains;
 
 namespace vireo {
-
     DXSwapChain::DXSwapChain(
         const ComPtr<IDXGIFactory4>& factory,
         DXDevice& dxdevice,
         const ComPtr<ID3D12CommandQueue>& commandQueue,
         const uint32_t width,
         const uint32_t height,
-        HWND hWnd) :
+        const HWND hWnd,
+        const VSyncMode vSyncMode) :
         device{dxdevice},
         presentCommandQueue{commandQueue},
-        hWnd{hWnd} {
+        hWnd{hWnd},
+        syncInterval{static_cast<UINT>(vSyncMode == VSyncMode::IMMEDIATE ? 0 : 1)},
+        presentFlags{static_cast<UINT>(vSyncMode == VSyncMode::IMMEDIATE ? DXGI_PRESENT_ALLOW_TEARING : 0)} {
         extent = {width, height};
         aspectRatio = static_cast<float>(width) / static_cast<float>(height);
 
@@ -31,6 +33,7 @@ namespace vireo {
             .BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
             .BufferCount = FRAMES_IN_FLIGHT,
             .SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,
+            .Flags = vSyncMode == VSyncMode::VSYNC ? 0u : DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING,
         };
 
         ComPtr<IDXGISwapChain1> swapChain1;
@@ -80,7 +83,7 @@ namespace vireo {
     }
 
     bool DXSwapChain::acquire(shared_ptr<FrameData>& frameData) {
-        auto data = static_pointer_cast<DXFrameData>(frameData);
+        const auto data = static_pointer_cast<DXFrameData>(frameData);
         const auto currentFenceValue = data->inFlightFenceValue;
         DieIfFailed(presentCommandQueue->Signal(device.getInFlightFence().Get(), currentFenceValue));
         // If the next frame is not ready to be rendered yet, wait until it is ready.
@@ -95,8 +98,8 @@ namespace vireo {
     }
 
     void DXSwapChain::present(shared_ptr<FrameData>& frameData) {
-        auto data = static_pointer_cast<DXFrameData>(frameData);
-        DieIfFailed(swapChain->Present(1, 0));
+        const auto data = static_pointer_cast<DXFrameData>(frameData);
+        DieIfFailed(swapChain->Present(syncInterval, presentFlags));
         data->inFlightFenceValue += 1;
     }
 }

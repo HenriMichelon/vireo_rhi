@@ -9,6 +9,7 @@ module;
 export module vireo.directx.swapchains;
 
 import vireo;
+import vireo.config;
 import vireo.directx.devices;
 import vireo.directx.framedata;
 
@@ -22,7 +23,7 @@ export namespace vireo {
             const ComPtr<IDXGIFactory4>& factory,
             DXDevice& device,
             const ComPtr<ID3D12CommandQueue>& commandQueue,
-            uint32_t width, uint32_t height, HWND hWnd);
+            uint32_t width, uint32_t height, HWND hWnd, VSyncMode vSyncMode);
 
         auto getSwapChain() { return swapChain; }
 
@@ -46,6 +47,8 @@ export namespace vireo {
         ComPtr<ID3D12DescriptorHeap> rtvHeap;
         UINT                         rtvDescriptorSize{0};
         HWND                         hWnd;
+        const UINT                   syncInterval;
+        const UINT                   presentFlags;
     };
 
 }

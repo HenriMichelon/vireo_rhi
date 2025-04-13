@@ -17,10 +17,10 @@ namespace vireo {
 
     unique_ptr<RenderingBackEnd> RenderingBackEnd::create(const Configuration& configuration) {
         if (configuration.backend == Backends::VULKAN) {
-            return make_unique<VKRenderingBackEnd>(configuration.windowHandle);
+            return make_unique<VKRenderingBackEnd>(configuration);
         }
 #ifdef _WIN32
-        return make_unique<DXRenderingBackEnd>(static_cast<HWND>(configuration.windowHandle));
+        return make_unique<DXRenderingBackEnd>(configuration);
 #endif
         die("Unsupported backend");
     }
