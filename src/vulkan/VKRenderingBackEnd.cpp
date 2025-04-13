@@ -23,9 +23,9 @@ namespace vireo {
         instance = make_shared<VKInstance>();
         physicalDevice = make_shared<VKPhysicalDevice>(getVKInstance()->getInstance(), hWnd);
         device = make_shared<VKDevice>(*getVKPhysicalDevice(), getVKInstance()->getRequestedLayers());
-        graphicCommandQueue = make_shared<VKSubmitQueue>(CommandList::GRAPHIC, *getVKDevice(), "Graphic");
-        transferCommandQueue = make_shared<VKSubmitQueue>(CommandList::TRANSFER, *getVKDevice(), "Transfer");
-        swapChain = make_shared<VKSwapChain>(*getVKPhysicalDevice(), *getVKDevice(),
+        graphicCommandQueue = make_shared<VKSubmitQueue>(getVKDevice(), CommandList::GRAPHIC, "Graphic");
+        transferCommandQueue = make_shared<VKSubmitQueue>(getVKDevice(), CommandList::TRANSFER, "Transfer");
+        swapChain = make_shared<VKSwapChain>(getVKDevice(),
 #ifdef _WIN32
             hWnd,
 #endif
@@ -33,7 +33,7 @@ namespace vireo {
         );
     }
 
-    void VKRenderingBackEnd::destroyFrameData(shared_ptr<FrameData>& frameData) {
+    void VKRenderingBackEnd::destroyFrameData(const shared_ptr<FrameData>& frameData) {
         const auto data = static_pointer_cast<VKFrameData>(frameData);
         vkDestroySemaphore(getVKDevice()->getDevice(), data->imageAvailableSemaphore, nullptr);
         vkDestroySemaphore(getVKDevice()->getDevice(), data->renderFinishedSemaphore, nullptr);
@@ -88,7 +88,7 @@ namespace vireo {
     }
 
     shared_ptr<CommandAllocator> VKRenderingBackEnd::createCommandAllocator(CommandList::Type type) const {
-        return make_shared<VKCommandAllocator>(type, *getVKDevice());
+        return make_shared<VKCommandAllocator>(getVKDevice(), type);
     }
 
     shared_ptr<ShaderModule> VKRenderingBackEnd::createShaderModule(const string& fileName) const {
@@ -102,10 +102,10 @@ namespace vireo {
     }
 
     shared_ptr<Pipeline> VKRenderingBackEnd::createPipeline(
-        PipelineResources& pipelineResources,
-        VertexInputLayout& vertexInputLayout,
-        ShaderModule& vertexShader,
-        ShaderModule& fragmentShader,
+        const shared_ptr<const PipelineResources>& pipelineResources,
+        const shared_ptr<const VertexInputLayout>& vertexInputLayout,
+        const shared_ptr<const ShaderModule>& vertexShader,
+        const shared_ptr<const ShaderModule>& fragmentShader,
         const wstring& name) const {
         return make_shared<VKPipeline>(
             getVKDevice()->getDevice(),
@@ -125,7 +125,7 @@ namespace vireo {
         const size_t alignment,
         const wstring& name) const  {
         return make_shared<VKBuffer>(
-           *getVKDevice(), type,
+           getVKDevice(), type,
            size, count, alignment,
            name);
     }
@@ -136,7 +136,7 @@ namespace vireo {
             uint32_t height,
             const wstring& name) const {
         return make_shared<VKImage>(
-            *getVKDevice(),
+            getVKDevice(),
             format,
             width,
             height,
@@ -144,13 +144,13 @@ namespace vireo {
     }
 
     void VKRenderingBackEnd::beginRendering(
-        shared_ptr<FrameData>& frameData,
-        shared_ptr<PipelineResources>& pipelineResources,
-        shared_ptr<Pipeline>& pipeline,
-        shared_ptr<CommandList>& commandList) {
+        const shared_ptr<FrameData>& frameData,
+        const shared_ptr<const PipelineResources>& pipelineResources,
+        const shared_ptr<const Pipeline>& pipeline,
+        const shared_ptr<const CommandList>& commandList) {
         const auto data = static_pointer_cast<VKFrameData>(frameData);
-        const auto vkCommandList = static_pointer_cast<VKCommandList>(commandList);
-        const auto vkPipelineResources = static_pointer_cast<VKPipelineResources>(pipelineResources);
+        const auto vkCommandList = static_pointer_cast<const VKCommandList>(commandList);
+        const auto vkPipelineResources = static_pointer_cast<const VKPipelineResources>(pipelineResources);
         const auto& swapChain = *getVKSwapChain();
 
         vkCommandList->pipelineBarrier(
@@ -222,8 +222,8 @@ namespace vireo {
         }
     }
 
-    void VKRenderingBackEnd::endRendering(shared_ptr<CommandList>& commandList) {
-        const auto vkCommandList = static_pointer_cast<VKCommandList>(commandList);
+    void VKRenderingBackEnd::endRendering(const shared_ptr<const CommandList>& commandList) {
+        const auto vkCommandList = static_pointer_cast<const VKCommandList>(commandList);
         vkCmdEndRendering(vkCommandList->getCommandBuffer());
     }
 
@@ -242,7 +242,7 @@ namespace vireo {
     }
 
     shared_ptr<DescriptorSet> VKRenderingBackEnd::createDescriptorSet(
-            shared_ptr<DescriptorLayout>& layout,
+            const shared_ptr<const DescriptorLayout>& layout,
             const wstring& name) {
         return make_shared<VKDescriptorSet>(layout, name);
     }
@@ -258,7 +258,7 @@ namespace vireo {
            bool anisotropyEnable,
            MipMapMode mipMapMode) const {
         return make_shared<VKSampler>(
-            *getVKPhysicalDevice(), getVKDevice()->getDevice(),
+            getVKDevice(),
             minFilter, magFilter, addressModeU, addressModeV, addressModeW,
             minLod, maxLod, anisotropyEnable, mipMapMode);
     }

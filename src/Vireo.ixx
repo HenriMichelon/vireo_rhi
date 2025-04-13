@@ -52,10 +52,10 @@ export namespace vireo {
         virtual void write(const void* data, size_t size = WHOLE_SIZE, size_t offset = 0) = 0;
 
     protected:
-        Type    type;
-        size_t  bufferSize{0};
-        size_t  alignmentSize{0};
-        void*   mappedAddress{nullptr};
+        const Type type;
+        size_t     bufferSize{0};
+        size_t     alignmentSize{0};
+        void*      mappedAddress{nullptr};
     };
 
 
@@ -109,9 +109,9 @@ export namespace vireo {
         auto getRowPitch() const { return width * pixelSize[static_cast<int>(format)]; }
 
     private:
-        ImageFormat format;
-        uint32_t width;
-        uint32_t height;
+        const ImageFormat format;
+        const uint32_t    width;
+        const uint32_t    height;
     };
 
     enum class DescriptorType : uint8_t {
@@ -140,21 +140,21 @@ export namespace vireo {
     public:
         virtual ~DescriptorSet() = default;
 
-        virtual void update(DescriptorIndex index, const shared_ptr<Buffer>& buffer) = 0;
+        virtual void update(DescriptorIndex index, const shared_ptr<const Buffer>& buffer) const = 0;
 
-        virtual void update(DescriptorIndex index, const shared_ptr<Image>& image) = 0;
+        virtual void update(DescriptorIndex index, const shared_ptr<const Image>& image) const = 0;
 
-        virtual void update(DescriptorIndex index, const shared_ptr<Sampler>& sampler) = 0;
+        virtual void update(DescriptorIndex index, const shared_ptr<const Sampler>& sampler) const = 0;
 
-        virtual void update(DescriptorIndex index, const vector<shared_ptr<Image>>& images) = 0;
+        virtual void update(DescriptorIndex index, const vector<shared_ptr<const Image>>& images) const = 0;
 
-        virtual void update(DescriptorIndex index, const vector<shared_ptr<Buffer>>& buffer) = 0;
+        virtual void update(DescriptorIndex index, const vector<shared_ptr<const Buffer>>& buffer) const = 0;
 
-        virtual void update(DescriptorIndex index, const vector<shared_ptr<Sampler>>& samplers) = 0;
+        virtual void update(DescriptorIndex index, const vector<shared_ptr<const Sampler>>& samplers) const = 0;
 
     protected:
-        const shared_ptr<DescriptorLayout> layout;
-        DescriptorSet(const shared_ptr<DescriptorLayout>& layout) : layout{layout} {}
+        const shared_ptr<const DescriptorLayout> layout;
+        DescriptorSet(const shared_ptr<const DescriptorLayout>& layout) : layout{layout} {}
     };
 
     class VertexInputLayout {
@@ -165,7 +165,7 @@ export namespace vireo {
             R32G32B32A32_FLOAT,
         };
         struct AttributeDescription {
-            string     binding;
+            string          binding;
             AttributeFormat format;
             uint32_t        offset;
         };
@@ -204,21 +204,21 @@ export namespace vireo {
             COMPUTE,
         };
 
-        virtual void begin(shared_ptr<Pipeline>& pipeline) = 0;
+        virtual void begin(const shared_ptr<const Pipeline>& pipeline) const = 0;
 
-        virtual void reset() = 0;
+        virtual void reset() const = 0;
 
-        virtual void begin() = 0;
+        virtual void begin() const = 0;
 
-        virtual void end() = 0;
+        virtual void end() const = 0;
 
-        virtual void bindVertexBuffer(shared_ptr<Buffer>& buffer) = 0;
+        virtual void bindVertexBuffer(const shared_ptr<const Buffer>& buffer) const = 0;
 
-        virtual void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) = 0;
+        virtual void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) const = 0;
 
-        virtual void upload(shared_ptr<Buffer>& destination, const void* source) = 0;
+        virtual void upload(const shared_ptr<const Buffer>& destination, const void* source) = 0;
 
-        virtual void upload(shared_ptr<Image>& destination, const void* source) = 0;
+        virtual void upload(const shared_ptr<const Image>& destination, const void* source) = 0;
 
         virtual void cleanup() = 0;
 
@@ -229,7 +229,7 @@ export namespace vireo {
     public:
         CommandAllocator(const CommandList::Type type) : commandListType{type} {}
 
-        virtual shared_ptr<CommandList> createCommandList(shared_ptr<Pipeline>& pipeline) const  = 0;
+        virtual shared_ptr<CommandList> createCommandList(const shared_ptr<const Pipeline>& pipeline) const  = 0;
 
         virtual shared_ptr<CommandList> createCommandList() const  = 0;
 
@@ -238,16 +238,16 @@ export namespace vireo {
         auto getCommandListType() const { return commandListType; }
 
     private:
-        CommandList::Type commandListType;
+        const CommandList::Type commandListType;
     };
 
     class SubmitQueue {
     public:
-        virtual void submit(const shared_ptr<FrameData>& frameData, vector<shared_ptr<CommandList>> commandLists) = 0;
+        virtual void submit(const shared_ptr<const FrameData>& frameData, const vector<shared_ptr<const CommandList>>& commandLists) const = 0;
 
-        virtual void submit(vector<shared_ptr<CommandList>> commandLists) = 0;
+        virtual void submit(const vector<shared_ptr<const CommandList>>& commandLists) const = 0;
 
-        virtual void waitIdle() = 0;
+        virtual void waitIdle() const = 0;
 
         virtual ~SubmitQueue() = default;
     };
@@ -271,13 +271,11 @@ export namespace vireo {
 
         virtual void nextSwapChain() = 0;
 
-        virtual bool acquire(shared_ptr<FrameData>& frameData) = 0;
+        virtual bool begin(const shared_ptr<FrameData>& frameData) = 0;
 
-        virtual void begin(shared_ptr<FrameData>& frameData, shared_ptr<CommandList>& commandList) {}
+        virtual void end(const shared_ptr<const FrameData>& frameData, const shared_ptr<const CommandList>& commandList) const {}
 
-        virtual void end(shared_ptr<FrameData>& frameData, shared_ptr<CommandList>& commandList) {}
-
-        virtual void present(shared_ptr<FrameData>& frameData) = 0;
+        virtual void present(const shared_ptr<FrameData>& frameData) = 0;
 
     protected:
         Extent      extent{};
@@ -298,7 +296,7 @@ export namespace vireo {
             const vector<shared_ptr<DescriptorSet>>& descriptorSet) = 0;
 
         virtual void destroyFrameData(
-            shared_ptr<FrameData>& frameData) {}
+            const shared_ptr<FrameData>& frameData) {}
 
         virtual void waitIdle() = 0;
 
@@ -317,10 +315,10 @@ export namespace vireo {
             const wstring& name = L"PipelineResource") const = 0;
 
         virtual shared_ptr<Pipeline> createPipeline(
-            PipelineResources& pipelineResources,
-            VertexInputLayout& vertexInputLayout,
-            ShaderModule& vertexShader,
-            ShaderModule& fragmentShader,
+            const shared_ptr<const PipelineResources>& pipelineResources,
+            const shared_ptr<const VertexInputLayout>& vertexInputLayout,
+            const shared_ptr<const ShaderModule>& vertexShader,
+            const shared_ptr<const ShaderModule>& fragmentShader,
             const wstring& name = L"Pipeline") const = 0;
 
         virtual shared_ptr<Buffer> createBuffer(
@@ -343,7 +341,7 @@ export namespace vireo {
             const wstring& name = L"createSamplerDescriptorLayout") = 0;
 
         virtual shared_ptr<DescriptorSet> createDescriptorSet(
-            shared_ptr<DescriptorLayout>& layout,
+            const shared_ptr<const DescriptorLayout>& layout,
             const wstring& name = L"DescriptorSet") = 0;
 
         virtual shared_ptr<Sampler> createSampler(
@@ -358,12 +356,12 @@ export namespace vireo {
             MipMapMode mipMapMode = MipMapMode::LINEAR) const = 0;
 
         virtual void beginRendering(
-            shared_ptr<FrameData>& frameData,
-            shared_ptr<PipelineResources>& pipelineResources,
-            shared_ptr<Pipeline>& pipeline,
-            shared_ptr<CommandList>& commandList) = 0;
+            const shared_ptr<FrameData>& frameData,
+            const shared_ptr<const PipelineResources>& pipelineResources,
+            const shared_ptr<const Pipeline>& pipeline,
+            const shared_ptr<const CommandList>& commandList) = 0;
 
-        virtual void endRendering(shared_ptr<CommandList>& commandList) = 0;
+        virtual void endRendering(const shared_ptr<const CommandList>& commandList) = 0;
 
         void setClearColor(const float r, const float g, const float b) {
             clearColor[0] = r;

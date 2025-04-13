@@ -55,13 +55,13 @@ export namespace vireo {
     public:
         DXPipeline(
             const ComPtr<ID3D12Device>& device,
-            PipelineResources& pipelineResources,
-            VertexInputLayout& vertexInputLayout,
-            ShaderModule& vertexShader,
-            ShaderModule& fragmentShader,
+            const shared_ptr<const PipelineResources>& pipelineResources,
+            const shared_ptr<const VertexInputLayout>& vertexInputLayout,
+            const shared_ptr<const ShaderModule>& vertexShader,
+            const shared_ptr<const ShaderModule>& fragmentShader,
             const wstring& name);
 
-        auto getPipelineState() { return pipelineState; }
+        auto getPipelineState() const { return pipelineState; }
 
     private:
         ComPtr<ID3D12PipelineState> pipelineState;

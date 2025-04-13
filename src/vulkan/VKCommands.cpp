@@ -13,81 +13,83 @@ import vireo.vulkan.pipelines;
 
 namespace vireo {
 
-    VKSubmitQueue::VKSubmitQueue(const CommandList::Type type, const VKDevice& device, const string& name) {
+    VKSubmitQueue::VKSubmitQueue(const shared_ptr<const VKDevice>& device, const CommandList::Type type, const string& name) {
         vkGetDeviceQueue(
-            device.getDevice(),
-            type == CommandList::COMPUTE ? device.getComputeQueueFamilyIndex() :
-            type == CommandList::TRANSFER ?  device.getTransferQueueFamilyIndex() :
-            device.getGraphicsQueueFamilyIndex(),
+            device->getDevice(),
+            type == CommandList::COMPUTE ? device->getComputeQueueFamilyIndex() :
+            type == CommandList::TRANSFER ?  device->getTransferQueueFamilyIndex() :
+            device->getGraphicsQueueFamilyIndex(),
             0,
             &commandQueue);
 #ifdef _DEBUG
-        vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(commandQueue), VK_OBJECT_TYPE_QUEUE,
+        vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(commandQueue), VK_OBJECT_TYPE_QUEUE,
             "VKSubmitQueue : " + name);
 #endif
     }
 
-    void VKSubmitQueue::waitIdle() {
+    void VKSubmitQueue::waitIdle() const {
         vkQueueWaitIdle(commandQueue);
     }
 
-    void VKSubmitQueue::submit(const shared_ptr<FrameData>& frameData, vector<shared_ptr<CommandList>> commandLists) {
-        auto data = static_pointer_cast<const VKFrameData>(frameData);
-        vector<VkCommandBufferSubmitInfo> submitInfos(commandLists.size());
+    void VKSubmitQueue::submit(
+        const shared_ptr<const FrameData>& frameData,
+        const vector<shared_ptr<const CommandList>>& commandLists) const {
+        const auto data = static_pointer_cast<const VKFrameData>(frameData);
+        auto submitInfos = vector<VkCommandBufferSubmitInfo>(commandLists.size());
         for (int i = 0; i < commandLists.size(); i++) {
             submitInfos[i] = {
                 .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
-                .commandBuffer = static_pointer_cast<VKCommandList>(commandLists[i])->getCommandBuffer(),
+                .commandBuffer = static_pointer_cast<const VKCommandList>(commandLists[i])->getCommandBuffer(),
             };
         }
-        const VkSubmitInfo2 submitInfo {
-            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
-            .waitSemaphoreInfoCount = 1,
-            .pWaitSemaphoreInfos = &data->imageAvailableSemaphoreSubmitInfo,
-            .commandBufferInfoCount = static_cast<uint32_t>(submitInfos.size()),
-            .pCommandBufferInfos = submitInfos.data(),
+        const auto submitInfo = VkSubmitInfo2  {
+            .sType                    = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+            .waitSemaphoreInfoCount   = 1,
+            .pWaitSemaphoreInfos      = &data->imageAvailableSemaphoreSubmitInfo,
+            .commandBufferInfoCount   = static_cast<uint32_t>(submitInfos.size()),
+            .pCommandBufferInfos      = submitInfos.data(),
             .signalSemaphoreInfoCount = 1,
-            .pSignalSemaphoreInfos = &data->renderFinishedSemaphoreSubmitInfo
+            .pSignalSemaphoreInfos    = &data->renderFinishedSemaphoreSubmitInfo
         };
         DieIfFailed(vkQueueSubmit2(commandQueue, 1, &submitInfo, data->inFlightFence));
     }
 
-    void VKSubmitQueue::submit(vector<shared_ptr<CommandList>> commandLists) {
-        vector<VkCommandBufferSubmitInfo> submitInfos(commandLists.size());
+    void VKSubmitQueue::submit(const vector<shared_ptr<const CommandList>>& commandLists) const {
+        auto submitInfos = vector<VkCommandBufferSubmitInfo>(commandLists.size());
         for (int i = 0; i < commandLists.size(); i++) {
             submitInfos[i] = {
                 .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
-                .commandBuffer = static_pointer_cast<VKCommandList>(commandLists[i])->getCommandBuffer(),
+                .commandBuffer = static_pointer_cast<const VKCommandList>(commandLists[i])->getCommandBuffer(),
             };
         }
-        const VkSubmitInfo2 submitInfo {
-            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
-            .waitSemaphoreInfoCount = 0,
-            .commandBufferInfoCount = static_cast<uint32_t>(submitInfos.size()),
-            .pCommandBufferInfos = submitInfos.data(),
+        const auto submitInfo = VkSubmitInfo2 {
+            .sType                    = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+            .waitSemaphoreInfoCount   = 0,
+            .commandBufferInfoCount   = static_cast<uint32_t>(submitInfos.size()),
+            .pCommandBufferInfos      = submitInfos.data(),
             .signalSemaphoreInfoCount = 0,
         };
         DieIfFailed(vkQueueSubmit2(commandQueue, 1, &submitInfo, VK_NULL_HANDLE));
     }
 
-    VKCommandAllocator::VKCommandAllocator(const CommandList::Type type, const VKDevice& device):
+    VKCommandAllocator::VKCommandAllocator(const shared_ptr<const VKDevice>& device, const CommandList::Type type):
         CommandAllocator{type},
         device{device} {
-        const VkCommandPoolCreateInfo poolInfo           = {
+        const auto poolInfo = VkCommandPoolCreateInfo {
             .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
             .flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, // TODO optional
-            .queueFamilyIndex = type == CommandList::COMPUTE ? device.getComputeQueueFamilyIndex() :
-                type == CommandList::TRANSFER ?  device.getTransferQueueFamilyIndex() :
-                 device.getGraphicsQueueFamilyIndex()
+            .queueFamilyIndex = type == CommandList::COMPUTE ? device->getComputeQueueFamilyIndex() :
+                type == CommandList::TRANSFER ?  device->getTransferQueueFamilyIndex() :
+                 device->getGraphicsQueueFamilyIndex()
         };
-        DieIfFailed(vkCreateCommandPool(device.getDevice(), &poolInfo, nullptr, &commandPool));
+        DieIfFailed(vkCreateCommandPool(device->getDevice(), &poolInfo, nullptr, &commandPool));
     }
 
     VKCommandAllocator::~VKCommandAllocator() {
-        vkDestroyCommandPool(device.getDevice(), commandPool, nullptr);
+        vkDestroyCommandPool(device->getDevice(), commandPool, nullptr);
     }
 
-    shared_ptr<CommandList> VKCommandAllocator::createCommandList(shared_ptr<Pipeline>&) const {
+    shared_ptr<CommandList> VKCommandAllocator::createCommandList(const shared_ptr<const Pipeline>&) const {
         return createCommandList();
     }
 
@@ -95,68 +97,65 @@ namespace vireo {
         return make_shared<VKCommandList>(device, commandPool);
     }
 
-    VKCommandList::VKCommandList(const VKDevice& device, const VkCommandPool commandPool) : device{device} {
-        const VkCommandBufferAllocateInfo allocInfo{
-            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-            .commandPool = commandPool,
-            .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+    VKCommandList::VKCommandList(const shared_ptr<const VKDevice>& device, const VkCommandPool commandPool) :
+        device{device} {
+        const auto allocInfo = VkCommandBufferAllocateInfo {
+            .sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+            .commandPool        = commandPool,
+            .level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
             .commandBufferCount = 1
         };
-        DieIfFailed(vkAllocateCommandBuffers(device.getDevice(), &allocInfo, &commandBuffer));
+        DieIfFailed(vkAllocateCommandBuffers(device->getDevice(), &allocInfo, &commandBuffer));
     }
 
-    void VKCommandList::bindVertexBuffer(shared_ptr<Buffer>& buffer) {
-        const auto vkBuffer = static_pointer_cast<VKBuffer>(buffer);
+    void VKCommandList::bindVertexBuffer(const shared_ptr<const Buffer>& buffer) const {
+        const auto vkBuffer = static_pointer_cast<const VKBuffer>(buffer);
         const VkBuffer         buffers[] = {vkBuffer->getBuffer()};
         constexpr VkDeviceSize offsets[] = {0};
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
     }
 
-    void VKCommandList::drawInstanced(const uint32_t vertexCountPerInstance, const uint32_t instanceCount) {
+    void VKCommandList::drawInstanced(const uint32_t vertexCountPerInstance, const uint32_t instanceCount) const {
         vkCmdDraw(commandBuffer, vertexCountPerInstance, instanceCount, 0, 0);
     }
 
-    VKCommandList::~VKCommandList() {
-    }
-
-    void VKCommandList::reset() {
+    void VKCommandList::reset() const {
         vkResetCommandBuffer(commandBuffer, 0);
     }
 
-    void VKCommandList::begin(shared_ptr<Pipeline>& pipeline) {
-        constexpr VkCommandBufferBeginInfo beginInfo{
+    void VKCommandList::begin(const shared_ptr<const Pipeline>& pipeline) const {
+        constexpr auto beginInfo = VkCommandBufferBeginInfo {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         };
         DieIfFailed(vkBeginCommandBuffer(commandBuffer, &beginInfo));
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS , static_pointer_cast<VKPipeline>(pipeline)->getPipeline());
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS , static_pointer_cast<const VKPipeline>(pipeline)->getPipeline());
     }
 
-    void VKCommandList::begin() {
-        constexpr VkCommandBufferBeginInfo beginInfo{
+    void VKCommandList::begin() const {
+        constexpr auto beginInfo = VkCommandBufferBeginInfo{
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         };
         vkResetCommandBuffer(commandBuffer, 0);
         DieIfFailed(vkBeginCommandBuffer(commandBuffer, &beginInfo));
     }
 
-    void VKCommandList::end() {
+    void VKCommandList::end() const {
         DieIfFailed(vkEndCommandBuffer(commandBuffer));
     }
 
-
     void VKCommandList::cleanup() {
         for (int i = 0; i < stagingBuffers.size(); i++) {
-            vkDestroyBuffer(device.getDevice(), stagingBuffers[i], nullptr);
-            vkFreeMemory(device.getDevice(), stagingBuffersMemory[i], nullptr);
+            vkDestroyBuffer(device->getDevice(), stagingBuffers[i], nullptr);
+            vkFreeMemory(device->getDevice(), stagingBuffersMemory[i], nullptr);
         }
         stagingBuffers.clear();
         stagingBuffersMemory.clear();
     }
 
-    void VKCommandList::upload(shared_ptr<Buffer>& destination, const void* source) {
-        const auto buffer = static_pointer_cast<VKBuffer>(destination);
-        VkBuffer       stagingBuffer{VK_NULL_HANDLE};
-        VkDeviceMemory stagingBufferMemory{VK_NULL_HANDLE};
+    void VKCommandList::upload(const shared_ptr<const Buffer>& destination, const void* source) {
+        const auto buffer = static_pointer_cast<const VKBuffer>(destination);
+        auto stagingBuffer = VkBuffer{VK_NULL_HANDLE};
+        auto stagingBufferMemory = VkDeviceMemory {VK_NULL_HANDLE};
         VKBuffer::createBuffer(
             device,
             buffer->getSize(),
@@ -165,9 +164,9 @@ namespace vireo {
             stagingBuffer, stagingBufferMemory);
 
         void* stagingData;
-        vkMapMemory(device.getDevice(), stagingBufferMemory, 0, buffer->getSize(), 0, &stagingData);
+        vkMapMemory(device->getDevice(), stagingBufferMemory, 0, buffer->getSize(), 0, &stagingData);
         memcpy(stagingData, source, buffer->getSize());
-        vkUnmapMemory(device.getDevice(), stagingBufferMemory);
+        vkUnmapMemory(device->getDevice(), stagingBufferMemory);
 
         const auto copyRegion = VkBufferCopy{
             .srcOffset = 0,
@@ -185,10 +184,10 @@ namespace vireo {
         stagingBuffersMemory.push_back(stagingBufferMemory);
     }
 
-    void VKCommandList::upload(shared_ptr<Image>& destination, const void* source) {
-        auto image = static_pointer_cast<VKImage>(destination);
-        VkBuffer stagingBuffer{VK_NULL_HANDLE};
-        VkDeviceMemory stagingBufferMemory{VK_NULL_HANDLE};
+    void VKCommandList::upload(const shared_ptr<const Image>& destination, const void* source) {
+        const auto image = static_pointer_cast<const VKImage>(destination);
+        auto stagingBuffer = VkBuffer{VK_NULL_HANDLE};
+        auto stagingBufferMemory = VkDeviceMemory{VK_NULL_HANDLE};
         VKBuffer::createBuffer(
             device,
             image->getSize(),
@@ -197,9 +196,9 @@ namespace vireo {
             stagingBuffer, stagingBufferMemory);
 
         void* stagingData;
-        vkMapMemory(device.getDevice(), stagingBufferMemory, 0, image->getSize(), 0, &stagingData);
+        vkMapMemory(device->getDevice(), stagingBufferMemory, 0, image->getSize(), 0, &stagingData);
         memcpy(stagingData, source, image->getSize());
-        vkUnmapMemory(device.getDevice(), stagingBufferMemory);
+        vkUnmapMemory(device->getDevice(), stagingBufferMemory);
 
         // https://vulkan-tutorial.com/Texture_mapping/Images#page_Copying-buffer-to-image
         const auto region = VkBufferImageCopy {

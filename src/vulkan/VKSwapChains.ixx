@@ -17,8 +17,7 @@ export namespace vireo {
     class VKSwapChain : public SwapChain {
     public:
         VKSwapChain(
-            const VKPhysicalDevice& physicalDevice,
-            const VKDevice& device,
+            const shared_ptr<const VKDevice>& device,
             void* windowHandle,
             VSyncMode vSyncMode);
 
@@ -34,13 +33,11 @@ export namespace vireo {
 
         void nextSwapChain() override;
 
-        bool acquire(shared_ptr<FrameData>& frameData) override;
+        bool begin(const shared_ptr<FrameData>& frameData) override;
 
-        void begin(shared_ptr<FrameData>& frameData, shared_ptr<CommandList>& commandList) override;
+        void end(const shared_ptr<const FrameData>& frameData, const shared_ptr<const CommandList>& commandList) const override;
 
-        void end(shared_ptr<FrameData>& frameData, shared_ptr<CommandList>& commandList) override;
-
-        void present(shared_ptr<FrameData>& framesData) override;
+        void present(const shared_ptr<FrameData>& framesData) override;
 
     private:
         static constexpr VkPresentModeKHR vkPresentModes[] {
@@ -54,7 +51,7 @@ export namespace vireo {
             vector<VkPresentModeKHR>   presentModes;
         };
 
-        const VKDevice&         device;
+        const shared_ptr<const VKDevice>         device;
         const VKPhysicalDevice& physicalDevice;
         const VSyncMode         vSyncMode;
         VkSwapchainKHR          swapChain;

@@ -57,7 +57,7 @@ namespace vireo {
         const wstring& name):
         device{device} {
         for (const auto& descriptorLayout : descriptorLayouts) {
-            const auto layout = static_pointer_cast<VKDescriptorLayout>(descriptorLayout);
+            const auto layout = static_pointer_cast<const VKDescriptorLayout>(descriptorLayout);
             setLayouts.push_back(layout->getSetLayout());
         }
         const auto pipelineLayoutInfo = VkPipelineLayoutCreateInfo {
@@ -81,16 +81,16 @@ namespace vireo {
     VKPipeline::VKPipeline(
            VkDevice device,
            VKSwapChain& swapChain,
-           PipelineResources& pipelineResources,
-           VertexInputLayout& vertexInputLayout,
-           ShaderModule& vertexShader,
-           ShaderModule& fragmentShader,
+           const shared_ptr<const PipelineResources>& pipelineResources,
+           const shared_ptr<const VertexInputLayout>& vertexInputLayout,
+           const shared_ptr<const ShaderModule>& vertexShader,
+           const shared_ptr<const ShaderModule>& fragmentShader,
            const wstring& name):
         device{device} {
-        const auto vertexShaderModule = static_cast<VKShaderModule&>(vertexShader).getShaderModule();
-        const auto fragmentShaderModule = static_cast<VKShaderModule&>(fragmentShader).getShaderModule();
-        const auto& vkVertexInputLayout = static_cast<VKVertexInputLayout&>(vertexInputLayout);
-        const auto& vkPipelineLayout = static_cast<VKPipelineResources&>(pipelineResources);
+        const auto vertexShaderModule = static_pointer_cast<const VKShaderModule>(vertexShader)->getShaderModule();
+        const auto fragmentShaderModule = static_pointer_cast<const VKShaderModule>(fragmentShader)->getShaderModule();
+        const auto& vkVertexInputLayout = static_pointer_cast<const VKVertexInputLayout>(vertexInputLayout);
+        const auto& vkPipelineLayout = static_pointer_cast<const VKPipelineResources>(pipelineResources);
 
         const auto shaderStages = vector<VkPipelineShaderStageCreateInfo> {
             {
@@ -109,9 +109,9 @@ namespace vireo {
         const auto vertexInputInfo = VkPipelineVertexInputStateCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
             .vertexBindingDescriptionCount = 1,
-            .pVertexBindingDescriptions = &vkVertexInputLayout.getVertexBindingDescription(),
-            .vertexAttributeDescriptionCount = static_cast<uint32_t>(vkVertexInputLayout.getVertexAttributeDescription().size()),
-            .pVertexAttributeDescriptions = vkVertexInputLayout.getVertexAttributeDescription().data()
+            .pVertexBindingDescriptions = &vkVertexInputLayout->getVertexBindingDescription(),
+            .vertexAttributeDescriptionCount = static_cast<uint32_t>(vkVertexInputLayout->getVertexAttributeDescription().size()),
+            .pVertexAttributeDescriptions = vkVertexInputLayout->getVertexAttributeDescription().data()
         };
         constexpr auto inputAssembly = VkPipelineInputAssemblyStateCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
@@ -194,7 +194,7 @@ namespace vireo {
             .pDepthStencilState = nullptr,
             .pColorBlendState = &colorBlending,
             .pDynamicState = &dynamicState,
-            .layout = vkPipelineLayout.getPipelineLayout(),
+            .layout = vkPipelineLayout->getPipelineLayout(),
             .renderPass = VK_NULL_HANDLE,
             .subpass = 0,
             .basePipelineHandle = VK_NULL_HANDLE,

@@ -39,10 +39,10 @@ export namespace vireo {
             const wstring& name = L"PipelineResource") const override;
 
         shared_ptr<Pipeline> createPipeline(
-            PipelineResources& pipelineResources,
-            VertexInputLayout& vertexInputLayout,
-            ShaderModule& vertexShader,
-            ShaderModule& fragmentShader,
+            const shared_ptr<const PipelineResources>& pipelineResources,
+            const shared_ptr<const VertexInputLayout>& vertexInputLayout,
+            const shared_ptr<const ShaderModule>& vertexShader,
+            const shared_ptr<const ShaderModule>& fragmentShader,
             const wstring& name = L"Pipeline") const override;
 
         shared_ptr<Buffer> createBuffer(
@@ -65,7 +65,7 @@ export namespace vireo {
             const wstring& name = L"createSamplerDescriptorLayout") override;
 
         shared_ptr<DescriptorSet> createDescriptorSet(
-            shared_ptr<DescriptorLayout>& layout,
+            const shared_ptr<const DescriptorLayout>& layout,
             const wstring& name) override;
 
         shared_ptr<Sampler> createSampler(
@@ -80,12 +80,12 @@ export namespace vireo {
                MipMapMode mipMapMode = MipMapMode::LINEAR) const override;
 
         void beginRendering(
-            shared_ptr<FrameData>& frameData,
-            shared_ptr<PipelineResources>& pipelineResources,
-            shared_ptr<Pipeline>& pipeline,
-            shared_ptr<CommandList>& commandList) override;
+            const shared_ptr<FrameData>& frameData,
+            const shared_ptr<const PipelineResources>& pipelineResources,
+            const shared_ptr<const Pipeline>& pipeline,
+            const shared_ptr<const CommandList>& commandList) override;
 
-        void endRendering(shared_ptr<CommandList>& commandList) override;
+        void endRendering(const shared_ptr<const CommandList>& commandList) override;
 
         auto getDXInstance() const { return reinterpret_pointer_cast<DXInstance>(instance); }
 

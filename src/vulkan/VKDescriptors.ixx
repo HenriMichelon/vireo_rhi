@@ -37,21 +37,21 @@ export namespace vireo {
 
     class VKDescriptorSet : public DescriptorSet {
     public:
-        VKDescriptorSet(const shared_ptr<DescriptorLayout>& layout, const wstring& name);
+        VKDescriptorSet(const shared_ptr<const DescriptorLayout>& layout, const wstring& name);
 
         ~VKDescriptorSet() override;
 
-        void update(DescriptorIndex index, const shared_ptr<Buffer>& buffer) override;
+        void update(DescriptorIndex index, const shared_ptr<const Buffer>& buffer) const override;
 
-        void update(DescriptorIndex index, const shared_ptr<Image>& image) override;
+        void update(DescriptorIndex index, const shared_ptr<const Image>& image) const override;
 
-        void update(DescriptorIndex index, const shared_ptr<Sampler>& sampler) override;
+        void update(DescriptorIndex index, const shared_ptr<const Sampler>& sampler) const override;
 
-        void update(DescriptorIndex index, const vector<shared_ptr<Buffer>>& buffers) override;
+        void update(DescriptorIndex index, const vector<shared_ptr<const Buffer>>& buffers) const override;
 
-        void update(DescriptorIndex index, const vector<shared_ptr<Image>>& images) override;
+        void update(DescriptorIndex index, const vector<shared_ptr<const Image>>& images) const override;
 
-        void update(DescriptorIndex index, const vector<shared_ptr<Sampler>>& samplers) override;
+        void update(DescriptorIndex index, const vector<shared_ptr<const Sampler>>& samplers) const override;
 
         auto getSet() const { return set; }
 

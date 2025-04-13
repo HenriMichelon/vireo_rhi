@@ -32,21 +32,21 @@ export namespace vireo {
 
     class DXDescriptorSet : public DescriptorSet {
     public:
-        DXDescriptorSet(const shared_ptr<DescriptorLayout>& layout, const ComPtr<ID3D12Device>& device, const wstring& name);
+        DXDescriptorSet(const shared_ptr<const DescriptorLayout>& layout, const ComPtr<ID3D12Device>& device, const wstring& name);
 
         ~DXDescriptorSet() override;
 
-        void update(DescriptorIndex index, const shared_ptr<Buffer>& buffer) override;
+        void update(DescriptorIndex index, const shared_ptr<const Buffer>& buffer) const override;
 
-        void update(DescriptorIndex index, const shared_ptr<Image>& image) override;
+        void update(DescriptorIndex index, const shared_ptr<const Image>& image) const override;
 
-        void update(DescriptorIndex index, const shared_ptr<Sampler>& sampler) override;
+        void update(DescriptorIndex index, const shared_ptr<const Sampler>& sampler) const override;
 
-        void update(DescriptorIndex index, const vector<shared_ptr<Buffer>>& buffers) override;
+        void update(DescriptorIndex index, const vector<shared_ptr<const Buffer>>& buffers) const override;
 
-        void update(DescriptorIndex index, const vector<shared_ptr<Image>>& images) override;
+        void update(DescriptorIndex index, const vector<shared_ptr<const Image>>& images) const override;
 
-        void update(DescriptorIndex index, const vector<shared_ptr<Sampler>>& samplers) override;
+        void update(DescriptorIndex index, const vector<shared_ptr<const Sampler>>& samplers) const override;
 
         D3D12_GPU_DESCRIPTOR_HANDLE getGPUHandle(DescriptorIndex index) const;
 

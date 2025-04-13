@@ -11,7 +11,7 @@ module vireo.vulkan.resources;
 namespace vireo {
 
     VKBuffer::VKBuffer(
-            const VKDevice& device,
+            const shared_ptr<const VKDevice>& device,
             const Type type,
             const size_t size,
             const size_t count,
@@ -31,19 +31,19 @@ namespace vireo {
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
         createBuffer(device, bufferSize, usage, memType, buffer, bufferMemory);
 #ifdef _DEBUG
-        vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(buffer), VK_OBJECT_TYPE_BUFFER,
+        vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(buffer), VK_OBJECT_TYPE_BUFFER,
             "VKBuffer : " + wstring_to_string(name));
-        vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(bufferMemory), VK_OBJECT_TYPE_DEVICE_MEMORY,
+        vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(bufferMemory), VK_OBJECT_TYPE_DEVICE_MEMORY,
         "VKBuffer Memory : " + wstring_to_string(name));
 #endif
     }
 
     void VKBuffer::map() {
-        vkMapMemory(device.getDevice(), bufferMemory, 0, bufferSize, 0, &mappedAddress);
+        vkMapMemory(device->getDevice(), bufferMemory, 0, bufferSize, 0, &mappedAddress);
     }
 
     void VKBuffer::unmap() {
-        vkUnmapMemory(device.getDevice(), bufferMemory);
+        vkUnmapMemory(device->getDevice(), bufferMemory);
         mappedAddress = nullptr;
     }
 
@@ -56,7 +56,7 @@ namespace vireo {
     }
 
     void VKBuffer::createBuffer(
-            const VKDevice& device,
+            const shared_ptr<const VKDevice>& device,
             const VkDeviceSize size,
             const VkBufferUsageFlags usage,
             const VkMemoryPropertyFlags memoryType,
@@ -68,27 +68,26 @@ namespace vireo {
             .usage = usage,
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         };
-        DieIfFailed (vkCreateBuffer(device.getDevice(), &bufferInfo, nullptr, &buffer));
+        DieIfFailed (vkCreateBuffer(device->getDevice(), &bufferInfo, nullptr, &buffer));
         VkMemoryRequirements memRequirements;
-        vkGetBufferMemoryRequirements(device.getDevice(), buffer, &memRequirements);
+        vkGetBufferMemoryRequirements(device->getDevice(), buffer, &memRequirements);
         const auto allocInfo = VkMemoryAllocateInfo {
             .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
             .allocationSize = memRequirements.size,
-            .memoryTypeIndex = device.getPhysicalDevice().findMemoryType(memRequirements.memoryTypeBits, memoryType)
+            .memoryTypeIndex = device->getPhysicalDevice().findMemoryType(memRequirements.memoryTypeBits, memoryType)
         };
-        DieIfFailed(vkAllocateMemory(device.getDevice(), &allocInfo, nullptr, &memory));
-        vkBindBufferMemory(device.getDevice(), buffer, memory, 0);
+        DieIfFailed(vkAllocateMemory(device->getDevice(), &allocInfo, nullptr, &memory));
+        vkBindBufferMemory(device->getDevice(), buffer, memory, 0);
     }
 
     VKBuffer::~VKBuffer() {
-        vkDestroyBuffer(device.getDevice(), buffer, nullptr);
-        vkFreeMemory(device.getDevice(), bufferMemory, nullptr);
+        vkDestroyBuffer(device->getDevice(), buffer, nullptr);
+        vkFreeMemory(device->getDevice(), bufferMemory, nullptr);
     }
 
 
     VKSampler::VKSampler(
-        const VKPhysicalDevice& physicalDevice,
-        const VkDevice device,
+        const shared_ptr<const VKDevice>& device,
         const Filter minFilter,
         const Filter magFilter,
         const AddressMode addressModeU,
@@ -98,7 +97,7 @@ namespace vireo {
         const float maxLod,
         const bool anisotropyEnable,
         const MipMapMode mipMapMode) :
-        device{device} {
+        device{device->getDevice()} {
         // https://vulkan-tutorial.com/Texture_mapping/Image_view_and_sampler#page_Samplers
         const auto samplerInfo = VkSamplerCreateInfo {
             .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
@@ -111,7 +110,7 @@ namespace vireo {
             .mipLodBias = 0.0f,
             .anisotropyEnable = anisotropyEnable,
             // https://vulkan-tutorial.com/Texture_mapping/Image_view_and_sampler#page_Anisotropy-device-feature
-            .maxAnisotropy = physicalDevice.getDeviceProperties().limits.maxSamplerAnisotropy,
+            .maxAnisotropy = device->getPhysicalDevice().getDeviceProperties().limits.maxSamplerAnisotropy,
             .compareEnable = VK_FALSE,
             .compareOp = VK_COMPARE_OP_ALWAYS,
             .minLod = minLod,
@@ -119,7 +118,7 @@ namespace vireo {
             .borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK,
             .unnormalizedCoordinates = VK_FALSE,
         };
-        DieIfFailed(vkCreateSampler(device, &samplerInfo, nullptr, &sampler));
+        DieIfFailed(vkCreateSampler(device->getDevice(), &samplerInfo, nullptr, &sampler));
     }
 
     VKSampler::~VKSampler() {
@@ -127,7 +126,7 @@ namespace vireo {
     }
 
     VKImage::VKImage(
-            const VKDevice& device,
+            const shared_ptr<const VKDevice>& device,
             const ImageFormat format,
             const uint32_t    width,
             const uint32_t    height,
@@ -148,27 +147,27 @@ namespace vireo {
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
             .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
         };
-        DieIfFailed(vkCreateImage(device.getDevice(), &imageInfo, nullptr, &image));
+        DieIfFailed(vkCreateImage(device->getDevice(), &imageInfo, nullptr, &image));
 #ifdef _DEBUG
-        vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(image), VK_OBJECT_TYPE_IMAGE,
+        vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(image), VK_OBJECT_TYPE_IMAGE,
             wstring_to_string((L"VKImage : " + name)));
 #endif
 
         VkMemoryRequirements memRequirements;
-        vkGetImageMemoryRequirements(device.getDevice(), image, &memRequirements);
+        vkGetImageMemoryRequirements(device->getDevice(), image, &memRequirements);
 
         const auto allocInfo = VkMemoryAllocateInfo {
             .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
             .allocationSize = memRequirements.size,
-            .memoryTypeIndex = device.getPhysicalDevice().findMemoryType(
+            .memoryTypeIndex = device->getPhysicalDevice().findMemoryType(
                 memRequirements.memoryTypeBits,
                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
         };
-        DieIfFailed(vkAllocateMemory(device.getDevice(), &allocInfo, nullptr, &imageMemory));
-        DieIfFailed(vkBindImageMemory(device.getDevice(), image, imageMemory, 0));
+        DieIfFailed(vkAllocateMemory(device->getDevice(), &allocInfo, nullptr, &imageMemory));
+        DieIfFailed(vkBindImageMemory(device->getDevice(), image, imageMemory, 0));
 
 #ifdef _DEBUG
-        vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(imageMemory), VK_OBJECT_TYPE_DEVICE_MEMORY,
+        vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(imageMemory), VK_OBJECT_TYPE_DEVICE_MEMORY,
         "VKImage Memory : " + wstring_to_string(name));
 #endif
 
@@ -185,17 +184,17 @@ namespace vireo {
                 .layerCount = VK_REMAINING_ARRAY_LAYERS
             }
         };
-        DieIfFailed(vkCreateImageView(device.getDevice(), &viewInfo, nullptr, &imageView));
+        DieIfFailed(vkCreateImageView(device->getDevice(), &viewInfo, nullptr, &imageView));
 #ifdef _DEBUG
-        vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(imageView), VK_OBJECT_TYPE_IMAGE_VIEW,
+        vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(imageView), VK_OBJECT_TYPE_IMAGE_VIEW,
             wstring_to_string((L"VKImage view : " + name)));
 #endif
     }
 
     VKImage::~VKImage() {
-        vkDestroyImage(device.getDevice(), image, nullptr);
-        vkFreeMemory(device.getDevice(), imageMemory, nullptr);
-        vkDestroyImageView(device.getDevice(), imageView, nullptr);
+        vkDestroyImage(device->getDevice(), image, nullptr);
+        vkFreeMemory(device->getDevice(), imageMemory, nullptr);
+        vkDestroyImageView(device->getDevice(), imageView, nullptr);
     }
 
 

@@ -70,10 +70,10 @@ export namespace vireo {
         VKPipeline(
            VkDevice device,
            VKSwapChain& swapChain,
-           PipelineResources& pipelineResources,
-           VertexInputLayout& vertexInputLayout,
-           ShaderModule& vertexShader,
-           ShaderModule& fragmentShader,
+           const shared_ptr<const PipelineResources>& pipelineResources,
+           const shared_ptr<const VertexInputLayout>& vertexInputLayout,
+           const shared_ptr<const ShaderModule>& vertexShader,
+           const shared_ptr<const ShaderModule>& fragmentShader,
            const wstring& name);
 
         auto getPipeline() const { return pipeline; }

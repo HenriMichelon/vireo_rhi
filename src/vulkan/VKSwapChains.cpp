@@ -14,20 +14,19 @@ import vireo.vulkan.framedata;
 namespace vireo {
 
     VKSwapChain::VKSwapChain(
-        const VKPhysicalDevice& physicalDevice,
-        const VKDevice& device,
+        const shared_ptr<const VKDevice>& device,
         void* windowHandle,
         const VSyncMode vSyncMode):
         device{device},
-        physicalDevice{physicalDevice},
+        physicalDevice{device->getPhysicalDevice()},
         vSyncMode{vSyncMode},
 #ifdef _WIN32
         hWnd{static_cast<HWND>(windowHandle)}
 #endif
     {
         vkGetDeviceQueue(
-            device.getDevice(),
-            device.getPresentQueueFamilyIndex(),
+            device->getDevice(),
+            device->getPresentQueueFamilyIndex(),
             0,
             &presentQueue);
         create();
@@ -64,8 +63,8 @@ namespace vireo {
                 .presentMode = presentMode,
                 .clipped = VK_TRUE
             };
-            if (device.getPresentQueueFamilyIndex() != device.getGraphicsQueueFamilyIndex()) {
-                const uint32_t queueFamilyIndices[] = {device.getPresentQueueFamilyIndex(), device.getGraphicsQueueFamilyIndex()};
+            if (device->getPresentQueueFamilyIndex() != device->getGraphicsQueueFamilyIndex()) {
+                const uint32_t queueFamilyIndices[] = {device->getPresentQueueFamilyIndex(), device->getGraphicsQueueFamilyIndex()};
                 createInfo.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
                 createInfo.queueFamilyIndexCount = 2;
                 createInfo.pQueueFamilyIndices   = queueFamilyIndices;
@@ -75,30 +74,30 @@ namespace vireo {
                 createInfo.pQueueFamilyIndices   = nullptr;
             }
             // Need VK_KHR_SWAPCHAIN extension, or it will crash (no validation error)
-            DieIfFailed(vkCreateSwapchainKHR(device.getDevice(), &createInfo, nullptr, &swapChain));
+            DieIfFailed(vkCreateSwapchainKHR(device->getDevice(), &createInfo, nullptr, &swapChain));
 #ifdef _DEBUG
-            vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(swapChain), VK_OBJECT_TYPE_SWAPCHAIN_KHR,
+            vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(swapChain), VK_OBJECT_TYPE_SWAPCHAIN_KHR,
                 "VKSwapChain");
 #endif
         }
-        vkGetSwapchainImagesKHR(device.getDevice(), swapChain, &imageCount, nullptr);
+        vkGetSwapchainImagesKHR(device->getDevice(), swapChain, &imageCount, nullptr);
         swapChainImages.resize(imageCount);
         swapChainImageViews.resize(swapChainImages.size());
         swapChainImageFormat = surfaceFormat.format;
 
-        vkGetSwapchainImagesKHR(device.getDevice(), swapChain, &imageCount, swapChainImages.data());
+        vkGetSwapchainImagesKHR(device->getDevice(), swapChain, &imageCount, swapChainImages.data());
         extent      = Extent{ swapChainExtent.width, swapChainExtent.height };
         aspectRatio = static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height);
 
         for (uint32_t i = 0; i < swapChainImages.size(); i++) {
-            swapChainImageViews[i] = device.createImageView(swapChainImages[i],
+            swapChainImageViews[i] = device->createImageView(swapChainImages[i],
                                                      swapChainImageFormat,
                                                      VK_IMAGE_ASPECT_COLOR_BIT,
                                                      1);
 #ifdef _DEBUG
-            vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(swapChainImageViews[i]), VK_OBJECT_TYPE_IMAGE_VIEW,
+            vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(swapChainImageViews[i]), VK_OBJECT_TYPE_IMAGE_VIEW,
                 "VKSwapChain Image View " + to_string(i));
-            vkSetObjectName(device.getDevice(), reinterpret_cast<uint64_t>(swapChainImages[i]), VK_OBJECT_TYPE_IMAGE,
+            vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(swapChainImages[i]), VK_OBJECT_TYPE_IMAGE,
                 "VKSwapChain Image " + to_string(i));
 #endif
         }
@@ -125,7 +124,7 @@ namespace vireo {
     }
 
     void VKSwapChain::recreate() {
-        vkDeviceWaitIdle(device.getDevice());
+        vkDeviceWaitIdle(device->getDevice());
         cleanup();
         create();
     }
@@ -133,9 +132,9 @@ namespace vireo {
     void VKSwapChain::cleanup() const {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Swap_chain_recreation#page_Recreating-the-swap-chain
         for (const auto &swapChainImageView : swapChainImageViews) {
-            vkDestroyImageView(device.getDevice(), swapChainImageView, nullptr);
+            vkDestroyImageView(device->getDevice(), swapChainImageView, nullptr);
         }
-        vkDestroySwapchainKHR(device.getDevice(), swapChain, nullptr);
+        vkDestroySwapchainKHR(device->getDevice(), swapChain, nullptr);
     }
 
     VKSwapChain::SwapChainSupportDetails VKSwapChain::querySwapChainSupport(
@@ -210,7 +209,7 @@ namespace vireo {
         currentFrameIndex = (currentFrameIndex + 1) % FRAMES_IN_FLIGHT;
     }
 
-    void VKSwapChain::present(shared_ptr<FrameData>& frameData) {
+    void VKSwapChain::present(const shared_ptr<FrameData>& frameData) {
         const auto data = static_pointer_cast<VKFrameData>(frameData);
         {
             const VkSwapchainKHR   swapChains[] = { swapChain };
@@ -232,12 +231,9 @@ namespace vireo {
         }
     }
 
-    void VKSwapChain::begin(shared_ptr<FrameData>&, shared_ptr<CommandList>&) {
-    }
-
-    void VKSwapChain::end(shared_ptr<FrameData>& frameData, shared_ptr<CommandList>& commandList) {
-        const auto data = static_pointer_cast<VKFrameData>(frameData);
-        static_pointer_cast<VKCommandList>(commandList)->pipelineBarrier(
+    void VKSwapChain::end(const shared_ptr<const FrameData>& frameData, const shared_ptr<const CommandList>& commandList) const {
+        const auto data = static_pointer_cast<const VKFrameData>(frameData);
+        static_pointer_cast<const VKCommandList>(commandList)->pipelineBarrier(
             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
             VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
             {
@@ -247,17 +243,17 @@ namespace vireo {
             });
     }
 
-    bool VKSwapChain::acquire(shared_ptr<FrameData>& frameData) {
-        auto data = static_pointer_cast<VKFrameData>(frameData);
+    bool VKSwapChain::begin(const shared_ptr<FrameData>& frameData) {
+        const auto data = static_pointer_cast<VKFrameData>(frameData);
         // wait until the GPU has finished rendering the frame.
-        if (vkWaitForFences(device.getDevice(), 1, &data->inFlightFence, VK_TRUE, UINT64_MAX) == VK_TIMEOUT) {
+        if (vkWaitForFences(device->getDevice(), 1, &data->inFlightFence, VK_TRUE, UINT64_MAX) == VK_TIMEOUT) {
             die("timeout waiting for inFlightFence");
             return false;
         }
         // get the next available swap chain image
         {
             const auto result = vkAcquireNextImageKHR(
-                 device.getDevice(),
+                 device->getDevice(),
                  swapChain,
                  UINT64_MAX,
                  data->imageAvailableSemaphore,
@@ -272,7 +268,7 @@ namespace vireo {
                 die("failed to acquire swap chain image :", to_string(result));
             }
         }
-        vkResetFences(device.getDevice(), 1, &data->inFlightFence);
+        vkResetFences(device->getDevice(), 1, &data->inFlightFence);
         return true;
     }
 

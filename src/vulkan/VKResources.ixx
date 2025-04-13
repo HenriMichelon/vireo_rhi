@@ -17,7 +17,7 @@ export namespace vireo {
     class VKBuffer : public Buffer {
     public:
         VKBuffer(
-            const VKDevice& device,
+            const shared_ptr<const VKDevice>& device,
             Type type,
             size_t size,
             size_t count,
@@ -35,7 +35,7 @@ export namespace vireo {
         inline auto getBuffer() const { return buffer; }
 
         static void createBuffer(
-            const VKDevice& device,
+            const shared_ptr<const VKDevice>& device,
             VkDeviceSize size,
             VkBufferUsageFlags usage,
             uint32_t memoryTypeIndex,
@@ -43,7 +43,7 @@ export namespace vireo {
             VkDeviceMemory& memory);
 
     private:
-        const VKDevice& device;
+        const shared_ptr<const VKDevice> device;
         VkBuffer        buffer{VK_NULL_HANDLE};
         VkDeviceMemory  bufferMemory{VK_NULL_HANDLE};
     };
@@ -51,8 +51,7 @@ export namespace vireo {
     class VKSampler : public Sampler {
     public:
         VKSampler(
-            const VKPhysicalDevice& physicalDevice,
-            VkDevice device,
+            const shared_ptr<const VKDevice>& device,
             Filter minFilter,
             Filter magFilter,
             AddressMode addressModeU,
@@ -79,7 +78,7 @@ export namespace vireo {
         };
 
         VKImage(
-            const VKDevice& device,
+            const shared_ptr<const VKDevice>& device,
             ImageFormat format,
             uint32_t    width,
             uint32_t    height,
@@ -92,7 +91,7 @@ export namespace vireo {
         auto getImageView() const { return imageView; }
 
     private:
-        const VKDevice& device;
+        const shared_ptr<const VKDevice> device;
         VkImage         image{VK_NULL_HANDLE};
         VkDeviceMemory  imageMemory{VK_NULL_HANDLE};
         VkImageView     imageView{VK_NULL_HANDLE};

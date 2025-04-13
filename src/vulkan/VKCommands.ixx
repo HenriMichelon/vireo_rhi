@@ -18,15 +18,15 @@ export namespace vireo {
 
     class VKSubmitQueue : public SubmitQueue {
     public:
-        VKSubmitQueue(CommandList::Type type, const VKDevice& device, const string& name);
+        VKSubmitQueue(const shared_ptr<const VKDevice>& device, CommandList::Type type, const string& name);
 
         auto getCommandQueue() const { return commandQueue; }
 
-        void submit(const shared_ptr<FrameData>& frameData, vector<shared_ptr<CommandList>> commandLists) override;
+        void submit(const shared_ptr<const FrameData>& frameData, const vector<shared_ptr<const CommandList>>& commandLists) const override;
 
-        void submit(vector<shared_ptr<CommandList>> commandLists) override;
+        void submit(const vector<shared_ptr<const CommandList>>& commandLists) const override;
 
-        void waitIdle() override;
+        void waitIdle() const override;
 
     private:
         VkQueue commandQueue;
@@ -34,41 +34,40 @@ export namespace vireo {
 
     class VKCommandAllocator : public CommandAllocator {
     public:
-        VKCommandAllocator(CommandList::Type type, const VKDevice& device);
+        VKCommandAllocator(const shared_ptr<const VKDevice>& device, CommandList::Type type);
+
         ~VKCommandAllocator() override;
 
-        shared_ptr<CommandList> createCommandList(shared_ptr<Pipeline>& pipeline) const override;
+        shared_ptr<CommandList> createCommandList(const shared_ptr<const Pipeline>& pipeline) const override;
 
         shared_ptr<CommandList> createCommandList() const override;
 
     private:
-        const VKDevice& device;
-        VkCommandPool   commandPool;
+        const shared_ptr<const VKDevice> device;
+        VkCommandPool                    commandPool;
     };
 
     class VKCommandList : public CommandList {
     public:
-        VKCommandList(const VKDevice& device, VkCommandPool commandPool);
+        VKCommandList(const shared_ptr<const VKDevice>& device, VkCommandPool commandPool);
 
-        ~VKCommandList() override;
+        void reset() const override;
 
-        void reset() override;
+        void begin(const shared_ptr<const Pipeline>& pipeline) const override;
 
-        void begin(shared_ptr<Pipeline>& pipeline) override;
+        void begin() const override;
 
-        void begin() override;
-
-        void end() override;
+        void end() const override;
 
         void cleanup() override;
 
-        void bindVertexBuffer(shared_ptr<Buffer>& buffer) override;
+        void bindVertexBuffer(const shared_ptr<const Buffer>& buffer) const override;
 
-        void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) override;
+        void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) const override;
 
-        void upload(shared_ptr<Buffer>& destination, const void* source) override;
+        void upload(const shared_ptr<const Buffer>& destination, const void* source) override;
 
-        void upload(shared_ptr<Image>& destination, const void* source) override;
+        void upload(const shared_ptr<const Image>& destination, const void* source) override;
 
         auto getCommandBuffer() const { return commandBuffer; }
 
@@ -86,10 +85,10 @@ export namespace vireo {
        );
 
     private:
-        const VKDevice& device;
-        VkCommandBuffer commandBuffer;
-        vector<VkBuffer> stagingBuffers{};
-        vector<VkDeviceMemory> stagingBuffersMemory{};
+        const shared_ptr<const VKDevice> device;
+        VkCommandBuffer                  commandBuffer;
+        vector<VkBuffer>                 stagingBuffers{};
+        vector<VkDeviceMemory>           stagingBuffersMemory{};
     };
 
 }

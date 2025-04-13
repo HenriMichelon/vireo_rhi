@@ -13,34 +13,36 @@ import vireo.directx.resources;
 
 namespace vireo {
 
-    DXSubmitQueue::DXSubmitQueue(const CommandList::Type type, const ComPtr<ID3D12Device>& device) :
+    DXSubmitQueue::DXSubmitQueue(const ComPtr<ID3D12Device>& device, const CommandList::Type type) :
         device{device} {
-        const auto queueDesc = D3D12_COMMAND_QUEUE_DESC{
+        const auto queueDesc = D3D12_COMMAND_QUEUE_DESC {
             .Type = DXCommandList::ListType[type],
             .Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
         };
         DieIfFailed(device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&commandQueue)));
     }
 
-    void DXSubmitQueue::submit(const shared_ptr<FrameData>& frameData, vector<shared_ptr<CommandList>> commandLists) {
+    void DXSubmitQueue::submit(
+        const shared_ptr<const FrameData>&,
+        const vector<shared_ptr<const CommandList>>& commandLists) const {
         submit(commandLists);
     }
 
-    void DXSubmitQueue::submit(const vector<shared_ptr<CommandList>> commandLists) {
+    void DXSubmitQueue::submit(const vector<shared_ptr<const CommandList>>& commandLists) const {
         auto dxCommandLists = vector<ID3D12CommandList*>(commandLists.size());
         for (int i = 0; i < commandLists.size(); i++) {
-            dxCommandLists[i] = static_pointer_cast<DXCommandList>(commandLists[i])->getCommandList().Get();
+            dxCommandLists[i] = static_pointer_cast<const DXCommandList>(commandLists[i])->getCommandList().Get();
         }
         commandQueue->ExecuteCommandLists(dxCommandLists.size(), dxCommandLists.data());
     }
 
-    void DXSubmitQueue::waitIdle() {
+    void DXSubmitQueue::waitIdle() const {
         ComPtr<ID3D12Fence> inFlightFence;
         DieIfFailed(device->CreateFence(
             0,
             D3D12_FENCE_FLAG_NONE,
             IID_PPV_ARGS(&inFlightFence)));
-        HANDLE inFlightFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+        const HANDLE inFlightFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
         if (inFlightFenceEvent == nullptr) {
             DieIfFailed(HRESULT_FROM_WIN32(GetLastError()));
         }
@@ -48,14 +50,13 @@ namespace vireo {
         if (inFlightFence->GetCompletedValue() < 0) {
             DieIfFailed(inFlightFence->SetEventOnCompletion(
                 0,
-                inFlightFenceEvent
-                ));
+                inFlightFenceEvent));
             WaitForSingleObjectEx(inFlightFenceEvent, INFINITE, FALSE);
         }
         CloseHandle(inFlightFenceEvent);
     }
 
-    DXCommandAllocator::DXCommandAllocator(const CommandList::Type type, const ComPtr<ID3D12Device>& device):
+    DXCommandAllocator::DXCommandAllocator( const ComPtr<ID3D12Device>& device, const CommandList::Type type):
         CommandAllocator{type},
         device{device} {
         DieIfFailed(device->CreateCommandAllocator(
@@ -63,12 +64,12 @@ namespace vireo {
             IID_PPV_ARGS(&commandAllocator)));
     }
 
-    shared_ptr<CommandList> DXCommandAllocator::createCommandList(shared_ptr<Pipeline>& pipeline) const {
+    shared_ptr<CommandList> DXCommandAllocator::createCommandList(const shared_ptr<const Pipeline>& pipeline) const {
         return make_shared<DXCommandList>(
             getCommandListType(),
             device,
             commandAllocator,
-            static_pointer_cast<DXPipeline>(pipeline)->getPipelineState());
+            static_pointer_cast<const DXPipeline>(pipeline)->getPipelineState());
     }
 
     shared_ptr<CommandList> DXCommandAllocator::createCommandList() const {
@@ -95,20 +96,20 @@ namespace vireo {
         DieIfFailed(commandList->Close());
     }
 
-    void DXCommandList::reset() {
+    void DXCommandList::reset() const {
         DieIfFailed(commandAllocator->Reset());
     }
 
-    void DXCommandList::begin(shared_ptr<Pipeline>& pipeline) {
-        auto dxPipeline = static_pointer_cast<DXPipeline>(pipeline);
+    void DXCommandList::begin(const shared_ptr<const Pipeline>& pipeline) const {
+        const auto dxPipeline = static_pointer_cast<const DXPipeline>(pipeline);
         DieIfFailed(commandList->Reset(commandAllocator.Get(), dxPipeline->getPipelineState().Get()));
     }
 
-    void DXCommandList::begin() {
+    void DXCommandList::begin() const {
         DieIfFailed(commandList->Reset(commandAllocator.Get(), nullptr));
     }
 
-    void DXCommandList::end() {
+    void DXCommandList::end() const {
         DieIfFailed(commandList->Close());
     }
 
@@ -119,17 +120,17 @@ namespace vireo {
         stagingBuffers.clear();
     }
 
-    void DXCommandList::bindVertexBuffer(shared_ptr<Buffer>& buffer) {
-        const auto& vertexBuffer = static_pointer_cast<DXBuffer>(buffer);
+    void DXCommandList::bindVertexBuffer(const shared_ptr<const Buffer>& buffer) const {
+        const auto& vertexBuffer = static_pointer_cast<const DXBuffer>(buffer);
         commandList->IASetVertexBuffers(0, 1, &vertexBuffer->getBufferView());
     }
 
-    void DXCommandList::drawInstanced(const uint32_t vertexCountPerInstance, const uint32_t instanceCount) {
+    void DXCommandList::drawInstanced(const uint32_t vertexCountPerInstance, const uint32_t instanceCount) const {
         commandList->DrawInstanced(vertexCountPerInstance, instanceCount, 0, 0);
     }
 
-    void DXCommandList::upload(shared_ptr<Buffer>& destination, const void* source) {
-        const auto buffer = static_pointer_cast<DXBuffer>(destination);
+    void DXCommandList::upload(const shared_ptr<const Buffer>& destination, const void* source) {
+        const auto buffer = static_pointer_cast<const DXBuffer>(destination);
 
         ComPtr<ID3D12Resource> stagingBuffer;
         {
@@ -149,7 +150,7 @@ namespace vireo {
         }
 
         {
-            const auto copyData = D3D12_SUBRESOURCE_DATA{
+            const auto copyData = D3D12_SUBRESOURCE_DATA {
                 .pData = source,
                 .RowPitch = static_cast<LONG_PTR>(buffer->getSize()),
                 .SlicePitch = static_cast<LONG_PTR>(buffer->getSize()),
@@ -175,10 +176,10 @@ namespace vireo {
         stagingBuffers.push_back(stagingBuffer);
     }
 
-    void DXCommandList::upload(shared_ptr<Image>& destination, const void* source) {
-        const auto image = static_pointer_cast<DXImage>(destination);
+    void DXCommandList::upload(const shared_ptr<const Image>& destination, const void* source) {
+        const auto image = static_pointer_cast<const DXImage>(destination);
 
-        ComPtr<ID3D12Resource> stagingBuffer;
+        auto stagingBuffer = ComPtr<ID3D12Resource>{nullptr};
         {
             const auto stagingBufferSize = GetRequiredIntermediateSize(image->getImage().Get(), 0, 1);
             const auto stagingHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
@@ -196,7 +197,7 @@ namespace vireo {
         }
 
         {
-            const auto copyData = D3D12_SUBRESOURCE_DATA{
+            const auto copyData = D3D12_SUBRESOURCE_DATA {
                 .pData = source,
                 .RowPitch = static_cast<LONG_PTR>(image->getRowPitch()),
                 .SlicePitch = static_cast<LONG_PTR>(image->getSize()),

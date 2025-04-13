@@ -9,6 +9,7 @@ module;
 module vireo.directx.swapchains;
 
 namespace vireo {
+
     DXSwapChain::DXSwapChain(
         const ComPtr<IDXGIFactory4>& factory,
         DXDevice& dxdevice,
@@ -82,7 +83,7 @@ namespace vireo {
         assert(currentFrameIndex < FRAMES_IN_FLIGHT);
     }
 
-    bool DXSwapChain::acquire(shared_ptr<FrameData>& frameData) {
+    bool DXSwapChain::begin(const shared_ptr<FrameData>& frameData) {
         const auto data = static_pointer_cast<DXFrameData>(frameData);
         const auto currentFenceValue = data->inFlightFenceValue;
         DieIfFailed(presentCommandQueue->Signal(device.getInFlightFence().Get(), currentFenceValue));
@@ -97,7 +98,7 @@ namespace vireo {
         return true;
     }
 
-    void DXSwapChain::present(shared_ptr<FrameData>& frameData) {
+    void DXSwapChain::present(const shared_ptr<FrameData>& frameData) {
         const auto data = static_pointer_cast<DXFrameData>(frameData);
         DieIfFailed(swapChain->Present(syncInterval, presentFlags));
         data->inFlightFenceValue += 1;

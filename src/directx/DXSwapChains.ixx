@@ -35,9 +35,9 @@ export namespace vireo {
 
         void nextSwapChain() override;
 
-        bool acquire(shared_ptr<FrameData>& frameData) override;
+        bool begin(const shared_ptr<FrameData>& frameData) override;
 
-        void present(shared_ptr<FrameData>& frameData) override;
+        void present(const shared_ptr<FrameData>& frameData) override;
 
     private:
         DXDevice&                    device;

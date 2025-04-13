@@ -100,24 +100,24 @@ namespace vireo {
 
     DXPipeline::DXPipeline(
         const ComPtr<ID3D12Device>& device,
-        PipelineResources& pipelineResources,
-        VertexInputLayout& vertexInputLayout,
-        ShaderModule& vertexShader,
-        ShaderModule& fragmentShader,
+        const shared_ptr<const PipelineResources>& pipelineResources,
+        const shared_ptr<const VertexInputLayout>& vertexInputLayout,
+        const shared_ptr<const ShaderModule>& vertexShader,
+        const shared_ptr<const ShaderModule>& fragmentShader,
         const wstring& name) {
-        auto& dxVertexInputLayout = static_cast<DXVertexInputLayout&>(vertexInputLayout);
-        auto& dxPipelineResources = static_cast<DXPipelineResources&>(pipelineResources);
-        auto& dxVertexShader = static_cast<DXShaderModule&>(vertexShader);
-        auto& dxPixelShader = static_cast<DXShaderModule&>(fragmentShader);
+        auto dxVertexInputLayout = static_pointer_cast<const DXVertexInputLayout>(vertexInputLayout);
+        auto dxPipelineResources = static_pointer_cast<const DXPipelineResources>(pipelineResources);
+        auto dxVertexShader = static_pointer_cast<const DXShaderModule>(vertexShader);
+        auto dxPixelShader = static_pointer_cast<const DXShaderModule>(fragmentShader);
 
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
         psoDesc.InputLayout = {
-            dxVertexInputLayout.getInputElementDescs().data(),
-            static_cast<UINT>(dxVertexInputLayout.getInputElementDescs().size())
+            dxVertexInputLayout->getInputElementDescs().data(),
+            static_cast<UINT>(dxVertexInputLayout->getInputElementDescs().size())
         };
-        psoDesc.pRootSignature = dxPipelineResources.getRootSignature().Get();
-        psoDesc.VS = CD3DX12_SHADER_BYTECODE(dxVertexShader.getShader().Get());
-        psoDesc.PS = CD3DX12_SHADER_BYTECODE(dxPixelShader.getShader().Get());
+        psoDesc.pRootSignature = dxPipelineResources->getRootSignature().Get();
+        psoDesc.VS = CD3DX12_SHADER_BYTECODE(dxVertexShader->getShader().Get());
+        psoDesc.PS = CD3DX12_SHADER_BYTECODE(dxPixelShader->getShader().Get());
         psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
         psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
         psoDesc.DepthStencilState.DepthEnable = FALSE;

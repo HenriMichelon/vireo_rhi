@@ -14,15 +14,15 @@ export namespace vireo {
 
     class DXSubmitQueue : public SubmitQueue{
     public:
-        DXSubmitQueue(CommandList::Type type, const ComPtr<ID3D12Device>& device);
+        DXSubmitQueue(const ComPtr<ID3D12Device>& device, CommandList::Type type);
 
         auto getCommandQueue() { return commandQueue; }
 
-        void submit(const shared_ptr<FrameData>& frameData, vector<shared_ptr<CommandList>> commandLists) override;
+        void submit(const shared_ptr<const FrameData>& frameData, const vector<shared_ptr<const CommandList>>& commandLists) const override;
 
-        void submit(vector<shared_ptr<CommandList>> commandLists) override;
+        void submit(const vector<shared_ptr<const CommandList>>& commandLists) const override;
 
-        void waitIdle() override;
+        void waitIdle() const override;
 
     private:
         ComPtr<ID3D12Device>       device;
@@ -31,9 +31,9 @@ export namespace vireo {
 
     class DXCommandAllocator : public CommandAllocator {
     public:
-        DXCommandAllocator(CommandList::Type type, const ComPtr<ID3D12Device>& device);
+        DXCommandAllocator(const ComPtr<ID3D12Device>& device, CommandList::Type type);
 
-        shared_ptr<CommandList> createCommandList(shared_ptr<Pipeline>& pipeline) const override;
+        shared_ptr<CommandList> createCommandList(const shared_ptr<const Pipeline>& pipeline) const override;
 
         shared_ptr<CommandList> createCommandList() const override;
 
@@ -56,33 +56,33 @@ export namespace vireo {
             const ComPtr<ID3D12CommandAllocator>& commandAllocator,
             const ComPtr<ID3D12PipelineState>& pipelineState = nullptr);
 
-        void reset() override;
+        void reset() const override;
 
-        void begin(shared_ptr<Pipeline>& pipeline) override;
+        void begin(const shared_ptr<const Pipeline>& pipeline)const override;
 
-        void begin() override;
+        void begin() const override;
 
-        void end() override;
+        void end() const override;
 
-        void bindVertexBuffer(shared_ptr<Buffer>& buffer) override;
+        void bindVertexBuffer(const shared_ptr<const Buffer>& buffer) const override;
 
-        void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) override;
+        void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) const override;
 
-        void upload(shared_ptr<Buffer>& destination, const void* source) override;
+        void upload(const shared_ptr<const Buffer>& destination, const void* source) override;
 
-        void upload(shared_ptr<Image>& destination, const void* source) override;
+        void upload(const shared_ptr<const Image>& destination, const void* source) override;
 
         void cleanup() override;
 
-        auto getCommandList() { return commandList; }
+        auto getCommandList() const  { return commandList; }
 
         ~DXCommandList() override = default;
 
     private:
-        ComPtr<ID3D12Device>                device;
-        ComPtr<ID3D12GraphicsCommandList>   commandList;
-        ComPtr<ID3D12CommandAllocator>      commandAllocator;
-        vector<ComPtr<ID3D12Resource>> stagingBuffers{};
+        ComPtr<ID3D12Device>              device;
+        ComPtr<ID3D12GraphicsCommandList> commandList;
+        ComPtr<ID3D12CommandAllocator>    commandAllocator;
+        vector<ComPtr<ID3D12Resource>>    stagingBuffers{};
     };
 
 }

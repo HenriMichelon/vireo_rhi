@@ -42,8 +42,8 @@ namespace vireo {
         instance = make_shared<DXInstance>(hWnd);
         physicalDevice = make_shared<DXPhysicalDevice>(getDXInstance()->getFactory());
         device = make_shared<DXDevice>(getDXPhysicalDevice()->getHardwareAdapter());
-        graphicCommandQueue = make_shared<DXSubmitQueue>(CommandList::GRAPHIC, getDXDevice()->getDevice());
-        transferCommandQueue = make_shared<DXSubmitQueue>(CommandList::GRAPHIC, getDXDevice()->getDevice());
+        graphicCommandQueue = make_shared<DXSubmitQueue>(getDXDevice()->getDevice(), CommandList::GRAPHIC);
+        transferCommandQueue = make_shared<DXSubmitQueue>(getDXDevice()->getDevice(), CommandList::GRAPHIC);
         swapChain = make_shared<DXSwapChain>(
             getDXInstance()->getFactory(),
             *getDXDevice(),
@@ -67,10 +67,10 @@ namespace vireo {
     }
 
     shared_ptr<Pipeline> DXRenderingBackEnd::createPipeline(
-        PipelineResources& pipelineResources,
-        VertexInputLayout& vertexInputLayout,
-        ShaderModule& vertexShader,
-        ShaderModule& fragmentShader,
+        const shared_ptr<const PipelineResources>& pipelineResources,
+        const shared_ptr<const VertexInputLayout>& vertexInputLayout,
+        const shared_ptr<const ShaderModule>& vertexShader,
+        const shared_ptr<const ShaderModule>& fragmentShader,
         const wstring& name) const {
         return make_shared<DXPipeline>(
             getDXDevice()->getDevice(),
@@ -91,11 +91,12 @@ namespace vireo {
         return make_shared<DXShaderModule>(fileName);
     }
 
-    shared_ptr<Buffer> DXRenderingBackEnd::createBuffer(const Buffer::Type type,
-                                                             const size_t size,
-                                                             const size_t count,
-                                                             const size_t alignment,
-                                                             const wstring& name) const {
+    shared_ptr<Buffer> DXRenderingBackEnd::createBuffer(
+        const Buffer::Type type,
+        const size_t size,
+        const size_t count,
+        const size_t alignment,
+        const wstring& name) const {
         return make_shared<DXBuffer>(getDXDevice()->getDevice(), type, size, count, alignment, name);
     }
 
@@ -118,7 +119,7 @@ namespace vireo {
     }
 
     shared_ptr<DescriptorSet> DXRenderingBackEnd::createDescriptorSet(
-        shared_ptr<DescriptorLayout>& layout,
+        const shared_ptr<const DescriptorLayout>& layout,
         const wstring& name) {
         return make_shared<DXDescriptorSet>(layout, getDXDevice()->getDevice(), name);
     }
@@ -138,15 +139,14 @@ namespace vireo {
             minLod, maxLod, anisotropyEnable, mipMapMode);
     }
 
-    void DXRenderingBackEnd::beginRendering(shared_ptr<FrameData>&data,
-                                            shared_ptr<PipelineResources>& pipelineResources,
-                                            shared_ptr<Pipeline>& pipeline,
-                                            shared_ptr<CommandList>& commandList) {
-        const auto dxCommandList = static_pointer_cast<DXCommandList>(commandList)->getCommandList();
+    void DXRenderingBackEnd::beginRendering(const shared_ptr<FrameData>&data,
+                                            const shared_ptr<const PipelineResources>& pipelineResources,
+                                            const shared_ptr<const Pipeline>& pipeline,
+                                            const shared_ptr<const CommandList>& commandList) {
+        const auto dxCommandList = static_pointer_cast<const DXCommandList>(commandList)->getCommandList();
         const auto dxSwapChain = getDXSwapChain();
         const auto frameIndex = swapChain->getCurrentFrameIndex();
-        const auto dxPipelineResources = static_pointer_cast<DXPipelineResources>(pipelineResources);
-        // const auto& dxPipeline = static_cast<DXPipeline&>(pipeline);
+        const auto dxPipelineResources = static_pointer_cast<const DXPipelineResources>(pipelineResources);
 
         dxCommandList->SetGraphicsRootSignature(dxPipelineResources->getRootSignature().Get());
         dxCommandList->RSSetViewports(1, &viewport);
@@ -176,18 +176,20 @@ namespace vireo {
 
         dxCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-        vector<ID3D12DescriptorHeap*> heaps(data->descriptorSets.size());
-        for (int i = 0; i < data->descriptorSets.size(); i++) {
-            heaps[i] = static_pointer_cast<DXDescriptorSet>(data->descriptorSets[i])->getHeap().Get();
-        }
-        dxCommandList->SetDescriptorHeaps(heaps.size(), heaps.data());
-        for (int i = 0; i < data->descriptorSets.size(); i++) {
-            dxCommandList->SetGraphicsRootDescriptorTable(i, heaps[i]->GetGPUDescriptorHandleForHeapStart());
+        if (!data->descriptorSets.empty()) {
+            vector<ID3D12DescriptorHeap*> heaps(data->descriptorSets.size());
+            for (int i = 0; i < data->descriptorSets.size(); i++) {
+                heaps[i] = static_pointer_cast<DXDescriptorSet>(data->descriptorSets[i])->getHeap().Get();
+            }
+            dxCommandList->SetDescriptorHeaps(heaps.size(), heaps.data());
+            for (int i = 0; i < data->descriptorSets.size(); i++) {
+                dxCommandList->SetGraphicsRootDescriptorTable(i, heaps[i]->GetGPUDescriptorHandleForHeapStart());
+            }
         }
     }
 
-    void DXRenderingBackEnd::endRendering(shared_ptr<CommandList>& commandList) {
-        const auto dxCommandList = static_pointer_cast<DXCommandList>(commandList)->getCommandList();
+    void DXRenderingBackEnd::endRendering(const shared_ptr<const CommandList>& commandList) {
+        const auto dxCommandList = static_pointer_cast<const DXCommandList>(commandList)->getCommandList();
         const auto dxSwapChain = getDXSwapChain();
         const auto frameIndex = swapChain->getCurrentFrameIndex();
 
@@ -198,13 +200,12 @@ namespace vireo {
         dxCommandList->ResourceBarrier(1, &swapChainBarrier);
     }
 
-    shared_ptr<CommandAllocator> DXRenderingBackEnd::createCommandAllocator(CommandList::Type type) const {
-        return make_shared<DXCommandAllocator>(type, getDXDevice()->getDevice());
+    shared_ptr<CommandAllocator> DXRenderingBackEnd::createCommandAllocator(const CommandList::Type type) const {
+        return make_shared<DXCommandAllocator>(getDXDevice()->getDevice(), type);
     }
 
     void DXRenderingBackEnd::waitIdle() {
         graphicCommandQueue->waitIdle();
     }
-
 
 }

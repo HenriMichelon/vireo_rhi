@@ -40,7 +40,7 @@ export namespace vireo {
         void*    windowHandle           {nullptr};
         Backends backend                {Backends::DIRECTX};
         //! MSAA samples
-        MSAA             msaa           {MSAA::NONE};
+        // MSAA             msaa           {MSAA::NONE};
         //! Presentation mode
         VSyncMode        vSyncMode      {VSyncMode::VSYNC};
     };
