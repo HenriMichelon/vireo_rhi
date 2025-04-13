@@ -6,9 +6,9 @@
 */
 module;
 #include "vireo/Libraries.h"
-export module vireo.backend.resources;
+export module vireo.resources;
 
-export namespace vireo::backend {
+export namespace vireo {
 
     class Buffer {
     public:

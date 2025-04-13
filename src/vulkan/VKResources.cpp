@@ -6,9 +6,9 @@
 */
 module;
 #include "vireo/backend/vulkan/Tools.h"
-module vireo.backend.vulkan.resources;
+module vireo.vulkan.resources;
 
-namespace vireo::backend {
+namespace vireo {
 
     VKBuffer::VKBuffer(
             const VKDevice& device,

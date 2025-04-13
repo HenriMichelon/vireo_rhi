@@ -5,11 +5,11 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-export module vireo.backend.device;
+export module vireo.device;
 
-import vireo.backend.framedata;
+import vireo.framedata;
 
-export namespace vireo::backend {
+export namespace vireo {
 
     class Instance {
     public:

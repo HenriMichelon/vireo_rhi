@@ -6,12 +6,12 @@
 */
 module;
 #include "vireo/backend/directx/Libraries.h"
-export module vireo.backend.directx.descriptors;
+export module vireo.directx.descriptors;
 
-import vireo.backend.descriptors;
-import vireo.backend.resources;
+import vireo.descriptors;
+import vireo.resources;
 
-export namespace vireo::backend {
+export namespace vireo {
 
     class DXDescriptorLayout : public DescriptorLayout {
     public:

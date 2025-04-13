@@ -6,19 +6,19 @@
 */
 module;
 #include "vireo/backend/vulkan/Tools.h"
-export module vireo.backend.vulkan;
+export module vireo.vulkan;
 
-import vireo.backend;
-import vireo.backend.framedata;
-import vireo.backend.descriptors;
-import vireo.backend.device;
-import vireo.backend.resources;
+import vireo;
+import vireo.framedata;
+import vireo.descriptors;
+import vireo.device;
+import vireo.resources;
 
-import vireo.backend.vulkan.device;
-import vireo.backend.vulkan.descriptors;
-import vireo.backend.vulkan.resources;
+import vireo.vulkan.device;
+import vireo.vulkan.descriptors;
+import vireo.vulkan.resources;
 
-export namespace vireo::backend {
+export namespace vireo {
 
     class VKSubmitQueue : public SubmitQueue {
     public:

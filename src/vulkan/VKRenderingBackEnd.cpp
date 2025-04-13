@@ -6,13 +6,13 @@
 */
 module;
 #include "vireo/backend/vulkan/Tools.h"
-module vireo.backend.vulkan;
+module vireo.vulkan;
 
-import vireo.backend.vulkan.descriptors;
-import vireo.backend.vulkan.framedata;
-import vireo.backend.vulkan.resources;
+import vireo.vulkan.descriptors;
+import vireo.vulkan.framedata;
+import vireo.vulkan.resources;
 
-namespace vireo::backend {
+namespace vireo {
 
     VKRenderingBackEnd::VKRenderingBackEnd(void *windowHandle) :
 #ifdef _WIN32

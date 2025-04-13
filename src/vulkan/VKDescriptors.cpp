@@ -6,11 +6,11 @@
 */
 module;
 #include "vireo/backend/vulkan/Tools.h"
-module vireo.backend.vulkan.descriptors;
+module vireo.vulkan.descriptors;
 
-import vireo.backend.vulkan.resources;
+import vireo.vulkan.resources;
 
-namespace vireo::backend {
+namespace vireo {
 
     VKDescriptorLayout::VKDescriptorLayout(const VkDevice device, const wstring& name):
         device{device}, name{name} {

@@ -6,12 +6,12 @@
 */
 module;
 #include "vireo/backend/vulkan/Tools.h"
-export module vireo.backend.vulkan.resources;
+export module vireo.vulkan.resources;
 
-import vireo.backend.resources;
-import vireo.backend.vulkan.device;
+import vireo.resources;
+import vireo.vulkan.device;
 
-export namespace vireo::backend {
+export namespace vireo {
 
     class VKBuffer : public Buffer {
     public:

@@ -6,11 +6,11 @@
 */
 module;
 #include "vireo/Tools.h"
-export module vireo.backend.descriptors;
+export module vireo.descriptors;
 
-import vireo.backend.resources;
+import vireo.resources;
 
-export namespace vireo::backend {
+export namespace vireo {
 
     enum class DescriptorType : uint8_t {
         BUFFER  = 0,

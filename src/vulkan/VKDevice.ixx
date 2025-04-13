@@ -7,12 +7,12 @@
 module;
 #include "vireo/backend/vulkan/Tools.h"
 
-export module vireo.backend.vulkan.device;
+export module vireo.vulkan.device;
 
-import vireo.backend;
-import vireo.backend.device;
+import vireo;
+import vireo.device;
 
-export namespace vireo::backend {
+export namespace vireo {
 
     class VKInstance : public Instance {
     public:

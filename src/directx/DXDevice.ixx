@@ -6,11 +6,11 @@
 */
 module;
 #include "vireo/backend/directx/Libraries.h"
-export module vireo.backend.directx.device;
+export module vireo.directx.device;
 
-import vireo.backend.device;
+import vireo.device;
 
-export namespace vireo::backend {
+export namespace vireo {
 
     class DXInstance : public Instance {
     public:

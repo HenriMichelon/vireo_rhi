@@ -6,12 +6,12 @@
 */
 module;
 #include "vireo/backend/vulkan/Tools.h"
-export module vireo.backend.vulkan.framedata;
+export module vireo.vulkan.framedata;
 
-import vireo.backend.framedata;
-import vireo.backend.descriptors;
+import vireo.framedata;
+import vireo.descriptors;
 
-export namespace vireo::backend {
+export namespace vireo {
 
     struct VKFrameData : FrameData {
         VkSemaphore             imageAvailableSemaphore{VK_NULL_HANDLE};

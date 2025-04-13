@@ -6,14 +6,14 @@
 */
 module;
 #include "vireo/Tools.h"
-export module vireo.backend;
+export module vireo;
 
-export import vireo.backend.descriptors;
-export import vireo.backend.device;
-export import vireo.backend.framedata;
-export import vireo.backend.resources;
+export import vireo.descriptors;
+export import vireo.device;
+export import vireo.framedata;
+export import vireo.resources;
 
-export namespace vireo::backend {
+export namespace vireo {
 
     enum class RenderingBackends {
         DIRECTX,

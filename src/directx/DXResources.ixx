@@ -6,11 +6,11 @@
 */
 module;
 #include "vireo/backend/directx/Libraries.h"
-export module vireo.backend.directx.resources;
+export module vireo.directx.resources;
 
-import vireo.backend.resources;
+import vireo.resources;
 
-export namespace vireo::backend {
+export namespace vireo {
 
     class DXBuffer : public Buffer {
     public:

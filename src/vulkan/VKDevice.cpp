@@ -6,9 +6,9 @@
 */
 module;
 #include "vireo/backend/vulkan/Tools.h"
-module vireo.backend.vulkan.device;
+module vireo.vulkan.device;
 
-namespace vireo::backend {
+namespace vireo {
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT,
                                                        VkDebugUtilsMessageTypeFlagsEXT,

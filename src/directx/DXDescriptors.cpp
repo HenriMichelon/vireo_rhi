@@ -6,11 +6,11 @@
 */
 module;
 #include "vireo/backend/directx/Tools.h"
-module vireo.backend.directx.descriptors;
+module vireo.directx.descriptors;
 
-import vireo.backend.directx.resources;
+import vireo.directx.resources;
 
-namespace vireo::backend {
+namespace vireo {
 
     DescriptorLayout& DXDescriptorLayout::add(const DescriptorIndex index, const DescriptorType type, const size_t count) {
         CD3DX12_DESCRIPTOR_RANGE1 range;

@@ -6,12 +6,12 @@
 */
 module;
 #include "vireo/backend/vulkan/Tools.h"
-export module vireo.backend.vulkan.descriptors;
+export module vireo.vulkan.descriptors;
 
-import vireo.backend.descriptors;
-import vireo.backend.resources;
+import vireo.descriptors;
+import vireo.resources;
 
-export namespace vireo::backend {
+export namespace vireo {
 
     class VKDescriptorLayout : public DescriptorLayout {
     public:

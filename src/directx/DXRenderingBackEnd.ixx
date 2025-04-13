@@ -6,16 +6,16 @@
 */
 module;
 #include "vireo/backend/directx/Libraries.h"
-export module vireo.backend.directx;
+export module vireo.directx;
 
-import vireo.backend;
-import vireo.backend.descriptors;
-import vireo.backend.framedata;
-import vireo.backend.resources;
+import vireo;
+import vireo.descriptors;
+import vireo.framedata;
+import vireo.resources;
 
-import vireo.backend.directx.device;
+import vireo.directx.device;
 
-export namespace vireo::backend {
+export namespace vireo {
 
     class DXSubmitQueue : public SubmitQueue{
     public:

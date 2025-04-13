@@ -6,13 +6,13 @@
 */
 module;
 #include "vireo/backend/directx/Tools.h"
-module vireo.backend.directx;
+module vireo.directx;
 
-import vireo.backend.directx.descriptors;
-import vireo.backend.directx.framedata;
-import vireo.backend.directx.resources;
+import vireo.directx.descriptors;
+import vireo.directx.framedata;
+import vireo.directx.resources;
 
-namespace vireo::backend {
+namespace vireo {
 
     DXRenderingBackEnd::DXRenderingBackEnd(HWND hWnd): hWnd{hWnd} {
         // Detect RivaTuner which cause problem by incorrectly hooking IDXGISwapChain::Present

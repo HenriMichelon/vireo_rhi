@@ -6,9 +6,9 @@
 */
 module;
 #include "vireo/backend/directx/Tools.h"
-module vireo.backend.directx.resources;
+module vireo.directx.resources;
 
-namespace vireo::backend {
+namespace vireo {
 
     DXBuffer::DXBuffer(
         const ComPtr<ID3D12Device>& device,

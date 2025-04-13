@@ -6,9 +6,9 @@
 */
 module;
 #include "vireo/backend/directx/Tools.h"
-module vireo.backend.directx.device;
+module vireo.directx.device;
 
-namespace vireo::backend {
+namespace vireo {
 
     DXInstance::DXInstance(HWND hWnd) {
         UINT dxgiFactoryFlags = 0;

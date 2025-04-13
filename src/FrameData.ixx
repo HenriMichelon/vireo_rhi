@@ -6,11 +6,11 @@
 */
 module;
 #include "vireo/Tools.h"
-export module vireo.backend.framedata;
+export module vireo.framedata;
 
-import vireo.backend.descriptors;
+import vireo.descriptors;
 
-export namespace vireo::backend {
+export namespace vireo {
 
     struct FrameData {
         FrameData(const vector<shared_ptr<DescriptorSet>>& descriptorSets): descriptorSets{descriptorSets} {}

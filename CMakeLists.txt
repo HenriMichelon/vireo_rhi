@@ -37,36 +37,36 @@ set(SHADERS_BUILD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
 
 #######################################################
 add_library(${VIREO_TARGET} STATIC
-        ${SRC_DIR}/backend/directx/DXResources.cpp
-        ${SRC_DIR}/backend/directx/DXDescriptors.cpp
-        ${SRC_DIR}/backend/directx/DXDevice.cpp
-        ${SRC_DIR}/backend/directx/DXRenderingBackEnd.cpp
-        ${SRC_DIR}/backend/vulkan/VKResources.cpp
-        ${SRC_DIR}/backend/vulkan/VKDevice.cpp
-        ${SRC_DIR}/backend/vulkan/VKDescriptors.cpp
-        ${SRC_DIR}/backend/vulkan/VKRenderingBackEnd.cpp
-        ${SRC_DIR}/backend/vulkan/Vulkan.cpp
+        ${SRC_DIR}/directx/DXResources.cpp
+        ${SRC_DIR}/directx/DXDescriptors.cpp
+        ${SRC_DIR}/directx/DXDevice.cpp
+        ${SRC_DIR}/directx/DXRenderingBackEnd.cpp
+        ${SRC_DIR}/vulkan/VKResources.cpp
+        ${SRC_DIR}/vulkan/VKDevice.cpp
+        ${SRC_DIR}/vulkan/VKDescriptors.cpp
+        ${SRC_DIR}/vulkan/VKRenderingBackEnd.cpp
+        ${SRC_DIR}/vulkan/Vulkan.cpp
 )
 
 target_sources(${VIREO_TARGET}
     PUBLIC
     FILE_SET CXX_MODULES
     FILES
-        ${SRC_DIR}/backend/Descriptors.ixx
-        ${SRC_DIR}/backend/Device.ixx
-        ${SRC_DIR}/backend/FrameData.ixx
-        ${SRC_DIR}/backend/RenderingBackEnd.ixx
-        ${SRC_DIR}/backend/Resources.ixx
-        ${SRC_DIR}/backend/directx/DXResources.ixx
-        ${SRC_DIR}/backend/directx/DXDescriptors.ixx
-        ${SRC_DIR}/backend/directx/DXDevice.ixx
-        ${SRC_DIR}/backend/directx/DXFrameData.ixx
-        ${SRC_DIR}/backend/directx/DXRenderingBackEnd.ixx
-        ${SRC_DIR}/backend/vulkan/VKResources.ixx
-        ${SRC_DIR}/backend/vulkan/VKDevice.ixx
-        ${SRC_DIR}/backend/vulkan/VKDescriptors.ixx
-        ${SRC_DIR}/backend/vulkan/VKFrameData.ixx
-        ${SRC_DIR}/backend/vulkan/VKRenderingBackEnd.ixx
+        ${SRC_DIR}/Descriptors.ixx
+        ${SRC_DIR}/Device.ixx
+        ${SRC_DIR}/FrameData.ixx
+        ${SRC_DIR}/RenderingBackEnd.ixx
+        ${SRC_DIR}/Resources.ixx
+        ${SRC_DIR}/directx/DXResources.ixx
+        ${SRC_DIR}/directx/DXDescriptors.ixx
+        ${SRC_DIR}/directx/DXDevice.ixx
+        ${SRC_DIR}/directx/DXFrameData.ixx
+        ${SRC_DIR}/directx/DXRenderingBackEnd.ixx
+        ${SRC_DIR}/vulkan/VKResources.ixx
+        ${SRC_DIR}/vulkan/VKDevice.ixx
+        ${SRC_DIR}/vulkan/VKDescriptors.ixx
+        ${SRC_DIR}/vulkan/VKFrameData.ixx
+        ${SRC_DIR}/vulkan/VKRenderingBackEnd.ixx
 )
 
 compile_options(${VIREO_TARGET})
