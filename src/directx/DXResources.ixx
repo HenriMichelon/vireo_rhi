@@ -8,7 +8,7 @@ module;
 #include "vireo/backend/directx/Libraries.h"
 export module vireo.directx.resources;
 
-import vireo.resources;
+import vireo;
 
 export namespace vireo {
 

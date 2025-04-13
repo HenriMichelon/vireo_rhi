@@ -8,8 +8,7 @@ module;
 #include "vireo/backend/directx/Libraries.h"
 export module vireo.directx.framedata;
 
-import vireo.framedata;
-import vireo.descriptors;
+import vireo;
 
 export namespace vireo {
 

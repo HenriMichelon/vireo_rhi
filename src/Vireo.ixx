@@ -5,19 +5,156 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "vireo/Tools.h"
+#include "vireo/Libraries.h"
 export module vireo;
 
-export import vireo.descriptors;
-export import vireo.device;
-export import vireo.framedata;
-export import vireo.resources;
+import vireo.config;
 
 export namespace vireo {
 
-    enum class RenderingBackends {
-        DIRECTX,
-        VULKAN,
+    class Instance {
+    public:
+        virtual ~Instance() = default;
+    };
+
+    class PhysicalDevice {
+    public:
+        virtual ~PhysicalDevice() = default;
+    };
+
+    class Device {
+    public:
+        virtual ~Device() = default;
+    };
+
+    class Buffer {
+    public:
+        enum Type {
+            VERTEX,
+            INDEX,
+            UNIFORM
+        };
+
+        static constexpr size_t WHOLE_SIZE = ~0ULL;
+
+        Buffer(const Type type): type{type} {}
+
+        virtual ~Buffer() = default;
+
+        auto getSize() const { return bufferSize; }
+
+        auto getType() const { return type; }
+
+        virtual void map() = 0;
+
+        virtual void unmap() = 0;
+
+        virtual void write(const void* data, size_t size = WHOLE_SIZE, size_t offset = 0) = 0;
+
+    protected:
+        Type    type;
+        size_t  bufferSize{0};
+        size_t  alignmentSize{0};
+        void*   mappedAddress{nullptr};
+    };
+
+
+    enum class Filter : uint8_t {
+        NEAREST = 0,
+        LINEAR  = 1,
+    };
+
+    enum class AddressMode : uint8_t {
+        REPEAT          = 0,
+        MIRRORED_REPEAT = 1,
+        CLAMP_TO_EDGE   = 2,
+        CLAMP_TO_BORDER = 3,
+    };
+
+    enum class MipMapMode : uint8_t {
+        NEAREST = 0,
+        LINEAR  = 1,
+    };
+
+    class Sampler {
+    public:
+        virtual ~Sampler() = default;
+    };
+
+    enum class ImageFormat : uint8_t {
+        R8G8B8A8_SRGB   = 0,
+    };
+
+    class Image {
+    public:
+        static constexpr uint8_t pixelSize[] {
+            4
+        };
+
+        Image(const ImageFormat format, const uint32_t width, const uint32_t height) :
+            format{format},
+            width{width},
+            height{height} {}
+
+        virtual ~Image() = default;
+
+        auto getFormat() const { return format; }
+
+        auto getWidth() const { return width; }
+
+        auto getHeight() const { return height; }
+
+        auto getSize() const { return width * height * pixelSize[static_cast<int>(format)]; }
+
+        auto getRowPitch() const { return width * pixelSize[static_cast<int>(format)]; }
+
+    private:
+        ImageFormat format;
+        uint32_t width;
+        uint32_t height;
+    };
+
+    enum class DescriptorType : uint8_t {
+        BUFFER  = 0,
+        IMAGE   = 1,
+        SAMPLER = 2,
+    };
+
+    using DescriptorIndex = uint32_t;
+
+    class DescriptorLayout {
+    public:
+        virtual ~DescriptorLayout() = default;
+
+        virtual DescriptorLayout& add(DescriptorIndex index, DescriptorType type, size_t count = 1) = 0;
+
+        virtual void build() {}
+
+        auto getCapacity() const { return capacity; }
+
+    protected:
+        size_t capacity{0};
+    };
+
+    class DescriptorSet {
+    public:
+        virtual ~DescriptorSet() = default;
+
+        virtual void update(DescriptorIndex index, const shared_ptr<Buffer>& buffer) = 0;
+
+        virtual void update(DescriptorIndex index, const shared_ptr<Image>& image) = 0;
+
+        virtual void update(DescriptorIndex index, const shared_ptr<Sampler>& sampler) = 0;
+
+        virtual void update(DescriptorIndex index, const vector<shared_ptr<Image>>& images) = 0;
+
+        virtual void update(DescriptorIndex index, const vector<shared_ptr<Buffer>>& buffer) = 0;
+
+        virtual void update(DescriptorIndex index, const vector<shared_ptr<Sampler>>& samplers) = 0;
+
+    protected:
+        const shared_ptr<DescriptorLayout> layout;
+        DescriptorSet(const shared_ptr<DescriptorLayout>& layout) : layout{layout} {}
     };
 
     class VertexInputLayout {
@@ -49,6 +186,15 @@ export namespace vireo {
     public:
         virtual ~Pipeline() = default;
     };
+
+    struct FrameData {
+        FrameData(const vector<shared_ptr<DescriptorSet>>& descriptorSets): descriptorSets{descriptorSets} {}
+
+        virtual ~FrameData() = default;
+
+        vector<shared_ptr<DescriptorSet>> descriptorSets;
+    };
+
 
     class CommandList {
     public:
@@ -141,6 +287,8 @@ export namespace vireo {
 
     class RenderingBackEnd {
     public:
+        static unique_ptr<RenderingBackEnd> create(const Configuration& configuration);
+
         virtual ~RenderingBackEnd() = default;
 
         virtual shared_ptr<FrameData> createFrameData(
@@ -234,7 +382,7 @@ export namespace vireo {
         auto& getSwapChain() const { return swapChain; }
 
     protected:
-        float                            clearColor[3] = {};
+        float                       clearColor[3] = {};
         shared_ptr<Instance>        instance;
         shared_ptr<PhysicalDevice>  physicalDevice;
         shared_ptr<Device>          device;

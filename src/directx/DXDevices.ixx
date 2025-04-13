@@ -6,9 +6,9 @@
 */
 module;
 #include "vireo/backend/directx/Libraries.h"
-export module vireo.directx.device;
+export module vireo.directx.devices;
 
-import vireo.device;
+import vireo;
 
 export namespace vireo {
 

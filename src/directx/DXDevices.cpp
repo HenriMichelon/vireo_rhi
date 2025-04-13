@@ -6,7 +6,7 @@
 */
 module;
 #include "vireo/backend/directx/Tools.h"
-module vireo.directx.device;
+module vireo.directx.devices;
 
 namespace vireo {
 

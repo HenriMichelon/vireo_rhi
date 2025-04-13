@@ -6,7 +6,7 @@
 */
 module;
 #include "vireo/backend/vulkan/Tools.h"
-module vireo.vulkan.device;
+module vireo.vulkan.devices;
 
 namespace vireo {
 

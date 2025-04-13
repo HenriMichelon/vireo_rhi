@@ -1,0 +1,83 @@
+/*
+* Copyright (c) 2025-present Henri Michelon
+*
+* This software is released under the MIT License.
+* https://opensource.org/licenses/MIT
+*/
+module;
+#include "vireo/backend/vulkan/Tools.h"
+export module vireo.vulkan.swapchains;
+
+import vireo;
+import vireo.vulkan.devices;
+
+export namespace vireo {
+
+    class VKSwapChain : public SwapChain {
+    public:
+        VKSwapChain(const VKPhysicalDevice& physicalDevice, const VKDevice& device, void* windowHandle);
+
+        ~VKSwapChain() override;
+
+        auto getSwapChain() const { return swapChain; }
+
+        auto getFormat() const { return swapChainImageFormat; }
+
+        const auto& getImageViews() const { return swapChainImageViews; }
+
+        const auto& getImages() const { return swapChainImages; }
+
+        void nextSwapChain() override;
+
+        bool acquire(shared_ptr<FrameData>& frameData) override;
+
+        void begin(shared_ptr<FrameData>& frameData, shared_ptr<CommandList>& commandList) override;
+
+        void end(shared_ptr<FrameData>& frameData, shared_ptr<CommandList>& commandList) override;
+
+        void present(shared_ptr<FrameData>& framesData) override;
+
+    private:
+        // For Device::querySwapChainSupport()
+        struct SwapChainSupportDetails {
+            VkSurfaceCapabilitiesKHR        capabilities;
+            vector<VkSurfaceFormatKHR> formats;
+            vector<VkPresentModeKHR>   presentModes;
+        };
+
+        const VKDevice&             device;
+        const VKPhysicalDevice&     physicalDevice;
+        VkSurfaceKHR                surface;
+        VkSwapchainKHR              swapChain;
+        vector<VkImage>        swapChainImages;
+        VkFormat                    swapChainImageFormat;
+        VkExtent2D                  swapChainExtent;
+        vector<VkImageView>    swapChainImageViews;
+        VkQueue                     presentQueue;
+
+#ifdef _WIN32
+        HWND hWnd;
+#endif
+
+        void recreate();
+
+        void create();
+
+        void cleanup() const;
+
+        // Get the swap chain capabilities
+        SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice vkPhysicalDevice, VkSurfaceKHR surface) const;
+
+        // Get the swap chain format, default for sRGB/NON-LINEAR
+        static VkSurfaceFormatKHR chooseSwapSurfaceFormat(
+                const vector<VkSurfaceFormatKHR> &availableFormats);
+
+        // Get the swap chain present mode, default to MAILBOX, if not available FIFO (V-SYNC)
+        static VkPresentModeKHR chooseSwapPresentMode(
+                const vector<VkPresentModeKHR> &availablePresentModes);
+
+        // Get the swap chain images sizes
+        VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities) const;
+    };
+
+}

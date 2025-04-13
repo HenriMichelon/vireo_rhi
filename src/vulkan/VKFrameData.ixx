@@ -8,8 +8,7 @@ module;
 #include "vireo/backend/vulkan/Tools.h"
 export module vireo.vulkan.framedata;
 
-import vireo.framedata;
-import vireo.descriptors;
+import vireo;
 
 export namespace vireo {
 

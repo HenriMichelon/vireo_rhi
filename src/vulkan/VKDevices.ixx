@@ -6,11 +6,9 @@
 */
 module;
 #include "vireo/backend/vulkan/Tools.h"
-
-export module vireo.vulkan.device;
+export module vireo.vulkan.devices;
 
 import vireo;
-import vireo.device;
 
 export namespace vireo {
 
