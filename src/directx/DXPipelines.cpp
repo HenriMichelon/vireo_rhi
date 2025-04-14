@@ -119,7 +119,7 @@ namespace vireo {
             .pRootSignature = dxPipelineResources->getRootSignature().Get(),
             .VS = CD3DX12_SHADER_BYTECODE(dxVertexShader->getShader().Get()),
             .PS = CD3DX12_SHADER_BYTECODE(dxPixelShader->getShader().Get()),
-            .BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT),
+            .BlendState = configuration.colorBlendEnable ? blendStateEnable : blendStateDisable,
             .SampleMask = UINT_MAX,
             .RasterizerState = rasterizerState,
             .DepthStencilState = {

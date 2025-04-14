@@ -72,6 +72,36 @@ export namespace vireo {
 
     private:
         ComPtr<ID3D12PipelineState> pipelineState;
+
+        static constexpr auto blendStateEnable = D3D12_BLEND_DESC{
+            .AlphaToCoverageEnable = FALSE,
+            .IndependentBlendEnable = FALSE,
+            .RenderTarget = {
+                D3D12_RENDER_TARGET_BLEND_DESC {
+                    .BlendEnable = TRUE,
+                    .LogicOpEnable = FALSE,
+                    .SrcBlend = D3D12_BLEND_SRC_ALPHA,
+                    .DestBlend = D3D12_BLEND_INV_SRC_ALPHA,
+                    .BlendOp = D3D12_BLEND_OP_ADD,
+                    .SrcBlendAlpha = D3D12_BLEND_ONE,
+                    .DestBlendAlpha = D3D12_BLEND_ZERO,
+                    .BlendOpAlpha = D3D12_BLEND_OP_ADD,
+                    .LogicOp = D3D12_LOGIC_OP_NOOP,
+                    .RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL
+                }
+            }
+        };
+
+        static constexpr auto blendStateDisable = D3D12_BLEND_DESC{
+            .AlphaToCoverageEnable = FALSE,
+            .IndependentBlendEnable = FALSE,
+            .RenderTarget = {
+                D3D12_RENDER_TARGET_BLEND_DESC {
+                    .BlendEnable = FALSE,
+                    .RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL
+                }
+            }
+        };
     };
 
 }

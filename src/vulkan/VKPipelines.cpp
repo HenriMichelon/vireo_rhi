@@ -115,12 +115,6 @@ namespace vireo {
             .vertexAttributeDescriptionCount = static_cast<uint32_t>(vkVertexInputLayout->getVertexAttributeDescription().size()),
             .pVertexAttributeDescriptions = vkVertexInputLayout->getVertexAttributeDescription().data()
         };
-        constexpr auto inputAssembly = VkPipelineInputAssemblyStateCreateInfo {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-            .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-            .primitiveRestartEnable = VK_FALSE,
-        };
-
         const vector dynamicStates = {
             VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT,
             VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT,
@@ -129,9 +123,6 @@ namespace vireo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
             .dynamicStateCount = static_cast<uint32_t>(dynamicStates.size()),
             .pDynamicStates = dynamicStates.data()
-        };
-        constexpr  auto viewportState = VkPipelineViewportStateCreateInfo {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
         };
         const auto rasterizer = VkPipelineRasterizationStateCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
@@ -155,22 +146,12 @@ namespace vireo {
             .alphaToCoverageEnable  = VK_FALSE,
             .alphaToOneEnable       = VK_FALSE
         };
-        constexpr auto colorBlendAttachment = VkPipelineColorBlendAttachmentState {
-            .blendEnable = VK_FALSE,
-            // .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
-            // .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-            // .colorBlendOp = VK_BLEND_OP_ADD,
-            // .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
-            // .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
-            // .alphaBlendOp = VK_BLEND_OP_ADD,
-            .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
-        };
         const auto colorBlending = VkPipelineColorBlendStateCreateInfo {
             .sType          = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
             .logicOpEnable  = VK_FALSE,
             .logicOp        = VK_LOGIC_OP_COPY,
             .attachmentCount= 1,
-            .pAttachments   = &colorBlendAttachment,
+            .pAttachments   = configuration.colorBlendEnable ? &colorBlendAttachmentEnable : &colorBlendAttachmentDisable,
             .blendConstants = { 0.0f, 0.0f, 0.0f, 0.0f }
         };
 

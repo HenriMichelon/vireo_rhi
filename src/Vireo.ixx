@@ -197,7 +197,8 @@ export namespace vireo {
     class Pipeline {
     public:
         struct Configuration {
-            CullMode  cullMode{CullMode::NONE};
+            CullMode cullMode{CullMode::NONE};
+            bool     colorBlendEnable{false};
         };
 
         Pipeline(const shared_ptr<PipelineResources>& pipelineResources) :pipelineResources{pipelineResources} {}
@@ -307,8 +308,7 @@ export namespace vireo {
 
         virtual shared_ptr<FrameData> createFrameData(uint32_t frameIndex) = 0;
 
-        virtual void destroyFrameData(
-            const shared_ptr<FrameData>& frameData) {}
+        virtual void destroyFrameData(const shared_ptr<FrameData>& frameData) {}
 
         virtual void waitIdle() = 0;
 
