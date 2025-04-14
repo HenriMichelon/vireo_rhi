@@ -196,6 +196,10 @@ export namespace vireo {
 
     class Pipeline {
     public:
+        struct Configuration {
+            CullMode  cullMode{CullMode::NONE};
+        };
+
         Pipeline(const shared_ptr<PipelineResources>& pipelineResources) :pipelineResources{pipelineResources} {}
 
         virtual ~Pipeline() = default;
@@ -326,7 +330,7 @@ export namespace vireo {
             const shared_ptr<const VertexInputLayout>& vertexInputLayout,
             const shared_ptr<const ShaderModule>& vertexShader,
             const shared_ptr<const ShaderModule>& fragmentShader,
-            CullMode cullMode = CullMode::NONE,
+            const Pipeline::Configuration& configuration,
             const wstring& name = L"Pipeline") const = 0;
 
         virtual shared_ptr<Buffer> createBuffer(

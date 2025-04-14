@@ -104,7 +104,7 @@ namespace vireo {
         const shared_ptr<const VertexInputLayout>& vertexInputLayout,
         const shared_ptr<const ShaderModule>& vertexShader,
         const shared_ptr<const ShaderModule>& fragmentShader,
-        const CullMode cullMode,
+        const Configuration& configuration,
         const wstring& name):
         Pipeline{pipelineResources} {
         auto dxVertexInputLayout = static_pointer_cast<const DXVertexInputLayout>(vertexInputLayout);
@@ -113,7 +113,7 @@ namespace vireo {
         auto dxPixelShader = static_pointer_cast<const DXShaderModule>(fragmentShader);
 
         auto rasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-        rasterizerState.CullMode = dxCullMode[static_cast<int>(cullMode)];
+        rasterizerState.CullMode = dxCullMode[static_cast<int>(configuration.cullMode)];
 
         const auto psoDesc = D3D12_GRAPHICS_PIPELINE_STATE_DESC{
             .pRootSignature = dxPipelineResources->getRootSignature().Get(),

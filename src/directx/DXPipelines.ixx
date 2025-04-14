@@ -65,7 +65,7 @@ export namespace vireo {
             const shared_ptr<const VertexInputLayout>& vertexInputLayout,
             const shared_ptr<const ShaderModule>& vertexShader,
             const shared_ptr<const ShaderModule>& fragmentShader,
-            CullMode cullMode,
+            const Configuration& configuration,
             const wstring& name);
 
         auto getPipelineState() const { return pipelineState; }

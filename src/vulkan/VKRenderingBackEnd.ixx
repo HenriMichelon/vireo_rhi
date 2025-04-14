@@ -44,7 +44,7 @@ export namespace vireo {
             const shared_ptr<const VertexInputLayout>& vertexInputLayout,
             const shared_ptr<const ShaderModule>& vertexShader,
             const shared_ptr<const ShaderModule>& fragmentShader,
-            CullMode cullMode = CullMode::NONE,
+            const Pipeline::Configuration& configuration,
             const wstring& name = L"Pipeline") const override;
 
         shared_ptr<Buffer> createBuffer(

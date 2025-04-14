@@ -85,7 +85,7 @@ namespace vireo {
            const shared_ptr<const VertexInputLayout>& vertexInputLayout,
            const shared_ptr<const ShaderModule>& vertexShader,
            const shared_ptr<const ShaderModule>& fragmentShader,
-           const CullMode cullMode,
+           const Pipeline::Configuration& configuration,
            const wstring& name):
         Pipeline{pipelineResources},
         device{device} {
@@ -138,7 +138,7 @@ namespace vireo {
             .depthClampEnable = VK_FALSE,
             .rasterizerDiscardEnable = VK_FALSE,
             .polygonMode = VK_POLYGON_MODE_FILL,
-            .cullMode = static_cast<VkCullModeFlags>(vkCullMode[static_cast<int>(cullMode)]),
+            .cullMode = static_cast<VkCullModeFlags>(vkCullMode[static_cast<int>(configuration.cullMode)]),
             .frontFace = VK_FRONT_FACE_CLOCKWISE,
             .depthBiasEnable = VK_FALSE,
             .depthBiasConstantFactor = 0.0f,
