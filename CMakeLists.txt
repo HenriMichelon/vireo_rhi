@@ -21,6 +21,10 @@ endif()
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
+add_compile_definitions(VK_NO_PROTOTYPES)
+if(WIN32)
+    add_compile_definitions(VK_USE_PLATFORM_WIN32_KHR WIN32_LEAN_AND_MEAN UNICODE _UNICODE)
+endif ()
 
 #######################################################
 include(FetchContent)
@@ -80,13 +84,24 @@ target_sources(${VIREO_TARGET}
 )
 
 compile_options(${VIREO_TARGET})
-target_include_directories(${VIREO_TARGET} PUBLIC ${INCLUDE_DIR} ${Vulkan_INCLUDE_DIRS} ${DirectXH_DIR}/include/directx)
+target_include_directories(${VIREO_TARGET} PRIVATE ${INCLUDE_DIR} ${Vulkan_INCLUDE_DIRS} ${DirectXH_DIR}/include/directx)
 target_link_libraries(${VIREO_TARGET} std-cxx-modules)
+target_precompile_headers(${VIREO_TARGET} PRIVATE
+        "<vulkan/vulkan.h>"
+        "<vulkan/vk_enum_string_helper.h>"
+)
 if(WIN32)
-    target_link_libraries(${VIREO_TARGET} DirectX-Headers Xinput dinput8 dxguid dxgi d3d12 d3dcompiler)
-    if(MINGW)
-        target_link_options(${VIREO_TARGET} PRIVATE "-mwindows")
-    endif()
+    target_precompile_headers(${VIREO_TARGET} PRIVATE
+            "<windows.h>"
+            "<cstdint>"
+            "<d3d12.h>"
+            "<d3dx12.h>"
+            "<dxgi1_6.h>"
+            "<D3Dcompiler.h>"
+            "<DirectXMath.h>"
+            "<wrl.h>"
+    )
+    target_link_libraries(${VIREO_TARGET} DirectX-Headers dxgi d3d12)
     set_target_properties(${VIREO_TARGET} PROPERTIES WIN32_EXECUTABLE TRUE)
 endif()
 

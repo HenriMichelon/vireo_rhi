@@ -7,9 +7,13 @@
 #pragma once
 
 #ifdef _WIN32
-#define VK_USE_PLATFORM_WIN32_KHR
+ #ifndef VK_USE_PLATFORM_WIN32_KHR
+  #define VK_USE_PLATFORM_WIN32_KHR
+ #endif
 #endif
-#define VK_NO_PROTOTYPES
+#ifndef VK_NO_PROTOTYPES
+ #define VK_NO_PROTOTYPES
+#endif
 #include <vulkan/vulkan.h>
 
 /*
