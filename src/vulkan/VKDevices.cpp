@@ -404,11 +404,16 @@ namespace vireo {
                     .samplerAnisotropy = VK_TRUE,
                 }
             };
+            VkPhysicalDeviceVulkan11Features deviceVulkan11Features {
+                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES,
+                .pNext = &deviceFeatures2,
+                .shaderDrawParameters = VK_TRUE,
+            };
 
             // https://lesleylai.info/en/vk-khr-dynamic-rendering/
             const VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature{
                 .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR,
-                .pNext = &deviceFeatures2,
+                .pNext = &deviceVulkan11Features,
                 .dynamicRendering = VK_TRUE,
             };
             const VkDeviceCreateInfo createInfo{
