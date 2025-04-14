@@ -153,7 +153,7 @@ namespace vireo {
         vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
     }
 
-    void VKDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<const Buffer>>& buffers) const {
+    void VKDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<Buffer>>& buffers) const {
         auto buffersInfo = vector<VkDescriptorBufferInfo>(buffers.size());
         for (int i = 0; i < buffers.size(); i++) {
             const auto& vkBuffer = static_pointer_cast<const VKBuffer>(buffers[i]);
@@ -172,7 +172,7 @@ namespace vireo {
         vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
     }
 
-    void VKDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<const Image>>& images) const {
+    void VKDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<Image>>& images) const {
         auto imagesInfo = vector<VkDescriptorImageInfo>(images.size());
         for (int i = 0; i < images.size(); i++) {
             imagesInfo[i].sampler = VK_NULL_HANDLE;
@@ -191,7 +191,7 @@ namespace vireo {
         vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
     }
 
-    void VKDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<const Sampler>>&samplers) const {
+    void VKDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<Sampler>>&samplers) const {
         auto imagesInfo = vector<VkDescriptorImageInfo>(samplers.size());
         for (int i = 0; i < samplers.size(); i++) {
             imagesInfo[i].sampler = static_pointer_cast<const VKSampler>(samplers[i])->getSampler();

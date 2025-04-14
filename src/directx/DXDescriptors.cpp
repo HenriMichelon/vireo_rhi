@@ -69,19 +69,19 @@ namespace vireo {
         device->CreateSampler(&samplerDesc, cpuHandle);
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<const Buffer>>& buffers) const {
+    void DXDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<Buffer>>& buffers) const {
         for (int i = 0; i < buffers.size(); ++i) {
             update(index + i, buffers[i]);
         }
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<const Image>>& images) const {
+    void DXDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<Image>>& images) const {
         for (int i = 0; i < images.size(); ++i) {
             update(index + i, images[i]);
         }
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<const Sampler>>& samplers) const {
+    void DXDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<Sampler>>& samplers) const {
         for (int i = 0; i < samplers.size(); ++i) {
             update(index + i, samplers[i]);
         }

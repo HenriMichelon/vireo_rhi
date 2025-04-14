@@ -146,11 +146,11 @@ export namespace vireo {
 
         virtual void update(DescriptorIndex index, const shared_ptr<const Sampler>& sampler) const = 0;
 
-        virtual void update(DescriptorIndex index, const vector<shared_ptr<const Image>>& images) const = 0;
+        virtual void update(DescriptorIndex index, const vector<shared_ptr<Image>>& images) const = 0;
 
-        virtual void update(DescriptorIndex index, const vector<shared_ptr<const Buffer>>& buffer) const = 0;
+        virtual void update(DescriptorIndex index, const vector<shared_ptr<Buffer>>& buffer) const = 0;
 
-        virtual void update(DescriptorIndex index, const vector<shared_ptr<const Sampler>>& samplers) const = 0;
+        virtual void update(DescriptorIndex index, const vector<shared_ptr<Sampler>>& samplers) const = 0;
 
     protected:
         const shared_ptr<const DescriptorLayout> layout;
