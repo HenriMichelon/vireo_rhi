@@ -12,7 +12,7 @@ namespace vireo {
 
     VKBuffer::VKBuffer(
             const shared_ptr<const VKDevice>& device,
-            const Type type,
+            const BufferType type,
             const size_t size,
             const size_t count,
             const size_t minOffsetAlignment,
@@ -23,10 +23,10 @@ namespace vireo {
         bufferSize = alignmentSize * count;
 
         const VkBufferCreateFlags usage =
-            type == VERTEX ? VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT :
-            type == INDEX ? VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT:
+            type == BufferType::VERTEX ? VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT :
+            type == BufferType::INDEX ? VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT:
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-        const auto memType = (type == VERTEX || type == INDEX) ?
+        const auto memType = (type == BufferType::VERTEX || type == BufferType::INDEX) ?
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT :
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
         createBuffer(device, bufferSize, usage, memType, buffer, bufferMemory);

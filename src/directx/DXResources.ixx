@@ -22,7 +22,7 @@ export namespace vireo {
 
         DXBuffer(
             const ComPtr<ID3D12Device>& device,
-            Type type,
+            BufferType type,
             size_t size,
             size_t count,
             size_t minOffsetAlignment,

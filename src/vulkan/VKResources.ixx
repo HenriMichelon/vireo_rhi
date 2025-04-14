@@ -18,7 +18,7 @@ export namespace vireo {
     public:
         VKBuffer(
             const shared_ptr<const VKDevice>& device,
-            Type type,
+            BufferType type,
             size_t size,
             size_t count,
             size_t minOffsetAlignment,

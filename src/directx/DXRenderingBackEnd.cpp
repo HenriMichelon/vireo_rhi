@@ -42,11 +42,11 @@ namespace vireo {
         instance = make_shared<DXInstance>(hWnd);
         physicalDevice = make_shared<DXPhysicalDevice>(getDXInstance()->getFactory());
         device = make_shared<DXDevice>(getDXPhysicalDevice()->getHardwareAdapter());
-        graphicCommandQueue = make_shared<DXSubmitQueue>(getDXDevice()->getDevice(), CommandList::GRAPHIC);
-        transferCommandQueue = make_shared<DXSubmitQueue>(getDXDevice()->getDevice(), CommandList::GRAPHIC);
+        graphicCommandQueue = make_shared<DXSubmitQueue>(getDXDevice()->getDevice(), CommandType::GRAPHIC);
+        transferCommandQueue = make_shared<DXSubmitQueue>(getDXDevice()->getDevice(), CommandType::GRAPHIC);
         swapChain = make_shared<DXSwapChain>(
             getDXInstance()->getFactory(),
-            *getDXDevice(),
+            getDXDevice(),
             getDXGraphicCommandQueue()->getCommandQueue(),
             width,
             height,
@@ -90,7 +90,7 @@ namespace vireo {
     }
 
     shared_ptr<Buffer> DXRenderingBackEnd::createBuffer(
-        const Buffer::Type type,
+        const BufferType type,
         const size_t size,
         const size_t count,
         const size_t alignment,
@@ -184,7 +184,7 @@ namespace vireo {
         dxCommandList->ResourceBarrier(1, &swapChainBarrier);
     }
 
-    shared_ptr<CommandAllocator> DXRenderingBackEnd::createCommandAllocator(const CommandList::Type type) const {
+    shared_ptr<CommandAllocator> DXRenderingBackEnd::createCommandAllocator(const CommandType type) const {
         return make_shared<DXCommandAllocator>(getDXDevice()->getDevice(), type);
     }
 

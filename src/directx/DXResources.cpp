@@ -12,7 +12,7 @@ namespace vireo {
 
     DXBuffer::DXBuffer(
         const ComPtr<ID3D12Device>& device,
-        const Type type,
+        BufferType type,
         const size_t size,
         const size_t count,
         const size_t minOffsetAlignment,
@@ -24,13 +24,13 @@ namespace vireo {
         bufferSize = alignmentSize * count;
 
         // GPU Buffer
-        const auto heapProperties = CD3DX12_HEAP_PROPERTIES(type == UNIFORM ? D3D12_HEAP_TYPE_UPLOAD : D3D12_HEAP_TYPE_DEFAULT);
+        const auto heapProperties = CD3DX12_HEAP_PROPERTIES(type == BufferType::UNIFORM ? D3D12_HEAP_TYPE_UPLOAD : D3D12_HEAP_TYPE_DEFAULT);
         const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
         DieIfFailed(device->CreateCommittedResource(
             &heapProperties,
             D3D12_HEAP_FLAG_NONE,
             &resourceDesc,
-            type == UNIFORM ? D3D12_RESOURCE_STATE_GENERIC_READ : D3D12_RESOURCE_STATE_COMMON,
+            type == BufferType::UNIFORM ? D3D12_RESOURCE_STATE_GENERIC_READ : D3D12_RESOURCE_STATE_COMMON,
             nullptr,
             IID_PPV_ARGS(&buffer)));
 #ifdef _DEBUG
@@ -46,7 +46,7 @@ namespace vireo {
     }
 
     void DXBuffer::map() {
-        CD3DX12_RANGE readRange(0, 0); // We do not intend to read from this resource on the CPU.
+        const CD3DX12_RANGE readRange(0, 0); // We do not intend to read from this resource on the CPU.
         DieIfFailed(buffer->Map(0, &readRange, &mappedAddress));
     }
 

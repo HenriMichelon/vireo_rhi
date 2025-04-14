@@ -18,7 +18,7 @@ namespace vireo {
             vertexAttributeDescriptions.push_back({
                 .location = static_cast<uint32_t>(i),
                 .binding = 0,
-                .format = VKFormat[attributesDescriptions[i].format],
+                .format = VKFormat[static_cast<int>(attributesDescriptions[i].format)],
                 .offset = attributesDescriptions[i].offset,
             });
         }

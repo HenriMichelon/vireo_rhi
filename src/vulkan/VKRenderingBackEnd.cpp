@@ -23,8 +23,8 @@ namespace vireo {
         instance = make_shared<VKInstance>();
         physicalDevice = make_shared<VKPhysicalDevice>(getVKInstance()->getInstance(), hWnd);
         device = make_shared<VKDevice>(*getVKPhysicalDevice(), getVKInstance()->getRequestedLayers());
-        graphicCommandQueue = make_shared<VKSubmitQueue>(getVKDevice(), CommandList::GRAPHIC, "Graphic");
-        transferCommandQueue = make_shared<VKSubmitQueue>(getVKDevice(), CommandList::TRANSFER, "Transfer");
+        graphicCommandQueue = make_shared<VKSubmitQueue>(getVKDevice(), CommandType::GRAPHIC, "Graphic");
+        transferCommandQueue = make_shared<VKSubmitQueue>(getVKDevice(), CommandType::TRANSFER, "Transfer");
         swapChain = make_shared<VKSwapChain>(getVKDevice(),
 #ifdef _WIN32
             hWnd,
@@ -85,7 +85,7 @@ namespace vireo {
         return make_shared<VKVertexInputLayout>(size, attributesDescriptions);
     }
 
-    shared_ptr<CommandAllocator> VKRenderingBackEnd::createCommandAllocator(CommandList::Type type) const {
+    shared_ptr<CommandAllocator> VKRenderingBackEnd::createCommandAllocator(CommandType type) const {
         return make_shared<VKCommandAllocator>(getVKDevice(), type);
     }
 
@@ -117,7 +117,7 @@ namespace vireo {
     }
 
     shared_ptr<Buffer> VKRenderingBackEnd::createBuffer(
-        const Buffer::Type type,
+        const BufferType type,
         const size_t size,
         const size_t count,
         const size_t alignment,

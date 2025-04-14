@@ -14,7 +14,7 @@ export namespace vireo {
 
     class DXSubmitQueue : public SubmitQueue{
     public:
-        DXSubmitQueue(const ComPtr<ID3D12Device>& device, CommandList::Type type);
+        DXSubmitQueue(const ComPtr<ID3D12Device>& device, CommandType type);
 
         auto getCommandQueue() { return commandQueue; }
 
@@ -31,7 +31,7 @@ export namespace vireo {
 
     class DXCommandAllocator : public CommandAllocator {
     public:
-        DXCommandAllocator(const ComPtr<ID3D12Device>& device, CommandList::Type type);
+        DXCommandAllocator(const ComPtr<ID3D12Device>& device, CommandType type);
 
         void reset() const override;
 
@@ -53,7 +53,7 @@ export namespace vireo {
         };
 
         DXCommandList(
-            Type type,
+            CommandType type,
             const ComPtr<ID3D12Device>& device,
             const ComPtr<ID3D12CommandAllocator>& commandAllocator,
             const ComPtr<ID3D12PipelineState>& pipelineState = nullptr);

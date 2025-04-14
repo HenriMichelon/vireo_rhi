@@ -18,7 +18,7 @@ namespace vireo {
             inputElementDescs.push_back({
                 .SemanticName = attributesDescription.binding.c_str(),
                 .SemanticIndex = 0,
-                .Format = DXFormat[attributesDescription.format],
+                .Format = DXFormat[static_cast<int>(attributesDescription.format)],
                 .InputSlot = 0,
                 .AlignedByteOffset = attributesDescription.offset,
                 .InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,

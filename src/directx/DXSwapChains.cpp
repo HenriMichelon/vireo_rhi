@@ -12,7 +12,7 @@ namespace vireo {
 
     DXSwapChain::DXSwapChain(
         const ComPtr<IDXGIFactory4>& factory,
-        DXDevice& dxdevice,
+        const shared_ptr<DXDevice>& dxdevice,
         const ComPtr<ID3D12CommandQueue>& commandQueue,
         const uint32_t width,
         const uint32_t height,
@@ -56,8 +56,8 @@ namespace vireo {
             .NumDescriptors = FRAMES_IN_FLIGHT,
             .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
         };
-        DieIfFailed(device.getDevice()->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap)));
-        rtvDescriptorSize = device.getDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+        DieIfFailed(device->getDevice()->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap)));
+        rtvDescriptorSize = device->getDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 #ifdef _DEBUG
         rtvHeap->SetName(L"SwapChain Heap");
 #endif
@@ -73,7 +73,7 @@ namespace vireo {
 #ifdef _DEBUG
             renderTargets[n]->SetName(L"SwapChain BackBuffer " + n);
 #endif
-            device.getDevice()->CreateRenderTargetView(renderTargets[n].Get(), &rtvDesc, rtvHandle);
+            device->getDevice()->CreateRenderTargetView(renderTargets[n].Get(), &rtvDesc, rtvHandle);
             rtvHandle.Offset(1, rtvDescriptorSize);
         }
     }
@@ -86,14 +86,14 @@ namespace vireo {
     bool DXSwapChain::begin(const shared_ptr<FrameData>& frameData) {
         const auto data = static_pointer_cast<DXFrameData>(frameData);
         const auto currentFenceValue = data->inFlightFenceValue;
-        DieIfFailed(presentCommandQueue->Signal(device.getInFlightFence().Get(), currentFenceValue));
+        DieIfFailed(presentCommandQueue->Signal(device->getInFlightFence().Get(), currentFenceValue));
         // If the next frame is not ready to be rendered yet, wait until it is ready.
-        if (device.getInFlightFence()->GetCompletedValue() < currentFenceValue) {
-            DieIfFailed(device.getInFlightFence()->SetEventOnCompletion(
+        if (device->getInFlightFence()->GetCompletedValue() < currentFenceValue) {
+            DieIfFailed(device->getInFlightFence()->SetEventOnCompletion(
                 currentFenceValue,
-                device.getInFlightFenceEvent()
-                ));
-            WaitForSingleObjectEx(device.getInFlightFenceEvent(), INFINITE, FALSE);
+                device->getInFlightFenceEvent()
+            ));
+            WaitForSingleObjectEx(device->getInFlightFenceEvent(), INFINITE, FALSE);
         }
         return true;
     }

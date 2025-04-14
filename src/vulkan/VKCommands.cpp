@@ -14,11 +14,11 @@ import vireo.vulkan.pipelines;
 
 namespace vireo {
 
-    VKSubmitQueue::VKSubmitQueue(const shared_ptr<const VKDevice>& device, const CommandList::Type type, const string& name) {
+    VKSubmitQueue::VKSubmitQueue(const shared_ptr<const VKDevice>& device, const CommandType type, const string& name) {
         vkGetDeviceQueue(
             device->getDevice(),
-            type == CommandList::COMPUTE ? device->getComputeQueueFamilyIndex() :
-            type == CommandList::TRANSFER ?  device->getTransferQueueFamilyIndex() :
+            type == CommandType::COMPUTE ? device->getComputeQueueFamilyIndex() :
+            type == CommandType::TRANSFER ?  device->getTransferQueueFamilyIndex() :
             device->getGraphicsQueueFamilyIndex(),
             0,
             &commandQueue);
@@ -73,15 +73,16 @@ namespace vireo {
         DieIfFailed(vkQueueSubmit2(commandQueue, 1, &submitInfo, VK_NULL_HANDLE));
     }
 
-    VKCommandAllocator::VKCommandAllocator(const shared_ptr<const VKDevice>& device, const CommandList::Type type):
+    VKCommandAllocator::VKCommandAllocator(const shared_ptr<const VKDevice>& device, const CommandType type):
         CommandAllocator{type},
         device{device} {
         const auto poolInfo = VkCommandPoolCreateInfo {
             .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
             .flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, // TODO optional
-            .queueFamilyIndex = type == CommandList::COMPUTE ? device->getComputeQueueFamilyIndex() :
-                type == CommandList::TRANSFER ?  device->getTransferQueueFamilyIndex() :
-                 device->getGraphicsQueueFamilyIndex()
+            .queueFamilyIndex =
+                type == CommandType::COMPUTE ? device->getComputeQueueFamilyIndex() :
+                type == CommandType::TRANSFER ?  device->getTransferQueueFamilyIndex() :
+                device->getGraphicsQueueFamilyIndex()
         };
         DieIfFailed(vkCreateCommandPool(device->getDevice(), &poolInfo, nullptr, &commandPool));
     }

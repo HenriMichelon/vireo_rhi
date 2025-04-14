@@ -14,10 +14,10 @@ import vireo.directx.resources;
 
 namespace vireo {
 
-    DXSubmitQueue::DXSubmitQueue(const ComPtr<ID3D12Device>& device, const CommandList::Type type) :
+    DXSubmitQueue::DXSubmitQueue(const ComPtr<ID3D12Device>& device, const CommandType type) :
         device{device} {
         const auto queueDesc = D3D12_COMMAND_QUEUE_DESC {
-            .Type = DXCommandList::ListType[type],
+            .Type = DXCommandList::ListType[static_cast<int>(type)],
             .Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
         };
         DieIfFailed(device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&commandQueue)));
@@ -57,11 +57,11 @@ namespace vireo {
         CloseHandle(inFlightFenceEvent);
     }
 
-    DXCommandAllocator::DXCommandAllocator( const ComPtr<ID3D12Device>& device, const CommandList::Type type):
+    DXCommandAllocator::DXCommandAllocator( const ComPtr<ID3D12Device>& device, const CommandType type):
         CommandAllocator{type},
         device{device} {
         DieIfFailed(device->CreateCommandAllocator(
-            DXCommandList::ListType[type],
+            DXCommandList::ListType[static_cast<int>(type)],
             IID_PPV_ARGS(&commandAllocator)));
     }
 
@@ -86,7 +86,7 @@ namespace vireo {
     }
 
     DXCommandList::DXCommandList(
-        const Type type,
+        const CommandType type,
         const ComPtr<ID3D12Device>& device,
         const ComPtr<ID3D12CommandAllocator>& commandAllocator,
         const ComPtr<ID3D12PipelineState>& pipelineState):
@@ -94,7 +94,7 @@ namespace vireo {
         commandAllocator{commandAllocator} {
         DieIfFailed(device->CreateCommandList(
             0,
-            ListType[type],
+            ListType[static_cast<int>(type)],
             commandAllocator.Get(),
             pipelineState == nullptr ? nullptr : pipelineState.Get(),
             IID_PPV_ARGS(&commandList)));
@@ -182,7 +182,7 @@ namespace vireo {
             const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
                 buffer->getBuffer().Get(),
                 D3D12_RESOURCE_STATE_COPY_DEST,
-                DXBuffer::ResourceStates[buffer->getType()]);
+                DXBuffer::ResourceStates[static_cast<int>(buffer->getType())]);
             commandList->ResourceBarrier(1, &memoryBarrier);
         }
 

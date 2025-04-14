@@ -21,7 +21,7 @@ export namespace vireo {
 
         DXSwapChain(
             const ComPtr<IDXGIFactory4>& factory,
-            DXDevice& device,
+            const shared_ptr<DXDevice>& device,
             const ComPtr<ID3D12CommandQueue>& commandQueue,
             uint32_t width, uint32_t height, HWND hWnd, VSyncMode vSyncMode);
 
@@ -40,7 +40,7 @@ export namespace vireo {
         void present(const shared_ptr<FrameData>& frameData) override;
 
     private:
-        DXDevice&                    device;
+        const shared_ptr<DXDevice>   device;
         ComPtr<IDXGISwapChain3>      swapChain;
         ComPtr<ID3D12CommandQueue>   presentCommandQueue;
         ComPtr<ID3D12Resource>       renderTargets[FRAMES_IN_FLIGHT];

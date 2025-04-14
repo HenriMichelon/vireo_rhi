@@ -23,7 +23,7 @@ export namespace vireo {
 
         void waitIdle() override;
 
-        shared_ptr<CommandAllocator> createCommandAllocator(CommandList::Type type) const override;
+        shared_ptr<CommandAllocator> createCommandAllocator(CommandType type) const override;
 
         shared_ptr<FrameData> createFrameData(uint32_t frameIndex) override;
 
@@ -47,7 +47,7 @@ export namespace vireo {
             const wstring& name = L"Pipeline") const override;
 
         shared_ptr<Buffer> createBuffer(
-            Buffer::Type type,
+            BufferType type,
             size_t size,
             size_t count = 1,
             size_t alignment = 1,

@@ -18,7 +18,7 @@ export namespace vireo {
 
     class VKSubmitQueue : public SubmitQueue {
     public:
-        VKSubmitQueue(const shared_ptr<const VKDevice>& device, CommandList::Type type, const string& name);
+        VKSubmitQueue(const shared_ptr<const VKDevice>& device, CommandType type, const string& name);
 
         auto getCommandQueue() const { return commandQueue; }
 
@@ -34,7 +34,7 @@ export namespace vireo {
 
     class VKCommandAllocator : public CommandAllocator {
     public:
-        VKCommandAllocator(const shared_ptr<const VKDevice>& device, CommandList::Type type);
+        VKCommandAllocator(const shared_ptr<const VKDevice>& device, CommandType type);
 
         ~VKCommandAllocator() override;
 

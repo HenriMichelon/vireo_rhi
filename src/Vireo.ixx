@@ -12,53 +12,6 @@ import vireo.config;
 
 export namespace vireo {
 
-    class Instance {
-    public:
-        virtual ~Instance() = default;
-    };
-
-    class PhysicalDevice {
-    public:
-        virtual ~PhysicalDevice() = default;
-    };
-
-    class Device {
-    public:
-        virtual ~Device() = default;
-    };
-
-    class Buffer {
-    public:
-        enum Type {
-            VERTEX,
-            INDEX,
-            UNIFORM
-        };
-
-        static constexpr size_t WHOLE_SIZE = ~0ULL;
-
-        Buffer(const Type type): type{type} {}
-
-        virtual ~Buffer() = default;
-
-        auto getSize() const { return bufferSize; }
-
-        auto getType() const { return type; }
-
-        virtual void map() = 0;
-
-        virtual void unmap() = 0;
-
-        virtual void write(const void* data, size_t size = WHOLE_SIZE, size_t offset = 0) = 0;
-
-    protected:
-        const Type type;
-        size_t     bufferSize{0};
-        size_t     alignmentSize{0};
-        void*      mappedAddress{nullptr};
-    };
-
-
     enum class Filter : uint8_t {
         NEAREST = 0,
         LINEAR  = 1,
@@ -76,13 +29,79 @@ export namespace vireo {
         LINEAR  = 1,
     };
 
+    enum class ImageFormat : uint8_t {
+        R8G8B8A8_SRGB   = 0,
+    };
+
+    enum class BufferType : uint8_t {
+        VERTEX  = 0,
+        INDEX   = 1,
+        UNIFORM = 2,
+    };
+
+    enum class DescriptorType : uint8_t {
+        BUFFER  = 0,
+        IMAGE   = 1,
+        SAMPLER = 2,
+    };
+
+    enum class CommandType : uint8_t {
+        GRAPHIC     = 0,
+        TRANSFER    = 1,
+        COMPUTE     = 2,
+    };
+
+    enum class AttributeFormat : uint8_t {
+        R32G32_FLOAT        = 0,
+        R32G32B32_FLOAT     = 1,
+        R32G32B32A32_FLOAT  = 2,
+    };
+
+    using DescriptorIndex = uint32_t;
+
+    class Instance {
+    public:
+        virtual ~Instance() = default;
+    };
+
+    class PhysicalDevice {
+    public:
+        virtual ~PhysicalDevice() = default;
+    };
+
+    class Device {
+    public:
+        virtual ~Device() = default;
+    };
+
+    class Buffer {
+    public:
+        static constexpr size_t WHOLE_SIZE = ~0ULL;
+
+        Buffer(const BufferType type): type{type} {}
+
+        virtual ~Buffer() = default;
+
+        auto getSize() const { return bufferSize; }
+
+        auto getType() const { return type; }
+
+        virtual void map() = 0;
+
+        virtual void unmap() = 0;
+
+        virtual void write(const void* data, size_t size = WHOLE_SIZE, size_t offset = 0) = 0;
+
+    protected:
+        const BufferType type;
+        size_t           bufferSize{0};
+        size_t           alignmentSize{0};
+        void*            mappedAddress{nullptr};
+    };
+
     class Sampler {
     public:
         virtual ~Sampler() = default;
-    };
-
-    enum class ImageFormat : uint8_t {
-        R8G8B8A8_SRGB   = 0,
     };
 
     class Image {
@@ -113,14 +132,6 @@ export namespace vireo {
         const uint32_t    width;
         const uint32_t    height;
     };
-
-    enum class DescriptorType : uint8_t {
-        BUFFER  = 0,
-        IMAGE   = 1,
-        SAMPLER = 2,
-    };
-
-    using DescriptorIndex = uint32_t;
 
     class DescriptorLayout {
     public:
@@ -159,11 +170,6 @@ export namespace vireo {
 
     class VertexInputLayout {
     public:
-        enum AttributeFormat {
-            R32G32_FLOAT,
-            R32G32B32_FLOAT,
-            R32G32B32A32_FLOAT,
-        };
         struct AttributeDescription {
             string          binding;
             AttributeFormat format;
@@ -200,12 +206,6 @@ export namespace vireo {
 
     class CommandList {
     public:
-        enum Type {
-            GRAPHIC,
-            TRANSFER,
-            COMPUTE,
-        };
-
         virtual void begin() const = 0;
 
         virtual void end() const = 0;
@@ -229,7 +229,7 @@ export namespace vireo {
 
     class CommandAllocator {
     public:
-        CommandAllocator(const CommandList::Type type) : commandListType{type} {}
+        CommandAllocator(const CommandType type) : commandListType{type} {}
 
         virtual void reset() const = 0;
 
@@ -242,7 +242,7 @@ export namespace vireo {
         auto getCommandListType() const { return commandListType; }
 
     private:
-        const CommandList::Type commandListType;
+        const CommandType commandListType;
     };
 
     class SubmitQueue {
@@ -302,8 +302,7 @@ export namespace vireo {
 
         virtual void waitIdle() = 0;
 
-        virtual shared_ptr<CommandAllocator> createCommandAllocator(
-            CommandList::Type type) const = 0;
+        virtual shared_ptr<CommandAllocator> createCommandAllocator(CommandType type) const = 0;
 
         virtual shared_ptr<VertexInputLayout> createVertexLayout(
             size_t size,
@@ -324,7 +323,7 @@ export namespace vireo {
             const wstring& name = L"Pipeline") const = 0;
 
         virtual shared_ptr<Buffer> createBuffer(
-            Buffer::Type type,
+            BufferType type,
             size_t size,
             size_t count = 1,
             size_t alignment = 1,
