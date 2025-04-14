@@ -28,7 +28,6 @@ endif ()
 
 #######################################################
 include(FetchContent)
-include(cmake/shaders.cmake)
 include(cmake/std.cmake)
 include(cmake/compile_options.cmake)
 include(cmake/libraries.cmake)
@@ -36,8 +35,6 @@ include(cmake/libraries.cmake)
 #######################################################
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
-set(SHADERS_SRC_DIR ${SRC_DIR}/shaders)
-set(SHADERS_BUILD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
 
 #######################################################
 add_library(${VIREO_TARGET} STATIC
@@ -104,13 +101,3 @@ if(WIN32)
     target_link_libraries(${VIREO_TARGET} DirectX-Headers dxgi d3d12)
     set_target_properties(${VIREO_TARGET} PROPERTIES WIN32_EXECUTABLE TRUE)
 endif()
-
-#######################################################
-# Slang shaders
-file(MAKE_DIRECTORY ${SHADERS_BUILD_DIR})
-file(GLOB_RECURSE SHADERS_SOURCE_FILES
-    "${SHADERS_SRC_DIR}/*.slang"
-)
-add_shaders(${VIREO_TARGET}_shaders ${SHADERS_BUILD_DIR} ${SHADERS_SRC_DIR} ${SHADERS_SOURCE_FILES})
-add_dependencies(${VIREO_TARGET} ${VIREO_TARGET}_shaders)
-
