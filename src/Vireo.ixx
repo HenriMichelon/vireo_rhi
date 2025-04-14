@@ -57,6 +57,12 @@ export namespace vireo {
         R32G32B32A32_FLOAT  = 2,
     };
 
+    enum class CullMode : uint8_t {
+        NONE    = 0,
+        FRONT   = 1,
+        BACK    = 2,
+    };
+
     using DescriptorIndex = uint32_t;
 
     class Instance {
@@ -320,6 +326,7 @@ export namespace vireo {
             const shared_ptr<const VertexInputLayout>& vertexInputLayout,
             const shared_ptr<const ShaderModule>& vertexShader,
             const shared_ptr<const ShaderModule>& fragmentShader,
+            CullMode cullMode = CullMode::NONE,
             const wstring& name = L"Pipeline") const = 0;
 
         virtual shared_ptr<Buffer> createBuffer(

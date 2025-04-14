@@ -104,6 +104,7 @@ namespace vireo {
         const shared_ptr<const VertexInputLayout>& vertexInputLayout,
         const shared_ptr<const ShaderModule>& vertexShader,
         const shared_ptr<const ShaderModule>& fragmentShader,
+        const CullMode cullMode,
         const wstring& name):
         Pipeline{pipelineResources} {
         auto dxVertexInputLayout = static_pointer_cast<const DXVertexInputLayout>(vertexInputLayout);
@@ -111,23 +112,31 @@ namespace vireo {
         auto dxVertexShader = static_pointer_cast<const DXShaderModule>(vertexShader);
         auto dxPixelShader = static_pointer_cast<const DXShaderModule>(fragmentShader);
 
-        D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-        psoDesc.InputLayout = {
-            dxVertexInputLayout->getInputElementDescs().data(),
-            static_cast<UINT>(dxVertexInputLayout->getInputElementDescs().size())
+        auto rasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+        rasterizerState.CullMode = dxCullMode[static_cast<int>(cullMode)];
+
+        const auto psoDesc = D3D12_GRAPHICS_PIPELINE_STATE_DESC{
+            .pRootSignature = dxPipelineResources->getRootSignature().Get(),
+            .VS = CD3DX12_SHADER_BYTECODE(dxVertexShader->getShader().Get()),
+            .PS = CD3DX12_SHADER_BYTECODE(dxPixelShader->getShader().Get()),
+            .BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT),
+            .SampleMask = UINT_MAX,
+            .RasterizerState = rasterizerState,
+            .DepthStencilState = {
+                .DepthEnable = FALSE,
+                .StencilEnable = FALSE,
+            },
+            .InputLayout = {
+                dxVertexInputLayout->getInputElementDescs().data(),
+                static_cast<UINT>(dxVertexInputLayout->getInputElementDescs().size())
+            },
+            .PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,
+            .NumRenderTargets = 1,
+            .RTVFormats = { DXSwapChain::RENDER_FORMAT },
+            .SampleDesc = {
+                .Count = 1,
+            }
         };
-        psoDesc.pRootSignature = dxPipelineResources->getRootSignature().Get();
-        psoDesc.VS = CD3DX12_SHADER_BYTECODE(dxVertexShader->getShader().Get());
-        psoDesc.PS = CD3DX12_SHADER_BYTECODE(dxPixelShader->getShader().Get());
-        psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-        psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-        psoDesc.DepthStencilState.DepthEnable = FALSE;
-        psoDesc.DepthStencilState.StencilEnable = FALSE;
-        psoDesc.SampleMask = UINT_MAX;
-        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-        psoDesc.NumRenderTargets = 1;
-        psoDesc.RTVFormats[0] = DXSwapChain::RENDER_FORMAT;
-        psoDesc.SampleDesc.Count = 1;
         DieIfFailed(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)));
 #ifdef _DEBUG
         pipelineState->SetName((L"DXPipeline : " + name).c_str());

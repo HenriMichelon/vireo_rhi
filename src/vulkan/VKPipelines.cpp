@@ -85,6 +85,7 @@ namespace vireo {
            const shared_ptr<const VertexInputLayout>& vertexInputLayout,
            const shared_ptr<const ShaderModule>& vertexShader,
            const shared_ptr<const ShaderModule>& fragmentShader,
+           const CullMode cullMode,
            const wstring& name):
         Pipeline{pipelineResources},
         device{device} {
@@ -132,12 +133,12 @@ namespace vireo {
         constexpr  auto viewportState = VkPipelineViewportStateCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
         };
-        constexpr auto rasterizer = VkPipelineRasterizationStateCreateInfo {
+        const auto rasterizer = VkPipelineRasterizationStateCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
             .depthClampEnable = VK_FALSE,
             .rasterizerDiscardEnable = VK_FALSE,
             .polygonMode = VK_POLYGON_MODE_FILL,
-            .cullMode = VK_CULL_MODE_NONE,
+            .cullMode = static_cast<VkCullModeFlags>(vkCullMode[static_cast<int>(cullMode)]),
             .frontFace = VK_FRONT_FACE_CLOCKWISE,
             .depthBiasEnable = VK_FALSE,
             .depthBiasConstantFactor = 0.0f,

@@ -69,6 +69,7 @@ namespace vireo {
         const shared_ptr<const VertexInputLayout>& vertexInputLayout,
         const shared_ptr<const ShaderModule>& vertexShader,
         const shared_ptr<const ShaderModule>& fragmentShader,
+        const CullMode cullMode,
         const wstring& name) const {
         return make_shared<DXPipeline>(
             getDXDevice()->getDevice(),
@@ -76,6 +77,7 @@ namespace vireo {
             vertexInputLayout,
             vertexShader,
             fragmentShader,
+            cullMode,
             name);
     }
 

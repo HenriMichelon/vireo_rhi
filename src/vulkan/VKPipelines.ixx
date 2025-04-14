@@ -67,6 +67,12 @@ export namespace vireo {
 
     class VKPipeline : public Pipeline {
     public:
+        static constexpr VkCullModeFlagBits vkCullMode[] {
+            VK_CULL_MODE_NONE,
+            VK_CULL_MODE_FRONT_BIT,
+            VK_CULL_MODE_BACK_BIT
+        };
+
         VKPipeline(
            VkDevice device,
            VKSwapChain& swapChain,
@@ -74,6 +80,7 @@ export namespace vireo {
            const shared_ptr<const VertexInputLayout>& vertexInputLayout,
            const shared_ptr<const ShaderModule>& vertexShader,
            const shared_ptr<const ShaderModule>& fragmentShader,
+           CullMode cullMode,
            const wstring& name);
 
         auto getPipeline() const { return pipeline; }

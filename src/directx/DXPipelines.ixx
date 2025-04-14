@@ -53,12 +53,19 @@ export namespace vireo {
 
     class DXPipeline : public Pipeline {
     public:
+        static constexpr D3D12_CULL_MODE dxCullMode[] {
+            D3D12_CULL_MODE_NONE,
+            D3D12_CULL_MODE_FRONT,
+            D3D12_CULL_MODE_BACK
+        };
+
         DXPipeline(
             const ComPtr<ID3D12Device>& device,
             const shared_ptr<PipelineResources>& pipelineResources,
             const shared_ptr<const VertexInputLayout>& vertexInputLayout,
             const shared_ptr<const ShaderModule>& vertexShader,
             const shared_ptr<const ShaderModule>& fragmentShader,
+            CullMode cullMode,
             const wstring& name);
 
         auto getPipelineState() const { return pipelineState; }
