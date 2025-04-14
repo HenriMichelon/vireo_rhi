@@ -8,6 +8,7 @@ module;
 #include "vireo/backend/directx/Tools.h"
 module vireo.directx;
 
+import vireo.directx.descriptors;
 import vireo.directx.pipelines;
 import vireo.directx.resources;
 
@@ -64,6 +65,10 @@ namespace vireo {
             IID_PPV_ARGS(&commandAllocator)));
     }
 
+    void DXCommandAllocator::reset() const {
+        DieIfFailed(commandAllocator->Reset());
+    }
+
     shared_ptr<CommandList> DXCommandAllocator::createCommandList(const shared_ptr<const Pipeline>& pipeline) const {
         return make_shared<DXCommandList>(
             getCommandListType(),
@@ -96,13 +101,21 @@ namespace vireo {
         DieIfFailed(commandList->Close());
     }
 
-    void DXCommandList::reset() const {
-        DieIfFailed(commandAllocator->Reset());
+    void DXCommandList::bindPipeline(const shared_ptr<const Pipeline>& pipeline) {
+        commandList->SetPipelineState(static_pointer_cast<const DXPipeline>(pipeline)->getPipelineState().Get());
+        commandList->SetGraphicsRootSignature(static_pointer_cast<const DXPipelineResources>(pipeline->getResources())->getRootSignature().Get());
     }
 
-    void DXCommandList::begin(const shared_ptr<const Pipeline>& pipeline) const {
-        const auto dxPipeline = static_pointer_cast<const DXPipeline>(pipeline);
-        DieIfFailed(commandList->Reset(commandAllocator.Get(), dxPipeline->getPipelineState().Get()));
+    void DXCommandList::bindDescriptors(const vector<shared_ptr<const DescriptorSet>>& descriptors) const {
+        if (descriptors.empty()) { return; }
+        vector<ID3D12DescriptorHeap*> heaps(descriptors.size());
+        for (int i = 0; i < descriptors.size(); i++) {
+            heaps[i] = static_pointer_cast<const DXDescriptorSet>(descriptors[i])->getHeap().Get();
+        }
+        commandList->SetDescriptorHeaps(heaps.size(), heaps.data());
+        for (int i = 0; i < descriptors.size(); i++) {
+            commandList->SetGraphicsRootDescriptorTable(i, heaps[i]->GetGPUDescriptorHandleForHeapStart());
+        }
     }
 
     void DXCommandList::begin() const {

@@ -25,9 +25,7 @@ export namespace vireo {
 
         shared_ptr<CommandAllocator> createCommandAllocator(CommandList::Type type) const override;
 
-        shared_ptr<FrameData> createFrameData(
-            uint32_t frameIndex,
-            const vector<shared_ptr<DescriptorSet>>& descriptorSet) override;
+        shared_ptr<FrameData> createFrameData(uint32_t frameIndex) override;
 
         void destroyFrameData(const shared_ptr<FrameData>& frameData) override;
 
@@ -42,7 +40,7 @@ export namespace vireo {
             const wstring& name = L"PipelineResource") const override;
 
         shared_ptr<Pipeline> createPipeline(
-            const shared_ptr<const PipelineResources>& pipelineResources,
+            const shared_ptr<PipelineResources>& pipelineResources,
             const shared_ptr<const VertexInputLayout>& vertexInputLayout,
             const shared_ptr<const ShaderModule>& vertexShader,
             const shared_ptr<const ShaderModule>& fragmentShader,
@@ -84,8 +82,6 @@ export namespace vireo {
 
         void beginRendering(
             const shared_ptr<FrameData>& frameData,
-            const shared_ptr<const PipelineResources>& pipelineResources,
-            const shared_ptr<const Pipeline>& pipeline,
             const shared_ptr<const CommandList>& commandList) override;
 
         void endRendering(const shared_ptr<const CommandList>& commandList) override;

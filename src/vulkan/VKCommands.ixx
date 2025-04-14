@@ -38,6 +38,8 @@ export namespace vireo {
 
         ~VKCommandAllocator() override;
 
+        void reset() const override;
+
         shared_ptr<CommandList> createCommandList(const shared_ptr<const Pipeline>& pipeline) const override;
 
         shared_ptr<CommandList> createCommandList() const override;
@@ -51,10 +53,6 @@ export namespace vireo {
     public:
         VKCommandList(const shared_ptr<const VKDevice>& device, VkCommandPool commandPool);
 
-        void reset() const override;
-
-        void begin(const shared_ptr<const Pipeline>& pipeline) const override;
-
         void begin() const override;
 
         void end() const override;
@@ -62,6 +60,10 @@ export namespace vireo {
         void cleanup() override;
 
         void bindVertexBuffer(const shared_ptr<const Buffer>& buffer) const override;
+
+        void bindPipeline(const shared_ptr<const Pipeline>& pipeline) override;
+
+        void bindDescriptors(const vector<shared_ptr<const DescriptorSet>>& descriptors) const override;
 
         void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) const override;
 
@@ -87,6 +89,7 @@ export namespace vireo {
     private:
         const shared_ptr<const VKDevice> device;
         VkCommandBuffer                  commandBuffer;
+        VkPipelineLayout                 lastBoundLayout{VK_NULL_HANDLE};
         vector<VkBuffer>                 stagingBuffers{};
         vector<VkDeviceMemory>           stagingBuffersMemory{};
     };

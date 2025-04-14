@@ -19,8 +19,6 @@ export namespace vireo {
         VkSemaphoreSubmitInfo   renderFinishedSemaphoreSubmitInfo{};
         VkFence                 inFlightFence{VK_NULL_HANDLE};
         uint32_t                imageIndex{0};
-
-        VKFrameData(const vector<shared_ptr<DescriptorSet>>& descriptorSet): FrameData{descriptorSet} {}
     };
 
 }

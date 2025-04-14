@@ -81,11 +81,12 @@ namespace vireo {
     VKPipeline::VKPipeline(
            VkDevice device,
            VKSwapChain& swapChain,
-           const shared_ptr<const PipelineResources>& pipelineResources,
+           const shared_ptr<PipelineResources>& pipelineResources,
            const shared_ptr<const VertexInputLayout>& vertexInputLayout,
            const shared_ptr<const ShaderModule>& vertexShader,
            const shared_ptr<const ShaderModule>& fragmentShader,
            const wstring& name):
+        Pipeline{pipelineResources},
         device{device} {
         const auto vertexShaderModule = static_pointer_cast<const VKShaderModule>(vertexShader)->getShaderModule();
         const auto fragmentShaderModule = static_pointer_cast<const VKShaderModule>(fragmentShader)->getShaderModule();
@@ -122,7 +123,6 @@ namespace vireo {
         const vector dynamicStates = {
             VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT,
             VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT,
-            VK_DYNAMIC_STATE_CULL_MODE
         };
         const auto dynamicState = VkPipelineDynamicStateCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
@@ -137,6 +137,7 @@ namespace vireo {
             .depthClampEnable = VK_FALSE,
             .rasterizerDiscardEnable = VK_FALSE,
             .polygonMode = VK_POLYGON_MODE_FILL,
+            .cullMode = VK_CULL_MODE_NONE,
             .frontFace = VK_FRONT_FACE_CLOCKWISE,
             .depthBiasEnable = VK_FALSE,
             .depthBiasConstantFactor = 0.0f,

@@ -118,6 +118,7 @@ extern PFN_vkQueueSubmit vkQueueSubmit;
 extern PFN_vkQueueSubmit2 vkQueueSubmit2;
 extern PFN_vkQueueWaitIdle vkQueueWaitIdle;
 extern PFN_vkResetCommandBuffer vkResetCommandBuffer;
+extern PFN_vkResetCommandPool vkResetCommandPool;
 extern PFN_vkResetDescriptorPool vkResetDescriptorPool;
 extern PFN_vkResetFences vkResetFences;
 extern PFN_vkCmdSetColorWriteMaskEXT vkCmdSetColorWriteMaskEXT;

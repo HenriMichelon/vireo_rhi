@@ -100,11 +100,12 @@ namespace vireo {
 
     DXPipeline::DXPipeline(
         const ComPtr<ID3D12Device>& device,
-        const shared_ptr<const PipelineResources>& pipelineResources,
+        const shared_ptr<PipelineResources>& pipelineResources,
         const shared_ptr<const VertexInputLayout>& vertexInputLayout,
         const shared_ptr<const ShaderModule>& vertexShader,
         const shared_ptr<const ShaderModule>& fragmentShader,
-        const wstring& name) {
+        const wstring& name):
+        Pipeline{pipelineResources} {
         auto dxVertexInputLayout = static_pointer_cast<const DXVertexInputLayout>(vertexInputLayout);
         auto dxPipelineResources = static_pointer_cast<const DXPipelineResources>(pipelineResources);
         auto dxVertexShader = static_pointer_cast<const DXShaderModule>(vertexShader);

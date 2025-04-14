@@ -184,17 +184,19 @@ export namespace vireo {
 
     class Pipeline {
     public:
+        Pipeline(const shared_ptr<PipelineResources>& pipelineResources) :pipelineResources{pipelineResources} {}
+
         virtual ~Pipeline() = default;
+
+        auto getResources() const { return pipelineResources; }
+
+    private:
+        shared_ptr<PipelineResources> pipelineResources;
     };
 
     struct FrameData {
-        FrameData(const vector<shared_ptr<DescriptorSet>>& descriptorSets): descriptorSets{descriptorSets} {}
-
         virtual ~FrameData() = default;
-
-        vector<shared_ptr<DescriptorSet>> descriptorSets;
     };
-
 
     class CommandList {
     public:
@@ -204,15 +206,15 @@ export namespace vireo {
             COMPUTE,
         };
 
-        virtual void begin(const shared_ptr<const Pipeline>& pipeline) const = 0;
-
-        virtual void reset() const = 0;
-
         virtual void begin() const = 0;
 
         virtual void end() const = 0;
 
         virtual void bindVertexBuffer(const shared_ptr<const Buffer>& buffer) const = 0;
+
+        virtual void bindPipeline(const shared_ptr<const Pipeline>& pipeline) = 0;
+
+        virtual void bindDescriptors(const vector<shared_ptr<const DescriptorSet>>& descriptors) const = 0;
 
         virtual void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) const = 0;
 
@@ -228,6 +230,8 @@ export namespace vireo {
     class CommandAllocator {
     public:
         CommandAllocator(const CommandList::Type type) : commandListType{type} {}
+
+        virtual void reset() const = 0;
 
         virtual shared_ptr<CommandList> createCommandList(const shared_ptr<const Pipeline>& pipeline) const  = 0;
 
@@ -291,9 +295,7 @@ export namespace vireo {
 
         virtual ~RenderingBackEnd() = default;
 
-        virtual shared_ptr<FrameData> createFrameData(
-            uint32_t frameIndex,
-            const vector<shared_ptr<DescriptorSet>>& descriptorSet) = 0;
+        virtual shared_ptr<FrameData> createFrameData(uint32_t frameIndex) = 0;
 
         virtual void destroyFrameData(
             const shared_ptr<FrameData>& frameData) {}
@@ -315,7 +317,7 @@ export namespace vireo {
             const wstring& name = L"PipelineResource") const = 0;
 
         virtual shared_ptr<Pipeline> createPipeline(
-            const shared_ptr<const PipelineResources>& pipelineResources,
+            const shared_ptr<PipelineResources>& pipelineResources,
             const shared_ptr<const VertexInputLayout>& vertexInputLayout,
             const shared_ptr<const ShaderModule>& vertexShader,
             const shared_ptr<const ShaderModule>& fragmentShader,
@@ -357,8 +359,6 @@ export namespace vireo {
 
         virtual void beginRendering(
             const shared_ptr<FrameData>& frameData,
-            const shared_ptr<const PipelineResources>& pipelineResources,
-            const shared_ptr<const Pipeline>& pipeline,
             const shared_ptr<const CommandList>& commandList) = 0;
 
         virtual void endRendering(const shared_ptr<const CommandList>& commandList) = 0;

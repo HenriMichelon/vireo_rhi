@@ -8,6 +8,7 @@ module;
 #include "vireo/backend/vulkan/Tools.h"
 module vireo.vulkan;
 
+import vireo.vulkan.descriptors;
 import vireo.vulkan.framedata;
 import vireo.vulkan.pipelines;
 
@@ -85,6 +86,10 @@ namespace vireo {
         DieIfFailed(vkCreateCommandPool(device->getDevice(), &poolInfo, nullptr, &commandPool));
     }
 
+    void VKCommandAllocator::reset() const {
+        vkResetCommandPool(device->getDevice(), commandPool, 0);
+    }
+
     VKCommandAllocator::~VKCommandAllocator() {
         vkDestroyCommandPool(device->getDevice(), commandPool, nullptr);
     }
@@ -119,16 +124,26 @@ namespace vireo {
         vkCmdDraw(commandBuffer, vertexCountPerInstance, instanceCount, 0, 0);
     }
 
-    void VKCommandList::reset() const {
-        vkResetCommandBuffer(commandBuffer, 0);
+    void VKCommandList::bindPipeline(const shared_ptr<const Pipeline>& pipeline) {
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS , static_pointer_cast<const VKPipeline>(pipeline)->getPipeline());
+        lastBoundLayout = static_pointer_cast<const VKPipelineResources>(pipeline->getResources())->getPipelineLayout();
     }
 
-    void VKCommandList::begin(const shared_ptr<const Pipeline>& pipeline) const {
-        constexpr auto beginInfo = VkCommandBufferBeginInfo {
-            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-        };
-        DieIfFailed(vkBeginCommandBuffer(commandBuffer, &beginInfo));
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS , static_pointer_cast<const VKPipeline>(pipeline)->getPipeline());
+    void VKCommandList::bindDescriptors(const vector<shared_ptr<const DescriptorSet>>& descriptors) const {
+        if (descriptors.empty()) { return; }
+
+        vector<VkDescriptorSet> descriptorSets(descriptors.size());
+        for (int i = 0; i < descriptors.size(); i++) {
+            descriptorSets[i] = static_pointer_cast<const VKDescriptorSet>(descriptors[i])->getSet();
+        }
+        vkCmdBindDescriptorSets(commandBuffer,
+                                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                lastBoundLayout,
+                                0,
+                                descriptorSets.size(),
+                                descriptorSets.data(),
+                                0,
+                                nullptr);
     }
 
     void VKCommandList::begin() const {

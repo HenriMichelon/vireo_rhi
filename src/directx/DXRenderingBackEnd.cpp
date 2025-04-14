@@ -54,10 +54,8 @@ namespace vireo {
             configuration.vSyncMode);
     }
 
-    shared_ptr<FrameData> DXRenderingBackEnd::createFrameData(
-        const uint32_t frameIndex,
-        const vector<shared_ptr<DescriptorSet>>& descriptorSet) {
-        return make_shared<DXFrameData>(descriptorSet);
+    shared_ptr<FrameData> DXRenderingBackEnd::createFrameData(const uint32_t frameIndex) {
+        return make_shared<DXFrameData>();
     }
 
     shared_ptr<PipelineResources> DXRenderingBackEnd::createPipelineResources(
@@ -67,7 +65,7 @@ namespace vireo {
     }
 
     shared_ptr<Pipeline> DXRenderingBackEnd::createPipeline(
-        const shared_ptr<const PipelineResources>& pipelineResources,
+        const shared_ptr<PipelineResources>& pipelineResources,
         const shared_ptr<const VertexInputLayout>& vertexInputLayout,
         const shared_ptr<const ShaderModule>& vertexShader,
         const shared_ptr<const ShaderModule>& fragmentShader,
@@ -139,16 +137,12 @@ namespace vireo {
             minLod, maxLod, anisotropyEnable, mipMapMode);
     }
 
-    void DXRenderingBackEnd::beginRendering(const shared_ptr<FrameData>&data,
-                                            const shared_ptr<const PipelineResources>& pipelineResources,
-                                            const shared_ptr<const Pipeline>& pipeline,
+    void DXRenderingBackEnd::beginRendering(const shared_ptr<FrameData>& data,
                                             const shared_ptr<const CommandList>& commandList) {
         const auto dxCommandList = static_pointer_cast<const DXCommandList>(commandList)->getCommandList();
         const auto dxSwapChain = getDXSwapChain();
         const auto frameIndex = swapChain->getCurrentFrameIndex();
-        const auto dxPipelineResources = static_pointer_cast<const DXPipelineResources>(pipelineResources);
 
-        dxCommandList->SetGraphicsRootSignature(dxPipelineResources->getRootSignature().Get());
         dxCommandList->RSSetViewports(1, &viewport);
         dxCommandList->RSSetScissorRects(1, &scissorRect);
 
@@ -176,16 +170,6 @@ namespace vireo {
 
         dxCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-        if (!data->descriptorSets.empty()) {
-            vector<ID3D12DescriptorHeap*> heaps(data->descriptorSets.size());
-            for (int i = 0; i < data->descriptorSets.size(); i++) {
-                heaps[i] = static_pointer_cast<DXDescriptorSet>(data->descriptorSets[i])->getHeap().Get();
-            }
-            dxCommandList->SetDescriptorHeaps(heaps.size(), heaps.data());
-            for (int i = 0; i < data->descriptorSets.size(); i++) {
-                dxCommandList->SetGraphicsRootDescriptorTable(i, heaps[i]->GetGPUDescriptorHandleForHeapStart());
-            }
-        }
     }
 
     void DXRenderingBackEnd::endRendering(const shared_ptr<const CommandList>& commandList) {

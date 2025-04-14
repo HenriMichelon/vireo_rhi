@@ -40,10 +40,8 @@ namespace vireo {
         vkDestroyFence(getVKDevice()->getDevice(), data->inFlightFence, nullptr);
     }
 
-    shared_ptr<FrameData> VKRenderingBackEnd::createFrameData(
-        const uint32_t frameIndex,
-        const vector<shared_ptr<DescriptorSet>>& descriptorSet) {
-        auto data = make_shared<VKFrameData>(descriptorSet);
+    shared_ptr<FrameData> VKRenderingBackEnd::createFrameData(const uint32_t frameIndex) {
+        auto data = make_shared<VKFrameData>();
         constexpr VkSemaphoreCreateInfo semaphoreInfo{
             .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
         };
@@ -102,7 +100,7 @@ namespace vireo {
     }
 
     shared_ptr<Pipeline> VKRenderingBackEnd::createPipeline(
-        const shared_ptr<const PipelineResources>& pipelineResources,
+        const shared_ptr<PipelineResources>& pipelineResources,
         const shared_ptr<const VertexInputLayout>& vertexInputLayout,
         const shared_ptr<const ShaderModule>& vertexShader,
         const shared_ptr<const ShaderModule>& fragmentShader,
@@ -145,12 +143,9 @@ namespace vireo {
 
     void VKRenderingBackEnd::beginRendering(
         const shared_ptr<FrameData>& frameData,
-        const shared_ptr<const PipelineResources>& pipelineResources,
-        const shared_ptr<const Pipeline>& pipeline,
         const shared_ptr<const CommandList>& commandList) {
         const auto data = static_pointer_cast<VKFrameData>(frameData);
         const auto vkCommandList = static_pointer_cast<const VKCommandList>(commandList);
-        const auto vkPipelineResources = static_pointer_cast<const VKPipelineResources>(pipelineResources);
         const auto& swapChain = *getVKSwapChain();
 
         vkCommandList->pipelineBarrier(
@@ -204,22 +199,6 @@ namespace vireo {
         };
         vkCmdSetViewportWithCount(commandBuffer, 1, &viewport);
         vkCmdSetScissorWithCount(commandBuffer, 1, &scissor);
-        vkCmdSetCullMode(commandBuffer, VK_CULL_MODE_NONE);
-
-        if (!data->descriptorSets.empty()) {
-            vector<VkDescriptorSet> descriptorSets(data->descriptorSets.size());
-            for (int i = 0; i < data->descriptorSets.size(); i++) {
-                descriptorSets[i] = static_pointer_cast<VKDescriptorSet>(data->descriptorSets[i])->getSet();
-            }
-            vkCmdBindDescriptorSets(commandBuffer,
-                                    VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                    vkPipelineResources->getPipelineLayout(),
-                                    0,
-                                    descriptorSets.size(),
-                                    descriptorSets.data(),
-                                    0,
-                                    nullptr);
-        }
     }
 
     void VKRenderingBackEnd::endRendering(const shared_ptr<const CommandList>& commandList) {

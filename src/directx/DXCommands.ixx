@@ -33,6 +33,8 @@ export namespace vireo {
     public:
         DXCommandAllocator(const ComPtr<ID3D12Device>& device, CommandList::Type type);
 
+        void reset() const override;
+
         shared_ptr<CommandList> createCommandList(const shared_ptr<const Pipeline>& pipeline) const override;
 
         shared_ptr<CommandList> createCommandList() const override;
@@ -56,15 +58,15 @@ export namespace vireo {
             const ComPtr<ID3D12CommandAllocator>& commandAllocator,
             const ComPtr<ID3D12PipelineState>& pipelineState = nullptr);
 
-        void reset() const override;
-
-        void begin(const shared_ptr<const Pipeline>& pipeline)const override;
-
         void begin() const override;
 
         void end() const override;
 
         void bindVertexBuffer(const shared_ptr<const Buffer>& buffer) const override;
+
+        void bindPipeline(const shared_ptr<const Pipeline>& pipeline) override;
+
+        void bindDescriptors(const vector<shared_ptr<const DescriptorSet>>& descriptors) const override;
 
         void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) const override;
 

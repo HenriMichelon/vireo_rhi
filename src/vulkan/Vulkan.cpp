@@ -99,6 +99,7 @@ PFN_vkQueueSubmit vkQueueSubmit;
 PFN_vkQueueSubmit2 vkQueueSubmit2;
 PFN_vkQueueWaitIdle vkQueueWaitIdle;
 PFN_vkResetCommandBuffer vkResetCommandBuffer;
+PFN_vkResetCommandPool vkResetCommandPool;
 PFN_vkResetDescriptorPool vkResetDescriptorPool;
 PFN_vkResetFences vkResetFences;
 PFN_vkCmdSetColorWriteMaskEXT vkCmdSetColorWriteMaskEXT;
@@ -238,6 +239,7 @@ void vulkanInitializeDevice(VkDevice device) {
 	vkQueueSubmit2 = (PFN_vkQueueSubmit2)vkGetDeviceProcAddr(device, "vkQueueSubmit2");
 	vkQueueWaitIdle = (PFN_vkQueueWaitIdle)vkGetDeviceProcAddr(device, "vkQueueWaitIdle");
 	vkResetCommandBuffer = (PFN_vkResetCommandBuffer)vkGetDeviceProcAddr(device, "vkResetCommandBuffer");
+	vkResetCommandPool = (PFN_vkResetCommandPool)vkGetDeviceProcAddr(device, "vkResetCommandPool");
 	vkResetDescriptorPool = (PFN_vkResetDescriptorPool)vkGetDeviceProcAddr(device, "vkResetDescriptorPool");
 	vkResetFences = (PFN_vkResetFences)vkGetDeviceProcAddr(device, "vkResetFences");
 	vkUnmapMemory = (PFN_vkUnmapMemory)vkGetDeviceProcAddr(device, "vkUnmapMemory");
