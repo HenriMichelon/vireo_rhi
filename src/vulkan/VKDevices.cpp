@@ -72,7 +72,7 @@ namespace vireo {
 #endif
         constexpr VkApplicationInfo applicationInfo{
             .sType      = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-            .apiVersion = VK_API_VERSION_1_4};
+            .apiVersion = VK_API_VERSION_1_3};
         const VkInstanceCreateInfo createInfo = {VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
                                                  nullptr,
                                                  0,
@@ -386,14 +386,9 @@ namespace vireo {
 
         // Initialize device extensions and create a logical device
         {
-            VkPhysicalDeviceLineRasterizationFeaturesEXT lineRasterizationFeatures{
-                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT,
-                .rectangularLines = VK_TRUE,
-                // .smoothLines = VK_TRUE,
-            };
             VkPhysicalDeviceSynchronization2FeaturesKHR sync2Features{
                 .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES,
-                .pNext = &lineRasterizationFeatures,
+                .pNext = nullptr,
                 .synchronization2 = VK_TRUE
             };
             VkPhysicalDeviceFeatures2 deviceFeatures2 {
