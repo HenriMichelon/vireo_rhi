@@ -186,21 +186,6 @@ namespace vireo {
         };
         const auto& commandBuffer = vkCommandList->getCommandBuffer();
         vkCmdBeginRendering(commandBuffer, &renderingInfo);
-
-        const VkViewport viewport{
-            .x = 0.0f,
-            .y = static_cast<float>(extent.height),
-            .width = static_cast<float>(extent.width),
-            .height = -static_cast<float>(extent.height),
-            .minDepth = 0.0f,
-            .maxDepth = 1.0f
-        };
-        const VkRect2D scissor{
-            .offset = {0, 0},
-            .extent = extent
-        };
-        vkCmdSetViewportWithCount(commandBuffer, 1, &viewport);
-        vkCmdSetScissorWithCount(commandBuffer, 1, &scissor);
     }
 
     void VKRenderingBackEnd::endRendering(const shared_ptr<const CommandList>& commandList) {

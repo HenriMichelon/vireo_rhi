@@ -98,8 +98,6 @@ export namespace vireo {
 
     private:
         HWND hWnd;
-        CD3DX12_VIEWPORT viewport;
-        CD3DX12_RECT scissorRect;
     };
 
 }

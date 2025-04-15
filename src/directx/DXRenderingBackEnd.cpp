@@ -34,10 +34,6 @@ namespace vireo {
         if (GetClientRect(hWnd, &windowRect) == 0) {
             die("Error getting window rect");
         }
-        auto width = windowRect.right - windowRect.left;
-        auto height = windowRect.bottom - windowRect.top;
-        viewport = CD3DX12_VIEWPORT{0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)},
-        scissorRect = CD3DX12_RECT{0, 0, static_cast<LONG>(width), static_cast<LONG>(height)};
 
         instance = make_shared<DXInstance>(hWnd);
         physicalDevice = make_shared<DXPhysicalDevice>(getDXInstance()->getFactory());
@@ -48,8 +44,8 @@ namespace vireo {
             getDXInstance()->getFactory(),
             getDXDevice(),
             getDXGraphicCommandQueue()->getCommandQueue(),
-            width,
-            height,
+            windowRect.right - windowRect.left,
+            windowRect.bottom - windowRect.top,
             hWnd,
             configuration.vSyncMode);
     }
@@ -145,8 +141,7 @@ namespace vireo {
         const auto dxSwapChain = getDXSwapChain();
         const auto frameIndex = swapChain->getCurrentFrameIndex();
 
-        dxCommandList->RSSetViewports(1, &viewport);
-        dxCommandList->RSSetScissorRects(1, &scissorRect);
+
 
         {
             const auto swapChainBarrier = CD3DX12_RESOURCE_BARRIER::Transition(dxSwapChain->getRenderTargets()[frameIndex].Get(),

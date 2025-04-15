@@ -147,6 +147,29 @@ namespace vireo {
                                 nullptr);
     }
 
+    void VKCommandList::setViewports(const uint32_t count, const vector<Extent>& extent) const {
+        vector<VkViewport> viewports(count);
+        for (int i = 0; i < count; i++) {
+            viewports[i].x = 0.0f;
+            viewports[i].y = static_cast<float>(extent[i].height),
+            viewports[i].width = static_cast<float>(extent[i].width);
+            viewports[i].height = -static_cast<float>(extent[i].height);
+            viewports[i].minDepth = 0.0f;
+            viewports[i].maxDepth = 1.0f;
+        }
+        vkCmdSetViewportWithCount(commandBuffer, count, viewports.data());
+    }
+
+    void VKCommandList::setScissors(const uint32_t count, const vector<Extent>& extent) const {
+        vector<VkRect2D> scissors(count);
+        for (int i = 0; i < count; i++) {
+            scissors[i].offset = {0, 0};
+            scissors[i].extent.width = extent[i].width;
+            scissors[i].extent.height = extent[i].height;
+        }
+        vkCmdSetScissorWithCount(commandBuffer, count, scissors.data());
+    }
+
     void VKCommandList::begin() const {
         constexpr auto beginInfo = VkCommandBufferBeginInfo{
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,

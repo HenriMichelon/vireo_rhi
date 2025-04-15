@@ -65,6 +65,11 @@ export namespace vireo {
 
     using DescriptorIndex = uint32_t;
 
+    struct Extent {
+        uint32_t width;
+        uint32_t height;
+    };
+
     class Instance {
     public:
         virtual ~Instance() = default;
@@ -221,6 +226,10 @@ export namespace vireo {
 
         virtual void end() const = 0;
 
+        virtual void upload(const shared_ptr<const Buffer>& destination, const void* source) = 0;
+
+        virtual void upload(const shared_ptr<const Image>& destination, const void* source) = 0;
+
         virtual void bindVertexBuffer(const shared_ptr<const Buffer>& buffer) const = 0;
 
         virtual void bindPipeline(const shared_ptr<const Pipeline>& pipeline) = 0;
@@ -229,9 +238,9 @@ export namespace vireo {
 
         virtual void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) const = 0;
 
-        virtual void upload(const shared_ptr<const Buffer>& destination, const void* source) = 0;
+        virtual void setViewports(uint32_t count, const vector<Extent>& extent) const = 0;
 
-        virtual void upload(const shared_ptr<const Image>& destination, const void* source) = 0;
+        virtual void setScissors(uint32_t count, const vector<Extent>& extent) const = 0;
 
         virtual void cleanup() = 0;
 
@@ -270,11 +279,6 @@ export namespace vireo {
     class SwapChain {
     public:
         static constexpr uint32_t FRAMES_IN_FLIGHT = 2;
-
-        struct Extent {
-            uint32_t width;
-            uint32_t height;
-        };
 
         virtual ~SwapChain() = default;
 

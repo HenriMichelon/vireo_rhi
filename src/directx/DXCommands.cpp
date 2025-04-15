@@ -118,6 +118,30 @@ namespace vireo {
         }
     }
 
+    void DXCommandList::setViewports(const uint32_t count, const vector<Extent>& extent) const {
+        vector<CD3DX12_VIEWPORT> viewports(count);
+        for (int i = 0; i < count; i++) {
+            viewports[i].TopLeftX = 0.0f;
+            viewports[i].TopLeftY = 0.0f;
+            viewports[i].Width = static_cast<FLOAT>(extent[i].width);
+            viewports[i].Height = static_cast<FLOAT>(extent[i].height);
+            viewports[i].MinDepth = 0.0f;
+            viewports[i].MaxDepth = 0.0f;
+        }
+        commandList->RSSetViewports(count, viewports.data());
+    }
+
+    void DXCommandList::setScissors(const uint32_t count, const vector<Extent>& extent) const {
+        vector<CD3DX12_RECT> scissors(count);
+        for (int i = 0; i < count; i++) {
+            scissors[i].left = 0;
+            scissors[i].top = 0;
+            scissors[i].right = extent[i].width;
+            scissors[i].bottom = extent[i].height;
+        }
+        commandList->RSSetScissorRects(1, scissors.data());
+    }
+
     void DXCommandList::begin() const {
         DieIfFailed(commandList->Reset(commandAllocator.Get(), nullptr));
     }

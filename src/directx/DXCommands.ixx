@@ -62,6 +62,10 @@ export namespace vireo {
 
         void end() const override;
 
+        void upload(const shared_ptr<const Buffer>& destination, const void* source) override;
+
+        void upload(const shared_ptr<const Image>& destination, const void* source) override;
+
         void bindVertexBuffer(const shared_ptr<const Buffer>& buffer) const override;
 
         void bindPipeline(const shared_ptr<const Pipeline>& pipeline) override;
@@ -70,9 +74,9 @@ export namespace vireo {
 
         void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) const override;
 
-        void upload(const shared_ptr<const Buffer>& destination, const void* source) override;
+        void setViewports(uint32_t count, const vector<Extent>& extent) const;
 
-        void upload(const shared_ptr<const Image>& destination, const void* source) override;
+        void setScissors(uint32_t count, const vector<Extent>& extent) const;
 
         void cleanup() override;
 
