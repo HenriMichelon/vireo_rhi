@@ -143,56 +143,6 @@ namespace vireo {
             name);
     }
 
-    void VKRenderingBackEnd::beginRendering(
-        const shared_ptr<FrameData>& frameData,
-        const shared_ptr<const CommandList>& commandList) {
-        const auto data = static_pointer_cast<VKFrameData>(frameData);
-        const auto vkCommandList = static_pointer_cast<const VKCommandList>(commandList);
-        const auto& swapChain = *getVKSwapChain();
-
-        vkCommandList->pipelineBarrier(
-            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-            {VKCommandList::imageMemoryBarrier(swapChain.getImages()[data->imageIndex],
-                    0, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                    VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)});
-
-        const auto vkClearColor = VkClearValue{{
-            clearColor[0], clearColor[1], clearColor[2], clearColor[3]
-        }};
-        const VkExtent2D extent = {swapChain.getExtent().width, swapChain.getExtent().height};
-
-        const auto colorAttachmentInfo = VkRenderingAttachmentInfo {
-            .sType              = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
-            .imageView          = swapChain.getImageViews()[data->imageIndex],
-            .imageLayout        = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-            .resolveMode        = VK_RESOLVE_MODE_NONE,
-            .loadOp             = VK_ATTACHMENT_LOAD_OP_CLEAR,
-            .storeOp            = VK_ATTACHMENT_STORE_OP_STORE,
-            .clearValue         = vkClearColor,
-        };
-        const auto renderingInfo = VkRenderingInfo {
-            .sType               = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR,
-            .pNext                = nullptr,
-            .renderArea           = {
-                {0, 0},
-                extent
-            },
-            .layerCount           = 1,
-            .colorAttachmentCount = 1,
-            .pColorAttachments    = &colorAttachmentInfo,
-            .pDepthAttachment     = nullptr,
-            .pStencilAttachment   = nullptr
-        };
-        const auto& commandBuffer = vkCommandList->getCommandBuffer();
-        vkCmdBeginRendering(commandBuffer, &renderingInfo);
-    }
-
-    void VKRenderingBackEnd::endRendering(const shared_ptr<const CommandList>& commandList) {
-        const auto vkCommandList = static_pointer_cast<const VKCommandList>(commandList);
-        vkCmdEndRendering(vkCommandList->getCommandBuffer());
-    }
-
     void VKRenderingBackEnd::waitIdle() {
         vkDeviceWaitIdle(getVKDevice()->getDevice());
     }

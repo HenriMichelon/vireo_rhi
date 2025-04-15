@@ -8,6 +8,8 @@ module;
 #include "vireo/backend/directx/Tools.h"
 module vireo.directx.swapchains;
 
+import vireo.directx.commands;
+
 namespace vireo {
 
     DXSwapChain::DXSwapChain(
@@ -96,6 +98,15 @@ namespace vireo {
             WaitForSingleObjectEx(device->getInFlightFenceEvent(), INFINITE, FALSE);
         }
         return true;
+    }
+
+    void DXSwapChain::end(const shared_ptr<const FrameData>& frameData, const shared_ptr<const CommandList>& commandList) const {
+        const auto dxCommandList = static_pointer_cast<const DXCommandList>(commandList);
+        const auto swapChainBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+            renderTargets[currentFrameIndex].Get(),
+            D3D12_RESOURCE_STATE_RENDER_TARGET,
+            D3D12_RESOURCE_STATE_PRESENT);
+        dxCommandList->getCommandList()->ResourceBarrier(1, &swapChainBarrier);
     }
 
     void DXSwapChain::present(const shared_ptr<FrameData>& frameData) {

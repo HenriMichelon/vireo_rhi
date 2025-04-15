@@ -27,15 +27,17 @@ export namespace vireo {
 
         auto getSwapChain() { return swapChain; }
 
-        auto getRenderTargets() { return renderTargets; }
+        auto getRenderTargets() const { return renderTargets; }
 
         auto getDescriptorSize() const {  return rtvDescriptorSize; }
 
-        auto getHeap() { return rtvHeap; }
+        auto getHeap() const { return rtvHeap; }
 
         void nextSwapChain() override;
 
         bool begin(const shared_ptr<FrameData>& frameData) override;
+
+        void end(const shared_ptr<const FrameData>& frameData, const shared_ptr<const CommandList>& commandList) const override;
 
         void present(const shared_ptr<FrameData>& frameData) override;
 

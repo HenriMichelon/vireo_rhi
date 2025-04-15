@@ -228,6 +228,8 @@ export namespace vireo {
         virtual ~FrameData() = default;
     };
 
+    class SwapChain;
+
     class CommandList {
     public:
         virtual void begin() const = 0;
@@ -237,6 +239,13 @@ export namespace vireo {
         virtual void upload(const shared_ptr<const Buffer>& destination, const void* source) = 0;
 
         virtual void upload(const shared_ptr<const Image>& destination, const void* source) = 0;
+
+        virtual void beginRendering(
+            const shared_ptr<FrameData>& frameData,
+            const shared_ptr<SwapChain>& swapChain,
+            const float clearColor[]) const = 0;
+
+        virtual void endRendering() const = 0;
 
         virtual void bindVertexBuffer(const shared_ptr<const Buffer>& buffer) const = 0;
 
@@ -302,7 +311,7 @@ export namespace vireo {
 
         virtual bool begin(const shared_ptr<FrameData>& frameData) = 0;
 
-        virtual void end(const shared_ptr<const FrameData>& frameData, const shared_ptr<const CommandList>& commandList) const {}
+        virtual void end(const shared_ptr<const FrameData>& frameData, const shared_ptr<const CommandList>& commandList) const = 0;
 
         virtual void present(const shared_ptr<FrameData>& frameData) = 0;
 
@@ -381,18 +390,6 @@ export namespace vireo {
             bool anisotropyEnable = true,
             MipMapMode mipMapMode = MipMapMode::LINEAR) const = 0;
 
-        virtual void beginRendering(
-            const shared_ptr<FrameData>& frameData,
-            const shared_ptr<const CommandList>& commandList) = 0;
-
-        virtual void endRendering(const shared_ptr<const CommandList>& commandList) = 0;
-
-        void setClearColor(const float r, const float g, const float b) {
-            clearColor[0] = r;
-            clearColor[1] = g;
-            clearColor[2] = b;
-        }
-
         auto& getInstance() const { return instance; }
 
         auto& getPhysicalDevice() const { return physicalDevice; }
@@ -407,7 +404,6 @@ export namespace vireo {
 
     protected:
         const Configuration&        configuration;
-        float                       clearColor[3] = {};
         shared_ptr<Instance>        instance;
         shared_ptr<PhysicalDevice>  physicalDevice;
         shared_ptr<Device>          device;

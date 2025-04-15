@@ -146,6 +146,42 @@ namespace vireo {
         commandList->IASetPrimitiveTopology(dxPrimitives[static_cast<int>(primitiveTopology)]);
     }
 
+
+    void DXCommandList::beginRendering(
+        const shared_ptr<FrameData>& frameData,
+        const shared_ptr<SwapChain>& swapChain,
+        const float clearColor[]) const {
+        const auto dxSwapChain = static_pointer_cast<const DXSwapChain>(swapChain);
+        const auto frameIndex = swapChain->getCurrentFrameIndex();
+
+        const auto swapChainBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+            dxSwapChain->getRenderTargets()[frameIndex].Get(),
+            D3D12_RESOURCE_STATE_PRESENT,
+            D3D12_RESOURCE_STATE_RENDER_TARGET);
+        commandList->ResourceBarrier(1, &swapChainBarrier);
+
+        const CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(
+            dxSwapChain->getHeap()->GetCPUDescriptorHandleForHeapStart(),
+            frameIndex,
+            dxSwapChain->getDescriptorSize());
+        commandList->OMSetRenderTargets(
+            1,
+            &rtvHandle,
+            FALSE,
+            nullptr);
+
+        const float dxClearColor[] = {clearColor[0], clearColor[1], clearColor[2], clearColor[3]};
+        commandList->ClearRenderTargetView(
+            rtvHandle,
+            dxClearColor,
+            0,
+            nullptr);
+    }
+
+    void DXCommandList::endRendering() const {
+    }
+
+
     void DXCommandList::begin() const {
         DieIfFailed(commandList->Reset(commandAllocator.Get(), nullptr));
     }

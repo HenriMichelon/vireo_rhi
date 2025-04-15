@@ -175,6 +175,51 @@ namespace vireo {
         vkCmdSetPrimitiveRestartEnable(commandBuffer, VK_FALSE);
     }
 
+    void VKCommandList::beginRendering(
+        const shared_ptr<FrameData>& frameData,
+        const shared_ptr<SwapChain>& swapChain,
+        const float clearColor[]) const {
+        const auto data = static_pointer_cast<VKFrameData>(frameData);
+        const auto vkSwapChain = static_pointer_cast<VKSwapChain>(swapChain);
+
+        pipelineBarrier(
+            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            {imageMemoryBarrier(vkSwapChain->getImages()[data->imageIndex],
+                    0, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+                    VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)});
+
+        const auto colorAttachmentInfo = VkRenderingAttachmentInfo {
+            .sType              = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
+            .imageView          = vkSwapChain->getImageViews()[data->imageIndex],
+            .imageLayout        = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .resolveMode        = VK_RESOLVE_MODE_NONE,
+            .loadOp             = VK_ATTACHMENT_LOAD_OP_CLEAR,
+            .storeOp            = VK_ATTACHMENT_STORE_OP_STORE,
+            .clearValue         = {
+                clearColor[0], clearColor[1], clearColor[2], clearColor[3]
+            },
+        };
+        const auto renderingInfo = VkRenderingInfo {
+            .sType               = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR,
+            .pNext                = nullptr,
+            .renderArea           = {
+                {0, 0},
+                {swapChain->getExtent().width, swapChain->getExtent().height}
+            },
+            .layerCount           = 1,
+            .colorAttachmentCount = 1,
+            .pColorAttachments    = &colorAttachmentInfo,
+            .pDepthAttachment     = nullptr,
+            .pStencilAttachment   = nullptr
+        };
+        vkCmdBeginRendering(commandBuffer, &renderingInfo);
+    }
+
+    void VKCommandList::endRendering() const {
+        vkCmdEndRendering(commandBuffer);
+    }
+
     void VKCommandList::begin() const {
         constexpr auto beginInfo = VkCommandBufferBeginInfo{
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,

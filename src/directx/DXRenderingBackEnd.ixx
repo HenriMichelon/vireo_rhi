@@ -78,12 +78,6 @@ export namespace vireo {
                bool anisotropyEnable = true,
                MipMapMode mipMapMode = MipMapMode::LINEAR) const override;
 
-        void beginRendering(
-            const shared_ptr<FrameData>& frameData,
-            const shared_ptr<const CommandList>& commandList) override;
-
-        void endRendering(const shared_ptr<const CommandList>& commandList) override;
-
         auto getDXInstance() const { return reinterpret_pointer_cast<DXInstance>(instance); }
 
         auto getDXPhysicalDevice() const { return reinterpret_pointer_cast<DXPhysicalDevice>(physicalDevice); }

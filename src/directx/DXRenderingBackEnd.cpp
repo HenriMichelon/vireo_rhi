@@ -135,51 +135,6 @@ namespace vireo {
             minLod, maxLod, anisotropyEnable, mipMapMode);
     }
 
-    void DXRenderingBackEnd::beginRendering(const shared_ptr<FrameData>& data,
-                                            const shared_ptr<const CommandList>& commandList) {
-        const auto dxCommandList = static_pointer_cast<const DXCommandList>(commandList)->getCommandList();
-        const auto dxSwapChain = getDXSwapChain();
-        const auto frameIndex = swapChain->getCurrentFrameIndex();
-
-
-
-        {
-            const auto swapChainBarrier = CD3DX12_RESOURCE_BARRIER::Transition(dxSwapChain->getRenderTargets()[frameIndex].Get(),
-                                                                         D3D12_RESOURCE_STATE_PRESENT,
-                                                                         D3D12_RESOURCE_STATE_RENDER_TARGET);
-            dxCommandList->ResourceBarrier(1, &swapChainBarrier);
-        }
-
-        {
-            const CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(
-                dxSwapChain->getHeap()->GetCPUDescriptorHandleForHeapStart(),
-                frameIndex,
-                dxSwapChain->getDescriptorSize());
-            dxCommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
-
-            const float dxClearColor[] = {clearColor[0], clearColor[1], clearColor[2], clearColor[3]};
-            dxCommandList->ClearRenderTargetView(
-                rtvHandle,
-                dxClearColor,
-                0,
-                nullptr);
-        }
-
-
-    }
-
-    void DXRenderingBackEnd::endRendering(const shared_ptr<const CommandList>& commandList) {
-        const auto dxCommandList = static_pointer_cast<const DXCommandList>(commandList)->getCommandList();
-        const auto dxSwapChain = getDXSwapChain();
-        const auto frameIndex = swapChain->getCurrentFrameIndex();
-
-        const auto swapChainBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            dxSwapChain->getRenderTargets()[frameIndex].Get(),
-            D3D12_RESOURCE_STATE_RENDER_TARGET,
-            D3D12_RESOURCE_STATE_PRESENT);
-        dxCommandList->ResourceBarrier(1, &swapChainBarrier);
-    }
-
     shared_ptr<CommandAllocator> DXRenderingBackEnd::createCommandAllocator(const CommandType type) const {
         return make_shared<DXCommandAllocator>(getDXDevice()->getDevice(), type);
     }

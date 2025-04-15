@@ -71,6 +71,13 @@ export namespace vireo {
 
         void upload(const shared_ptr<const Image>& destination, const void* source) override;
 
+        void beginRendering(
+            const shared_ptr<FrameData>& frameData,
+            const shared_ptr<SwapChain>& swapChain,
+            const float clearColor[]) const override;
+
+        void endRendering() const override;
+
         void bindVertexBuffer(const shared_ptr<const Buffer>& buffer) const override;
 
         void bindPipeline(const shared_ptr<const Pipeline>& pipeline) override;
