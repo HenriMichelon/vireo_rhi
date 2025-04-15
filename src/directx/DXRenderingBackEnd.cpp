@@ -165,7 +165,6 @@ namespace vireo {
                 nullptr);
         }
 
-        dxCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     }
 

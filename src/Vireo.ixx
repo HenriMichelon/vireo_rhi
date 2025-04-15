@@ -63,6 +63,14 @@ export namespace vireo {
         BACK    = 2,
     };
 
+    enum class PrimitiveTopology : uint8_t {
+        POINT_LIST     = 0,
+        LINE_LIST      = 1,
+        LINE_STRIP     = 2,
+        TRIANGLE_LIST  = 3,
+        TRIANGLE_STRIP = 4,
+    };
+
     using DescriptorIndex = uint32_t;
 
     struct Extent {
@@ -241,6 +249,8 @@ export namespace vireo {
         virtual void setViewports(uint32_t count, const vector<Extent>& extent) const = 0;
 
         virtual void setScissors(uint32_t count, const vector<Extent>& extent) const = 0;
+
+        virtual void setPrimitiveTopology(PrimitiveTopology primitiveTopology) const = 0;
 
         virtual void cleanup() = 0;
 

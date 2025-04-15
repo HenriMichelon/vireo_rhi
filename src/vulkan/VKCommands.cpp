@@ -170,6 +170,11 @@ namespace vireo {
         vkCmdSetScissorWithCount(commandBuffer, count, scissors.data());
     }
 
+    void VKCommandList::setPrimitiveTopology(PrimitiveTopology primitiveTopology) const {
+        vkCmdSetPrimitiveTopology(commandBuffer, vkPrimitives[static_cast<int>(primitiveTopology)]);
+        vkCmdSetPrimitiveRestartEnable(commandBuffer, VK_FALSE);
+    }
+
     void VKCommandList::begin() const {
         constexpr auto beginInfo = VkCommandBufferBeginInfo{
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,

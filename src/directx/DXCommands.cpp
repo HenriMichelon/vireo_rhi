@@ -142,6 +142,10 @@ namespace vireo {
         commandList->RSSetScissorRects(1, scissors.data());
     }
 
+    void DXCommandList::setPrimitiveTopology(PrimitiveTopology primitiveTopology) const {
+        commandList->IASetPrimitiveTopology(dxPrimitives[static_cast<int>(primitiveTopology)]);
+    }
+
     void DXCommandList::begin() const {
         DieIfFailed(commandList->Reset(commandAllocator.Get(), nullptr));
     }

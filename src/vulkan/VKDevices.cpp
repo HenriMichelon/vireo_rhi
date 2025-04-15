@@ -114,7 +114,7 @@ namespace vireo {
 
     VKPhysicalDevice::VKPhysicalDevice(const VkInstance instance, void* windowHandle):
         instance(instance),
-    // Requested device extensions
+        // Requested device extensions
         deviceExtensions {
             // Mandatory to create a swap chain
             VK_KHR_SWAPCHAIN_EXTENSION_NAME,
@@ -122,7 +122,8 @@ namespace vireo {
             VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
             // for Vulkan Memory Allocator
             VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
-            VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME,
+            // Pipelines dynamic states for IA & viewports
+            VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME,
 #ifndef NDEBUG
             // To debugPrintEXT() from shaders :-)
             // See shader_debug_env.cmd for setup with environment variables
@@ -386,6 +387,11 @@ namespace vireo {
 
         // Initialize device extensions and create a logical device
         {
+            // VkPhysicalDeviceExtendedDynamicState3PropertiesEXT deviceExtendedDynamicState3 {
+            //     .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_PROPERTIES_EXT,
+            //     .pNext = nullptr,
+            //     .dynamicPrimitiveTopologyUnrestricted = VK_TRUE,
+            // };
             VkPhysicalDeviceSynchronization2FeaturesKHR sync2Features{
                 .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES,
                 .pNext = nullptr,
@@ -395,7 +401,6 @@ namespace vireo {
                 .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
                 .pNext = &sync2Features,
                 .features = {
-                    // .fillModeNonSolid = VK_TRUE,
                     .samplerAnisotropy = VK_TRUE,
                 }
             };
@@ -404,8 +409,6 @@ namespace vireo {
                 .pNext = &deviceFeatures2,
                 .shaderDrawParameters = VK_TRUE,
             };
-
-            // https://lesleylai.info/en/vk-khr-dynamic-rendering/
             const VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature{
                 .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR,
                 .pNext = &deviceVulkan11Features,

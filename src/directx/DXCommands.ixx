@@ -51,6 +51,13 @@ export namespace vireo {
             D3D12_COMMAND_LIST_TYPE_DIRECT, //D3D12_COMMAND_LIST_TYPE_COPY,
             D3D12_COMMAND_LIST_TYPE_COMPUTE,
         };
+        static constexpr D3D_PRIMITIVE_TOPOLOGY dxPrimitives[] {
+            D3D_PRIMITIVE_TOPOLOGY_POINTLIST,
+            D3D_PRIMITIVE_TOPOLOGY_LINELIST,
+            D3D_PRIMITIVE_TOPOLOGY_LINESTRIP,
+            D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+            D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP,
+        };
 
         DXCommandList(
             CommandType type,
@@ -74,9 +81,11 @@ export namespace vireo {
 
         void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) const override;
 
-        void setViewports(uint32_t count, const vector<Extent>& extent) const;
+        void setViewports(uint32_t count, const vector<Extent>& extent) const override;
 
-        void setScissors(uint32_t count, const vector<Extent>& extent) const;
+        void setScissors(uint32_t count, const vector<Extent>& extent) const override;
+
+        void setPrimitiveTopology(PrimitiveTopology primitiveTopology) const override;
 
         void cleanup() override;
 
