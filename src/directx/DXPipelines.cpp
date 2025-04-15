@@ -43,6 +43,7 @@ namespace vireo {
     DXPipelineResources::DXPipelineResources(
         const ComPtr<ID3D12Device>& device,
         const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts,
+        const PushConstantsDesc& pushConstants,
         const wstring& name) {
 
         constexpr D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
@@ -67,6 +68,23 @@ namespace vireo {
                 layout->getRanges().size(),
                 layout->getRanges().data(),
                 D3D12_SHADER_VISIBILITY_ALL);
+        }
+
+        if (pushConstants.size > 0) {
+            auto pushConstantRootParams = CD3DX12_ROOT_PARAMETER1 {};
+            pushConstantRootParams.InitAsConstants(
+                pushConstants.size / sizeof(uint32_t),
+                0,
+                rootParameters.size(),
+                D3D12_SHADER_VISIBILITY_ALL
+            );
+            if (pushConstants.stage == ShaderStage::VERTEX) {
+                pushConstantRootParams.ShaderVisibility  = D3D12_SHADER_VISIBILITY_VERTEX;
+            } else if (pushConstants.stage == ShaderStage::FRAGMENT) {
+                pushConstantRootParams.ShaderVisibility  = D3D12_SHADER_VISIBILITY_PIXEL;
+            }
+            pushConstantsRootParameterIndex = rootParameters.size();
+            rootParameters.push_back(pushConstantRootParams);
         }
 
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
@@ -113,19 +131,26 @@ namespace vireo {
         auto dxPixelShader = static_pointer_cast<const DXShaderModule>(fragmentShader);
 
         auto rasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+        rasterizerState.FillMode = configuration.polygonMode == PolygonMode::FILL ? D3D12_FILL_MODE_SOLID  : D3D12_FILL_MODE_WIREFRAME;
         rasterizerState.CullMode = dxCullMode[static_cast<int>(configuration.cullMode)];
+        rasterizerState.FrontCounterClockwise = configuration.frontFaceCounterClockwise;
+        rasterizerState.DepthBias = static_cast<INT>(configuration.depthBiasEnable ? configuration.depthBiasConstantFactor : 0.0f);
+        rasterizerState.DepthBiasClamp = configuration.depthBiasEnable ? configuration.depthBiasClamp : 0.0f;
+        rasterizerState.SlopeScaledDepthBias = configuration.depthBiasEnable ? configuration.depthBiasSlopeFactor : 0.0f;
 
-        const auto psoDesc = D3D12_GRAPHICS_PIPELINE_STATE_DESC{
+        auto depthStencil = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+        depthStencil.DepthEnable = configuration.depthTestEnable;
+        depthStencil.DepthWriteMask = configuration.depthWriteEnable ? D3D12_DEPTH_WRITE_MASK_ALL  : D3D12_DEPTH_WRITE_MASK_ZERO;
+        depthStencil.DepthFunc = dxCompareOp[static_cast<int>(configuration.depthCompareOp)];
+
+        auto psoDesc = D3D12_GRAPHICS_PIPELINE_STATE_DESC{
             .pRootSignature = dxPipelineResources->getRootSignature().Get(),
             .VS = CD3DX12_SHADER_BYTECODE(dxVertexShader->getShader().Get()),
             .PS = CD3DX12_SHADER_BYTECODE(dxPixelShader->getShader().Get()),
             .BlendState = configuration.colorBlendEnable ? blendStateEnable : blendStateDisable,
             .SampleMask = UINT_MAX,
             .RasterizerState = rasterizerState,
-            .DepthStencilState = {
-                .DepthEnable = FALSE,
-                .StencilEnable = FALSE,
-            },
+            .DepthStencilState = depthStencil,
             .InputLayout = {
                 dxVertexInputLayout->getInputElementDescs().data(),
                 static_cast<UINT>(dxVertexInputLayout->getInputElementDescs().size())
@@ -137,6 +162,7 @@ namespace vireo {
                 .Count = 1,
             }
         };
+        psoDesc.BlendState.AlphaToCoverageEnable = configuration.alphaToCoverageEnable;
         DieIfFailed(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)));
 #ifdef _DEBUG
         pipelineState->SetName((L"DXPipeline : " + name).c_str());

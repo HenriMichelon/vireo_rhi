@@ -216,6 +216,18 @@ namespace vireo {
         commandList->ResourceBarrier(1, &swapChainBarrier);
     }
 
+    void DXCommandList::pushConstants(
+        const shared_ptr<const PipelineResources>& pipelineResources,
+        const PushConstantsDesc& pushConstants,
+        const void* data) const {
+        const auto dxResources = static_pointer_cast<const DXPipelineResources>(pipelineResources);
+        commandList->SetGraphicsRoot32BitConstants(
+            dxResources->getPushConstantsRootParameterIndex(),
+            pushConstants.size / sizeof(uint32_t),
+            data,
+            pushConstants.offset);
+    }
+
     void DXCommandList::begin() const {
         DieIfFailed(commandList->Reset(commandAllocator.Get(), nullptr));
     }

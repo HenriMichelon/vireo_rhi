@@ -272,6 +272,28 @@ namespace vireo {
             });
     }
 
+    void VKCommandList::pushConstants(
+        const shared_ptr<const PipelineResources>& pipelineResources,
+        const PushConstantsDesc& pushConstants,
+        const void* data) const {
+        const auto vkResources = static_pointer_cast<const VKPipelineResources>(pipelineResources);
+        VkShaderStageFlags stageFlags;
+        if (pushConstants.stage == ShaderStage::VERTEX) {
+            stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+        } else if (pushConstants.stage == ShaderStage::FRAGMENT) {
+            stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        }  else {
+            stageFlags = VK_SHADER_STAGE_ALL_GRAPHICS;
+        }
+        vkCmdPushConstants(
+            commandBuffer,
+            vkResources->getPipelineLayout(),
+            stageFlags,
+            pushConstants.offset,
+            pushConstants.size,
+            data);
+    }
+
     void VKCommandList::begin() const {
         constexpr auto beginInfo = VkCommandBufferBeginInfo{
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,

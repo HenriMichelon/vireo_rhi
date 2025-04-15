@@ -51,6 +51,7 @@ export namespace vireo {
         VKPipelineResources(
             VkDevice device,
             const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts,
+            const PushConstantsDesc& pushConstant,
             const wstring& name);
 
         ~VKPipelineResources() override;
@@ -71,6 +72,16 @@ export namespace vireo {
             VK_CULL_MODE_NONE,
             VK_CULL_MODE_FRONT_BIT,
             VK_CULL_MODE_BACK_BIT
+        };
+        static constexpr VkCompareOp vkCompareOp[] {
+            VK_COMPARE_OP_NEVER,
+            VK_COMPARE_OP_LESS,
+            VK_COMPARE_OP_EQUAL,
+            VK_COMPARE_OP_LESS_OR_EQUAL,
+            VK_COMPARE_OP_GREATER,
+            VK_COMPARE_OP_NOT_EQUAL,
+            VK_COMPARE_OP_GREATER_OR_EQUAL,
+            VK_COMPARE_OP_ALWAYS,
         };
 
         VKPipeline(

@@ -34,6 +34,7 @@ export namespace vireo {
 
         shared_ptr<PipelineResources> createPipelineResources(
             const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts,
+            const PushConstantsDesc& pushConstant = {},
             const wstring& name = L"PipelineResource") const override;
 
         shared_ptr<Pipeline> createPipeline(

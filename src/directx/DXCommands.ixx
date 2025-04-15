@@ -100,6 +100,11 @@ export namespace vireo {
 
         void setPrimitiveTopology(PrimitiveTopology primitiveTopology) const override;
 
+        void pushConstants(
+            const shared_ptr<const PipelineResources>& pipelineResources,
+            const PushConstantsDesc& pushConstants,
+            const void* data) const;
+
         void cleanup() override;
 
         auto getCommandList() const  { return commandList; }

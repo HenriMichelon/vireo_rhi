@@ -72,11 +72,39 @@ export namespace vireo {
         TRIANGLE_STRIP = 4,
     };
 
+    enum class PolygonMode : uint8_t {
+        FILL        = 0,
+        WIREFRAME   = 1,
+    };
+
+    enum class CompareOp : uint8_t {
+        NEVER           = 0,
+        LESS            = 1,
+        EQUAL           = 2,
+        LESS_OR_EQUAL   = 3,
+        GREATER         = 4,
+        NOT_EQUAL       = 5,
+        GREATER_OR_EQUAL= 6,
+        ALWAYS          = 7,
+    };
+
+    enum class ShaderStage: uint8_t {
+        ALL      = 0,
+        VERTEX   = 1,
+        FRAGMENT = 2,
+    };
+
     using DescriptorIndex = uint32_t;
 
     struct Extent {
         uint32_t width;
         uint32_t height;
+    };
+
+    struct PushConstantsDesc {
+        ShaderStage stage{ShaderStage::ALL};
+        uint32_t    size{0};
+        uint32_t    offset{0};
     };
 
     class Instance {
@@ -223,8 +251,18 @@ export namespace vireo {
     class Pipeline {
     public:
         struct Configuration {
-            CullMode cullMode{CullMode::NONE};
-            bool     colorBlendEnable{false};
+            CullMode    cullMode{CullMode::NONE};
+            PolygonMode polygonMode{PolygonMode::FILL};
+            bool        frontFaceCounterClockwise{false};
+            bool        colorBlendEnable{false};
+            bool        depthTestEnable{false};
+            bool        depthWriteEnable{false};
+            bool        depthBiasEnable{false};
+            CompareOp   depthCompareOp{CompareOp::NEVER};
+            float       depthBiasConstantFactor{0.0f};
+            float       depthBiasClamp{0.0f};
+            float       depthBiasSlopeFactor{0.0f};
+            bool        alphaToCoverageEnable{false};
         };
 
         Pipeline(const shared_ptr<PipelineResources>& pipelineResources) :pipelineResources{pipelineResources} {}
@@ -279,6 +317,11 @@ export namespace vireo {
         virtual void setScissors(uint32_t count, const vector<Extent>& extent) const = 0;
 
         virtual void setPrimitiveTopology(PrimitiveTopology primitiveTopology) const = 0;
+
+        virtual void pushConstants(
+            const shared_ptr<const PipelineResources>& pipelineResources,
+            const PushConstantsDesc& pushConstants,
+            const void* data) const = 0;
 
         virtual void cleanup() = 0;
 
@@ -363,6 +406,7 @@ export namespace vireo {
 
         virtual shared_ptr<PipelineResources> createPipelineResources(
             const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts,
+            const PushConstantsDesc& pushConstant = {},
             const wstring& name = L"PipelineResource") const = 0;
 
         virtual shared_ptr<Pipeline> createPipeline(

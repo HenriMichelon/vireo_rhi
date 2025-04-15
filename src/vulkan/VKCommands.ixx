@@ -98,6 +98,11 @@ export namespace vireo {
 
         void setPrimitiveTopology(PrimitiveTopology primitiveTopology) const override;
 
+        void pushConstants(
+            const shared_ptr<const PipelineResources>& pipelineResources,
+            const PushConstantsDesc& pushConstants,
+            const void* data) const;
+
         auto getCommandBuffer() const { return commandBuffer; }
 
         void pipelineBarrier(

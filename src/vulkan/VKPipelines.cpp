@@ -54,19 +54,35 @@ namespace vireo {
     VKPipelineResources::VKPipelineResources(
         const VkDevice device,
         const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts,
+        const PushConstantsDesc& pushConstants,
         const wstring& name):
         device{device} {
         for (const auto& descriptorLayout : descriptorLayouts) {
             const auto layout = static_pointer_cast<const VKDescriptorLayout>(descriptorLayout);
             setLayouts.push_back(layout->getSetLayout());
         }
-        const auto pipelineLayoutInfo = VkPipelineLayoutCreateInfo {
+        auto pipelineLayoutInfo = VkPipelineLayoutCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
             .setLayoutCount = static_cast<uint32_t>(setLayouts.size()),
             .pSetLayouts = setLayouts.empty() ? nullptr : setLayouts.data(),
-            .pushConstantRangeCount = 0,
-            .pPushConstantRanges = nullptr,
         };
+        auto pushConstantRange = VkPushConstantRange {};
+        if (pushConstants.size == 0) {
+            pipelineLayoutInfo.pushConstantRangeCount = 0;
+            pipelineLayoutInfo.pPushConstantRanges = nullptr;
+        } else {
+            if (pushConstants.stage == ShaderStage::VERTEX) {
+                pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+            } else if (pushConstants.stage == ShaderStage::FRAGMENT) {
+                pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+            }  else {
+                pushConstantRange.stageFlags = VK_SHADER_STAGE_ALL_GRAPHICS;
+            }
+            pushConstantRange.offset = pushConstants.offset;
+            pushConstantRange.size = pushConstants.size;
+            pipelineLayoutInfo.pushConstantRangeCount = 1;
+            pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
+        }
         DieIfFailed(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout));
 #ifdef _DEBUG
         vkSetObjectName(device, reinterpret_cast<uint64_t>(pipelineLayout), VK_OBJECT_TYPE_PIPELINE_LAYOUT,
@@ -130,22 +146,28 @@ namespace vireo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
             .depthClampEnable = VK_FALSE,
             .rasterizerDiscardEnable = VK_FALSE,
-            .polygonMode = VK_POLYGON_MODE_FILL,
+            .polygonMode = configuration.polygonMode == PolygonMode::FILL ? VK_POLYGON_MODE_FILL : VK_POLYGON_MODE_LINE,
             .cullMode = static_cast<VkCullModeFlags>(vkCullMode[static_cast<int>(configuration.cullMode)]),
-            .frontFace = VK_FRONT_FACE_CLOCKWISE,
-            .depthBiasEnable = VK_FALSE,
-            .depthBiasConstantFactor = 0.0f,
-            .depthBiasClamp = 0.0f,
-            .depthBiasSlopeFactor = 0.0f,
+            .frontFace = configuration.frontFaceCounterClockwise ?  VK_FRONT_FACE_COUNTER_CLOCKWISE : VK_FRONT_FACE_CLOCKWISE,
+            .depthBiasEnable = configuration.depthBiasEnable,
+            .depthBiasConstantFactor = configuration.depthBiasConstantFactor,
+            .depthBiasClamp = configuration.depthBiasClamp,
+            .depthBiasSlopeFactor = configuration.depthBiasSlopeFactor ,
             .lineWidth = 1.0f,
         };
-        constexpr auto multisampling = VkPipelineMultisampleStateCreateInfo {
+        const auto depthStencil = VkPipelineDepthStencilStateCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
+            .depthTestEnable = configuration.depthTestEnable,
+            .depthWriteEnable = configuration.depthWriteEnable,
+            .depthCompareOp = vkCompareOp[static_cast<int>(configuration.depthCompareOp)]
+        };
+        const auto multisampling = VkPipelineMultisampleStateCreateInfo {
             .sType                  = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
             .rasterizationSamples   = VK_SAMPLE_COUNT_1_BIT,
             .sampleShadingEnable    = VK_FALSE,
             .minSampleShading       = 1.0f,
             .pSampleMask            = nullptr,
-            .alphaToCoverageEnable  = VK_FALSE,
+            .alphaToCoverageEnable  = configuration.alphaToCoverageEnable,
             .alphaToOneEnable       = VK_FALSE
         };
         const auto colorBlending = VkPipelineColorBlendStateCreateInfo {
@@ -154,9 +176,8 @@ namespace vireo {
             .logicOp        = VK_LOGIC_OP_COPY,
             .attachmentCount= 1,
             .pAttachments   = configuration.colorBlendEnable ? &colorBlendAttachmentEnable : &colorBlendAttachmentDisable,
-            .blendConstants = { 0.0f, 0.0f, 0.0f, 0.0f }
+            .blendConstants = { 0.0f, 0.0f, 0.0f, 0.0f },
         };
-
         const auto swapChainImageFormat = swapChain.getFormat();
         const auto dynamicRenderingCreateInfo = VkPipelineRenderingCreateInfoKHR{
             .sType                   = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR,
@@ -175,7 +196,7 @@ namespace vireo {
             .pViewportState = nullptr,
             .pRasterizationState = &rasterizer,
             .pMultisampleState = &multisampling,
-            .pDepthStencilState = nullptr,
+            .pDepthStencilState = &depthStencil,
             .pColorBlendState = &colorBlending,
             .pDynamicState = &dynamicState,
             .layout = vkPipelineLayout->getPipelineLayout(),

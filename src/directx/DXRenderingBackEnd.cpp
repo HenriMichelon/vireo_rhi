@@ -19,16 +19,16 @@ namespace vireo {
         RenderingBackEnd{configuration},
         hWnd{static_cast<HWND>(configuration.windowHandle)} {
         // Detect RivaTuner which cause problem by incorrectly hooking IDXGISwapChain::Present
-        const HANDLE hMap = OpenFileMapping(FILE_MAP_READ, FALSE, L"RTSSSharedMemoryV2");
-        if (hMap) {
-            MessageBox(
-                nullptr,
-                L"RivaTuner Statistic Server is incompatible with the DirectX 12 backend, close it or use the Vulkan backend",
-                nullptr,
-                MB_OK);
-            CloseHandle(hMap);
-            die("RTSS conflict");
-        }
+        // const HANDLE hMap = OpenFileMapping(FILE_MAP_READ, FALSE, L"RTSSSharedMemoryV2");
+        // if (hMap) {
+        //     MessageBox(
+        //         nullptr,
+        //         L"RivaTuner Statistic Server is incompatible with the DirectX 12 backend, close it or use the Vulkan backend",
+        //         nullptr,
+        //         MB_OK);
+        //     CloseHandle(hMap);
+        //     die("RTSS conflict");
+        // }
 
         RECT windowRect{};
         if (GetClientRect(hWnd, &windowRect) == 0) {
@@ -56,8 +56,9 @@ namespace vireo {
 
     shared_ptr<PipelineResources> DXRenderingBackEnd::createPipelineResources(
         const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts,
+        const PushConstantsDesc& pushConstant,
         const wstring& name ) const {
-        return make_shared<DXPipelineResources>(getDXDevice()->getDevice(), descriptorLayouts, name);
+        return make_shared<DXPipelineResources>(getDXDevice()->getDevice(), descriptorLayouts, pushConstant, name);
     }
 
     shared_ptr<Pipeline> DXRenderingBackEnd::createPipeline(

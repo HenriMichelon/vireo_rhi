@@ -95,8 +95,9 @@ namespace vireo {
 
     shared_ptr<PipelineResources> VKRenderingBackEnd::createPipelineResources(
         const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts,
+        const PushConstantsDesc& pushConstant,
         const wstring& name) const {
-        return make_shared<VKPipelineResources>(getVKDevice()->getDevice(), descriptorLayouts, name);
+        return make_shared<VKPipelineResources>(getVKDevice()->getDevice(), descriptorLayouts, pushConstant, name);
     }
 
     shared_ptr<Pipeline> VKRenderingBackEnd::createPipeline(

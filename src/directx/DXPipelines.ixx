@@ -40,15 +40,20 @@ export namespace vireo {
 
     class DXPipelineResources : public PipelineResources {
     public:
+        // static constexpr auto PUSH_CONSTANTS_SHADER_REGISTER{20};
         DXPipelineResources(
             const ComPtr<ID3D12Device>& device,
             const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts,
+            const PushConstantsDesc& pushConstant,
             const wstring& name);
 
         auto getRootSignature() const { return rootSignature; }
 
+        auto getPushConstantsRootParameterIndex() const { return pushConstantsRootParameterIndex; }
+
     private:
         ComPtr<ID3D12RootSignature> rootSignature;
+        UINT pushConstantsRootParameterIndex{0};
     };
 
     class DXPipeline : public Pipeline {
@@ -57,6 +62,16 @@ export namespace vireo {
             D3D12_CULL_MODE_NONE,
             D3D12_CULL_MODE_FRONT,
             D3D12_CULL_MODE_BACK
+        };
+        static constexpr D3D12_COMPARISON_FUNC dxCompareOp[] {
+            D3D12_COMPARISON_FUNC_NEVER,
+            D3D12_COMPARISON_FUNC_LESS,
+            D3D12_COMPARISON_FUNC_EQUAL,
+            D3D12_COMPARISON_FUNC_LESS_EQUAL,
+            D3D12_COMPARISON_FUNC_GREATER,
+            D3D12_COMPARISON_FUNC_NOT_EQUAL,
+            D3D12_COMPARISON_FUNC_GREATER_EQUAL,
+            D3D12_COMPARISON_FUNC_ALWAYS,
         };
 
         DXPipeline(
