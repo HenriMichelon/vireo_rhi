@@ -77,6 +77,7 @@ export namespace vireo {
     public:
         static constexpr DXGI_FORMAT dxFormats[] {
             DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
+            DXGI_FORMAT_R8G8B8A8_UNORM,
         };
 
         DXImage(
@@ -84,7 +85,8 @@ export namespace vireo {
             ImageFormat format,
             uint32_t    width,
             uint32_t    height,
-            const wstring& name);
+            const wstring& name,
+            bool        allowRenderTarget);
 
         auto getImage() const { return image; }
 
@@ -94,6 +96,17 @@ export namespace vireo {
         ComPtr<ID3D12Device>            device;
         ComPtr<ID3D12Resource>          image;
         D3D12_SHADER_RESOURCE_VIEW_DESC imageViewDesc;
+    };
+
+    class DXRenderTarget : public RenderTarget {
+    public:
+        DXRenderTarget(const ComPtr<ID3D12Device> &device, const shared_ptr<DXImage>& image);
+
+        auto& getHandle() const { return handle; }
+
+    private:
+        ComPtr<ID3D12DescriptorHeap> heap;
+        D3D12_CPU_DESCRIPTOR_HANDLE  handle;
     };
 
 }

@@ -85,7 +85,7 @@ namespace vireo {
         assert(currentFrameIndex < FRAMES_IN_FLIGHT);
     }
 
-    bool DXSwapChain::begin(const shared_ptr<FrameData>& frameData) {
+    bool DXSwapChain::acquire(const shared_ptr<FrameData>& frameData) {
         const auto data = static_pointer_cast<DXFrameData>(frameData);
         const auto currentFenceValue = data->inFlightFenceValue;
         DieIfFailed(presentCommandQueue->Signal(device->getInFlightFence().Get(), currentFenceValue));
@@ -98,15 +98,6 @@ namespace vireo {
             WaitForSingleObjectEx(device->getInFlightFenceEvent(), INFINITE, FALSE);
         }
         return true;
-    }
-
-    void DXSwapChain::end(const shared_ptr<const FrameData>& frameData, const shared_ptr<const CommandList>& commandList) const {
-        const auto dxCommandList = static_pointer_cast<const DXCommandList>(commandList);
-        const auto swapChainBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            renderTargets[currentFrameIndex].Get(),
-            D3D12_RESOURCE_STATE_RENDER_TARGET,
-            D3D12_RESOURCE_STATE_PRESENT);
-        dxCommandList->getCommandList()->ResourceBarrier(1, &swapChainBarrier);
     }
 
     void DXSwapChain::present(const shared_ptr<FrameData>& frameData) {

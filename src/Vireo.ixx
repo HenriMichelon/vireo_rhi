@@ -31,6 +31,7 @@ export namespace vireo {
 
     enum class ImageFormat : uint8_t {
         R8G8B8A8_SRGB   = 0,
+        R8G8B8A8_UNORM  = 1,
     };
 
     enum class BufferType : uint8_t {
@@ -152,6 +153,18 @@ export namespace vireo {
         const uint32_t    height;
     };
 
+    class RenderTarget {
+    public:
+        RenderTarget(const shared_ptr<Image>& image) : image{image} {}
+
+        virtual ~RenderTarget() = default;
+
+        auto getImage() const { return image; }
+
+    private:
+        shared_ptr<Image> image;
+    };
+
     class DescriptorLayout {
     public:
         virtual ~DescriptorLayout() = default;
@@ -245,7 +258,13 @@ export namespace vireo {
             const shared_ptr<SwapChain>& swapChain,
             const float clearColor[]) const = 0;
 
-        virtual void endRendering() const = 0;
+        virtual void beginRendering(
+            const shared_ptr<RenderTarget>& renderTarget,
+            const float clearColor[]) const = 0;
+
+        virtual void endRendering(const shared_ptr<const FrameData>& frameData, const shared_ptr<SwapChain>& swapChain) const = 0;
+
+        virtual void endRendering(const shared_ptr<RenderTarget>& renderTarget) const = 0;
 
         virtual void bindVertexBuffer(const shared_ptr<const Buffer>& buffer) const = 0;
 
@@ -309,9 +328,7 @@ export namespace vireo {
 
         virtual void nextSwapChain() = 0;
 
-        virtual bool begin(const shared_ptr<FrameData>& frameData) = 0;
-
-        virtual void end(const shared_ptr<const FrameData>& frameData, const shared_ptr<const CommandList>& commandList) const = 0;
+        virtual bool acquire(const shared_ptr<FrameData>& frameData) = 0;
 
         virtual void present(const shared_ptr<FrameData>& frameData) = 0;
 
@@ -368,6 +385,12 @@ export namespace vireo {
             uint32_t width,
             uint32_t height,
             const wstring& name = L"Image") const = 0;
+
+        virtual shared_ptr<RenderTarget> createRenderTarget(
+            ImageFormat format,
+            uint32_t width,
+            uint32_t height,
+            const wstring& name = L"RenderTarget") const = 0;
 
         virtual shared_ptr<DescriptorLayout> createDescriptorLayout(
             const wstring& name = L"DescriptorLayout") = 0;

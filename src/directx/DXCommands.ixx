@@ -78,7 +78,13 @@ export namespace vireo {
             const shared_ptr<SwapChain>& swapChain,
             const float clearColor[]) const override;
 
-        void endRendering() const override;
+        void beginRendering(
+            const shared_ptr<RenderTarget>& renderTarget,
+            const float clearColor[]) const override;
+
+        void endRendering(const shared_ptr<const FrameData>& frameData, const shared_ptr<SwapChain>& swapChain) const override;
+
+        void endRendering(const shared_ptr<RenderTarget>& renderTarget) const override;
 
         void bindVertexBuffer(const shared_ptr<const Buffer>& buffer) const override;
 
@@ -105,6 +111,11 @@ export namespace vireo {
         ComPtr<ID3D12GraphicsCommandList> commandList;
         ComPtr<ID3D12CommandAllocator>    commandAllocator;
         vector<ComPtr<ID3D12Resource>>    stagingBuffers{};
+
+        void beginRendering(
+            const ComPtr<ID3D12Resource>& resource,
+            const D3D12_CPU_DESCRIPTOR_HANDLE& handle,
+            const float clearColor[]) const;
     };
 
 }

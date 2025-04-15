@@ -12,7 +12,7 @@ namespace vireo {
 
     DXBuffer::DXBuffer(
         const ComPtr<ID3D12Device>& device,
-        BufferType type,
+        const BufferType type,
         const size_t size,
         const size_t count,
         const size_t minOffsetAlignment,
@@ -68,7 +68,8 @@ namespace vireo {
             const ImageFormat format,
             const uint32_t    width,
             const uint32_t    height,
-            const wstring& name):
+            const wstring&    name,
+            const bool        allowRenderTarget):
         Image{format, width, height} {
         const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
         const auto imageDesc = D3D12_RESOURCE_DESC{
@@ -79,8 +80,9 @@ namespace vireo {
             .MipLevels = 1,
             .Format = dxFormats[static_cast<int>(format)],
             .SampleDesc = { 1, 0 },
-            .Flags = D3D12_RESOURCE_FLAG_NONE,
+            .Flags = allowRenderTarget ? D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET : D3D12_RESOURCE_FLAG_NONE,
         };
+
         DieIfFailed(device->CreateCommittedResource(
             &heapProperties,
             D3D12_HEAP_FLAG_NONE,
@@ -89,14 +91,14 @@ namespace vireo {
             nullptr,
             IID_PPV_ARGS(&image)));
 
-#ifdef _DEBUG
-        image->SetName((L"DXIMage : " + name).c_str());
-#endif
-
         imageViewDesc.Format = imageDesc.Format;
         imageViewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
         imageViewDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
         imageViewDesc.Texture2D= { .MipLevels = 1 };
+
+#ifdef _DEBUG
+        image->SetName((L"DXIMage : " + name).c_str());
+#endif
     }
 
     DXSampler::DXSampler(
@@ -133,6 +135,20 @@ namespace vireo {
             .MinLOD = minLod,
             .MaxLOD = maxLod,
         };
+    }
+
+    DXRenderTarget::DXRenderTarget(
+        const ComPtr<ID3D12Device> &device,
+        const shared_ptr<DXImage>& image) :
+        RenderTarget{image} {
+        const auto rtvHeapDesc = D3D12_DESCRIPTOR_HEAP_DESC{
+            .Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
+            .NumDescriptors = 1,
+            .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
+        };
+        device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&heap));
+        handle = heap->GetCPUDescriptorHandleForHeapStart();
+        device->CreateRenderTargetView(image->getImage().Get(), nullptr, handle);
     }
 
 }

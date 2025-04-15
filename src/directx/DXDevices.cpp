@@ -67,7 +67,7 @@ namespace vireo {
         if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
             infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, TRUE);
             infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE);
-            infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, TRUE);
+            infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, FALSE);
         }
 #endif
         DieIfFailed(device->CreateFence(

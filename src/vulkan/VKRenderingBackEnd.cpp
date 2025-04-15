@@ -131,16 +131,32 @@ namespace vireo {
     }
 
     shared_ptr<Image> VKRenderingBackEnd::createImage(
-            ImageFormat format,
-            uint32_t width,
-            uint32_t height,
+            const ImageFormat format,
+            const uint32_t width,
+            const uint32_t height,
             const wstring& name) const {
         return make_shared<VKImage>(
             getVKDevice(),
             format,
             width,
             height,
-            name);
+            name,
+            false);
+    }
+
+    shared_ptr<RenderTarget> VKRenderingBackEnd::createRenderTarget(
+            const ImageFormat format,
+            const uint32_t width,
+            const uint32_t height,
+            const wstring& name) const {
+        return make_shared<RenderTarget>(
+            make_shared<VKImage>(
+                getVKDevice(),
+                format,
+                width,
+                height,
+                name,
+                true));
     }
 
     void VKRenderingBackEnd::waitIdle() {

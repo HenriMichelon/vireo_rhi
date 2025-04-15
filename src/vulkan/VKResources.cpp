@@ -130,9 +130,13 @@ namespace vireo {
             const ImageFormat format,
             const uint32_t    width,
             const uint32_t    height,
-            const wstring& name):
+            const wstring&    name,
+            const bool        isRenderTarget):
         Image(format, width, height),
         device{device} {
+        const VkImageUsageFlags usage =
+            isRenderTarget ? VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT :
+            VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
         const auto imageInfo = VkImageCreateInfo {
             .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
             .flags = 0,
@@ -143,7 +147,7 @@ namespace vireo {
             .arrayLayers = 1,
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .tiling = VK_IMAGE_TILING_OPTIMAL,
-            .usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+            .usage = usage,
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
             .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
         };

@@ -176,22 +176,48 @@ namespace vireo {
     }
 
     void VKCommandList::beginRendering(
-        const shared_ptr<FrameData>& frameData,
-        const shared_ptr<SwapChain>& swapChain,
-        const float clearColor[]) const {
-        const auto data = static_pointer_cast<VKFrameData>(frameData);
+          const shared_ptr<FrameData>& frameData,
+          const shared_ptr<SwapChain>& swapChain,
+          const float clearColor[]) const {
         const auto vkSwapChain = static_pointer_cast<VKSwapChain>(swapChain);
+        const auto imageIndex = static_pointer_cast<VKFrameData>(frameData)->imageIndex;
+        beginRendering(
+            vkSwapChain->getImages()[imageIndex],
+            vkSwapChain->getImageViews()[imageIndex],
+            vkSwapChain->getExtent().width,
+            vkSwapChain->getExtent().height,
+            clearColor);
+    }
 
+    void VKCommandList::beginRendering(
+      const shared_ptr<RenderTarget>& renderTarget,
+      const float clearColor[]) const {
+        const auto vkImage = static_pointer_cast<VKImage>(renderTarget->getImage());
+        beginRendering(
+            vkImage->getImage(),
+            vkImage->getImageView(),
+            vkImage->getWidth(),
+            vkImage->getHeight(),
+            clearColor);
+    }
+
+    void VKCommandList::beginRendering(
+        const VkImage image,
+        const VkImageView imageView,
+        const uint32_t width,
+        const uint32_t height,
+        const float clearColor[]) const {
         pipelineBarrier(
             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-            {imageMemoryBarrier(vkSwapChain->getImages()[data->imageIndex],
+            {imageMemoryBarrier(image,
                     0, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                    VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)});
+                    VK_IMAGE_LAYOUT_UNDEFINED,
+                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)});
 
         const auto colorAttachmentInfo = VkRenderingAttachmentInfo {
             .sType              = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
-            .imageView          = vkSwapChain->getImageViews()[data->imageIndex],
+            .imageView          = imageView,
             .imageLayout        = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
             .resolveMode        = VK_RESOLVE_MODE_NONE,
             .loadOp             = VK_ATTACHMENT_LOAD_OP_CLEAR,
@@ -205,7 +231,7 @@ namespace vireo {
             .pNext                = nullptr,
             .renderArea           = {
                 {0, 0},
-                {swapChain->getExtent().width, swapChain->getExtent().height}
+                {width, height}
             },
             .layerCount           = 1,
             .colorAttachmentCount = 1,
@@ -216,8 +242,34 @@ namespace vireo {
         vkCmdBeginRendering(commandBuffer, &renderingInfo);
     }
 
-    void VKCommandList::endRendering() const {
+    void VKCommandList::endRendering(const shared_ptr<const FrameData>& frameData, const shared_ptr<SwapChain>& swapChain) const {
         vkCmdEndRendering(commandBuffer);
+        const auto data = static_pointer_cast<const VKFrameData>(frameData);
+        const auto vkSwapChain = static_pointer_cast<VKSwapChain>(swapChain);
+        pipelineBarrier(
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+            {
+                imageMemoryBarrier(vkSwapChain->getImages()[data->imageIndex],
+                    VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, 0,
+                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                    VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+            });
+    }
+
+    void VKCommandList::endRendering(const shared_ptr<RenderTarget>& renderTarget) const {
+        vkCmdEndRendering(commandBuffer);
+        const auto vkImage = static_pointer_cast<VKImage>(renderTarget->getImage());
+        pipelineBarrier(
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                VK_PIPELINE_STAGE_TRANSFER_BIT, // TODO shader read
+            {
+                imageMemoryBarrier(vkImage->getImage(),
+                    VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+                    VK_ACCESS_TRANSFER_READ_BIT,  // TODO shader read
+                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                    VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
+            });
     }
 
     void VKCommandList::begin() const {

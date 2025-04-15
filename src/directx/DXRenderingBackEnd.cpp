@@ -101,7 +101,17 @@ namespace vireo {
         uint32_t width,
         uint32_t height,
         const wstring& name) const {
-        return make_shared<DXImage>(getDXDevice()->getDevice(), format, width, height, name);
+        return make_shared<DXImage>(getDXDevice()->getDevice(), format, width, height, name, false);
+    }
+
+    shared_ptr<RenderTarget> DXRenderingBackEnd::createRenderTarget(
+           const ImageFormat format,
+           const uint32_t width,
+           const uint32_t height,
+           const wstring& name) const {
+        return make_shared<DXRenderTarget>(
+            getDXDevice()->getDevice(),
+            make_shared<DXImage>(getDXDevice()->getDevice(), format, width, height, name, true));
     }
 
     shared_ptr<DescriptorLayout> DXRenderingBackEnd::createDescriptorLayout(

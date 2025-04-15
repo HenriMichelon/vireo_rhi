@@ -166,8 +166,7 @@ namespace vireo {
         for (const auto &availableFormat : availableFormats) {
             // Using sRGB no-linear color space
             // https://learnopengl.com/Advanced-Lighting/Gamma-Correction
-            if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
-                availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) { return availableFormat; }
+            if (availableFormat.format == VK_FORMAT_R8G8B8A8_SRGB) { return availableFormat; }
         }
         return availableFormats[0];
     }
@@ -231,19 +230,7 @@ namespace vireo {
         }
     }
 
-    void VKSwapChain::end(const shared_ptr<const FrameData>& frameData, const shared_ptr<const CommandList>& commandList) const {
-        const auto data = static_pointer_cast<const VKFrameData>(frameData);
-        static_pointer_cast<const VKCommandList>(commandList)->pipelineBarrier(
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-            {
-                VKCommandList::imageMemoryBarrier(swapChainImages[data->imageIndex],
-                    VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, 0,
-                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
-            });
-    }
-
-    bool VKSwapChain::begin(const shared_ptr<FrameData>& frameData) {
+    bool VKSwapChain::acquire(const shared_ptr<FrameData>& frameData) {
         const auto data = static_pointer_cast<VKFrameData>(frameData);
         // wait until the GPU has finished rendering the frame.
         if (vkWaitForFences(device->getDevice(), 1, &data->inFlightFence, VK_TRUE, UINT64_MAX) == VK_TIMEOUT) {

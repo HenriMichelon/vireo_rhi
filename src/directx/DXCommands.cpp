@@ -146,41 +146,75 @@ namespace vireo {
         commandList->IASetPrimitiveTopology(dxPrimitives[static_cast<int>(primitiveTopology)]);
     }
 
-
     void DXCommandList::beginRendering(
         const shared_ptr<FrameData>& frameData,
         const shared_ptr<SwapChain>& swapChain,
         const float clearColor[]) const {
         const auto dxSwapChain = static_pointer_cast<const DXSwapChain>(swapChain);
         const auto frameIndex = swapChain->getCurrentFrameIndex();
-
-        const auto swapChainBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            dxSwapChain->getRenderTargets()[frameIndex].Get(),
-            D3D12_RESOURCE_STATE_PRESENT,
-            D3D12_RESOURCE_STATE_RENDER_TARGET);
-        commandList->ResourceBarrier(1, &swapChainBarrier);
-
         const CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(
             dxSwapChain->getHeap()->GetCPUDescriptorHandleForHeapStart(),
             frameIndex,
             dxSwapChain->getDescriptorSize());
+        beginRendering(
+            dxSwapChain->getRenderTargets()[frameIndex],
+            rtvHandle,
+            clearColor);
+    }
+
+    void DXCommandList::beginRendering(
+        const shared_ptr<RenderTarget>& renderTarget,
+        const float clearColor[]) const {
+        const auto dxRenderTarget = static_pointer_cast<DXRenderTarget>(renderTarget);
+        beginRendering(
+            static_pointer_cast<DXImage>(dxRenderTarget->getImage())->getImage(),
+            dxRenderTarget->getHandle(),
+            clearColor
+        );
+    }
+
+    void DXCommandList::beginRendering(
+        const ComPtr<ID3D12Resource>& resource,
+        const D3D12_CPU_DESCRIPTOR_HANDLE& handle,
+        const float clearColor[]) const {
+
+        const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+            resource.Get(),
+            D3D12_RESOURCE_STATE_COMMON,
+            D3D12_RESOURCE_STATE_RENDER_TARGET);
+        commandList->ResourceBarrier(1, &barrier);
+
         commandList->OMSetRenderTargets(
             1,
-            &rtvHandle,
+            &handle,
             FALSE,
             nullptr);
 
         const float dxClearColor[] = {clearColor[0], clearColor[1], clearColor[2], clearColor[3]};
         commandList->ClearRenderTargetView(
-            rtvHandle,
+            handle,
             dxClearColor,
             0,
             nullptr);
     }
 
-    void DXCommandList::endRendering() const {
+    void DXCommandList::endRendering(const shared_ptr<const FrameData>& frameData, const shared_ptr<SwapChain>& swapChain) const {
+        const auto dxSwapChain = static_pointer_cast<const DXSwapChain>(swapChain);
+        const auto swapChainBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+            dxSwapChain->getRenderTargets()[dxSwapChain->getCurrentFrameIndex()].Get(),
+            D3D12_RESOURCE_STATE_RENDER_TARGET,
+            D3D12_RESOURCE_STATE_PRESENT);
+        commandList->ResourceBarrier(1, &swapChainBarrier);
     }
 
+    void DXCommandList::endRendering(const shared_ptr<RenderTarget>& renderTarget) const {
+        const auto dxImage = static_pointer_cast<const DXImage>(renderTarget->getImage());
+        const auto swapChainBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+            dxImage->getImage().Get(),
+            D3D12_RESOURCE_STATE_RENDER_TARGET,
+            D3D12_RESOURCE_STATE_COMMON);
+        commandList->ResourceBarrier(1, &swapChainBarrier);
+    }
 
     void DXCommandList::begin() const {
         DieIfFailed(commandList->Reset(commandAllocator.Get(), nullptr));

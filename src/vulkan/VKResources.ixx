@@ -75,6 +75,7 @@ export namespace vireo {
     public:
         static constexpr  VkFormat vkFormats[] {
             VK_FORMAT_R8G8B8A8_SRGB,
+            VK_FORMAT_R8G8B8A8_UNORM,
         };
 
         VKImage(
@@ -82,7 +83,8 @@ export namespace vireo {
             ImageFormat format,
             uint32_t    width,
             uint32_t    height,
-            const wstring& name);
+            const wstring& name,
+            bool isRenderTarget);
 
         ~VKImage() override;
 

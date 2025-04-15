@@ -57,6 +57,12 @@ export namespace vireo {
             uint32_t height,
             const wstring& name = L"Image") const override;
 
+        shared_ptr<RenderTarget> createRenderTarget(
+            ImageFormat format,
+            uint32_t width,
+            uint32_t height,
+            const wstring& name = L"RenderTarget") const override;
+
         shared_ptr<DescriptorLayout> createDescriptorLayout(
             const wstring& name) override;
 
