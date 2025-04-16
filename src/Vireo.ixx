@@ -12,24 +12,24 @@ import vireo.config;
 
 export namespace vireo {
 
-    enum class Filter : uint8_t {
-        NEAREST = 0,
-        LINEAR  = 1,
+    enum class Filter {
+        NEAREST,
+        LINEAR,
     };
 
-    enum class AddressMode : uint8_t {
-        REPEAT          = 0,
-        MIRRORED_REPEAT = 1,
-        CLAMP_TO_EDGE   = 2,
-        CLAMP_TO_BORDER = 3,
+    enum class AddressMode {
+        REPEAT,
+        MIRRORED_REPEAT,
+        CLAMP_TO_EDGE,
+        CLAMP_TO_BORDER,
     };
 
-    enum class MipMapMode : uint8_t {
-        NEAREST = 0,
-        LINEAR  = 1,
+    enum class MipMapMode {
+        NEAREST,
+        LINEAR,
     };
 
-    enum class ImageFormat : uint8_t {
+    enum class ImageFormat {
         R8_UNORM,
         R8_SNORM,
         R8_UINT,
@@ -109,76 +109,76 @@ export namespace vireo {
         BC7_UNORM_SRGB,
     };
 
-    enum class BufferType : uint8_t {
-        VERTEX  = 0,
-        INDEX   = 1,
-        UNIFORM = 2,
+    enum class BufferType {
+        VERTEX,
+        INDEX,
+        UNIFORM,
     };
 
-    enum class DescriptorType : uint8_t {
-        BUFFER          = 0,
-        SAMPLED_IMAGE   = 1,
-        SAMPLER         = 2,
-        READWRITE_IMAGE = 3,
+    enum class DescriptorType {
+        BUFFER,
+        SAMPLED_IMAGE,
+        SAMPLER,
+        READWRITE_IMAGE,
     };
 
-    enum class CommandType : uint8_t {
-        GRAPHIC     = 0,
-        TRANSFER    = 1,
-        COMPUTE     = 2,
+    enum class CommandType {
+        GRAPHIC,
+        TRANSFER,
+        COMPUTE,
     };
 
-    enum class AttributeFormat : uint8_t {
-        R32G32_FLOAT        = 0,
-        R32G32B32_FLOAT     = 1,
-        R32G32B32A32_FLOAT  = 2,
+    enum class AttributeFormat {
+        R32G32_FLOAT,
+        R32G32B32_FLOAT,
+        R32G32B32A32_FLOAT,
     };
 
-    enum class CullMode : uint8_t {
-        NONE    = 0,
-        FRONT   = 1,
-        BACK    = 2,
+    enum class CullMode {
+        NONE,
+        FRONT,
+        BACK,
     };
 
-    enum class PrimitiveTopology : uint8_t {
-        POINT_LIST     = 0,
-        LINE_LIST      = 1,
-        LINE_STRIP     = 2,
-        TRIANGLE_LIST  = 3,
-        TRIANGLE_STRIP = 4,
+    enum class PrimitiveTopology {
+        POINT_LIST,
+        LINE_LIST,
+        LINE_STRIP,
+        TRIANGLE_LIST,
+        TRIANGLE_STRIP,
     };
 
-    enum class PolygonMode : uint8_t {
-        FILL        = 0,
-        WIREFRAME   = 1,
+    enum class PolygonMode {
+        FILL,
+        WIREFRAME,
     };
 
-    enum class CompareOp : uint8_t {
-        NEVER           = 0,
-        LESS            = 1,
-        EQUAL           = 2,
-        LESS_OR_EQUAL   = 3,
-        GREATER         = 4,
-        NOT_EQUAL       = 5,
-        GREATER_OR_EQUAL= 6,
-        ALWAYS          = 7,
+    enum class CompareOp {
+        NEVER,
+        LESS,
+        EQUAL,
+        LESS_OR_EQUAL,
+        GREATER,
+        NOT_EQUAL,
+        GREATER_OR_EQUAL,
+        ALWAYS,
     };
 
-    enum class ShaderStage: uint8_t {
-        ALL      = 0,
-        VERTEX   = 1,
-        FRAGMENT = 2,
+    enum class ShaderStage{
+        ALL,
+        VERTEX,
+        FRAGMENT,
     };
 
-    enum class ResourceState : uint8_t {
-        UNDEFINED       = 0,
-        GENERAL         = 1,
-        RENDER_TARGET   = 2,
-        DISPATCH_TARGET = 3,
-        PRESENT         = 4,
-        COPY_SRC        = 5,
-        COPY_DST        = 6,
-        SHADER_READ     = 7,
+    enum class ResourceState {
+        UNDEFINED,
+        GENERAL,
+        RENDER_TARGET,
+        DISPATCH_TARGET,
+        PRESENT,
+        COPY_SRC,
+        COPY_DST,
+        SHADER_READ,
     };
 
     using DescriptorIndex = uint32_t;
