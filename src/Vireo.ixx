@@ -716,12 +716,6 @@ export namespace vireo {
             bool anisotropyEnable = true,
             MipMapMode mipMapMode = MipMapMode::LINEAR) const = 0;
 
-        auto getInstance() const { return instance; }
-
-        auto getPhysicalDevice() const { return physicalDevice; }
-
-        auto getDevice() const { return device; }
-
         auto getGraphicCommandQueue() const { return graphicCommandQueue; }
 
         auto getTransferCommandQueue() const { return transferCommandQueue; }
