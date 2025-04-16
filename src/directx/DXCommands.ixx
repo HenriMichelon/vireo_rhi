@@ -58,6 +58,17 @@ export namespace vireo {
             D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
             D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP,
         };
+        // static constexpr D3D12_RESOURCE_STATES  dxStates[] {
+        //     D3D12_RESOURCE_STATE_COMMON,
+        //     D3D12_RESOURCE_STATE_COMMON,
+        //     D3D12_RESOURCE_STATE_RENDER_TARGET,
+        //     D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+        //     D3D12_RESOURCE_STATE_PRESENT,
+        //     D3D12_RESOURCE_STATE_COPY_SOURCE,
+        //     D3D12_RESOURCE_STATE_COPY_DEST,
+        //     D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE,
+        //     D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+        // };
 
         DXCommandList(
             CommandType type,
@@ -99,6 +110,11 @@ export namespace vireo {
         void setScissors(uint32_t count, const vector<Extent>& extent) const override;
 
         void setPrimitiveTopology(PrimitiveTopology primitiveTopology) const override;
+
+        void barrier(
+            const shared_ptr<const Image>& image,
+            ResourceState oldState,
+            ResourceState newState) const override;
 
         void pushConstants(
             const shared_ptr<const PipelineResources>& pipelineResources,

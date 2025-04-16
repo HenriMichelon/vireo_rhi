@@ -61,14 +61,14 @@ namespace vireo {
         return make_shared<DXPipelineResources>(getDXDevice()->getDevice(), descriptorLayouts, pushConstant, name);
     }
 
-    shared_ptr<Pipeline> DXRenderingBackEnd::createPipeline(
+    shared_ptr<GraphicPipeline> DXRenderingBackEnd::createGraphicPipeline(
         const shared_ptr<PipelineResources>& pipelineResources,
         const shared_ptr<const VertexInputLayout>& vertexInputLayout,
         const shared_ptr<const ShaderModule>& vertexShader,
         const shared_ptr<const ShaderModule>& fragmentShader,
-        const Pipeline::Configuration& configuration,
+        const GraphicPipeline::Configuration& configuration,
         const wstring& name) const {
-        return make_shared<DXPipeline>(
+        return make_shared<DXGraphicPipeline>(
             getDXDevice()->getDevice(),
             pipelineResources,
             vertexInputLayout,
@@ -80,7 +80,7 @@ namespace vireo {
 
     shared_ptr<VertexInputLayout> DXRenderingBackEnd::createVertexLayout(
         size_t,
-        const vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) const {
+        const vector<VertexAttributeDesc>& attributesDescriptions) const {
         return make_shared<DXVertexInputLayout>(attributesDescriptions);
     }
 
@@ -101,8 +101,9 @@ namespace vireo {
         ImageFormat format,
         uint32_t width,
         uint32_t height,
+        bool useByComputeShader,
         const wstring& name) const {
-        return make_shared<DXImage>(getDXDevice()->getDevice(), format, width, height, name, false);
+        return make_shared<DXImage>(getDXDevice()->getDevice(), format, width, height, name, useByComputeShader, false);
     }
 
     shared_ptr<RenderTarget> DXRenderingBackEnd::createRenderTarget(
@@ -112,7 +113,7 @@ namespace vireo {
            const wstring& name) const {
         return make_shared<DXRenderTarget>(
             getDXDevice()->getDevice(),
-            make_shared<DXImage>(getDXDevice()->getDevice(), format, width, height, name, true));
+            make_shared<DXImage>(getDXDevice()->getDevice(), format, width, height, name, false, true));
     }
 
     shared_ptr<DescriptorLayout> DXRenderingBackEnd::createDescriptorLayout(

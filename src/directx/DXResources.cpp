@@ -69,6 +69,7 @@ namespace vireo {
             const uint32_t    width,
             const uint32_t    height,
             const wstring&    name,
+            const bool        useByComputeShader,
             const bool        allowRenderTarget):
         Image{format, width, height} {
         const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
@@ -80,7 +81,10 @@ namespace vireo {
             .MipLevels = 1,
             .Format = dxFormats[static_cast<int>(format)],
             .SampleDesc = { 1, 0 },
-            .Flags = allowRenderTarget ? D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET : D3D12_RESOURCE_FLAG_NONE,
+            .Flags =
+                allowRenderTarget ? D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET :
+                useByComputeShader ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS :
+                D3D12_RESOURCE_FLAG_NONE,
         };
 
         DieIfFailed(device->CreateCommittedResource(

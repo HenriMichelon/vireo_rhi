@@ -22,14 +22,14 @@ export namespace vireo {
             VK_FORMAT_R32G32B32A32_SFLOAT
         };
 
-        VKVertexInputLayout(size_t size, const vector<AttributeDescription>& attributesDescriptions);
+        VKVertexInputLayout(size_t size, const vector<VertexAttributeDesc>& attributesDescriptions);
 
         const auto& getVertexBindingDescription() const { return vertexBindingDescription; }
 
         const auto& getVertexAttributeDescription() const { return vertexAttributeDescriptions; }
 
     private:
-        VkVertexInputBindingDescription                vertexBindingDescription;
+        VkVertexInputBindingDescription           vertexBindingDescription;
         vector<VkVertexInputAttributeDescription> vertexAttributeDescriptions;
     };
 
@@ -66,7 +66,22 @@ export namespace vireo {
         vector<VkDescriptorSetLayout> setLayouts;
     };
 
-    class VKPipeline : public Pipeline {
+    class VKComputePipeline : public ComputePipeline {
+    public:
+        VKComputePipeline(
+           VkDevice device,
+           const shared_ptr<PipelineResources>& pipelineResources,
+           const shared_ptr<const ShaderModule>& shader,
+           const wstring& name);
+
+        ~VKComputePipeline() override;
+
+    private:
+        VkDevice     device;
+        VkPipeline   pipeline;
+    };
+
+    class VKGraphicPipeline : public GraphicPipeline {
     public:
         static constexpr VkCullModeFlagBits vkCullMode[] {
             VK_CULL_MODE_NONE,
@@ -84,19 +99,19 @@ export namespace vireo {
             VK_COMPARE_OP_ALWAYS,
         };
 
-        VKPipeline(
+        VKGraphicPipeline(
            VkDevice device,
            VKSwapChain& swapChain,
            const shared_ptr<PipelineResources>& pipelineResources,
            const shared_ptr<const VertexInputLayout>& vertexInputLayout,
            const shared_ptr<const ShaderModule>& vertexShader,
            const shared_ptr<const ShaderModule>& fragmentShader,
-           const Pipeline::Configuration& configuration,
+           const Configuration& configuration,
            const wstring& name);
 
         auto getPipeline() const { return pipeline; }
 
-        ~VKPipeline() override;
+        ~VKGraphicPipeline() override;
 
     private:
         VkDevice     device;

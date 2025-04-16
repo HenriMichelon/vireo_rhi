@@ -84,6 +84,7 @@ export namespace vireo {
             uint32_t    width,
             uint32_t    height,
             const wstring& name,
+            bool useByComputeShader,
             bool isRenderTarget);
 
         ~VKImage() override;

@@ -126,7 +126,7 @@ namespace vireo {
     }
 
     void VKCommandList::bindPipeline(const shared_ptr<const Pipeline>& pipeline) {
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS , static_pointer_cast<const VKPipeline>(pipeline)->getPipeline());
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS , static_pointer_cast<const VKGraphicPipeline>(pipeline)->getPipeline());
         lastBoundLayout = static_pointer_cast<const VKPipelineResources>(pipeline->getResources())->getPipelineLayout();
     }
 
@@ -262,14 +262,38 @@ namespace vireo {
         const auto vkImage = static_pointer_cast<VKImage>(renderTarget->getImage());
         pipelineBarrier(
             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                VK_PIPELINE_STAGE_TRANSFER_BIT, // TODO shader read
+                VK_PIPELINE_STAGE_TRANSFER_BIT,
             {
                 imageMemoryBarrier(vkImage->getImage(),
                     VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                    VK_ACCESS_TRANSFER_READ_BIT,  // TODO shader read
+                    VK_ACCESS_TRANSFER_READ_BIT,
                     VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                     VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
             });
+    }
+
+    void VKCommandList::barrier(
+        const shared_ptr<const Image>& image,
+        const ResourceState oldState,
+        const ResourceState newState) const {
+        VkPipelineStageFlags srcStage, dstStage;
+        VkAccessFlags srcAccess, dstAccess;
+        VkImageLayout srcLayout, dstLayout;
+        if (oldState == ResourceState::UNDEFINED && newState == ResourceState::DISPATCH_TARGET) {
+            srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            srcAccess = 0;
+            dstAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            dstLayout = VK_IMAGE_LAYOUT_GENERAL;
+        } else {
+            assert("Not implemented");
+            return;
+        }
+        const auto vkImage = static_pointer_cast<const VKImage>(image)->getImage();
+        pipelineBarrier(srcStage, dstStage, {
+           imageMemoryBarrier(vkImage, srcAccess, dstAccess, srcLayout, dstLayout)
+       });
     }
 
     void VKCommandList::pushConstants(

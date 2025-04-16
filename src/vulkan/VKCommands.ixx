@@ -58,6 +58,17 @@ export namespace vireo {
             VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
             VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP
         };
+        // static constexpr VkImageLayout vkLayouts[] {
+        //     VK_IMAGE_LAYOUT_UNDEFINED,
+        //     VK_IMAGE_LAYOUT_GENERAL,
+        //     VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL ,
+        //     VK_IMAGE_LAYOUT_GENERAL,
+        //     VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+        //     VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        //     VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        //     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+        //     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+        // };
 
         VKCommandList(const shared_ptr<const VKDevice>& device, VkCommandPool commandPool);
 
@@ -97,6 +108,11 @@ export namespace vireo {
         void setScissors(uint32_t count, const vector<Extent>& extent) const override;
 
         void setPrimitiveTopology(PrimitiveTopology primitiveTopology) const override;
+
+        void barrier(
+            const shared_ptr<const Image>& image,
+            ResourceState oldState,
+            ResourceState newState) const override;
 
         void pushConstants(
             const shared_ptr<const PipelineResources>& pipelineResources,

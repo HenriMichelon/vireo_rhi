@@ -20,7 +20,7 @@ export namespace vireo {
             DXGI_FORMAT_R32G32B32A32_FLOAT
         };
 
-        DXVertexInputLayout(const vector<AttributeDescription>& attributesDescriptions);
+        DXVertexInputLayout(const vector<VertexAttributeDesc>& attributesDescriptions);
 
         const auto& getInputElementDescs() const { return inputElementDescs; }
 
@@ -56,7 +56,7 @@ export namespace vireo {
         UINT pushConstantsRootParameterIndex{0};
     };
 
-    class DXPipeline : public Pipeline {
+    class DXGraphicPipeline : public GraphicPipeline {
     public:
         static constexpr D3D12_CULL_MODE dxCullMode[] {
             D3D12_CULL_MODE_NONE,
@@ -74,7 +74,7 @@ export namespace vireo {
             D3D12_COMPARISON_FUNC_ALWAYS,
         };
 
-        DXPipeline(
+        DXGraphicPipeline(
             const ComPtr<ID3D12Device>& device,
             const shared_ptr<PipelineResources>& pipelineResources,
             const shared_ptr<const VertexInputLayout>& vertexInputLayout,

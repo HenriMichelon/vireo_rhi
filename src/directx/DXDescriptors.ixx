@@ -38,13 +38,13 @@ export namespace vireo {
 
         void update(DescriptorIndex index, const shared_ptr<const Buffer>& buffer) const override;
 
-        void update(DescriptorIndex index, const shared_ptr<const Image>& image) const override;
+        void update(DescriptorIndex index, const shared_ptr<const Image>& image, bool useByComputeShader = false) const override;
 
         void update(DescriptorIndex index, const shared_ptr<const Sampler>& sampler) const override;
 
         void update(DescriptorIndex index, const vector<shared_ptr<Buffer>>& buffers) const override;
 
-        void update(DescriptorIndex index, const vector<shared_ptr<Image>>& images) const override;
+        void update(DescriptorIndex index, const vector<shared_ptr<Image>>& images, bool useByComputeShader = false) const override;
 
         void update(DescriptorIndex index, const vector<shared_ptr<Sampler>>& samplers) const override;
 

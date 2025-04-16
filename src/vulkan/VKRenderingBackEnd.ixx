@@ -31,7 +31,7 @@ export namespace vireo {
 
         shared_ptr<VertexInputLayout> createVertexLayout(
             size_t size,
-            const vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) const override;
+            const vector<VertexAttributeDesc>& attributesDescriptions) const override;
 
         shared_ptr<ShaderModule> createShaderModule(const string& fileName) const override;
 
@@ -40,12 +40,17 @@ export namespace vireo {
             const PushConstantsDesc& pushConstant = {},
             const wstring& name = L"PipelineResource") const override;
 
-        shared_ptr<Pipeline> createPipeline(
+        shared_ptr<ComputePipeline> createComputePipeline(
+            const shared_ptr<PipelineResources>& pipelineResources,
+            const shared_ptr<const ShaderModule>& shader,
+            const wstring& name = L"ComputePipeline") const override;
+
+        shared_ptr<GraphicPipeline> createGraphicPipeline(
             const shared_ptr<PipelineResources>& pipelineResources,
             const shared_ptr<const VertexInputLayout>& vertexInputLayout,
             const shared_ptr<const ShaderModule>& vertexShader,
             const shared_ptr<const ShaderModule>& fragmentShader,
-            const Pipeline::Configuration& configuration,
+            const GraphicPipeline::Configuration& configuration,
             const wstring& name = L"Pipeline") const override;
 
         shared_ptr<Buffer> createBuffer(
@@ -59,6 +64,7 @@ export namespace vireo {
             ImageFormat format,
             uint32_t width,
             uint32_t height,
+            bool useByComputeShader = false,
             const wstring& name = L"Image") const override;
 
         shared_ptr<RenderTarget> createRenderTarget(

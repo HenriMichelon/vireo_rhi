@@ -74,7 +74,7 @@ namespace vireo {
             getCommandListType(),
             device,
             commandAllocator,
-            static_pointer_cast<const DXPipeline>(pipeline)->getPipelineState());
+            static_pointer_cast<const DXGraphicPipeline>(pipeline)->getPipelineState());
     }
 
     shared_ptr<CommandList> DXCommandAllocator::createCommandList() const {
@@ -102,7 +102,7 @@ namespace vireo {
     }
 
     void DXCommandList::bindPipeline(const shared_ptr<const Pipeline>& pipeline) {
-        commandList->SetPipelineState(static_pointer_cast<const DXPipeline>(pipeline)->getPipelineState().Get());
+        commandList->SetPipelineState(static_pointer_cast<const DXGraphicPipeline>(pipeline)->getPipelineState().Get());
         commandList->SetGraphicsRootSignature(static_pointer_cast<const DXPipelineResources>(pipeline->getResources())->getRootSignature().Get());
     }
 
@@ -209,11 +209,28 @@ namespace vireo {
 
     void DXCommandList::endRendering(const shared_ptr<RenderTarget>& renderTarget) const {
         const auto dxImage = static_pointer_cast<const DXImage>(renderTarget->getImage());
-        const auto swapChainBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+        const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
             dxImage->getImage().Get(),
             D3D12_RESOURCE_STATE_RENDER_TARGET,
             D3D12_RESOURCE_STATE_COMMON);
-        commandList->ResourceBarrier(1, &swapChainBarrier);
+        commandList->ResourceBarrier(1, &barrier);
+    }
+
+    void DXCommandList::barrier(
+       const shared_ptr<const Image>& image,
+       const ResourceState oldState,
+       const ResourceState newState) const {
+        D3D12_RESOURCE_STATES srcState, dstState;
+        if (oldState == ResourceState::UNDEFINED && newState == ResourceState::DISPATCH_TARGET) {
+            srcState = D3D12_RESOURCE_STATE_COMMON;
+            dstState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+        } else {
+            assert("Not implemented");
+            return;
+        }
+        const auto dxImage = static_pointer_cast<const DXImage>(image)->getImage();
+        const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(dxImage.Get(), srcState, dstState);
+        commandList->ResourceBarrier(1, &barrier);
     }
 
     void DXCommandList::pushConstants(

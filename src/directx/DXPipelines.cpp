@@ -13,7 +13,7 @@ import vireo.directx.swapchains;
 
 namespace vireo {
 
-    DXVertexInputLayout::DXVertexInputLayout(const vector<AttributeDescription>& attributesDescriptions) {
+    DXVertexInputLayout::DXVertexInputLayout(const vector<VertexAttributeDesc>& attributesDescriptions) {
         for (const auto& attributesDescription : attributesDescriptions) {
             inputElementDescs.push_back({
                 .SemanticName = attributesDescription.binding.c_str(),
@@ -116,7 +116,7 @@ namespace vireo {
 #endif
     }
 
-    DXPipeline::DXPipeline(
+    DXGraphicPipeline::DXGraphicPipeline(
         const ComPtr<ID3D12Device>& device,
         const shared_ptr<PipelineResources>& pipelineResources,
         const shared_ptr<const VertexInputLayout>& vertexInputLayout,
@@ -124,7 +124,7 @@ namespace vireo {
         const shared_ptr<const ShaderModule>& fragmentShader,
         const Configuration& configuration,
         const wstring& name):
-        Pipeline{pipelineResources} {
+        GraphicPipeline{pipelineResources} {
         auto dxVertexInputLayout = static_pointer_cast<const DXVertexInputLayout>(vertexInputLayout);
         auto dxPipelineResources = static_pointer_cast<const DXPipelineResources>(pipelineResources);
         auto dxVertexShader = static_pointer_cast<const DXShaderModule>(vertexShader);

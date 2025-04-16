@@ -86,6 +86,7 @@ export namespace vireo {
             uint32_t    width,
             uint32_t    height,
             const wstring& name,
+            bool        useByComputeShader,
             bool        allowRenderTarget);
 
         auto getImage() const { return image; }

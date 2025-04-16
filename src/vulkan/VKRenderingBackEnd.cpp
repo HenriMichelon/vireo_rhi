@@ -81,7 +81,7 @@ namespace vireo {
 
     shared_ptr<VertexInputLayout> VKRenderingBackEnd::createVertexLayout(
            size_t size,
-           const vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) const {
+           const vector<VertexAttributeDesc>& attributesDescriptions) const {
         return make_shared<VKVertexInputLayout>(size, attributesDescriptions);
     }
 
@@ -100,14 +100,21 @@ namespace vireo {
         return make_shared<VKPipelineResources>(getVKDevice()->getDevice(), descriptorLayouts, pushConstant, name);
     }
 
-    shared_ptr<Pipeline> VKRenderingBackEnd::createPipeline(
+    shared_ptr<ComputePipeline> VKRenderingBackEnd::createComputePipeline(
+        const shared_ptr<PipelineResources>& pipelineResources,
+        const shared_ptr<const ShaderModule>& shader,
+        const wstring& name) const {
+        return make_shared<VKComputePipeline>(getVKDevice()->getDevice(), pipelineResources, shader, name);
+    }
+
+    shared_ptr<GraphicPipeline> VKRenderingBackEnd::createGraphicPipeline(
         const shared_ptr<PipelineResources>& pipelineResources,
         const shared_ptr<const VertexInputLayout>& vertexInputLayout,
         const shared_ptr<const ShaderModule>& vertexShader,
         const shared_ptr<const ShaderModule>& fragmentShader,
-        const Pipeline::Configuration& configuration,
+        const GraphicPipeline::Configuration& configuration,
         const wstring& name) const {
-        return make_shared<VKPipeline>(
+        return make_shared<VKGraphicPipeline>(
             getVKDevice()->getDevice(),
             *getVKSwapChain(),
             pipelineResources,
@@ -135,6 +142,7 @@ namespace vireo {
             const ImageFormat format,
             const uint32_t width,
             const uint32_t height,
+            bool useByComputeShader,
             const wstring& name) const {
         return make_shared<VKImage>(
             getVKDevice(),
@@ -142,6 +150,7 @@ namespace vireo {
             width,
             height,
             name,
+            useByComputeShader,
             false);
     }
 
@@ -157,6 +166,7 @@ namespace vireo {
                 width,
                 height,
                 name,
+                false,
                 true));
     }
 

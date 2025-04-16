@@ -10,7 +10,7 @@ module vireo.vulkan.pipelines;
 
 namespace vireo {
 
-    VKVertexInputLayout::VKVertexInputLayout(size_t size, const vector<AttributeDescription>& attributesDescriptions) {
+    VKVertexInputLayout::VKVertexInputLayout(const size_t size, const vector<VertexAttributeDesc>& attributesDescriptions) {
         vertexBindingDescription.binding = 0;
         vertexBindingDescription.stride = size;
         vertexBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
@@ -38,7 +38,7 @@ namespace vireo {
         const auto createInfo = VkShaderModuleCreateInfo {
             .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
             .codeSize = buffer.size(),
-            .pCode = reinterpret_cast<const uint32_t*>(buffer.data())
+            .pCode = reinterpret_cast<const uint32_t*>(buffer.data()),
         };
         DieIfFailed(vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule));
 #ifdef _DEBUG
@@ -94,16 +94,51 @@ namespace vireo {
         vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
     }
 
-    VKPipeline::VKPipeline(
+    VKComputePipeline::VKComputePipeline(
+          const VkDevice device,
+          const shared_ptr<PipelineResources>& pipelineResources,
+          const shared_ptr<const ShaderModule>& shader,
+          const wstring& name) :
+        ComputePipeline{pipelineResources},
+        device{device}{
+        const auto shaderModule = static_pointer_cast<const VKShaderModule>(shader)->getShaderModule();
+        const auto& pipelineLayout = static_pointer_cast<const VKPipelineResources>(pipelineResources)->getPipelineLayout();
+
+        const auto shaderStage = VkPipelineShaderStageCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .stage = VK_SHADER_STAGE_COMPUTE_BIT,
+            .module = shaderModule,
+            .pName = "main",
+            .pSpecializationInfo = nullptr,
+        };
+        const auto createInfo = VkComputePipelineCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+            .stage = shaderStage,
+            .layout = pipelineLayout,
+        };
+        DieIfFailed(vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &pipeline));
+#ifdef _DEBUG
+        vkSetObjectName(device, reinterpret_cast<uint64_t>(pipeline), VK_OBJECT_TYPE_PIPELINE,
+            wstring_to_string(L"VKComputePipeline : " + name));
+#endif
+    }
+
+    VKComputePipeline::~VKComputePipeline() {
+        vkDestroyPipeline(device, pipeline, nullptr);
+    }
+
+    VKGraphicPipeline::VKGraphicPipeline(
            VkDevice device,
            VKSwapChain& swapChain,
            const shared_ptr<PipelineResources>& pipelineResources,
            const shared_ptr<const VertexInputLayout>& vertexInputLayout,
            const shared_ptr<const ShaderModule>& vertexShader,
            const shared_ptr<const ShaderModule>& fragmentShader,
-           const Pipeline::Configuration& configuration,
+           const Configuration& configuration,
            const wstring& name):
-        Pipeline{pipelineResources},
+        GraphicPipeline{pipelineResources},
         device{device} {
         const auto vertexShaderModule = static_pointer_cast<const VKShaderModule>(vertexShader)->getShaderModule();
         const auto fragmentShaderModule = static_pointer_cast<const VKShaderModule>(fragmentShader)->getShaderModule();
@@ -115,7 +150,7 @@ namespace vireo {
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .stage = VK_SHADER_STAGE_VERTEX_BIT,
                 .module = vertexShaderModule,
-                .pName = "main"
+                .pName = "main",
             },
             {
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -208,11 +243,11 @@ namespace vireo {
         DieIfFailed(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline));
 #ifdef _DEBUG
         vkSetObjectName(device, reinterpret_cast<uint64_t>(pipeline), VK_OBJECT_TYPE_PIPELINE,
-            wstring_to_string(L"VKPipeline : " + name));
+            wstring_to_string(L"VKGraphicPipeline : " + name));
 #endif
     }
 
-    VKPipeline::~VKPipeline() {
+    VKGraphicPipeline::~VKGraphicPipeline() {
         vkDestroyPipeline(device, pipeline, nullptr);
     }
 

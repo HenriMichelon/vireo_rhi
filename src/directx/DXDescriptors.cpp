@@ -16,8 +16,9 @@ namespace vireo {
         CD3DX12_DESCRIPTOR_RANGE1 range;
         range.Init(
                 type == DescriptorType::BUFFER ? D3D12_DESCRIPTOR_RANGE_TYPE_CBV :
-                    type == DescriptorType::IMAGE ? D3D12_DESCRIPTOR_RANGE_TYPE_SRV :
-                    D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,
+                type == DescriptorType::SAMPLED_IMAGE ? D3D12_DESCRIPTOR_RANGE_TYPE_SRV :
+                type == DescriptorType::READWRITE_IMAGE ? D3D12_DESCRIPTOR_RANGE_TYPE_UAV :
+                D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,
                 count,
                 index,
                 0, // set when binding
@@ -56,7 +57,7 @@ namespace vireo {
         device->CreateConstantBufferView(&bufferViewDesc, cpuHandle);
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const shared_ptr<const Image>& image) const {
+    void DXDescriptorSet::update(const DescriptorIndex index, const shared_ptr<const Image>& image, bool useByComputeShader) const {
         const auto dxImage = static_pointer_cast<const DXImage>(image);
         const auto cpuHandle= D3D12_CPU_DESCRIPTOR_HANDLE{ cpuBase.ptr + index * descriptorSize };
         device->CreateShaderResourceView(dxImage->getImage().Get(), &dxImage->getImageViewDesc(), cpuHandle);
@@ -75,9 +76,9 @@ namespace vireo {
         }
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<Image>>& images) const {
+    void DXDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<Image>>& images, bool useByComputeShader) const {
         for (int i = 0; i < images.size(); ++i) {
-            update(index + i, images[i]);
+            update(index + i, images[i], useByComputeShader);
         }
     }
 

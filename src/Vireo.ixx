@@ -41,9 +41,10 @@ export namespace vireo {
     };
 
     enum class DescriptorType : uint8_t {
-        BUFFER  = 0,
-        IMAGE   = 1,
-        SAMPLER = 2,
+        BUFFER          = 0,
+        SAMPLED_IMAGE   = 1,
+        SAMPLER         = 2,
+        READWRITE_IMAGE = 3,
     };
 
     enum class CommandType : uint8_t {
@@ -94,6 +95,18 @@ export namespace vireo {
         FRAGMENT = 2,
     };
 
+    enum class ResourceState : uint8_t {
+        UNDEFINED       = 0,
+        GENERAL         = 1,
+        RENDER_TARGET   = 2,
+        DISPATCH_TARGET = 3,
+        PRESENT         = 4,
+        COPY_SRC        = 5,
+        COPY_DST        = 6,
+        SHADER_READ     = 7,
+        FRAGMENT_READ   = 8,
+    };
+
     using DescriptorIndex = uint32_t;
 
     struct Extent {
@@ -107,26 +120,43 @@ export namespace vireo {
         uint32_t    offset{0};
     };
 
+    struct VertexAttributeDesc {
+        string          binding;
+        AttributeFormat format;
+        uint32_t        offset;
+    };
+
+    struct FrameData {
+        virtual ~FrameData() = default;
+    };
+
     class Instance {
     public:
         virtual ~Instance() = default;
+
+    protected:
+        Instance() = default;
     };
 
     class PhysicalDevice {
     public:
         virtual ~PhysicalDevice() = default;
+
+    protected:
+        PhysicalDevice() = default;
     };
 
     class Device {
     public:
         virtual ~Device() = default;
+
+    protected:
+        Device() = default;
     };
 
     class Buffer {
     public:
         static constexpr size_t WHOLE_SIZE = ~0ULL;
-
-        Buffer(const BufferType type): type{type} {}
 
         virtual ~Buffer() = default;
 
@@ -141,15 +171,22 @@ export namespace vireo {
         virtual void write(const void* data, size_t size = WHOLE_SIZE, size_t offset = 0) = 0;
 
     protected:
+        size_t bufferSize{0};
+        size_t alignmentSize{0};
+        void*  mappedAddress{nullptr};
+
+        Buffer(const BufferType type): type{type} {}
+
+    private:
         const BufferType type;
-        size_t           bufferSize{0};
-        size_t           alignmentSize{0};
-        void*            mappedAddress{nullptr};
     };
 
     class Sampler {
     public:
         virtual ~Sampler() = default;
+
+    protected:
+        Sampler() = default;
     };
 
     class Image {
@@ -157,11 +194,6 @@ export namespace vireo {
         static constexpr uint8_t pixelSize[] {
             4
         };
-
-        Image(const ImageFormat format, const uint32_t width, const uint32_t height) :
-            format{format},
-            width{width},
-            height{height} {}
 
         virtual ~Image() = default;
 
@@ -174,6 +206,12 @@ export namespace vireo {
         auto getSize() const { return width * height * pixelSize[static_cast<int>(format)]; }
 
         auto getRowPitch() const { return width * pixelSize[static_cast<int>(format)]; }
+
+    protected:
+        Image(const ImageFormat format, const uint32_t width, const uint32_t height) :
+            format{format},
+            width{width},
+            height{height} {}
 
     private:
         const ImageFormat format;
@@ -205,6 +243,8 @@ export namespace vireo {
 
     protected:
         size_t capacity{0};
+
+        DescriptorLayout() = default;
     };
 
     class DescriptorSet {
@@ -213,11 +253,11 @@ export namespace vireo {
 
         virtual void update(DescriptorIndex index, const shared_ptr<const Buffer>& buffer) const = 0;
 
-        virtual void update(DescriptorIndex index, const shared_ptr<const Image>& image) const = 0;
+        virtual void update(DescriptorIndex index, const shared_ptr<const Image>& image, bool useByComputeShader = false) const = 0;
 
         virtual void update(DescriptorIndex index, const shared_ptr<const Sampler>& sampler) const = 0;
 
-        virtual void update(DescriptorIndex index, const vector<shared_ptr<Image>>& images) const = 0;
+        virtual void update(DescriptorIndex index, const vector<shared_ptr<Image>>& images, bool useByComputeShader = false) const = 0;
 
         virtual void update(DescriptorIndex index, const vector<shared_ptr<Buffer>>& buffer) const = 0;
 
@@ -225,30 +265,53 @@ export namespace vireo {
 
     protected:
         const shared_ptr<const DescriptorLayout> layout;
+
         DescriptorSet(const shared_ptr<const DescriptorLayout>& layout) : layout{layout} {}
     };
 
     class VertexInputLayout {
     public:
-        struct AttributeDescription {
-            string          binding;
-            AttributeFormat format;
-            uint32_t        offset;
-        };
         virtual ~VertexInputLayout() = default;
+
+    protected:
+        VertexInputLayout() = default;
     };
 
     class ShaderModule {
     public:
         virtual ~ShaderModule() = default;
+
+    protected:
+        ShaderModule() = default;
     };
 
     class PipelineResources {
     public:
         virtual ~PipelineResources() = default;
+
+    protected:
+        PipelineResources() = default;
     };
 
     class Pipeline {
+    public:
+        virtual ~Pipeline() = default;
+
+        auto getResources() const { return pipelineResources; }
+
+    protected:
+        Pipeline(const shared_ptr<PipelineResources>& pipelineResources) :pipelineResources{pipelineResources} {}
+
+    private:
+        shared_ptr<PipelineResources> pipelineResources;
+    };
+
+    class ComputePipeline : public Pipeline {
+    protected:
+        ComputePipeline(const shared_ptr<PipelineResources>& pipelineResources) :Pipeline{pipelineResources} {}
+    };
+
+    class GraphicPipeline : public Pipeline {
     public:
         struct Configuration {
             CullMode    cullMode{CullMode::NONE};
@@ -265,18 +328,8 @@ export namespace vireo {
             bool        alphaToCoverageEnable{false};
         };
 
-        Pipeline(const shared_ptr<PipelineResources>& pipelineResources) :pipelineResources{pipelineResources} {}
-
-        virtual ~Pipeline() = default;
-
-        auto getResources() const { return pipelineResources; }
-
-    private:
-        shared_ptr<PipelineResources> pipelineResources;
-    };
-
-    struct FrameData {
-        virtual ~FrameData() = default;
+    protected:
+        GraphicPipeline(const shared_ptr<PipelineResources>& pipelineResources) :Pipeline{pipelineResources} {}
     };
 
     class SwapChain;
@@ -318,6 +371,11 @@ export namespace vireo {
 
         virtual void setPrimitiveTopology(PrimitiveTopology primitiveTopology) const = 0;
 
+        virtual void barrier(
+            const shared_ptr<const Image>& image,
+            ResourceState oldState,
+            ResourceState newState) const = 0;
+
         virtual void pushConstants(
             const shared_ptr<const PipelineResources>& pipelineResources,
             const PushConstantsDesc& pushConstants,
@@ -326,11 +384,13 @@ export namespace vireo {
         virtual void cleanup() = 0;
 
         virtual ~CommandList() = default;
+
+    protected:
+        CommandList() = default;
     };
 
     class CommandAllocator {
     public:
-        CommandAllocator(const CommandType type) : commandListType{type} {}
 
         virtual void reset() const = 0;
 
@@ -341,6 +401,9 @@ export namespace vireo {
         virtual ~CommandAllocator() = default;
 
         auto getCommandListType() const { return commandListType; }
+
+    protected:
+        CommandAllocator(const CommandType type) : commandListType{type} {}
 
     private:
         const CommandType commandListType;
@@ -355,6 +418,9 @@ export namespace vireo {
         virtual void waitIdle() const = 0;
 
         virtual ~SubmitQueue() = default;
+
+    protected:
+        SubmitQueue() = default;
     };
 
     class SwapChain {
@@ -379,13 +445,13 @@ export namespace vireo {
         Extent      extent{};
         float       aspectRatio{};
         uint32_t    currentFrameIndex{0};
+
+        SwapChain() = default;
     };
 
     class RenderingBackEnd {
     public:
         static unique_ptr<RenderingBackEnd> create(const Configuration& configuration);
-
-        RenderingBackEnd(const Configuration& configuration) : configuration{configuration} {}
 
         virtual ~RenderingBackEnd() = default;
 
@@ -399,7 +465,7 @@ export namespace vireo {
 
         virtual shared_ptr<VertexInputLayout> createVertexLayout(
             size_t size,
-            const vector<VertexInputLayout::AttributeDescription>& attributesDescriptions) const = 0;
+            const vector<VertexAttributeDesc>& attributesDescriptions) const = 0;
 
         virtual shared_ptr<ShaderModule> createShaderModule(
             const string& fileName) const = 0;
@@ -409,13 +475,18 @@ export namespace vireo {
             const PushConstantsDesc& pushConstant = {},
             const wstring& name = L"PipelineResource") const = 0;
 
-        virtual shared_ptr<Pipeline> createPipeline(
+        virtual shared_ptr<ComputePipeline> createComputePipeline(
+            const shared_ptr<PipelineResources>& pipelineResources,
+            const shared_ptr<const ShaderModule>& shader,
+            const wstring& name = L"ComputePipeline") const = 0;
+
+        virtual shared_ptr<GraphicPipeline> createGraphicPipeline(
             const shared_ptr<PipelineResources>& pipelineResources,
             const shared_ptr<const VertexInputLayout>& vertexInputLayout,
             const shared_ptr<const ShaderModule>& vertexShader,
             const shared_ptr<const ShaderModule>& fragmentShader,
-            const Pipeline::Configuration& configuration,
-            const wstring& name = L"Pipeline") const = 0;
+            const GraphicPipeline::Configuration& configuration,
+            const wstring& name = L"GraphicPipeline") const = 0;
 
         virtual shared_ptr<Buffer> createBuffer(
             BufferType type,
@@ -428,6 +499,7 @@ export namespace vireo {
             ImageFormat format,
             uint32_t width,
             uint32_t height,
+            bool readWrite = false,
             const wstring& name = L"Image") const = 0;
 
         virtual shared_ptr<RenderTarget> createRenderTarget(
@@ -478,5 +550,6 @@ export namespace vireo {
         shared_ptr<SubmitQueue>     transferCommandQueue;
         shared_ptr<SwapChain>       swapChain;
 
+        RenderingBackEnd(const Configuration& configuration) : configuration{configuration} {}
     };
 }

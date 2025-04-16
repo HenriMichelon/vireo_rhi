@@ -20,7 +20,8 @@ namespace vireo {
         poolSizes[index] = {
             .type =
                 type == DescriptorType::BUFFER ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER :
-                type == DescriptorType::IMAGE ? VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE :
+                type == DescriptorType::SAMPLED_IMAGE ? VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE :
+                type == DescriptorType::READWRITE_IMAGE ? VK_DESCRIPTOR_TYPE_STORAGE_IMAGE :
                 VK_DESCRIPTOR_TYPE_SAMPLER,
             .descriptorCount = static_cast<uint32_t>(count),
         };
@@ -35,7 +36,7 @@ namespace vireo {
                 .binding = poolSize.first,
                 .descriptorType = poolSize.second.type,
                 .descriptorCount = poolSize.second.descriptorCount,
-                .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                .stageFlags = VK_SHADER_STAGE_ALL
             };
             bindings.push_back(binding);
         }
@@ -115,12 +116,12 @@ namespace vireo {
         vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
     }
 
-    void VKDescriptorSet::update(const DescriptorIndex index, const shared_ptr<const Image>& image) const {
+    void VKDescriptorSet::update(const DescriptorIndex index, const shared_ptr<const Image>& image, const bool useByComputeShader) const {
         const auto vkImage = static_pointer_cast<const VKImage>(image);
         const auto imageInfo = VkDescriptorImageInfo {
             .sampler = VK_NULL_HANDLE,
             .imageView = vkImage->getImageView(),
-            .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            .imageLayout = useByComputeShader ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
         };
         const auto write = VkWriteDescriptorSet {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -128,7 +129,7 @@ namespace vireo {
             .dstBinding = index,
             .dstArrayElement = 0,
             .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
+            .descriptorType = useByComputeShader ? VK_DESCRIPTOR_TYPE_STORAGE_IMAGE : VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
             .pImageInfo = &imageInfo,
         };
         vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
@@ -172,12 +173,12 @@ namespace vireo {
         vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
     }
 
-    void VKDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<Image>>& images) const {
+    void VKDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<Image>>& images, const bool useByComputeShader) const {
         auto imagesInfo = vector<VkDescriptorImageInfo>(images.size());
         for (int i = 0; i < images.size(); i++) {
             imagesInfo[i].sampler = VK_NULL_HANDLE;
             imagesInfo[i].imageView = static_pointer_cast<const VKImage>(images[i])->getImageView();
-            imagesInfo[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            imagesInfo[i].imageLayout = useByComputeShader ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         }
         const auto write = VkWriteDescriptorSet {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -185,7 +186,7 @@ namespace vireo {
             .dstBinding = index,
             .dstArrayElement = 0,
             .descriptorCount = static_cast<uint32_t>(imagesInfo.size()),
-            .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
+            .descriptorType = useByComputeShader ? VK_DESCRIPTOR_TYPE_STORAGE_IMAGE : VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
             .pImageInfo = imagesInfo.data(),
         };
         vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
