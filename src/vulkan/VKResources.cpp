@@ -134,7 +134,6 @@ namespace vireo {
             const bool        isRenderTarget):
         Image{format, width, height},
         device{device} {
-        assert(useByComputeShader && format != ImageFormat::R8G8B8A8_SRGB);
         const VkImageUsageFlags usage =
             isRenderTarget ? VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT :
             useByComputeShader ? VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT :

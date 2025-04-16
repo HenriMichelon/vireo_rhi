@@ -142,7 +142,6 @@ namespace vireo {
             const ImageFormat format,
             const uint32_t width,
             const uint32_t height,
-            bool useByComputeShader,
             const wstring& name) const {
         return make_shared<VKImage>(
             getVKDevice(),
@@ -150,7 +149,22 @@ namespace vireo {
             width,
             height,
             name,
-            useByComputeShader,
+            false,
+            false);
+    }
+
+    shared_ptr<Image> VKRenderingBackEnd::createReadWriteImage(
+            const ImageFormat format,
+            const uint32_t width,
+            const uint32_t height,
+            const wstring& name) const {
+        return make_shared<VKImage>(
+            getVKDevice(),
+            format,
+            width,
+            height,
+            name,
+            true,
             false);
     }
 

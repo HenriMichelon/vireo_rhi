@@ -104,7 +104,6 @@ export namespace vireo {
         COPY_SRC        = 5,
         COPY_DST        = 6,
         SHADER_READ     = 7,
-        FRAGMENT_READ   = 8,
     };
 
     using DescriptorIndex = uint32_t;
@@ -353,9 +352,7 @@ export namespace vireo {
             const shared_ptr<RenderTarget>& renderTarget,
             const float clearColor[]) const = 0;
 
-        virtual void endRendering(const shared_ptr<const FrameData>& frameData, const shared_ptr<SwapChain>& swapChain) const = 0;
-
-        virtual void endRendering(const shared_ptr<RenderTarget>& renderTarget) const = 0;
+        virtual void endRendering() const {}
 
         virtual void bindVertexBuffer(const shared_ptr<const Buffer>& buffer) const = 0;
 
@@ -373,6 +370,12 @@ export namespace vireo {
 
         virtual void barrier(
             const shared_ptr<const Image>& image,
+            ResourceState oldState,
+            ResourceState newState) const = 0;
+
+        virtual void barrier(
+            const shared_ptr<const FrameData>& frameData,
+            const shared_ptr<const SwapChain>& swapChain,
             ResourceState oldState,
             ResourceState newState) const = 0;
 
@@ -499,8 +502,13 @@ export namespace vireo {
             ImageFormat format,
             uint32_t width,
             uint32_t height,
-            bool readWrite = false,
             const wstring& name = L"Image") const = 0;
+
+        virtual shared_ptr<Image> createReadWriteImage(
+            ImageFormat format,
+            uint32_t width,
+            uint32_t height,
+            const wstring& name = L"RWImage") const = 0;
 
         virtual shared_ptr<RenderTarget> createRenderTarget(
             ImageFormat format,

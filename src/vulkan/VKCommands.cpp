@@ -182,7 +182,6 @@ namespace vireo {
         const auto vkSwapChain = static_pointer_cast<VKSwapChain>(swapChain);
         const auto imageIndex = static_pointer_cast<VKFrameData>(frameData)->imageIndex;
         beginRendering(
-            vkSwapChain->getImages()[imageIndex],
             vkSwapChain->getImageViews()[imageIndex],
             vkSwapChain->getExtent().width,
             vkSwapChain->getExtent().height,
@@ -194,7 +193,6 @@ namespace vireo {
       const float clearColor[]) const {
         const auto vkImage = static_pointer_cast<VKImage>(renderTarget->getImage());
         beginRendering(
-            vkImage->getImage(),
             vkImage->getImageView(),
             vkImage->getWidth(),
             vkImage->getHeight(),
@@ -202,18 +200,10 @@ namespace vireo {
     }
 
     void VKCommandList::beginRendering(
-        const VkImage image,
         const VkImageView imageView,
         const uint32_t width,
         const uint32_t height,
         const float clearColor[]) const {
-        pipelineBarrier(
-            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-            {imageMemoryBarrier(image,
-                    0, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                    VK_IMAGE_LAYOUT_UNDEFINED,
-                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)});
 
         const auto colorAttachmentInfo = VkRenderingAttachmentInfo {
             .sType              = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
@@ -242,43 +232,18 @@ namespace vireo {
         vkCmdBeginRendering(commandBuffer, &renderingInfo);
     }
 
-    void VKCommandList::endRendering(const shared_ptr<const FrameData>& frameData, const shared_ptr<SwapChain>& swapChain) const {
+    void VKCommandList::endRendering() const {
         vkCmdEndRendering(commandBuffer);
-        const auto data = static_pointer_cast<const VKFrameData>(frameData);
-        const auto vkSwapChain = static_pointer_cast<VKSwapChain>(swapChain);
-        pipelineBarrier(
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-            {
-                imageMemoryBarrier(vkSwapChain->getImages()[data->imageIndex],
-                    VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, 0,
-                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                    VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
-            });
-    }
-
-    void VKCommandList::endRendering(const shared_ptr<RenderTarget>& renderTarget) const {
-        vkCmdEndRendering(commandBuffer);
-        const auto vkImage = static_pointer_cast<VKImage>(renderTarget->getImage());
-        pipelineBarrier(
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                VK_PIPELINE_STAGE_TRANSFER_BIT,
-            {
-                imageMemoryBarrier(vkImage->getImage(),
-                    VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                    VK_ACCESS_TRANSFER_READ_BIT,
-                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                    VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
-            });
     }
 
     void VKCommandList::barrier(
-        const shared_ptr<const Image>& image,
+        const VkImage image,
         const ResourceState oldState,
         const ResourceState newState) const {
         VkPipelineStageFlags srcStage, dstStage;
         VkAccessFlags srcAccess, dstAccess;
         VkImageLayout srcLayout, dstLayout;
+
         if (oldState == ResourceState::UNDEFINED && newState == ResourceState::DISPATCH_TARGET) {
             srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
             dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
@@ -286,14 +251,83 @@ namespace vireo {
             dstAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
             srcLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             dstLayout = VK_IMAGE_LAYOUT_GENERAL;
+        } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::RENDER_TARGET) {
+            srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            srcAccess = 0;
+            dstAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            dstLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        } else if (oldState == ResourceState::RENDER_TARGET && newState == ResourceState::PRESENT) {
+            srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            dstStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+            srcAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            dstAccess = 0;
+            srcLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::COPY_DST) {
+            srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            srcAccess = 0;
+            dstAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            dstLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::SHADER_READ) {
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            srcAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
+            dstAccess = 0;
+            srcLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         } else {
-            assert("Not implemented");
+            die("Not implemented");
             return;
         }
-        const auto vkImage = static_pointer_cast<const VKImage>(image)->getImage();
-        pipelineBarrier(srcStage, dstStage, {
-           imageMemoryBarrier(vkImage, srcAccess, dstAccess, srcLayout, dstLayout)
-       });
+        const auto barrier = VkImageMemoryBarrier {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .srcAccessMask =  srcAccess,
+            .dstAccessMask = dstAccess,
+            .oldLayout = srcLayout,
+            .newLayout = dstLayout,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = image,
+            .subresourceRange = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = 0,
+                .levelCount = VK_REMAINING_MIP_LEVELS,
+                .baseArrayLayer = 0,
+                .layerCount = VK_REMAINING_ARRAY_LAYERS,
+            }
+        };
+        vkCmdPipelineBarrier(commandBuffer,
+            srcStage,
+            dstStage,
+            0,
+            0,
+            nullptr,
+            0,
+            nullptr,
+            1,
+            &barrier);
+    }
+
+    void VKCommandList::barrier(
+        const shared_ptr<const Image>& image,
+        const ResourceState oldState,
+        const ResourceState newState) const {
+        const auto vkImage = static_pointer_cast<const VKImage>(image);
+        barrier(vkImage->getImage(), oldState, newState);
+    }
+
+    void VKCommandList::barrier(
+        const shared_ptr<const FrameData>& frameData,
+        const shared_ptr<const SwapChain>& swapChain,
+        const ResourceState oldState,
+        const ResourceState newState) const {
+        const auto data = static_pointer_cast<const VKFrameData>(frameData);
+        const auto vkSwapChain = static_pointer_cast<const VKSwapChain>(swapChain);
+        barrier(vkSwapChain->getImages()[data->imageIndex], oldState, newState);
     }
 
     void VKCommandList::pushConstants(
@@ -402,17 +436,6 @@ namespace vireo {
             .imageExtent = {image->getWidth(), image->getHeight(), 1},
         };
 
-        pipelineBarrier(
-        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-        VK_PIPELINE_STAGE_TRANSFER_BIT,
-        {
-            imageMemoryBarrier(
-                image->getImage(),
-                0,
-                VK_ACCESS_TRANSFER_WRITE_BIT,
-                VK_IMAGE_LAYOUT_UNDEFINED,
-                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
-        });
         vkCmdCopyBufferToImage(
                 commandBuffer,
                 stagingBuffer,
@@ -420,62 +443,10 @@ namespace vireo {
                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                 1,
                 &region);
-        pipelineBarrier(
-           VK_PIPELINE_STAGE_TRANSFER_BIT,
-           VK_PIPELINE_STAGE_TRANSFER_BIT,
-           {
-               imageMemoryBarrier(
-                   image->getImage(),
-                   VK_ACCESS_TRANSFER_WRITE_BIT,
-                   0,
-                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-        });
 
         stagingBuffers.push_back(stagingBuffer);
         stagingBuffersMemory.push_back(stagingBufferMemory);
     }
 
-    void VKCommandList::pipelineBarrier(
-       const VkPipelineStageFlags srcStageMask,
-       const VkPipelineStageFlags dstStageMask,
-       const vector<VkImageMemoryBarrier>& barriers) const {
-        vkCmdPipelineBarrier(commandBuffer,
-            srcStageMask,
-            dstStageMask,
-            0,
-            0,
-            nullptr,
-            0,
-            nullptr,
-            static_cast<uint32_t>(barriers.size()),
-            barriers.data());
-    }
-
-    VkImageMemoryBarrier VKCommandList::imageMemoryBarrier(
-           const VkImage image,
-           const VkAccessFlags srcAccessMask, const VkAccessFlags dstAccessMask,
-           const VkImageLayout oldLayout, const VkImageLayout newLayout,
-           const uint32_t baseMipLevel,
-           const uint32_t levelCount
-       ) {
-        return VkImageMemoryBarrier {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .srcAccessMask =  srcAccessMask,
-            .dstAccessMask = dstAccessMask,
-            .oldLayout = oldLayout,
-            .newLayout = newLayout,
-            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .image = image,
-            .subresourceRange = {
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .baseMipLevel = baseMipLevel,
-                .levelCount = levelCount,
-                .baseArrayLayer = 0,
-                .layerCount = VK_REMAINING_ARRAY_LAYERS,
-            }
-        };
-    }
 
 }

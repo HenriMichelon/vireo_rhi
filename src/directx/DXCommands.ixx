@@ -58,17 +58,6 @@ export namespace vireo {
             D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
             D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP,
         };
-        // static constexpr D3D12_RESOURCE_STATES  dxStates[] {
-        //     D3D12_RESOURCE_STATE_COMMON,
-        //     D3D12_RESOURCE_STATE_COMMON,
-        //     D3D12_RESOURCE_STATE_RENDER_TARGET,
-        //     D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-        //     D3D12_RESOURCE_STATE_PRESENT,
-        //     D3D12_RESOURCE_STATE_COPY_SOURCE,
-        //     D3D12_RESOURCE_STATE_COPY_DEST,
-        //     D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE,
-        //     D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-        // };
 
         DXCommandList(
             CommandType type,
@@ -93,10 +82,6 @@ export namespace vireo {
             const shared_ptr<RenderTarget>& renderTarget,
             const float clearColor[]) const override;
 
-        void endRendering(const shared_ptr<const FrameData>& frameData, const shared_ptr<SwapChain>& swapChain) const override;
-
-        void endRendering(const shared_ptr<RenderTarget>& renderTarget) const override;
-
         void bindVertexBuffer(const shared_ptr<const Buffer>& buffer) const override;
 
         void bindPipeline(const shared_ptr<const Pipeline>& pipeline) override;
@@ -113,6 +98,12 @@ export namespace vireo {
 
         void barrier(
             const shared_ptr<const Image>& image,
+            ResourceState oldState,
+            ResourceState newState) const override;
+
+        void barrier(
+            const shared_ptr<const FrameData>& frameData,
+            const shared_ptr<const SwapChain>& swapChain,
             ResourceState oldState,
             ResourceState newState) const override;
 
@@ -134,9 +125,13 @@ export namespace vireo {
         vector<ComPtr<ID3D12Resource>>    stagingBuffers{};
 
         void beginRendering(
-            const ComPtr<ID3D12Resource>& resource,
             const D3D12_CPU_DESCRIPTOR_HANDLE& handle,
             const float clearColor[]) const;
+
+        void barrier(
+           const ComPtr<ID3D12Resource>& resource,
+           ResourceState oldState,
+           ResourceState newState) const;
     };
 
 }

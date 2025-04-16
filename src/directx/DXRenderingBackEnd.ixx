@@ -61,8 +61,13 @@ export namespace vireo {
             ImageFormat format,
             uint32_t width,
             uint32_t height,
-            bool useByComputeShader = false,
             const wstring& name = L"Image") const override;
+
+        shared_ptr<Image> createReadWriteImage(
+            ImageFormat format,
+            uint32_t width,
+            uint32_t height,
+            const wstring& name = L"RWImage") const override;
 
         shared_ptr<RenderTarget> createRenderTarget(
             ImageFormat format,

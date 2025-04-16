@@ -157,7 +157,6 @@ namespace vireo {
             frameIndex,
             dxSwapChain->getDescriptorSize());
         beginRendering(
-            dxSwapChain->getRenderTargets()[frameIndex],
             rtvHandle,
             clearColor);
     }
@@ -167,23 +166,14 @@ namespace vireo {
         const float clearColor[]) const {
         const auto dxRenderTarget = static_pointer_cast<DXRenderTarget>(renderTarget);
         beginRendering(
-            static_pointer_cast<DXImage>(dxRenderTarget->getImage())->getImage(),
             dxRenderTarget->getHandle(),
             clearColor
         );
     }
 
     void DXCommandList::beginRendering(
-        const ComPtr<ID3D12Resource>& resource,
         const D3D12_CPU_DESCRIPTOR_HANDLE& handle,
         const float clearColor[]) const {
-
-        const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            resource.Get(),
-            D3D12_RESOURCE_STATE_COMMON,
-            D3D12_RESOURCE_STATE_RENDER_TARGET);
-        commandList->ResourceBarrier(1, &barrier);
-
         commandList->OMSetRenderTargets(
             1,
             &handle,
@@ -198,38 +188,52 @@ namespace vireo {
             nullptr);
     }
 
-    void DXCommandList::endRendering(const shared_ptr<const FrameData>& frameData, const shared_ptr<SwapChain>& swapChain) const {
-        const auto dxSwapChain = static_pointer_cast<const DXSwapChain>(swapChain);
-        const auto swapChainBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            dxSwapChain->getRenderTargets()[dxSwapChain->getCurrentFrameIndex()].Get(),
-            D3D12_RESOURCE_STATE_RENDER_TARGET,
-            D3D12_RESOURCE_STATE_PRESENT);
-        commandList->ResourceBarrier(1, &swapChainBarrier);
-    }
 
-    void DXCommandList::endRendering(const shared_ptr<RenderTarget>& renderTarget) const {
-        const auto dxImage = static_pointer_cast<const DXImage>(renderTarget->getImage());
-        const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            dxImage->getImage().Get(),
-            D3D12_RESOURCE_STATE_RENDER_TARGET,
-            D3D12_RESOURCE_STATE_COMMON);
-        commandList->ResourceBarrier(1, &barrier);
+    void DXCommandList::barrier(
+        const shared_ptr<const Image>& image,
+        const ResourceState oldState,
+        const ResourceState newState) const {
+        const auto dxImage = static_pointer_cast<const DXImage>(image)->getImage();
+        barrier(dxImage, oldState, newState);
     }
 
     void DXCommandList::barrier(
-       const shared_ptr<const Image>& image,
+        const shared_ptr<const FrameData>& frameData,
+        const shared_ptr<const SwapChain>& swapChain,
+        const ResourceState oldState,
+        const ResourceState newState) const {
+        const auto dxSwapChain = static_pointer_cast<const DXSwapChain>(swapChain);
+        barrier(dxSwapChain->getRenderTargets()[dxSwapChain->getCurrentFrameIndex()], oldState, newState);
+    }
+
+    void DXCommandList::barrier(
+       const ComPtr<ID3D12Resource>& resource,
        const ResourceState oldState,
        const ResourceState newState) const {
         D3D12_RESOURCE_STATES srcState, dstState;
         if (oldState == ResourceState::UNDEFINED && newState == ResourceState::DISPATCH_TARGET) {
             srcState = D3D12_RESOURCE_STATE_COMMON;
             dstState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+        } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::RENDER_TARGET) {
+            srcState = D3D12_RESOURCE_STATE_COMMON;
+            dstState = D3D12_RESOURCE_STATE_RENDER_TARGET;
+        } else if (oldState == ResourceState::RENDER_TARGET && newState == ResourceState::PRESENT) {
+            srcState = D3D12_RESOURCE_STATE_RENDER_TARGET;
+            dstState = D3D12_RESOURCE_STATE_PRESENT;
+        } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::COPY_DST) {
+            srcState = D3D12_RESOURCE_STATE_COMMON;
+            dstState = D3D12_RESOURCE_STATE_COPY_DEST;
+        } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::SHADER_READ) {
+            srcState = D3D12_RESOURCE_STATE_COPY_DEST;
+            dstState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
         } else {
-            assert("Not implemented");
+            die("Not implemented");
             return;
         }
-        const auto dxImage = static_pointer_cast<const DXImage>(image)->getImage();
-        const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(dxImage.Get(), srcState, dstState);
+        const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+            resource.Get(),
+            srcState,
+            dstState);
         commandList->ResourceBarrier(1, &barrier);
     }
 
@@ -281,7 +285,7 @@ namespace vireo {
                 &stagingHeapProps,
                 D3D12_HEAP_FLAG_NONE,
                 &stagingResourceDesc,
-                D3D12_RESOURCE_STATE_GENERIC_READ,
+                D3D12_RESOURCE_STATE_COMMON,
                 nullptr,
                 IID_PPV_ARGS(&stagingBuffer)));
 #ifdef _DEBUG
@@ -328,7 +332,7 @@ namespace vireo {
                 &stagingHeapProps,
                 D3D12_HEAP_FLAG_NONE,
                 &stagingResourceDesc,
-                D3D12_RESOURCE_STATE_GENERIC_READ,
+                D3D12_RESOURCE_STATE_COMMON,
                 nullptr,
                 IID_PPV_ARGS(&stagingBuffer)));
 #ifdef _DEBUG
@@ -351,16 +355,6 @@ namespace vireo {
                 1,
                 &copyData);
         }
-
-        {
-            const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-                image->getImage().Get(),
-                D3D12_RESOURCE_STATE_COPY_DEST,
-                D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE |
-                    D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE); // enforced by DATA_STATIC in the root signature
-            commandList->ResourceBarrier(1, &memoryBarrier);
-        }
-
         stagingBuffers.push_back(stagingBuffer);
     }
 }

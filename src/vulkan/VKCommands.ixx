@@ -91,9 +91,7 @@ export namespace vireo {
             const shared_ptr<RenderTarget>& renderTarget,
             const float clearColor[]) const override;
 
-        void endRendering(const shared_ptr<const FrameData>& frameData, const shared_ptr<SwapChain>& swapChain) const override;
-
-        void endRendering(const shared_ptr<RenderTarget>& renderTarget) const override;
+        void endRendering() const override;
 
         void bindVertexBuffer(const shared_ptr<const Buffer>& buffer) const override;
 
@@ -114,6 +112,12 @@ export namespace vireo {
             ResourceState oldState,
             ResourceState newState) const override;
 
+        void barrier(
+            const shared_ptr<const FrameData>& frameData,
+            const shared_ptr<const SwapChain>& swapChain,
+            ResourceState oldState,
+            ResourceState newState) const override;
+
         void pushConstants(
             const shared_ptr<const PipelineResources>& pipelineResources,
             const PushConstantsDesc& pushConstants,
@@ -121,18 +125,6 @@ export namespace vireo {
 
         auto getCommandBuffer() const { return commandBuffer; }
 
-        void pipelineBarrier(
-            VkPipelineStageFlags srcStageMask,
-            VkPipelineStageFlags dstStageMask,
-            const vector<VkImageMemoryBarrier>& barriers) const;
-
-        static VkImageMemoryBarrier imageMemoryBarrier(
-           VkImage image,
-           VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask,
-           VkImageLayout oldLayout, VkImageLayout newLayout,
-           uint32_t baseMipLevel = 0,
-           uint32_t levelCount = VK_REMAINING_MIP_LEVELS
-       );
 
     private:
         const shared_ptr<const VKDevice> device;
@@ -142,10 +134,14 @@ export namespace vireo {
         vector<VkDeviceMemory>           stagingBuffersMemory{};
 
         void beginRendering(
-          VkImage image,
           VkImageView imageView,
           uint32_t width, uint32_t height,
           const float clearColor[]) const;
+
+        void barrier(
+           VkImage image,
+           ResourceState oldState,
+           ResourceState newState) const;
     };
 
 }
