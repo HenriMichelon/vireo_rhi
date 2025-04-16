@@ -306,7 +306,7 @@ namespace vireo {
             dstLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
         } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::SHADER_READ) {
             srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-            dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
             srcAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
             dstAccess = VK_ACCESS_SHADER_READ_BIT;
             srcLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -532,6 +532,33 @@ namespace vireo {
                        vkSource->getImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                        vkSwapChain->getImages()[data->imageIndex], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                        1, &copyRegion);
+    }
+
+    void VKCommandList::blit(
+        const shared_ptr<const Image>& source,
+        const shared_ptr<const FrameData>& frameData,
+        const shared_ptr<const SwapChain>& swapChain,
+        Filter filter) const {
+        const auto data = static_pointer_cast<const VKFrameData>(frameData);
+        const auto vkSource = static_pointer_cast<const VKImage>(source);
+        const auto vkSwapChain = static_pointer_cast<const VKSwapChain>(swapChain);
+        auto blitRegion = VkImageBlit {
+            .srcSubresource = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .mipLevel = 0,
+                .baseArrayLayer = 0,
+                .layerCount = 1,
+            },
+        };
+        blitRegion.srcOffsets[1] = {static_cast<int32_t>(source->getWidth()), static_cast<int32_t>(source->getHeight()), 1},
+        blitRegion.dstSubresource = blitRegion.srcSubresource;
+        blitRegion.dstOffsets[1] = blitRegion.srcOffsets[1];
+
+        vkCmdBlitImage(commandBuffer,
+                       vkSource->getImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                       vkSwapChain->getImages()[data->imageIndex], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                       1, &blitRegion,
+                       filter == Filter::LINEAR ? VK_FILTER_LINEAR  : VK_FILTER_NEAREST);
     }
 
 

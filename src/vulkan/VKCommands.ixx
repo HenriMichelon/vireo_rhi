@@ -76,6 +76,12 @@ export namespace vireo {
             const shared_ptr<const FrameData>& frameData,
             const shared_ptr<const SwapChain>& swapChain) const override;
 
+        void blit(
+            const shared_ptr<const Image>& source,
+            const shared_ptr<const FrameData>& frameData,
+            const shared_ptr<const SwapChain>& swapChain,
+            Filter filter) const override;
+
         void beginRendering(
             const shared_ptr<FrameData>& frameData,
             const shared_ptr<SwapChain>& swapChain,

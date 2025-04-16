@@ -30,8 +30,83 @@ export namespace vireo {
     };
 
     enum class ImageFormat : uint8_t {
-        R8G8B8A8_SRGB   = 0,
-        R8G8B8A8_UNORM  = 1,
+        R8_UNORM,
+        R8_SNORM,
+        R8_UINT,
+        R8_SINT,
+
+        R8G8_UNORM,
+        R8G8_SNORM,
+        R8G8_UINT,
+        R8G8_SINT,
+
+        R8G8B8A8_UNORM,
+        R8G8B8A8_SNORM,
+        R8G8B8A8_UINT,
+        R8G8B8A8_SINT,
+        R8G8B8A8_SRGB,
+
+        B8G8R8A8_UNORM,
+        B8G8R8A8_SRGB,
+        B8G8R8X8_UNORM,
+        B8G8R8X8_SRGB,
+
+        A2B10G10R10_UNORM,
+        A2B10G10R10_UINT,
+
+        R16_UNORM,
+        R16_SNORM,
+        R16_UINT,
+        R16_SINT,
+        R16_SFLOAT,
+
+        R16G16_UNORM,
+        R16G16_SNORM,
+        R16G16_UINT,
+        R16G16_SINT,
+        R16G16_SFLOAT,
+
+        R16G16B16A16_UNORM,
+        R16G16B16A16_SNORM,
+        R16G16B16A16_UINT,
+        R16G16B16A16_SINT,
+        R16G16B16A16_SFLOAT,
+
+        R32_UINT,
+        R32_SINT,
+        R32_SFLOAT,
+
+        R32G32_UINT,
+        R32G32_SINT,
+        R32G32_SFLOAT,
+
+        R32G32B32_UINT,
+        R32G32B32_SINT,
+        R32G32B32_SFLOAT,
+
+        R32G32B32A32_UINT,
+        R32G32B32A32_SINT,
+        R32G32B32A32_SFLOAT,
+
+        D16_UNORM,
+        D24_UNORM_S8_UINT,
+        D32_SFLOAT,
+        D32_SFLOAT_S8_UINT,
+
+        BC1_UNORM,
+        BC1_UNORM_SRGB,
+        BC2_UNORM,
+        BC2_UNORM_SRGB,
+        BC3_UNORM,
+        BC3_UNORM_SRGB,
+        BC4_UNORM,
+        BC4_SNORM,
+        BC5_UNORM,
+        BC5_SNORM,
+        BC6H_UFLOAT,
+        BC6H_SFLOAT,
+        BC7_UNORM,
+        BC7_UNORM_SRGB,
     };
 
     enum class BufferType : uint8_t {
@@ -190,8 +265,85 @@ export namespace vireo {
 
     class Image {
     public:
-        static constexpr uint8_t pixelSize[] {
-            4
+        static constexpr uint8_t pixelSize[] = {
+            1,  // R8_UNORM
+            1,  // R8_SNORM
+            1,  // R8_UINT
+            1,  // R8_SINT
+
+            2,  // R8G8_UNORM
+            2,  // R8G8_SNORM
+            2,  // R8G8_UINT
+            2,  // R8G8_SINT
+
+            4,  // R8G8B8A8_UNORM
+            4,  // R8G8B8A8_SNORM
+            4,  // R8G8B8A8_UINT
+            4,  // R8G8B8A8_SINT
+            4,  // R8G8B8A8_SRGB
+
+            4,  // B8G8R8A8_UNORM
+            4,  // B8G8R8A8_SRGB
+            4,  // B8G8R8X8_UNORM (approx. as 4 bytes per texel)
+            4,  // B8G8R8X8_SRGB   (approx. idem)
+
+            4,  // A2B10G10R10_UNORM
+            4,  // A2B10G10R10_UINT
+
+            2,  // R16_UNORM
+            2,  // R16_SNORM
+            2,  // R16_UINT
+            2,  // R16_SINT
+            2,  // R16_SFLOAT
+
+            4,  // R16G16_UNORM
+            4,  // R16G16_SNORM
+            4,  // R16G16_UINT
+            4,  // R16G16_SINT
+            4,  // R16G16_SFLOAT
+
+            8,  // R16G16B16A16_UNORM
+            8,  // R16G16B16A16_SNORM
+            8,  // R16G16B16A16_UINT
+            8,  // R16G16B16A16_SINT
+            8,  // R16G16B16A16_SFLOAT
+
+            4,  // R32_UINT
+            4,  // R32_SINT
+            4,  // R32_SFLOAT
+
+            8,  // R32G32_UINT
+            8,  // R32G32_SINT
+            8,  // R32G32_SFLOAT
+
+            12, // R32G32B32_UINT
+            12, // R32G32B32_SINT
+            12, // R32G32B32_SFLOAT
+
+            16, // R32G32B32A32_UINT
+            16, // R32G32B32A32_SINT
+            16, // R32G32B32A32_SFLOAT
+
+            2,  // D16_UNORM
+            4,  // D24_UNORM_S8_UINT
+            4,  // D32_SFLOAT
+            8,  // D32_SFLOAT_S8_UINT
+            1,  // S8_UINT
+
+            8,  // BC1_UNORM (compressed: 4x4 block = 8 bytes → 0.5 byte per pixel)
+            8,  // BC1_UNORM_SRGB
+            16, // BC2_UNORM (4x4 block = 16 bytes)
+            16, // BC2_UNORM_SRGB
+            16, // BC3_UNORM
+            16, // BC3_UNORM_SRGB
+            8,  // BC4_UNORM
+            8,  // BC4_SNORM
+            16, // BC5_UNORM
+            16, // BC5_SNORM
+            16, // BC6H_UFLOAT
+            16, // BC6H_SFLOAT
+            16, // BC7_UNORM
+            16, // BC7_UNORM_SRGB
         };
 
         virtual ~Image() = default;
@@ -359,6 +511,12 @@ export namespace vireo {
             const shared_ptr<const Image>& source,
             const shared_ptr<const FrameData>& frameData,
             const shared_ptr<const SwapChain>& swapChain) const = 0;
+
+        virtual void blit(
+            const shared_ptr<const Image>& source,
+            const shared_ptr<const FrameData>& frameData,
+            const shared_ptr<const SwapChain>& swapChain,
+            Filter filter = Filter::NEAREST) const = 0;
 
         virtual void beginRendering(
             const shared_ptr<FrameData>& frameData,

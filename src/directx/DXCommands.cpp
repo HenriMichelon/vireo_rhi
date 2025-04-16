@@ -415,4 +415,12 @@ namespace vireo {
         commandList->CopyTextureRegion(&dstLocation, 0, 0, 0, &srcLocation, nullptr);
     }
 
+    void DXCommandList::blit(
+       const shared_ptr<const Image>& source,
+       const shared_ptr<const FrameData>& frameData,
+       const shared_ptr<const SwapChain>& swapChain,
+       Filter filter) const {
+       copy(source, frameData, swapChain);
+    }
+
 }
