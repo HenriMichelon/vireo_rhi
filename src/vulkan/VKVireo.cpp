@@ -14,8 +14,8 @@ import vireo.vulkan.pipelines;
 
 namespace vireo {
 
-    VKRenderingBackEnd::VKRenderingBackEnd(const Configuration& configuration) :
-    RenderingBackEnd{configuration},
+    VKVireo::VKVireo(const Configuration& configuration) :
+    Vireo{configuration},
 #ifdef _WIN32
     hWnd{static_cast<HWND>(configuration.windowHandle)}
 #endif
@@ -34,14 +34,14 @@ namespace vireo {
         );
     }
 
-    void VKRenderingBackEnd::destroyFrameData(const shared_ptr<FrameData>& frameData) {
+    void VKVireo::destroyFrameData(const shared_ptr<FrameData>& frameData) {
         const auto data = static_pointer_cast<VKFrameData>(frameData);
         vkDestroySemaphore(getVKDevice()->getDevice(), data->imageAvailableSemaphore, nullptr);
         vkDestroySemaphore(getVKDevice()->getDevice(), data->renderFinishedSemaphore, nullptr);
         vkDestroyFence(getVKDevice()->getDevice(), data->inFlightFence, nullptr);
     }
 
-    shared_ptr<FrameData> VKRenderingBackEnd::createFrameData(const uint32_t frameIndex) {
+    shared_ptr<FrameData> VKVireo::createFrameData(const uint32_t frameIndex) {
         auto data = make_shared<VKFrameData>();
         constexpr VkSemaphoreCreateInfo semaphoreInfo{
             .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
@@ -80,35 +80,35 @@ namespace vireo {
         return data;
     }
 
-    shared_ptr<VertexInputLayout> VKRenderingBackEnd::createVertexLayout(
+    shared_ptr<VertexInputLayout> VKVireo::createVertexLayout(
            size_t size,
            const vector<VertexAttributeDesc>& attributesDescriptions) const {
         return make_shared<VKVertexInputLayout>(size, attributesDescriptions);
     }
 
-    shared_ptr<CommandAllocator> VKRenderingBackEnd::createCommandAllocator(CommandType type) const {
+    shared_ptr<CommandAllocator> VKVireo::createCommandAllocator(CommandType type) const {
         return make_shared<VKCommandAllocator>(getVKDevice(), type);
     }
 
-    shared_ptr<ShaderModule> VKRenderingBackEnd::createShaderModule(const string& fileName) const {
+    shared_ptr<ShaderModule> VKVireo::createShaderModule(const string& fileName) const {
         return make_shared<VKShaderModule>(getVKDevice()->getDevice(), fileName);
     }
 
-    shared_ptr<PipelineResources> VKRenderingBackEnd::createPipelineResources(
+    shared_ptr<PipelineResources> VKVireo::createPipelineResources(
         const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts,
         const PushConstantsDesc& pushConstant,
         const wstring& name) const {
         return make_shared<VKPipelineResources>(getVKDevice()->getDevice(), descriptorLayouts, pushConstant, name);
     }
 
-    shared_ptr<ComputePipeline> VKRenderingBackEnd::createComputePipeline(
+    shared_ptr<ComputePipeline> VKVireo::createComputePipeline(
         const shared_ptr<PipelineResources>& pipelineResources,
         const shared_ptr<const ShaderModule>& shader,
         const wstring& name) const {
         return make_shared<VKComputePipeline>(getVKDevice()->getDevice(), pipelineResources, shader, name);
     }
 
-    shared_ptr<GraphicPipeline> VKRenderingBackEnd::createGraphicPipeline(
+    shared_ptr<GraphicPipeline> VKVireo::createGraphicPipeline(
         const shared_ptr<PipelineResources>& pipelineResources,
         const shared_ptr<const VertexInputLayout>& vertexInputLayout,
         const shared_ptr<const ShaderModule>& vertexShader,
@@ -127,7 +127,7 @@ namespace vireo {
         );
     }
 
-    shared_ptr<Buffer> VKRenderingBackEnd::createBuffer(
+    shared_ptr<Buffer> VKVireo::createBuffer(
         const BufferType type,
         const size_t size,
         const size_t count,
@@ -139,7 +139,7 @@ namespace vireo {
            name);
     }
 
-    shared_ptr<Image> VKRenderingBackEnd::createImage(
+    shared_ptr<Image> VKVireo::createImage(
             const ImageFormat format,
             const uint32_t width,
             const uint32_t height,
@@ -154,7 +154,7 @@ namespace vireo {
             false);
     }
 
-    shared_ptr<Image> VKRenderingBackEnd::createReadWriteImage(
+    shared_ptr<Image> VKVireo::createReadWriteImage(
             const ImageFormat format,
             const uint32_t width,
             const uint32_t height,
@@ -169,7 +169,7 @@ namespace vireo {
             false);
     }
 
-    shared_ptr<RenderTarget> VKRenderingBackEnd::createRenderTarget(
+    shared_ptr<RenderTarget> VKVireo::createRenderTarget(
             const ImageFormat format,
             const uint32_t width,
             const uint32_t height,
@@ -185,27 +185,27 @@ namespace vireo {
                 true));
     }
 
-    void VKRenderingBackEnd::waitIdle() {
+    void VKVireo::waitIdle() {
         vkDeviceWaitIdle(getVKDevice()->getDevice());
     }
 
-    shared_ptr<DescriptorLayout> VKRenderingBackEnd::createDescriptorLayout(
+    shared_ptr<DescriptorLayout> VKVireo::createDescriptorLayout(
         const wstring& name) {
         return make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), name);
     }
 
-    shared_ptr<DescriptorLayout> VKRenderingBackEnd::createSamplerDescriptorLayout(
+    shared_ptr<DescriptorLayout> VKVireo::createSamplerDescriptorLayout(
         const wstring& name) {
         return make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), name);
     }
 
-    shared_ptr<DescriptorSet> VKRenderingBackEnd::createDescriptorSet(
+    shared_ptr<DescriptorSet> VKVireo::createDescriptorSet(
             const shared_ptr<const DescriptorLayout>& layout,
             const wstring& name) {
         return make_shared<VKDescriptorSet>(layout, name);
     }
 
-    shared_ptr<Sampler> VKRenderingBackEnd::createSampler(
+    shared_ptr<Sampler> VKVireo::createSampler(
            Filter minFilter,
            Filter magFilter,
            AddressMode addressModeU,

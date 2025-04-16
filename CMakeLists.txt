@@ -40,19 +40,19 @@ set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_library(${VIREO_TARGET} STATIC
         ${SRC_DIR}/Vireo.cpp
         ${SRC_DIR}/directx/DXCommands.cpp
-        ${SRC_DIR}/directx/DXResources.cpp
         ${SRC_DIR}/directx/DXDescriptors.cpp
         ${SRC_DIR}/directx/DXDevices.cpp
         ${SRC_DIR}/directx/DXPipelines.cpp
-        ${SRC_DIR}/directx/DXRenderingBackEnd.cpp
+        ${SRC_DIR}/directx/DXResources.cpp
         ${SRC_DIR}/directx/DXSwapChains.cpp
+        ${SRC_DIR}/directx/DXVireo.cpp
         ${SRC_DIR}/vulkan/VKCommands.cpp
         ${SRC_DIR}/vulkan/VKDevices.cpp
         ${SRC_DIR}/vulkan/VKDescriptors.cpp
         ${SRC_DIR}/vulkan/VKPipelines.cpp
-        ${SRC_DIR}/vulkan/VKRenderingBackEnd.cpp
         ${SRC_DIR}/vulkan/VKResources.cpp
         ${SRC_DIR}/vulkan/VKSwapChains.cpp
+        ${SRC_DIR}/vulkan/VKVireo.cpp
         ${SRC_DIR}/vulkan/Vulkan.cpp
 )
 
@@ -63,21 +63,21 @@ target_sources(${VIREO_TARGET}
         ${SRC_DIR}/Configuration.ixx
         ${SRC_DIR}/Vireo.ixx
         ${SRC_DIR}/directx/DXCommands.ixx
-        ${SRC_DIR}/directx/DXResources.ixx
         ${SRC_DIR}/directx/DXDescriptors.ixx
         ${SRC_DIR}/directx/DXDevices.ixx
         ${SRC_DIR}/directx/DXFrameData.ixx
         ${SRC_DIR}/directx/DXPipelines.ixx
-        ${SRC_DIR}/directx/DXRenderingBackEnd.ixx
+        ${SRC_DIR}/directx/DXResources.ixx
         ${SRC_DIR}/directx/DXSwapChains.ixx
+        ${SRC_DIR}/directx/DXVireo.ixx
         ${SRC_DIR}/vulkan/VKCommands.ixx
         ${SRC_DIR}/vulkan/VKDevices.ixx
         ${SRC_DIR}/vulkan/VKDescriptors.ixx
         ${SRC_DIR}/vulkan/VKFrameData.ixx
         ${SRC_DIR}/vulkan/VKPipelines.ixx
-        ${SRC_DIR}/vulkan/VKRenderingBackEnd.ixx
         ${SRC_DIR}/vulkan/VKResources.ixx
         ${SRC_DIR}/vulkan/VKSwapChains.ixx
+        ${SRC_DIR}/vulkan/VKVireo.ixx
 )
 
 compile_options(${VIREO_TARGET})

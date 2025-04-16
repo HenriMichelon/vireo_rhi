@@ -15,8 +15,8 @@ import vireo.directx.resources;
 
 namespace vireo {
 
-    DXRenderingBackEnd::DXRenderingBackEnd(const Configuration& configuration):
-        RenderingBackEnd{configuration},
+    DXVireo::DXVireo(const Configuration& configuration):
+        Vireo{configuration},
         hWnd{static_cast<HWND>(configuration.windowHandle)} {
         // Detect RivaTuner which cause problem by incorrectly hooking IDXGISwapChain::Present
         // const HANDLE hMap = OpenFileMapping(FILE_MAP_READ, FALSE, L"RTSSSharedMemoryV2");
@@ -51,18 +51,18 @@ namespace vireo {
             configuration.vSyncMode);
     }
 
-    shared_ptr<FrameData> DXRenderingBackEnd::createFrameData(const uint32_t frameIndex) {
+    shared_ptr<FrameData> DXVireo::createFrameData(const uint32_t frameIndex) {
         return make_shared<DXFrameData>();
     }
 
-    shared_ptr<PipelineResources> DXRenderingBackEnd::createPipelineResources(
+    shared_ptr<PipelineResources> DXVireo::createPipelineResources(
         const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts,
         const PushConstantsDesc& pushConstant,
         const wstring& name ) const {
         return make_shared<DXPipelineResources>(getDXDevice()->getDevice(), descriptorLayouts, pushConstant, name);
     }
 
-    shared_ptr<GraphicPipeline> DXRenderingBackEnd::createGraphicPipeline(
+    shared_ptr<GraphicPipeline> DXVireo::createGraphicPipeline(
         const shared_ptr<PipelineResources>& pipelineResources,
         const shared_ptr<const VertexInputLayout>& vertexInputLayout,
         const shared_ptr<const ShaderModule>& vertexShader,
@@ -79,7 +79,7 @@ namespace vireo {
             name);
     }
 
-    shared_ptr<ComputePipeline> DXRenderingBackEnd::createComputePipeline(
+    shared_ptr<ComputePipeline> DXVireo::createComputePipeline(
         const shared_ptr<PipelineResources>& pipelineResources,
         const shared_ptr<const ShaderModule>& shader,
         const wstring& name) const {
@@ -90,17 +90,17 @@ namespace vireo {
                 name);
     }
 
-    shared_ptr<VertexInputLayout> DXRenderingBackEnd::createVertexLayout(
+    shared_ptr<VertexInputLayout> DXVireo::createVertexLayout(
         size_t,
         const vector<VertexAttributeDesc>& attributesDescriptions) const {
         return make_shared<DXVertexInputLayout>(attributesDescriptions);
     }
 
-    shared_ptr<ShaderModule> DXRenderingBackEnd::createShaderModule(const string& fileName) const {
+    shared_ptr<ShaderModule> DXVireo::createShaderModule(const string& fileName) const {
         return make_shared<DXShaderModule>(fileName);
     }
 
-    shared_ptr<Buffer> DXRenderingBackEnd::createBuffer(
+    shared_ptr<Buffer> DXVireo::createBuffer(
         const BufferType type,
         const size_t size,
         const size_t count,
@@ -109,7 +109,7 @@ namespace vireo {
         return make_shared<DXBuffer>(getDXDevice()->getDevice(), type, size, count, alignment, name);
     }
 
-    shared_ptr<Image> DXRenderingBackEnd::createImage(
+    shared_ptr<Image> DXVireo::createImage(
         ImageFormat format,
         uint32_t width,
         uint32_t height,
@@ -117,7 +117,7 @@ namespace vireo {
         return make_shared<DXImage>(getDXDevice()->getDevice(), format, width, height, name, false, false);
     }
 
-    shared_ptr<Image> DXRenderingBackEnd::createReadWriteImage(
+    shared_ptr<Image> DXVireo::createReadWriteImage(
         ImageFormat format,
         uint32_t width,
         uint32_t height,
@@ -125,7 +125,7 @@ namespace vireo {
             return make_shared<DXImage>(getDXDevice()->getDevice(), format, width, height, name, true, false);
     }
 
-    shared_ptr<RenderTarget> DXRenderingBackEnd::createRenderTarget(
+    shared_ptr<RenderTarget> DXVireo::createRenderTarget(
            const ImageFormat format,
            const uint32_t width,
            const uint32_t height,
@@ -135,23 +135,23 @@ namespace vireo {
             make_shared<DXImage>(getDXDevice()->getDevice(), format, width, height, name, false, true));
     }
 
-    shared_ptr<DescriptorLayout> DXRenderingBackEnd::createDescriptorLayout(
+    shared_ptr<DescriptorLayout> DXVireo::createDescriptorLayout(
         const wstring& name) {
         return make_shared<DXDescriptorLayout>(false);
     }
 
-    shared_ptr<DescriptorLayout> DXRenderingBackEnd::createSamplerDescriptorLayout(
+    shared_ptr<DescriptorLayout> DXVireo::createSamplerDescriptorLayout(
         const wstring& name) {
         return make_shared<DXDescriptorLayout>(true);
     }
 
-    shared_ptr<DescriptorSet> DXRenderingBackEnd::createDescriptorSet(
+    shared_ptr<DescriptorSet> DXVireo::createDescriptorSet(
         const shared_ptr<const DescriptorLayout>& layout,
         const wstring& name) {
         return make_shared<DXDescriptorSet>(layout, getDXDevice()->getDevice(), name);
     }
 
-    shared_ptr<Sampler> DXRenderingBackEnd::createSampler(
+    shared_ptr<Sampler> DXVireo::createSampler(
            Filter minFilter,
            Filter magFilter,
            AddressMode addressModeU,
@@ -166,11 +166,11 @@ namespace vireo {
             minLod, maxLod, anisotropyEnable, mipMapMode);
     }
 
-    shared_ptr<CommandAllocator> DXRenderingBackEnd::createCommandAllocator(const CommandType type) const {
+    shared_ptr<CommandAllocator> DXVireo::createCommandAllocator(const CommandType type) const {
         return make_shared<DXCommandAllocator>(getDXDevice()->getDevice(), type);
     }
 
-    void DXRenderingBackEnd::waitIdle() {
+    void DXVireo::waitIdle() {
         graphicCommandQueue->waitIdle();
     }
 

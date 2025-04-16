@@ -631,11 +631,11 @@ export namespace vireo {
         SwapChain() = default;
     };
 
-    class RenderingBackEnd {
+    class Vireo {
     public:
-        static unique_ptr<RenderingBackEnd> create(const Configuration& configuration);
+        static unique_ptr<Vireo> create(const Configuration& configuration);
 
-        virtual ~RenderingBackEnd() = default;
+        virtual ~Vireo() = default;
 
         virtual shared_ptr<FrameData> createFrameData(uint32_t frameIndex) = 0;
 
@@ -740,6 +740,6 @@ export namespace vireo {
         shared_ptr<SubmitQueue>     transferCommandQueue;
         shared_ptr<SwapChain>       swapChain;
 
-        RenderingBackEnd(const Configuration& configuration) : configuration{configuration} {}
+        Vireo(const Configuration& configuration) : configuration{configuration} {}
     };
 }

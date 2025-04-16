@@ -5,29 +5,26 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "vireo/backend/vulkan/Tools.h"
-export module vireo.vulkan;
+#include "vireo/backend/directx/Libraries.h"
+export module vireo.directx;
 
 import vireo;
 import vireo.config;
-import vireo.vulkan.commands;
-import vireo.vulkan.devices;
-import vireo.vulkan.resources;
-import vireo.vulkan.swapchains;
+import vireo.directx.commands;
+import vireo.directx.devices;
+import vireo.directx.swapchains;
 
 export namespace vireo {
 
-    class VKRenderingBackEnd : public RenderingBackEnd {
+    class DXVireo : public Vireo {
     public:
-        VKRenderingBackEnd(const Configuration& configuration);
+        DXVireo(const Configuration& configuration);
 
         void waitIdle() override;
 
         shared_ptr<CommandAllocator> createCommandAllocator(CommandType type) const override;
 
         shared_ptr<FrameData> createFrameData(uint32_t frameIndex) override;
-
-        void destroyFrameData(const shared_ptr<FrameData>& frameData) override;
 
         shared_ptr<VertexInputLayout> createVertexLayout(
             size_t size,
@@ -51,7 +48,7 @@ export namespace vireo {
             const shared_ptr<const ShaderModule>& vertexShader,
             const shared_ptr<const ShaderModule>& fragmentShader,
             const GraphicPipeline::Configuration& configuration,
-            const wstring& name = L"Pipeline") const override;
+            const wstring& name = L"GraphicPipeline") const override;
 
         shared_ptr<Buffer> createBuffer(
             BufferType type,
@@ -89,31 +86,30 @@ export namespace vireo {
             const wstring& name) override;
 
         shared_ptr<Sampler> createSampler(
-           Filter minFilter,
-           Filter magFilter,
-           AddressMode addressModeU,
-           AddressMode addressModeV,
-           AddressMode addressModeW,
-           float minLod = 0.0f,
-           float maxLod = 1.0f,
-           bool anisotropyEnable = true,
-           MipMapMode mipMapMode = MipMapMode::LINEAR) const override;
+               Filter minFilter,
+               Filter magFilter,
+               AddressMode addressModeU,
+               AddressMode addressModeV,
+               AddressMode addressModeW,
+               float minLod = 0.0f,
+               float maxLod = 1.0f,
+               bool anisotropyEnable = true,
+               MipMapMode mipMapMode = MipMapMode::LINEAR) const override;
 
-        auto getVKInstance() const { return reinterpret_pointer_cast<VKInstance>(instance); }
+        auto getDXInstance() const { return reinterpret_pointer_cast<DXInstance>(instance); }
 
-        auto getVKPhysicalDevice() const { return reinterpret_pointer_cast<VKPhysicalDevice>(physicalDevice); }
+        auto getDXPhysicalDevice() const { return reinterpret_pointer_cast<DXPhysicalDevice>(physicalDevice); }
 
-        auto getVKDevice() const { return reinterpret_pointer_cast<VKDevice>(device); }
+        auto getDXDevice() const { return reinterpret_pointer_cast<DXDevice>(device); }
 
-        auto getVKSwapChain() const { return reinterpret_pointer_cast<VKSwapChain>(swapChain); }
+        auto getDXGraphicCommandQueue() const { return reinterpret_pointer_cast<DXSubmitQueue>(graphicCommandQueue); }
 
-        auto getVKGraphicCommandQueue() const { return reinterpret_pointer_cast<VKSubmitQueue>(graphicCommandQueue); }
+        auto getDXTransferCommandQueue() const { return reinterpret_pointer_cast<DXSubmitQueue>(transferCommandQueue); }
+
+        auto getDXSwapChain() const { return reinterpret_pointer_cast<DXSwapChain>(swapChain); }
 
     private:
-#ifdef _WIN32
         HWND hWnd;
-#endif
-        const VkClearValue depthClearValue{.depthStencil = {1.0f, 0}};
     };
 
 }
