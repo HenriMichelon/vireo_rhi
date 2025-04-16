@@ -265,6 +265,20 @@ namespace vireo {
             dstAccess = 0;
             srcLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::PRESENT) {
+            srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            dstStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+            srcAccess = 0;
+            dstAccess = 0;
+            srcLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            dstLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::PRESENT) {
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+            srcAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
+            dstAccess = 0;
+            srcLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
         } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::COPY_DST) {
             srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
             dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;

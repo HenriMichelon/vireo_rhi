@@ -220,6 +220,12 @@ namespace vireo {
         } else if (oldState == ResourceState::RENDER_TARGET && newState == ResourceState::PRESENT) {
             srcState = D3D12_RESOURCE_STATE_RENDER_TARGET;
             dstState = D3D12_RESOURCE_STATE_PRESENT;
+        } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::PRESENT) {
+            srcState = D3D12_RESOURCE_STATE_COMMON;
+            dstState = D3D12_RESOURCE_STATE_PRESENT;
+        } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::PRESENT) {
+            srcState = D3D12_RESOURCE_STATE_COPY_DEST;
+            dstState = D3D12_RESOURCE_STATE_PRESENT;
         } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::COPY_DST) {
             srcState = D3D12_RESOURCE_STATE_COMMON;
             dstState = D3D12_RESOURCE_STATE_COPY_DEST;
