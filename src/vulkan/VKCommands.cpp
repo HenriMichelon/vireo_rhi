@@ -109,7 +109,7 @@ namespace vireo {
             .sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
             .commandPool        = commandPool,
             .level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-            .commandBufferCount = 1
+            .commandBufferCount = 1,
         };
         DieIfFailed(vkAllocateCommandBuffers(device->getDevice(), &allocInfo, &commandBuffer));
     }
@@ -126,20 +126,34 @@ namespace vireo {
     }
 
     void VKCommandList::bindPipeline(const shared_ptr<const Pipeline>& pipeline) {
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS , static_pointer_cast<const VKGraphicPipeline>(pipeline)->getPipeline());
-        lastBoundLayout = static_pointer_cast<const VKPipelineResources>(pipeline->getResources())->getPipelineLayout();
+        if (pipeline->getType() == Pipeline::COMPUTE) {
+            vkCmdBindPipeline(
+                commandBuffer,
+                VK_PIPELINE_BIND_POINT_COMPUTE ,
+                static_pointer_cast<const VKComputePipeline>(pipeline)->getPipeline());
+        } else {
+            vkCmdBindPipeline(
+                commandBuffer,
+                VK_PIPELINE_BIND_POINT_GRAPHICS ,
+                static_pointer_cast<const VKGraphicPipeline>(pipeline)->getPipeline());
+        }
     }
 
-    void VKCommandList::bindDescriptors(const vector<shared_ptr<const DescriptorSet>>& descriptors) const {
+    void VKCommandList::bindDescriptors(
+        const shared_ptr<const Pipeline>& pipeline,
+        const vector<shared_ptr<const DescriptorSet>>& descriptors) const {
         if (descriptors.empty()) { return; }
+        const auto vkLayout = static_pointer_cast<const VKPipelineResources>(pipeline->getResources())->getPipelineLayout();
 
         vector<VkDescriptorSet> descriptorSets(descriptors.size());
         for (int i = 0; i < descriptors.size(); i++) {
             descriptorSets[i] = static_pointer_cast<const VKDescriptorSet>(descriptors[i])->getSet();
         }
         vkCmdBindDescriptorSets(commandBuffer,
-                                VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                lastBoundLayout,
+                                pipeline->getType() == Pipeline::COMPUTE ?
+                                    VK_PIPELINE_BIND_POINT_COMPUTE :
+                                    VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                vkLayout,
                                 0,
                                 descriptorSets.size(),
                                 descriptorSets.data(),
@@ -236,6 +250,10 @@ namespace vireo {
         vkCmdEndRendering(commandBuffer);
     }
 
+    void VKCommandList::dispatch(const uint32_t x, const uint32_t y, const uint32_t z) const {
+        vkCmdDispatch(commandBuffer, x, y, z);
+    }
+
     void VKCommandList::barrier(
         const VkImage image,
         const ResourceState oldState,
@@ -248,7 +266,7 @@ namespace vireo {
             srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
             dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
             srcAccess = 0;
-            dstAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            dstAccess = VK_ACCESS_SHADER_WRITE_BIT;
             srcLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             dstLayout = VK_IMAGE_LAYOUT_GENERAL;
         } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::RENDER_TARGET) {
@@ -280,7 +298,7 @@ namespace vireo {
             srcLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
         } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::COPY_DST) {
-            srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             srcAccess = 0;
             dstAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -290,9 +308,37 @@ namespace vireo {
             srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             srcAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
-            dstAccess = 0;
+            dstAccess = VK_ACCESS_SHADER_READ_BIT;
             srcLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        } else if (oldState == ResourceState::DISPATCH_TARGET && newState == ResourceState::COPY_SRC) {
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            srcAccess = 0;
+            dstAccess = VK_ACCESS_TRANSFER_READ_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_GENERAL;
+            dstLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::COPY_SRC) {
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            srcAccess = 0;
+            dstAccess = VK_ACCESS_TRANSFER_READ_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            dstLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::UNDEFINED) {
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            srcAccess = VK_ACCESS_TRANSFER_READ_BIT;
+            dstAccess = 0;
+            srcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::DISPATCH_TARGET) {
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            srcAccess = VK_ACCESS_TRANSFER_READ_BIT;
+            dstAccess = VK_ACCESS_SHADER_WRITE_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_GENERAL;
         } else {
             die("Not implemented");
             return;
@@ -461,6 +507,33 @@ namespace vireo {
         stagingBuffers.push_back(stagingBuffer);
         stagingBuffersMemory.push_back(stagingBufferMemory);
     }
+
+    void VKCommandList::copy(
+        const shared_ptr<const Image>& source,
+        const shared_ptr<const FrameData>& frameData,
+        const shared_ptr<const SwapChain>& swapChain) const {
+        const auto data = static_pointer_cast<const VKFrameData>(frameData);
+        const auto vkSource = static_pointer_cast<const VKImage>(source);
+        const auto vkSwapChain = static_pointer_cast<const VKSwapChain>(swapChain);
+        auto copyRegion = VkImageCopy {
+            .srcSubresource = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .mipLevel = 0,
+                .baseArrayLayer = 0,
+                .layerCount = 1,
+            },
+            .srcOffset = {0, 0, 0},
+        };
+        copyRegion.dstSubresource = copyRegion.srcSubresource;
+        copyRegion.dstOffset = {0, 0, 0};
+        copyRegion.extent = {source->getWidth(), source->getHeight(), 1};
+
+        vkCmdCopyImage(commandBuffer,
+                       vkSource->getImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                       vkSwapChain->getImages()[data->imageIndex], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                       1, &copyRegion);
+    }
+
 
 
 }

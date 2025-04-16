@@ -38,9 +38,9 @@ export namespace vireo {
             const wstring& name = L"PipelineResource") const override;
 
         shared_ptr<ComputePipeline> createComputePipeline(
-        const shared_ptr<PipelineResources>& pipelineResources,
-        const shared_ptr<const ShaderModule>& shader,
-        const wstring& name = L"ComputePipeline") const override { return nullptr; };
+            const shared_ptr<PipelineResources>& pipelineResources,
+            const shared_ptr<const ShaderModule>& shader,
+            const wstring& name = L"ComputePipeline") const override;
 
         shared_ptr<GraphicPipeline> createGraphicPipeline(
             const shared_ptr<PipelineResources>& pipelineResources,

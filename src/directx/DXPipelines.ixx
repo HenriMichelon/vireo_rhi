@@ -56,6 +56,20 @@ export namespace vireo {
         UINT pushConstantsRootParameterIndex{0};
     };
 
+    class DXComputePipeline : public ComputePipeline {
+    public:
+        DXComputePipeline(
+            const ComPtr<ID3D12Device>& device,
+            const shared_ptr<PipelineResources>& pipelineResources,
+            const shared_ptr<const ShaderModule>& shader,
+            const wstring& name);
+
+        auto getPipelineState() const { return pipelineState; }
+
+    private:
+        ComPtr<ID3D12PipelineState> pipelineState;
+    };
+
     class DXGraphicPipeline : public GraphicPipeline {
     public:
         static constexpr D3D12_CULL_MODE dxCullMode[] {

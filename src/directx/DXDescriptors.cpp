@@ -22,7 +22,9 @@ namespace vireo {
                 count,
                 index,
                 0, // set when binding
-                type == DescriptorType::SAMPLER ? D3D12_DESCRIPTOR_RANGE_FLAG_NONE : D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+                type == DescriptorType::SAMPLER ? D3D12_DESCRIPTOR_RANGE_FLAG_NONE :
+                type == DescriptorType::READWRITE_IMAGE ? D3D12_DESCRIPTOR_RANGE_FLAG_NONE :
+                D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
         ranges.push_back(range);
         capacity += count;
         return *this;
@@ -52,15 +54,33 @@ namespace vireo {
     }
 
     void DXDescriptorSet::update(const DescriptorIndex index, const shared_ptr<const Buffer>& buffer) const {
-        const auto bufferViewDesc = static_pointer_cast<const DXBuffer>(buffer)->getBufferViewDesc();
+        const auto dxBuffer = static_pointer_cast<const DXBuffer>(buffer);
+        const auto bufferViewDesc = D3D12_CONSTANT_BUFFER_VIEW_DESC{
+            .BufferLocation = dxBuffer->getBuffer()->GetGPUVirtualAddress(),
+            .SizeInBytes = static_cast<UINT>(dxBuffer->getSize()),
+        };
         const auto cpuHandle = D3D12_CPU_DESCRIPTOR_HANDLE { cpuBase.ptr + index * descriptorSize };
         device->CreateConstantBufferView(&bufferViewDesc, cpuHandle);
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const shared_ptr<const Image>& image, bool useByComputeShader) const {
+    void DXDescriptorSet::update(const DescriptorIndex index, const shared_ptr<const Image>& image, const bool useByComputeShader) const {
         const auto dxImage = static_pointer_cast<const DXImage>(image);
         const auto cpuHandle= D3D12_CPU_DESCRIPTOR_HANDLE{ cpuBase.ptr + index * descriptorSize };
-        device->CreateShaderResourceView(dxImage->getImage().Get(), &dxImage->getImageViewDesc(), cpuHandle);
+        if (useByComputeShader) {
+            const auto viewDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC {
+                .Format = DXImage::dxFormats[static_cast<int>(image->getFormat())],
+                .ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D,
+            };
+            device->CreateUnorderedAccessView(dxImage->getImage().Get(), nullptr, &viewDesc, cpuHandle);
+        } else {
+            const auto viewDesc = D3D12_SHADER_RESOURCE_VIEW_DESC {
+                .Format = DXImage::dxFormats[static_cast<int>(image->getFormat())],
+                .ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
+                .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
+                .Texture2D= { .MipLevels = 1 },
+            };
+            device->CreateShaderResourceView(dxImage->getImage().Get(), &viewDesc, cpuHandle);
+        }
     }
 
     void DXDescriptorSet::update(const DescriptorIndex index, const shared_ptr<const Sampler>& sampler) const {
@@ -76,7 +96,7 @@ namespace vireo {
         }
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<Image>>& images, bool useByComputeShader) const {
+    void DXDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<Image>>& images, const bool useByComputeShader) const {
         for (int i = 0; i < images.size(); ++i) {
             update(index + i, images[i], useByComputeShader);
         }

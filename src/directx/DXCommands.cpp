@@ -9,6 +9,7 @@ module;
 module vireo.directx;
 
 import vireo.directx.descriptors;
+import vireo.directx.framedata;
 import vireo.directx.pipelines;
 import vireo.directx.resources;
 
@@ -102,19 +103,32 @@ namespace vireo {
     }
 
     void DXCommandList::bindPipeline(const shared_ptr<const Pipeline>& pipeline) {
-        commandList->SetPipelineState(static_pointer_cast<const DXGraphicPipeline>(pipeline)->getPipelineState().Get());
-        commandList->SetGraphicsRootSignature(static_pointer_cast<const DXPipelineResources>(pipeline->getResources())->getRootSignature().Get());
+        if (pipeline->getType() == Pipeline::COMPUTE) {
+            commandList->SetPipelineState(static_pointer_cast<const DXComputePipeline>(pipeline)->getPipelineState().Get());
+            commandList->SetComputeRootSignature(static_pointer_cast<const DXPipelineResources>(pipeline->getResources())->getRootSignature().Get());
+        } else {
+            commandList->SetPipelineState(static_pointer_cast<const DXGraphicPipeline>(pipeline)->getPipelineState().Get());
+            commandList->SetGraphicsRootSignature(static_pointer_cast<const DXPipelineResources>(pipeline->getResources())->getRootSignature().Get());
+        }
     }
 
-    void DXCommandList::bindDescriptors(const vector<shared_ptr<const DescriptorSet>>& descriptors) const {
+    void DXCommandList::bindDescriptors(
+        const shared_ptr<const Pipeline>&pipeline,
+        const vector<shared_ptr<const DescriptorSet>>& descriptors) const {
         if (descriptors.empty()) { return; }
         vector<ID3D12DescriptorHeap*> heaps(descriptors.size());
         for (int i = 0; i < descriptors.size(); i++) {
             heaps[i] = static_pointer_cast<const DXDescriptorSet>(descriptors[i])->getHeap().Get();
         }
         commandList->SetDescriptorHeaps(heaps.size(), heaps.data());
-        for (int i = 0; i < descriptors.size(); i++) {
-            commandList->SetGraphicsRootDescriptorTable(i, heaps[i]->GetGPUDescriptorHandleForHeapStart());
+        if (pipeline->getType() == Pipeline::COMPUTE) {
+            for (int i = 0; i < descriptors.size(); i++) {
+                commandList->SetComputeRootDescriptorTable(i, heaps[i]->GetGPUDescriptorHandleForHeapStart());
+            }
+        } else {
+            for (int i = 0; i < descriptors.size(); i++) {
+                commandList->SetGraphicsRootDescriptorTable(i, heaps[i]->GetGPUDescriptorHandleForHeapStart());
+            }
         }
     }
 
@@ -147,7 +161,7 @@ namespace vireo {
     }
 
     void DXCommandList::beginRendering(
-        const shared_ptr<FrameData>& frameData,
+        const shared_ptr<FrameData>&,
         const shared_ptr<SwapChain>& swapChain,
         const float clearColor[]) const {
         const auto dxSwapChain = static_pointer_cast<const DXSwapChain>(swapChain);
@@ -188,6 +202,9 @@ namespace vireo {
             nullptr);
     }
 
+    void DXCommandList::dispatch(const uint32_t x, const uint32_t y, const uint32_t z) const {
+        commandList->Dispatch(x, y, z);
+    }
 
     void DXCommandList::barrier(
         const shared_ptr<const Image>& image,
@@ -232,6 +249,18 @@ namespace vireo {
         } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::SHADER_READ) {
             srcState = D3D12_RESOURCE_STATE_COPY_DEST;
             dstState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+        } else if (oldState == ResourceState::DISPATCH_TARGET && newState == ResourceState::COPY_SRC) {
+            srcState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+            dstState = D3D12_RESOURCE_STATE_COPY_SOURCE;
+        } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::COPY_SRC) {
+            srcState = D3D12_RESOURCE_STATE_COMMON;
+            dstState = D3D12_RESOURCE_STATE_COPY_SOURCE;
+        } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::UNDEFINED) {
+            srcState = D3D12_RESOURCE_STATE_COPY_SOURCE;
+            dstState = D3D12_RESOURCE_STATE_COMMON;
+        } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::DISPATCH_TARGET) {
+            srcState = D3D12_RESOURCE_STATE_COPY_SOURCE;
+            dstState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
         } else {
             die("Not implemented");
             return;
@@ -363,4 +392,27 @@ namespace vireo {
         }
         stagingBuffers.push_back(stagingBuffer);
     }
+
+    void DXCommandList::copy(
+        const shared_ptr<const Image>& source,
+        const shared_ptr<const FrameData>& frameData,
+        const shared_ptr<const SwapChain>& swapChain) const {
+        const auto data = static_pointer_cast<const DXFrameData>(frameData);
+        const auto dxSource = static_pointer_cast<const DXImage>(source);
+        const auto dxSwapChain = static_pointer_cast<const DXSwapChain>(swapChain);
+
+        const auto srcLocation = D3D12_TEXTURE_COPY_LOCATION {
+            .pResource = dxSource->getImage().Get(),
+            .Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
+            .SubresourceIndex = 0,
+        };
+        const auto dstLocation = D3D12_TEXTURE_COPY_LOCATION {
+            .pResource = dxSwapChain->getRenderTargets()[dxSwapChain->getCurrentFrameIndex()].Get(),
+            .Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
+            .SubresourceIndex = 0,
+        };
+
+        commandList->CopyTextureRegion(&dstLocation, 0, 0, 0, &srcLocation, nullptr);
+    }
+
 }

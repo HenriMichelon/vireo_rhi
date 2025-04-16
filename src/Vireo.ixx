@@ -294,20 +294,31 @@ export namespace vireo {
 
     class Pipeline {
     public:
+        enum Type {
+            GRAPHIC,
+            COMPUTE
+        };
+
         virtual ~Pipeline() = default;
 
         auto getResources() const { return pipelineResources; }
 
+        auto getType() const { return type; }
+
     protected:
-        Pipeline(const shared_ptr<PipelineResources>& pipelineResources) :pipelineResources{pipelineResources} {}
+        Pipeline(const Type type, const shared_ptr<PipelineResources>& pipelineResources) :
+            pipelineResources{pipelineResources},
+            type{type} {}
 
     private:
+        const Type type;
         shared_ptr<PipelineResources> pipelineResources;
     };
 
     class ComputePipeline : public Pipeline {
     protected:
-        ComputePipeline(const shared_ptr<PipelineResources>& pipelineResources) :Pipeline{pipelineResources} {}
+        ComputePipeline(const shared_ptr<PipelineResources>& pipelineResources) :
+            Pipeline{COMPUTE, pipelineResources} {}
     };
 
     class GraphicPipeline : public Pipeline {
@@ -328,7 +339,8 @@ export namespace vireo {
         };
 
     protected:
-        GraphicPipeline(const shared_ptr<PipelineResources>& pipelineResources) :Pipeline{pipelineResources} {}
+        GraphicPipeline(const shared_ptr<PipelineResources>& pipelineResources) :
+            Pipeline{GRAPHIC, pipelineResources} {}
     };
 
     class SwapChain;
@@ -343,6 +355,11 @@ export namespace vireo {
 
         virtual void upload(const shared_ptr<const Image>& destination, const void* source) = 0;
 
+        virtual void copy(
+            const shared_ptr<const Image>& source,
+            const shared_ptr<const FrameData>& frameData,
+            const shared_ptr<const SwapChain>& swapChain) const = 0;
+
         virtual void beginRendering(
             const shared_ptr<FrameData>& frameData,
             const shared_ptr<SwapChain>& swapChain,
@@ -354,11 +371,15 @@ export namespace vireo {
 
         virtual void endRendering() const {}
 
+        virtual void dispatch(uint32_t x, uint32_t y, uint32_t z) const = 0;
+
         virtual void bindVertexBuffer(const shared_ptr<const Buffer>& buffer) const = 0;
 
         virtual void bindPipeline(const shared_ptr<const Pipeline>& pipeline) = 0;
 
-        virtual void bindDescriptors(const vector<shared_ptr<const DescriptorSet>>& descriptors) const = 0;
+        virtual void bindDescriptors(
+            const shared_ptr<const Pipeline>& pipeline,
+            const vector<shared_ptr<const DescriptorSet>>& descriptors) const = 0;
 
         virtual void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) const = 0;
 
@@ -537,23 +558,26 @@ export namespace vireo {
             bool anisotropyEnable = true,
             MipMapMode mipMapMode = MipMapMode::LINEAR) const = 0;
 
-        auto& getInstance() const { return instance; }
+        auto getInstance() const { return instance; }
 
-        auto& getPhysicalDevice() const { return physicalDevice; }
+        auto getPhysicalDevice() const { return physicalDevice; }
 
-        auto& getDevice() const { return device; }
+        auto getDevice() const { return device; }
 
-        auto& getGraphicCommandQueue() const { return graphicCommandQueue; }
+        auto getGraphicCommandQueue() const { return graphicCommandQueue; }
 
-        auto& getTransferCommandQueue() const { return transferCommandQueue; }
+        auto getTransferCommandQueue() const { return transferCommandQueue; }
 
-        auto& getSwapChain() const { return swapChain; }
+        auto getComputeCommandQueue() const { return computeCommandQueue; }
+
+        auto getSwapChain() const { return swapChain; }
 
     protected:
         const Configuration&        configuration;
         shared_ptr<Instance>        instance;
         shared_ptr<PhysicalDevice>  physicalDevice;
         shared_ptr<Device>          device;
+        shared_ptr<SubmitQueue>     computeCommandQueue;
         shared_ptr<SubmitQueue>     graphicCommandQueue;
         shared_ptr<SubmitQueue>     transferCommandQueue;
         shared_ptr<SwapChain>       swapChain;

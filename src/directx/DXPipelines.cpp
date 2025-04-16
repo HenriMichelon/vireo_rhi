@@ -116,6 +116,25 @@ namespace vireo {
 #endif
     }
 
+    DXComputePipeline::DXComputePipeline(
+        const ComPtr<ID3D12Device>& device,
+        const shared_ptr<PipelineResources>& pipelineResources,
+        const shared_ptr<const ShaderModule>& shader,
+        const wstring& name):
+        ComputePipeline{pipelineResources} {
+        const auto dxPipelineResources = static_pointer_cast<const DXPipelineResources>(pipelineResources);
+        const auto dxShader = static_pointer_cast<const DXShaderModule>(shader);
+        const auto psoDesc = D3D12_COMPUTE_PIPELINE_STATE_DESC{
+            .pRootSignature = dxPipelineResources->getRootSignature().Get(),
+            .CS = CD3DX12_SHADER_BYTECODE(dxShader->getShader().Get()),
+        };
+
+        DieIfFailed(device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)));
+#ifdef _DEBUG
+        pipelineState->SetName((L"DXComputePipeline : " + name).c_str());
+#endif
+    }
+
     DXGraphicPipeline::DXGraphicPipeline(
         const ComPtr<ID3D12Device>& device,
         const shared_ptr<PipelineResources>& pipelineResources,
@@ -125,10 +144,10 @@ namespace vireo {
         const Configuration& configuration,
         const wstring& name):
         GraphicPipeline{pipelineResources} {
-        auto dxVertexInputLayout = static_pointer_cast<const DXVertexInputLayout>(vertexInputLayout);
-        auto dxPipelineResources = static_pointer_cast<const DXPipelineResources>(pipelineResources);
-        auto dxVertexShader = static_pointer_cast<const DXShaderModule>(vertexShader);
-        auto dxPixelShader = static_pointer_cast<const DXShaderModule>(fragmentShader);
+        const auto dxVertexInputLayout = static_pointer_cast<const DXVertexInputLayout>(vertexInputLayout);
+        const auto dxPipelineResources = static_pointer_cast<const DXPipelineResources>(pipelineResources);
+        const auto dxVertexShader = static_pointer_cast<const DXShaderModule>(vertexShader);
+        const auto dxPixelShader = static_pointer_cast<const DXShaderModule>(fragmentShader);
 
         auto rasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
         rasterizerState.FillMode = configuration.polygonMode == PolygonMode::FILL ? D3D12_FILL_MODE_SOLID  : D3D12_FILL_MODE_WIREFRAME;
@@ -165,7 +184,7 @@ namespace vireo {
         psoDesc.BlendState.AlphaToCoverageEnable = configuration.alphaToCoverageEnable;
         DieIfFailed(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)));
 #ifdef _DEBUG
-        pipelineState->SetName((L"DXPipeline : " + name).c_str());
+        pipelineState->SetName((L"DXGraphicPipeline : " + name).c_str());
 #endif
     }
 

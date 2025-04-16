@@ -73,6 +73,11 @@ export namespace vireo {
 
         void upload(const shared_ptr<const Image>& destination, const void* source) override;
 
+        void copy(
+            const shared_ptr<const Image>& source,
+            const shared_ptr<const FrameData>& frameData,
+            const shared_ptr<const SwapChain>& swapChain) const override;
+
         void beginRendering(
             const shared_ptr<FrameData>& frameData,
             const shared_ptr<SwapChain>& swapChain,
@@ -82,11 +87,15 @@ export namespace vireo {
             const shared_ptr<RenderTarget>& renderTarget,
             const float clearColor[]) const override;
 
+        void dispatch(uint32_t x, uint32_t y, uint32_t z) const override;
+
         void bindVertexBuffer(const shared_ptr<const Buffer>& buffer) const override;
 
         void bindPipeline(const shared_ptr<const Pipeline>& pipeline) override;
 
-        void bindDescriptors(const vector<shared_ptr<const DescriptorSet>>& descriptors) const override;
+        void bindDescriptors(
+            const shared_ptr<const Pipeline>& pipeline,
+            const vector<shared_ptr<const DescriptorSet>>& descriptors) const override;
 
         void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) const override;
 

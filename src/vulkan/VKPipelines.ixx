@@ -74,6 +74,8 @@ export namespace vireo {
            const shared_ptr<const ShaderModule>& shader,
            const wstring& name);
 
+        auto getPipeline() const { return pipeline; }
+
         ~VKComputePipeline() override;
 
     private:

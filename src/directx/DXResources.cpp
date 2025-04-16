@@ -37,9 +37,6 @@ namespace vireo {
         buffer->SetName((L"DXBuffer : " + name).c_str());
 #endif
 
-        bufferViewDesc.BufferLocation = buffer->GetGPUVirtualAddress();
-        bufferViewDesc.SizeInBytes = static_cast<UINT>(bufferSize);
-
         bufferView.BufferLocation = buffer->GetGPUVirtualAddress();
         bufferView.StrideInBytes = size;
         bufferView.SizeInBytes = bufferSize;
@@ -94,11 +91,6 @@ namespace vireo {
             D3D12_RESOURCE_STATE_COMMON,
             nullptr,
             IID_PPV_ARGS(&image)));
-
-        imageViewDesc.Format = imageDesc.Format;
-        imageViewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-        imageViewDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-        imageViewDesc.Texture2D= { .MipLevels = 1 };
 
 #ifdef _DEBUG
         image->SetName((L"DXIMage : " + name).c_str());

@@ -36,8 +36,6 @@ export namespace vireo {
 
         const auto& getBufferView() const { return bufferView; }
 
-        const auto& getBufferViewDesc() const { return bufferViewDesc; }
-
         auto& getBuffer() const { return buffer; }
 
     private:
@@ -91,12 +89,9 @@ export namespace vireo {
 
         auto getImage() const { return image; }
 
-        const auto& getImageViewDesc() const { return imageViewDesc; }
-
     private:
         ComPtr<ID3D12Device>            device;
         ComPtr<ID3D12Resource>          image;
-        D3D12_SHADER_RESOURCE_VIEW_DESC imageViewDesc;
     };
 
     class DXRenderTarget : public RenderTarget {

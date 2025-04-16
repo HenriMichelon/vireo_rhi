@@ -58,17 +58,6 @@ export namespace vireo {
             VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
             VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP
         };
-        // static constexpr VkImageLayout vkLayouts[] {
-        //     VK_IMAGE_LAYOUT_UNDEFINED,
-        //     VK_IMAGE_LAYOUT_GENERAL,
-        //     VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL ,
-        //     VK_IMAGE_LAYOUT_GENERAL,
-        //     VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-        //     VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-        //     VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        //     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-        //     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-        // };
 
         VKCommandList(const shared_ptr<const VKDevice>& device, VkCommandPool commandPool);
 
@@ -82,6 +71,11 @@ export namespace vireo {
 
         void upload(const shared_ptr<const Image>& destination, const void* source) override;
 
+        void copy(
+            const shared_ptr<const Image>& source,
+            const shared_ptr<const FrameData>& frameData,
+            const shared_ptr<const SwapChain>& swapChain) const override;
+
         void beginRendering(
             const shared_ptr<FrameData>& frameData,
             const shared_ptr<SwapChain>& swapChain,
@@ -93,11 +87,15 @@ export namespace vireo {
 
         void endRendering() const override;
 
+        void dispatch(uint32_t x, uint32_t y, uint32_t z) const override;
+
         void bindVertexBuffer(const shared_ptr<const Buffer>& buffer) const override;
 
         void bindPipeline(const shared_ptr<const Pipeline>& pipeline) override;
 
-        void bindDescriptors(const vector<shared_ptr<const DescriptorSet>>& descriptors) const override;
+        void bindDescriptors(
+            const shared_ptr<const Pipeline>& pipeline,
+            const vector<shared_ptr<const DescriptorSet>>& descriptors) const override;
 
         void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) const override;
 
@@ -129,7 +127,6 @@ export namespace vireo {
     private:
         const shared_ptr<const VKDevice> device;
         VkCommandBuffer                  commandBuffer;
-        VkPipelineLayout                 lastBoundLayout{VK_NULL_HANDLE};
         vector<VkBuffer>                 stagingBuffers{};
         vector<VkDeviceMemory>           stagingBuffersMemory{};
 

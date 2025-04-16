@@ -23,6 +23,7 @@ namespace vireo {
         instance = make_shared<VKInstance>();
         physicalDevice = make_shared<VKPhysicalDevice>(getVKInstance()->getInstance(), hWnd);
         device = make_shared<VKDevice>(*getVKPhysicalDevice(), getVKInstance()->getRequestedLayers());
+        computeCommandQueue = make_shared<VKSubmitQueue>(getVKDevice(), CommandType::COMPUTE, "Compute");
         graphicCommandQueue = make_shared<VKSubmitQueue>(getVKDevice(), CommandType::GRAPHIC, "Graphic");
         transferCommandQueue = make_shared<VKSubmitQueue>(getVKDevice(), CommandType::TRANSFER, "Transfer");
         swapChain = make_shared<VKSwapChain>(getVKDevice(),

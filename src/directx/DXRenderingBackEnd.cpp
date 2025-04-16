@@ -38,6 +38,7 @@ namespace vireo {
         instance = make_shared<DXInstance>(hWnd);
         physicalDevice = make_shared<DXPhysicalDevice>(getDXInstance()->getFactory());
         device = make_shared<DXDevice>(getDXPhysicalDevice()->getHardwareAdapter());
+        computeCommandQueue = make_shared<DXSubmitQueue>(getDXDevice()->getDevice(), CommandType::COMPUTE);
         graphicCommandQueue = make_shared<DXSubmitQueue>(getDXDevice()->getDevice(), CommandType::GRAPHIC);
         transferCommandQueue = make_shared<DXSubmitQueue>(getDXDevice()->getDevice(), CommandType::GRAPHIC);
         swapChain = make_shared<DXSwapChain>(
@@ -76,6 +77,17 @@ namespace vireo {
             fragmentShader,
             configuration,
             name);
+    }
+
+    shared_ptr<ComputePipeline> DXRenderingBackEnd::createComputePipeline(
+        const shared_ptr<PipelineResources>& pipelineResources,
+        const shared_ptr<const ShaderModule>& shader,
+        const wstring& name) const {
+            return make_shared<DXComputePipeline>(
+                getDXDevice()->getDevice(),
+                pipelineResources,
+                shader,
+                name);
     }
 
     shared_ptr<VertexInputLayout> DXRenderingBackEnd::createVertexLayout(
