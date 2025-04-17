@@ -32,6 +32,7 @@ export namespace vireo {
     };
 
     enum class Backends {
+        UNDEFINED,
         DIRECTX,
         VULKAN,
     };

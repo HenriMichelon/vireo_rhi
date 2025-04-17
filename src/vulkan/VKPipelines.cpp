@@ -28,7 +28,7 @@ namespace vireo {
         device{device} {
         ifstream file(fileName + ".spv", ios::ate | ios::binary);
         if (!file.is_open()) {
-            die("failed to open shader file!");
+            die("failed to open shader file " + fileName);
         }
         const auto fileSize = static_cast<size_t>(file.tellg());
         vector<char> buffer(fileSize);

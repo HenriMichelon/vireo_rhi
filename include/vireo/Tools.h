@@ -15,6 +15,12 @@ namespace vireo {
             stringstream << v << " ";
         }
         cerr << stringstream.str() << endl;
+#ifdef _WIN32
+        MessageBoxA(nullptr,
+                       stringstream.str().c_str(),
+                       "Error",
+                       MB_OK);
+#endif
 #if defined(_DEBUG)
 #if defined(__has_builtin)
         __builtin_debugtrap();
