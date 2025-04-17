@@ -33,7 +33,7 @@ namespace vireo {
 #ifdef _WIN32
             hWnd,
 #endif
-            configuration.vSyncMode
+            configuration.presentMode
         );
     }
 

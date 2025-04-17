@@ -23,7 +23,7 @@ export namespace vireo {
             const ComPtr<IDXGIFactory4>& factory,
             const shared_ptr<DXDevice>& device,
             const ComPtr<ID3D12CommandQueue>& commandQueue,
-            HWND hWnd, VSyncMode vSyncMode);
+            HWND hWnd, PresentMode vSyncMode);
 
         ~DXSwapChain() override;
 

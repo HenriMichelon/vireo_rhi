@@ -19,7 +19,7 @@ export namespace vireo {
         VKSwapChain(
             const shared_ptr<const VKDevice>& device,
             void* windowHandle,
-            VSyncMode vSyncMode);
+            PresentMode vSyncMode);
 
         ~VKSwapChain() override;
 
@@ -53,7 +53,7 @@ export namespace vireo {
 
         const shared_ptr<const VKDevice>         device;
         const VKPhysicalDevice& physicalDevice;
-        const VSyncMode         vSyncMode;
+        const PresentMode         vSyncMode;
         VkSwapchainKHR          swapChain;
         vector<VkImage>         swapChainImages;
         VkFormat                swapChainImageFormat;
@@ -78,7 +78,7 @@ export namespace vireo {
 
         // Get the swap chain present mode
         static VkPresentModeKHR chooseSwapPresentMode(
-                VSyncMode vSyncMode,
+                PresentMode vSyncMode,
                 const vector<VkPresentModeKHR> &availablePresentModes);
 
         // Get the swap chain images sizes

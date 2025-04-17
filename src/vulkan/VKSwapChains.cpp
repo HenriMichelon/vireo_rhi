@@ -19,7 +19,7 @@ namespace vireo {
     VKSwapChain::VKSwapChain(
         const shared_ptr<const VKDevice>& device,
         void* windowHandle,
-        const VSyncMode vSyncMode):
+        const PresentMode vSyncMode):
         device{device},
         physicalDevice{device->getPhysicalDevice()},
         vSyncMode{vSyncMode},
@@ -158,7 +158,7 @@ namespace vireo {
     }
 
     VkPresentModeKHR VKSwapChain::chooseSwapPresentMode(
-        const VSyncMode vSyncMode,
+        const PresentMode vSyncMode,
         const vector<VkPresentModeKHR> &availablePresentModes) {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain#page_Presentation-mode
         for (const auto &availablePresentMode : availablePresentModes) {

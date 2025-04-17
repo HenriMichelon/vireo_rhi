@@ -26,7 +26,7 @@ export namespace vireo {
         X64  = 6
     };
 
-    enum class VSyncMode : uint8_t {
+    enum class PresentMode : uint8_t {
         IMMEDIATE = 0,
         VSYNC     = 1,
     };
@@ -43,6 +43,6 @@ export namespace vireo {
         //! MSAA samples
         // MSAA             msaa           {MSAA::NONE};
         //! Presentation mode
-        VSyncMode        vSyncMode      {VSyncMode::VSYNC};
+        PresentMode        presentMode      {PresentMode::VSYNC};
     };
 }

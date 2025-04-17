@@ -29,7 +29,7 @@ namespace vireo {
             getDXDevice(),
             getDXGraphicCommandQueue()->getCommandQueue(),
             hWnd,
-            configuration.vSyncMode);
+            configuration.presentMode);
     }
 
     shared_ptr<FrameData> DXVireo::createFrameData(const uint32_t frameIndex) {

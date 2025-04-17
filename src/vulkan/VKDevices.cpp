@@ -18,7 +18,16 @@ namespace vireo {
                                                        VkDebugUtilsMessageTypeFlagsEXT,
                                                        const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
                                                        void *) {
-        cerr << "validation layer: " <<  pCallbackData->pMessage << endl;
+        string message("validation layer: " + string(pCallbackData->pMessage));
+#ifdef _WIN32
+        if (IsDebuggerPresent()) {
+            OutputDebugStringA(message.c_str());
+        } else {
+            cerr << message << endl;
+        }
+#else
+        cerr << message << endl;
+#endif
         return VK_FALSE;
     }
 

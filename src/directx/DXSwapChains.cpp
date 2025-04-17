@@ -20,13 +20,13 @@ namespace vireo {
         const shared_ptr<DXDevice>& dxdevice,
         const ComPtr<ID3D12CommandQueue>& commandQueue,
         const HWND hWnd,
-        const VSyncMode vSyncMode) :
+        const PresentMode vSyncMode) :
         device{dxdevice},
         factory{factory},
         presentCommandQueue{commandQueue},
         hWnd{hWnd},
-        syncInterval{static_cast<UINT>(vSyncMode == VSyncMode::IMMEDIATE ? 0 : 1)},
-        presentFlags{static_cast<UINT>(vSyncMode == VSyncMode::IMMEDIATE ? DXGI_PRESENT_ALLOW_TEARING : 0)} {
+        syncInterval{static_cast<UINT>(vSyncMode == PresentMode::IMMEDIATE ? 0 : 1)},
+        presentFlags{static_cast<UINT>(vSyncMode == PresentMode::IMMEDIATE ? DXGI_PRESENT_ALLOW_TEARING : 0)} {
         create();
     }
 
