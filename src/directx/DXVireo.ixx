@@ -20,6 +20,8 @@ export namespace vireo {
     public:
         DXVireo(const Configuration& configuration);
 
+        ~DXVireo() override;
+
         void waitIdle() override;
 
         shared_ptr<CommandAllocator> createCommandAllocator(CommandType type) const override;

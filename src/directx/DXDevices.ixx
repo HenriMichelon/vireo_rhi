@@ -35,6 +35,7 @@ export namespace vireo {
     class DXDevice : public Device {
     public:
         DXDevice(const ComPtr<IDXGIAdapter4>& hardwareAdapter4);
+
         ~DXDevice() override;
 
         auto getDevice() { return device; }

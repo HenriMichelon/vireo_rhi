@@ -623,6 +623,8 @@ export namespace vireo {
 
         virtual void present(const shared_ptr<FrameData>& frameData) = 0;
 
+        virtual void recreate() = 0;
+
     protected:
         Extent      extent{};
         float       aspectRatio{};

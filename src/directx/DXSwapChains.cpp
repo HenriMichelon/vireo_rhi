@@ -16,39 +16,48 @@ namespace vireo {
         const ComPtr<IDXGIFactory4>& factory,
         const shared_ptr<DXDevice>& dxdevice,
         const ComPtr<ID3D12CommandQueue>& commandQueue,
-        const uint32_t width,
-        const uint32_t height,
         const HWND hWnd,
         const VSyncMode vSyncMode) :
         device{dxdevice},
+        factory{factory},
         presentCommandQueue{commandQueue},
         hWnd{hWnd},
         syncInterval{static_cast<UINT>(vSyncMode == VSyncMode::IMMEDIATE ? 0 : 1)},
         presentFlags{static_cast<UINT>(vSyncMode == VSyncMode::IMMEDIATE ? DXGI_PRESENT_ALLOW_TEARING : 0)} {
-        extent = {width, height};
-        aspectRatio = static_cast<float>(width) / static_cast<float>(height);
+        create();
+    }
+
+    void DXSwapChain::create() {
+        RECT windowRect{};
+        if (GetClientRect(hWnd, &windowRect) == 0) {
+            die("Error getting window rect");
+            return;
+        }
+        const auto width = windowRect.right - windowRect.left;
+        const auto height = windowRect.bottom - windowRect.top;
+        extent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
+        aspectRatio = static_cast<float>(extent.width) / static_cast<float>(extent.height);
 
         const auto swapChainDesc = DXGI_SWAP_CHAIN_DESC1{
-            .Width = width,
-            .Height = height,
+            .Width = static_cast<UINT>(width),
+            .Height = static_cast<UINT>(height),
             .Format = DXGI_FORMAT_R8G8B8A8_UNORM,
             .SampleDesc = {.Count = 1},
             .BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
             .BufferCount = FRAMES_IN_FLIGHT,
             .SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,
-            .Flags = vSyncMode == VSyncMode::VSYNC ? 0u : DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING,
+            .Flags = presentFlags == DXGI_PRESENT_ALLOW_TEARING ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0u,
         };
 
         ComPtr<IDXGISwapChain1> swapChain1;
         DieIfFailed(factory->CreateSwapChainForHwnd(
-            commandQueue.Get(),
+            presentCommandQueue.Get(),
             // Swap chain needs the queue so that it can force a flush on it.
             hWnd,
             &swapChainDesc,
             nullptr,
             nullptr,
-            &swapChain1
-            ));
+            &swapChain1));
         DieIfFailed(swapChain1.As(&swapChain));
         currentFrameIndex = swapChain->GetCurrentBackBufferIndex();
 
@@ -80,6 +89,71 @@ namespace vireo {
         }
     }
 
+    DXSwapChain::~DXSwapChain() {
+        waitForLastPresentedFrame();
+        for (UINT i = 0; i < FRAMES_IN_FLIGHT; ++i) {
+            renderTargets[i].Reset();
+        }
+        rtvHeap.Reset();
+        swapChain.Reset();
+    }
+
+    void DXSwapChain::recreate() {
+        RECT windowRect{};
+        if (GetClientRect(hWnd, &windowRect) == 0) {
+            die("Error getting window rect");
+        }
+        const auto width = windowRect.right - windowRect.left;
+        const auto height = windowRect.bottom - windowRect.top;
+        if (width != extent.width || height != extent.height) {
+            waitForLastPresentedFrame();
+            extent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
+            aspectRatio = static_cast<float>(extent.width) / static_cast<float>(extent.height);
+
+            for (UINT i = 0; i < FRAMES_IN_FLIGHT; ++i) {
+                renderTargets[i].Reset();
+            }
+
+            auto swapDesc = DXGI_SWAP_CHAIN_DESC{};
+            DieIfFailed(swapChain->GetDesc(&swapDesc));
+
+            DieIfFailed(swapChain->ResizeBuffers(
+                FRAMES_IN_FLIGHT,
+                width,
+                height,
+                swapDesc.BufferDesc.Format,
+                swapDesc.Flags
+            ));
+
+            CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(rtvHeap->GetCPUDescriptorHandleForHeapStart());
+            constexpr auto rtvDesc = D3D12_RENDER_TARGET_VIEW_DESC{
+                .Format = RENDER_FORMAT,
+                .ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D,
+            };
+            for (UINT n = 0; n < FRAMES_IN_FLIGHT; n++) {
+                DieIfFailed(swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTargets[n])));
+#ifdef _DEBUG
+                renderTargets[n]->SetName(L"SwapChain BackBuffer " + n);
+#endif
+                device->getDevice()->CreateRenderTargetView(renderTargets[n].Get(), &rtvDesc, rtvHandle);
+                rtvHandle.Offset(1, rtvDescriptorSize);
+            }
+
+            currentFrameIndex = swapChain->GetCurrentBackBufferIndex();
+        }
+    }
+
+    void DXSwapChain::waitForLastPresentedFrame() {
+        DieIfFailed(presentCommandQueue->Signal(device->getInFlightFence().Get(), lastPresentedFenceValue));
+        if (device->getInFlightFence()->GetCompletedValue() < lastPresentedFenceValue) {
+            DieIfFailed(device->getInFlightFence()->SetEventOnCompletion(
+                lastPresentedFenceValue,
+                device->getInFlightFenceEvent()
+            ));
+            WaitForSingleObjectEx(device->getInFlightFenceEvent(), INFINITE, FALSE);
+        }
+    }
+
     void DXSwapChain::nextSwapChain() {
         currentFrameIndex = swapChain->GetCurrentBackBufferIndex();
         assert(currentFrameIndex < FRAMES_IN_FLIGHT);
@@ -104,5 +178,6 @@ namespace vireo {
         const auto data = static_pointer_cast<DXFrameData>(frameData);
         DieIfFailed(swapChain->Present(syncInterval, presentFlags));
         data->inFlightFenceValue += 1;
+        lastPresentedFenceValue = data->inFlightFenceValue;
     }
 }

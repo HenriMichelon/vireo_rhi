@@ -18,23 +18,6 @@ namespace vireo {
     DXVireo::DXVireo(const Configuration& configuration):
         Vireo{configuration},
         hWnd{static_cast<HWND>(configuration.windowHandle)} {
-        // Detect RivaTuner which cause problem by incorrectly hooking IDXGISwapChain::Present
-        // const HANDLE hMap = OpenFileMapping(FILE_MAP_READ, FALSE, L"RTSSSharedMemoryV2");
-        // if (hMap) {
-        //     MessageBox(
-        //         nullptr,
-        //         L"RivaTuner Statistic Server is incompatible with the DirectX 12 backend, close it or use the Vulkan backend",
-        //         nullptr,
-        //         MB_OK);
-        //     CloseHandle(hMap);
-        //     die("RTSS conflict");
-        // }
-
-        RECT windowRect{};
-        if (GetClientRect(hWnd, &windowRect) == 0) {
-            die("Error getting window rect");
-        }
-
         instance = make_shared<DXInstance>(hWnd);
         physicalDevice = make_shared<DXPhysicalDevice>(getDXInstance()->getFactory());
         device = make_shared<DXDevice>(getDXPhysicalDevice()->getHardwareAdapter());
@@ -45,8 +28,6 @@ namespace vireo {
             getDXInstance()->getFactory(),
             getDXDevice(),
             getDXGraphicCommandQueue()->getCommandQueue(),
-            windowRect.right - windowRect.left,
-            windowRect.bottom - windowRect.top,
             hWnd,
             configuration.vSyncMode);
     }
@@ -170,8 +151,15 @@ namespace vireo {
         return make_shared<DXCommandAllocator>(getDXDevice()->getDevice(), type);
     }
 
+    DXVireo::~DXVireo() {
+        DXVireo::waitIdle();
+    }
+
     void DXVireo::waitIdle() {
+        getDXSwapChain()->waitForLastPresentedFrame();
         graphicCommandQueue->waitIdle();
+        computeCommandQueue->waitIdle();
+        transferCommandQueue->waitIdle();
     }
 
 }

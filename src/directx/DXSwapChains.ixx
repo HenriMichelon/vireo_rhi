@@ -23,7 +23,9 @@ export namespace vireo {
             const ComPtr<IDXGIFactory4>& factory,
             const shared_ptr<DXDevice>& device,
             const ComPtr<ID3D12CommandQueue>& commandQueue,
-            uint32_t width, uint32_t height, HWND hWnd, VSyncMode vSyncMode);
+            HWND hWnd, VSyncMode vSyncMode);
+
+        ~DXSwapChain() override;
 
         auto getSwapChain() { return swapChain; }
 
@@ -39,8 +41,13 @@ export namespace vireo {
 
         void present(const shared_ptr<FrameData>& frameData) override;
 
+        void recreate() override;
+
+        void waitForLastPresentedFrame();
+
     private:
         const shared_ptr<DXDevice>   device;
+        const ComPtr<IDXGIFactory4>  factory;
         ComPtr<IDXGISwapChain3>      swapChain;
         ComPtr<ID3D12CommandQueue>   presentCommandQueue;
         ComPtr<ID3D12Resource>       renderTargets[FRAMES_IN_FLIGHT];
@@ -49,6 +56,9 @@ export namespace vireo {
         HWND                         hWnd;
         const UINT                   syncInterval;
         const UINT                   presentFlags;
+        UINT64                       lastPresentedFenceValue{0};
+
+        void create();
     };
 
 }

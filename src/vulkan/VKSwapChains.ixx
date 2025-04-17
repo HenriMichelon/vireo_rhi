@@ -37,6 +37,8 @@ export namespace vireo {
 
         void present(const shared_ptr<FrameData>& framesData) override;
 
+        void recreate() override;
+
     private:
         static constexpr VkPresentModeKHR vkPresentModes[] {
             VK_PRESENT_MODE_IMMEDIATE_KHR,
@@ -62,8 +64,6 @@ export namespace vireo {
 #ifdef _WIN32
         HWND hWnd;
 #endif
-
-        void recreate();
 
         void create();
 

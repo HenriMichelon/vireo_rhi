@@ -100,32 +100,16 @@ namespace vireo {
                 "VKSwapChain Image " + to_string(i));
 #endif
         }
-
-        // For bliting image to swapchain
-        // constexpr VkOffset3D vkOffset0{0, 0, 0};
-        // const VkOffset3D     vkOffset1{
-        //     static_cast<int32_t>(swapChainExtent.width),
-        //     static_cast<int32_t>(swapChainExtent.height),
-        //     1,
-        // };
-        // colorImageBlit.srcOffsets[0]                 = vkOffset0;
-        // colorImageBlit.srcOffsets[1]                 = vkOffset1;
-        // colorImageBlit.srcSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-        // colorImageBlit.srcSubresource.mipLevel       = 0;
-        // colorImageBlit.srcSubresource.baseArrayLayer = 0;
-        // colorImageBlit.srcSubresource.layerCount     = 1;
-        // colorImageBlit.dstOffsets[0]                 = vkOffset0;
-        // colorImageBlit.dstOffsets[1]                 = vkOffset1;
-        // colorImageBlit.dstSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-        // colorImageBlit.dstSubresource.mipLevel       = 0;
-        // colorImageBlit.dstSubresource.baseArrayLayer = 0;
-        // colorImageBlit.dstSubresource.layerCount     = 1;
     }
 
     void VKSwapChain::recreate() {
-        vkDeviceWaitIdle(device->getDevice());
-        cleanup();
-        create();
+        const SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice.getPhysicalDevice(), physicalDevice.getSurface());
+        const auto newExtent = chooseSwapExtent(swapChainSupport.capabilities);
+        if (newExtent.width != swapChainExtent.width || newExtent.height != swapChainExtent.height) {
+            vkDeviceWaitIdle(device->getDevice());
+            cleanup();
+            create();
+        }
     }
 
     void VKSwapChain::cleanup() const {
@@ -189,7 +173,7 @@ namespace vireo {
         if (GetClientRect(hWnd, &windowRect) == 0) {
             die("Error getting window rect");
         }
-        VkExtent2D actualExtent{
+        const VkExtent2D actualExtent{
             .width = static_cast<uint32_t>(windowRect.right - windowRect.left),
             .height = static_cast<uint32_t>(windowRect.bottom - windowRect.top)
         };

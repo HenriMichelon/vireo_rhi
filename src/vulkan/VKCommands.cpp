@@ -550,9 +550,15 @@ namespace vireo {
                 .layerCount = 1,
             },
         };
-        blitRegion.srcOffsets[1] = {static_cast<int32_t>(source->getWidth()), static_cast<int32_t>(source->getHeight()), 1},
         blitRegion.dstSubresource = blitRegion.srcSubresource;
-        blitRegion.dstOffsets[1] = blitRegion.srcOffsets[1];
+        blitRegion.srcOffsets[1] = {
+            static_cast<int32_t>(source->getWidth()),
+            static_cast<int32_t>(source->getHeight()),
+            1},
+        blitRegion.dstOffsets[1] = {
+            static_cast<int32_t>(vkSwapChain->getExtent().width),
+            static_cast<int32_t>(vkSwapChain->getExtent().height),
+            1},
 
         vkCmdBlitImage(commandBuffer,
                        vkSource->getImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
