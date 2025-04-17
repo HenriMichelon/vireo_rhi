@@ -170,7 +170,7 @@ namespace vireo {
             VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT,
             VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT,
             VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY,
-            VK_DYNAMIC_STATE_PRIMITIVE_RESTART_ENABLE
+            VK_DYNAMIC_STATE_PRIMITIVE_RESTART_ENABLE,
         };
         const auto dynamicState = VkPipelineDynamicStateCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
@@ -220,6 +220,10 @@ namespace vireo {
             .colorAttachmentCount    = 1,
             .pColorAttachmentFormats = &swapChainImageFormat,
         };
+        const auto IAInfo = VkPipelineInputAssemblyStateCreateInfo{
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+            .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+        };
         const auto pipelineInfo = VkGraphicsPipelineCreateInfo {
             .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
             .pNext = &dynamicRenderingCreateInfo,
@@ -227,7 +231,7 @@ namespace vireo {
             .stageCount = static_cast<uint32_t>(shaderStages.size()),
             .pStages = shaderStages.data(),
             .pVertexInputState = &vertexInputInfo,
-            .pInputAssemblyState = nullptr,
+            .pInputAssemblyState = &IAInfo,
             .pViewportState = nullptr,
             .pRasterizationState = &rasterizer,
             .pMultisampleState = &multisampling,
