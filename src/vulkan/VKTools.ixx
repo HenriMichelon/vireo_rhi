@@ -14,7 +14,6 @@ import vireo.tools;
 export namespace vireo {
 
     template <typename... Args>
-    [[noreturn]]
     void vkCheck(const VkResult vr, Args&&... args) {
         if (vr != VK_SUCCESS) {
             throw Exception("Vulkan error #", vr, " : ", forward<Args>(args)...);

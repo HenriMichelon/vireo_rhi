@@ -24,7 +24,7 @@ namespace vireo {
 #endif
     {
         instance = make_shared<VKInstance>();
-        physicalDevice = make_shared<VKPhysicalDevice>(getVKInstance()->getInstance(), hWnd);
+        physicalDevice = make_shared<VKPhysicalDevice>(getVKInstance()->getInstance(), hWnd, configuration.msaa);
         device = make_shared<VKDevice>(*getVKPhysicalDevice(), getVKInstance()->getRequestedLayers());
         computeCommandQueue = make_shared<VKSubmitQueue>(getVKDevice(), CommandType::COMPUTE, "Compute");
         graphicCommandQueue = make_shared<VKSubmitQueue>(getVKDevice(), CommandType::GRAPHIC, "Graphic");
@@ -72,6 +72,17 @@ namespace vireo {
             .stageMask = VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
             .deviceIndex = 0
         };
+        if (configuration.msaa != MSAA::NONE) {
+            data->multisampledAttachment = make_shared<VKImage>(
+                getVKDevice(),
+                VKSwapChain::RENDER_FORMAT,
+                getSwapChain()->getExtent().width,
+                getSwapChain()->getExtent().height,
+                L"Multisampled Attachment " + to_wstring(frameIndex),
+                false,
+                true,
+                getVKPhysicalDevice()->getSampleCount());
+        }
 #ifdef _DEBUG
         vkSetObjectName(getVKDevice()->getDevice(), reinterpret_cast<uint64_t>(data->imageAvailableSemaphore), VK_OBJECT_TYPE_SEMAPHORE,
             "VKFrameData image Semaphore : " + to_string(frameIndex));
@@ -119,7 +130,7 @@ namespace vireo {
         const GraphicPipeline::Configuration& configuration,
         const wstring& name) const {
         return make_shared<VKGraphicPipeline>(
-            getVKDevice()->getDevice(),
+            getVKDevice(),
             *getVKSwapChain(),
             pipelineResources,
             vertexInputLayout,

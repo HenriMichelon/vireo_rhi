@@ -80,6 +80,11 @@ export namespace vireo {
             const float clearColor[]) const override;
 
         void beginRendering(
+            const shared_ptr<FrameData>& frameData,
+            const shared_ptr<RenderTarget>& renderTarget,
+            const float clearColor[]) const override;
+
+        void beginRendering(
             const shared_ptr<RenderTarget>& renderTarget,
             const float clearColor[]) const override;
 
@@ -107,6 +112,11 @@ export namespace vireo {
             ResourceState newState) const override;
 
         void barrier(
+            const shared_ptr<const RenderTarget>& renderTarget,
+            ResourceState oldState,
+            ResourceState newState) const override;
+
+        void barrier(
             const shared_ptr<const FrameData>& frameData,
             const shared_ptr<const SwapChain>& swapChain,
             ResourceState oldState,
@@ -127,9 +137,16 @@ export namespace vireo {
         vector<VkDeviceMemory>           stagingBuffersMemory{};
 
         void beginRendering(
-          VkImageView imageView,
-          uint32_t width, uint32_t height,
-          const float clearColor[]) const;
+            VkImageView imageView,
+            uint32_t width, uint32_t height,
+            const float clearColor[]) const;
+
+        void beginRendering(
+            const shared_ptr<FrameData>& frameData,
+            VkImageView imageView,
+            uint32_t width,
+            uint32_t height,
+            const float clearColor[]) const;
 
         void barrier(
            VkImage image,

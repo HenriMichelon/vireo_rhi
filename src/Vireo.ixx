@@ -478,6 +478,7 @@ export namespace vireo {
     public:
         struct Configuration {
             PrimitiveTopology primitiveTopology{PrimitiveTopology::TRIANGLE_LIST};
+            bool              useMSAA{false};
             CullMode          cullMode{CullMode::NONE};
             PolygonMode       polygonMode{PolygonMode::FILL};
             bool              frontFaceCounterClockwise{false};
@@ -526,6 +527,11 @@ export namespace vireo {
             const float clearColor[]) const = 0;
 
         virtual void beginRendering(
+            const shared_ptr<FrameData>& frameData,
+            const shared_ptr<RenderTarget>& renderTarget,
+            const float clearColor[]) const = 0;
+
+        virtual void beginRendering(
             const shared_ptr<RenderTarget>& renderTarget,
             const float clearColor[]) const = 0;
 
@@ -549,6 +555,11 @@ export namespace vireo {
 
         virtual void barrier(
             const shared_ptr<const Image>& image,
+            ResourceState oldState,
+            ResourceState newState) const = 0;
+
+        virtual void barrier(
+            const shared_ptr<const RenderTarget>& renderTarget,
             ResourceState oldState,
             ResourceState newState) const = 0;
 
@@ -725,6 +736,8 @@ export namespace vireo {
         auto getComputeCommandQueue() const { return computeCommandQueue; }
 
         auto getSwapChain() const { return swapChain; }
+
+        const auto& getConfiguration() const { return configuration; }
 
     protected:
         const Configuration&        configuration;

@@ -16,6 +16,8 @@ export namespace vireo {
 
     class VKSwapChain : public SwapChain {
     public:
+        static constexpr auto RENDER_FORMAT{ImageFormat::R8G8B8A8_SRGB};
+
         VKSwapChain(
             const shared_ptr<const VKDevice>& device,
             void* windowHandle,

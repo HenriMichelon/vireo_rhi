@@ -125,7 +125,7 @@ namespace vireo {
     PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
 #endif
 
-    VKPhysicalDevice::VKPhysicalDevice(const VkInstance instance, void* windowHandle):
+    VKPhysicalDevice::VKPhysicalDevice(const VkInstance instance, void* windowHandle, const MSAA msaa):
         instance(instance),
         // Requested device extensions
         deviceExtensions {
@@ -165,7 +165,6 @@ namespace vireo {
         vkCheck(vkCreateWin32SurfaceKHR(instance, &surfaceCreateInfo, nullptr, &surface));
 #endif
 
-
         // Use the better Vulkan physical device found
         // https://vulkan-tutorial.com/Drawing_a_triangle/Setup/Physical_devices_and_queue_families#page_Base-device-suitability-checks
         vector<VkPhysicalDevice> devices(deviceCount);
@@ -180,10 +179,10 @@ namespace vireo {
         if (candidates.rbegin()->first > 0) {
             // Select the better suitable device found
             physicalDevice = candidates.rbegin()->second;
-            // Select the best MSAA samples count if requested
-            // if (applicationConfig.msaa == MSAA::AUTO) {
-                // samples = getMaxUsableMSAASampleCount();
-            // }
+            // Validate the MSAA parameter
+            if (msaa != MSAA::NONE) {
+                sampleCount = min(vkSampleCountFlag[static_cast<int>(msaa)], getMaxUsableMSAASampleCount());
+            }
             deviceProperties.pNext = &physDeviceIDProps;
             vkGetPhysicalDeviceProperties2(physicalDevice, &deviceProperties);
             // Get the GPU description and total memory
@@ -240,7 +239,6 @@ namespace vireo {
             i++;
         }
         throw Exception("Could not find dedicated transfer queue family");
-        return i;
     }
 
     uint32_t VKPhysicalDevice::findComputeQueueFamily() const {
@@ -258,7 +256,6 @@ namespace vireo {
             i++;
         }
         throw Exception("Could not find dedicated compute queue family");
-        return i;
     }
 
     VKPhysicalDevice::~VKPhysicalDevice() {
@@ -273,7 +270,22 @@ namespace vireo {
                 (memProperties.memoryTypes[i].propertyFlags & properties) == properties) { return i; }
         }
         throw Exception("failed to find suitable memory type!");
-        return 0;
+    }
+
+    VkSampleCountFlagBits VKPhysicalDevice::getMaxUsableMSAASampleCount() const {
+        // https://vulkan-tutorial.com/Multisampling#page_Getting-available-sample-count
+        VkPhysicalDeviceProperties physicalDeviceProperties;
+        vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
+        const VkSampleCountFlags counts =
+            physicalDeviceProperties.limits.framebufferColorSampleCounts &
+            physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+        if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
+        if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
+        if (counts & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
+        if (counts & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
+        if (counts & VK_SAMPLE_COUNT_4_BIT) { return VK_SAMPLE_COUNT_4_BIT; }
+        if (counts & VK_SAMPLE_COUNT_2_BIT) { return VK_SAMPLE_COUNT_2_BIT; }
+        return VK_SAMPLE_COUNT_1_BIT;
     }
 
     uint32_t VKPhysicalDevice::rateDeviceSuitability(

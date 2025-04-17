@@ -135,7 +135,8 @@ namespace vireo {
             const uint32_t    height,
             const wstring&    name,
             const bool        useByComputeShader,
-            const bool        isRenderTarget):
+            const bool        isRenderTarget,
+            const VkSampleCountFlagBits samples):
         Image{format, width, height},
         device{device} {
         const VkImageUsageFlags usage =
@@ -150,7 +151,7 @@ namespace vireo {
             .extent = {width, height, 1},
             .mipLevels = 1,
             .arrayLayers = 1,
-            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .samples = samples,
             .tiling = VK_IMAGE_TILING_OPTIMAL,
             .usage = usage,
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,

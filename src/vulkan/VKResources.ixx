@@ -161,7 +161,8 @@ export namespace vireo {
             uint32_t    height,
             const wstring& name,
             bool useByComputeShader,
-            bool isRenderTarget);
+            bool isRenderTarget,
+            VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT);
 
         ~VKImage() override;
 

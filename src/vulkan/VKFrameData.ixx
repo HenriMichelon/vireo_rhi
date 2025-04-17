@@ -10,6 +10,8 @@ export module vireo.vulkan.framedata;
 
 import vireo;
 
+import vireo.vulkan.resources;
+
 export namespace vireo {
 
     struct VKFrameData : FrameData {
@@ -19,6 +21,7 @@ export namespace vireo {
         VkSemaphoreSubmitInfo   renderFinishedSemaphoreSubmitInfo{};
         VkFence                 inFlightFence{VK_NULL_HANDLE};
         uint32_t                imageIndex{0};
+        shared_ptr<VKImage>     multisampledAttachment{nullptr};
     };
 
 }

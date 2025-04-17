@@ -193,11 +193,20 @@ namespace vireo {
           const float clearColor[]) const {
         const auto vkSwapChain = static_pointer_cast<VKSwapChain>(swapChain);
         const auto imageIndex = static_pointer_cast<VKFrameData>(frameData)->imageIndex;
-        beginRendering(
-            vkSwapChain->getImageViews()[imageIndex],
-            vkSwapChain->getExtent().width,
-            vkSwapChain->getExtent().height,
-            clearColor);
+        if (device->getPhysicalDevice().getSampleCount() == VK_SAMPLE_COUNT_1_BIT) {
+            beginRendering(
+                vkSwapChain->getImageViews()[imageIndex],
+                vkSwapChain->getExtent().width,
+                vkSwapChain->getExtent().height,
+                clearColor);
+        } else {
+            beginRendering(
+                frameData,
+                vkSwapChain->getImageViews()[imageIndex],
+                vkSwapChain->getExtent().width,
+                vkSwapChain->getExtent().height,
+                clearColor);
+        }
     }
 
     void VKCommandList::beginRendering(
@@ -209,6 +218,64 @@ namespace vireo {
             vkImage->getWidth(),
             vkImage->getHeight(),
             clearColor);
+    }
+
+    void VKCommandList::beginRendering(
+        const shared_ptr<FrameData>& frameData,
+        const shared_ptr<RenderTarget>& renderTarget,
+        const float clearColor[]) const {
+        const auto vkImage = static_pointer_cast<VKImage>(renderTarget->getImage());
+        if (device->getPhysicalDevice().getSampleCount() == VK_SAMPLE_COUNT_1_BIT) {
+            beginRendering(
+                vkImage->getImageView(),
+                vkImage->getWidth(),
+                vkImage->getHeight(),
+                clearColor);
+        } else {
+            beginRendering(
+                frameData,
+                vkImage->getImageView(),
+                vkImage->getWidth(),
+                vkImage->getHeight(),
+                clearColor);
+        }
+    }
+
+    void VKCommandList::beginRendering(
+        const shared_ptr<FrameData>& frameData,
+        const VkImageView imageView,
+        const uint32_t width,
+        const uint32_t height,
+        const float clearColor[]) const {
+        const auto vkFrameData = static_pointer_cast<VKFrameData>(frameData);
+        barrier(vkFrameData->multisampledAttachment->getImage(), ResourceState::UNDEFINED, ResourceState::RENDER_TARGET);
+        const auto colorAttachmentInfo = VkRenderingAttachmentInfo {
+            .sType              = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
+            .imageView          = vkFrameData->multisampledAttachment->getImageView(),
+            .imageLayout        = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .resolveMode        = VK_RESOLVE_MODE_AVERAGE_BIT,
+            .resolveImageView   = imageView,
+            .resolveImageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .loadOp             = VK_ATTACHMENT_LOAD_OP_CLEAR,
+            .storeOp            = VK_ATTACHMENT_STORE_OP_STORE,
+            .clearValue         = {
+                clearColor[0], clearColor[1], clearColor[2], clearColor[3]
+            },
+        };
+        const auto renderingInfo = VkRenderingInfo {
+            .sType               = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR,
+            .pNext                = nullptr,
+            .renderArea           = {
+                {0, 0},
+                {width, height}
+            },
+            .layerCount           = 1,
+            .colorAttachmentCount = 1,
+            .pColorAttachments    = &colorAttachmentInfo,
+            .pDepthAttachment     = nullptr,
+            .pStencilAttachment   = nullptr
+        };
+        vkCmdBeginRendering(commandBuffer, &renderingInfo);
     }
 
     void VKCommandList::beginRendering(
@@ -375,6 +442,14 @@ namespace vireo {
         const ResourceState oldState,
         const ResourceState newState) const {
         const auto vkImage = static_pointer_cast<const VKImage>(image);
+        barrier(vkImage->getImage(), oldState, newState);
+    }
+
+    void VKCommandList::barrier(
+        const shared_ptr<const RenderTarget>& renderTarget,
+        const ResourceState oldState,
+        const ResourceState newState) const {
+        const auto vkImage = static_pointer_cast<const VKImage>(renderTarget->getImage());
         barrier(vkImage->getImage(), oldState, newState);
     }
 

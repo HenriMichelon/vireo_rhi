@@ -9,6 +9,7 @@ module;
 export module vireo.vulkan.devices;
 
 import vireo;
+import vireo.config;
 
 export namespace vireo {
 
@@ -31,7 +32,17 @@ export namespace vireo {
 
     class VKPhysicalDevice : public PhysicalDevice {
     public:
-        VKPhysicalDevice(VkInstance instance, void* windowHandle);
+        static constexpr VkSampleCountFlagBits vkSampleCountFlag[] {
+            VK_SAMPLE_COUNT_1_BIT,
+            VK_SAMPLE_COUNT_2_BIT,
+            VK_SAMPLE_COUNT_4_BIT,
+            VK_SAMPLE_COUNT_8_BIT,
+            VK_SAMPLE_COUNT_16_BIT,
+            VK_SAMPLE_COUNT_32_BIT,
+            VK_SAMPLE_COUNT_64_BIT,
+        };
+
+        VKPhysicalDevice(VkInstance instance, void* windowHandle, MSAA msaa);
         ~VKPhysicalDevice() override;
 
         auto getPhysicalDevice() const { return physicalDevice; }
@@ -67,6 +78,8 @@ export namespace vireo {
 
         auto getSurface() const { return surface; }
 
+        auto getSampleCount() const { return sampleCount; }
+
     private:
         VkInstance                   instance{VK_NULL_HANDLE};
         VkSurfaceKHR                 surface;
@@ -79,6 +92,7 @@ export namespace vireo {
         VkPhysicalDeviceIDProperties physDeviceIDProps{
             VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES
         };
+        VkSampleCountFlagBits        sampleCount;
 
         struct SwapChainSupportDetails {
             VkSurfaceCapabilitiesKHR        capabilities;
@@ -97,6 +111,8 @@ export namespace vireo {
 
         // Get the swap chain capabilities
         SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice vkPhysicalDevice) const;
+
+        VkSampleCountFlagBits getMaxUsableMSAASampleCount() const;
     };
 
     class VKDevice : public Device {

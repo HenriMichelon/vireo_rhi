@@ -83,6 +83,11 @@ export namespace vireo {
             const float clearColor[]) const override;
 
         void beginRendering(
+            const shared_ptr<FrameData>& frameData,
+            const shared_ptr<RenderTarget>& renderTarget,
+            const float clearColor[]) const override { throw runtime_error("DXCommandList::beginRendering(const shared_ptr<FrameData>&, const shared_ptr<RenderTarget>&, const float clearColor[]) const override");};
+
+        void beginRendering(
             const shared_ptr<RenderTarget>& renderTarget,
             const float clearColor[]) const override;
 
@@ -106,6 +111,11 @@ export namespace vireo {
             const shared_ptr<const Image>& image,
             ResourceState oldState,
             ResourceState newState) const override;
+
+        void barrier(
+            const shared_ptr<const RenderTarget>& renderTarget,
+            ResourceState oldState,
+            ResourceState newState) const override { throw runtime_error("DXCommandList::barrier(const shared_ptr<const RenderTarget>&, ResourceState oldState, ResourceState newState) const override");};
 
         void barrier(
             const shared_ptr<const FrameData>& frameData,

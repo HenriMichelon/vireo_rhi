@@ -10,6 +10,7 @@ module vireo.vulkan.pipelines;
 
 import vireo.tools;
 
+import vireo.vulkan.devices;
 import vireo.vulkan.tools;
 
 namespace vireo {
@@ -134,7 +135,7 @@ namespace vireo {
     }
 
     VKGraphicPipeline::VKGraphicPipeline(
-           VkDevice device,
+           const shared_ptr<VKDevice>& device,
            VKSwapChain& swapChain,
            const shared_ptr<PipelineResources>& pipelineResources,
            const shared_ptr<const VertexInputLayout>& vertexInputLayout,
@@ -200,7 +201,7 @@ namespace vireo {
         };
         const auto multisampling = VkPipelineMultisampleStateCreateInfo {
             .sType                  = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-            .rasterizationSamples   = VK_SAMPLE_COUNT_1_BIT,
+            .rasterizationSamples   = device->getPhysicalDevice().getSampleCount(),
             .sampleShadingEnable    = VK_FALSE,
             .minSampleShading       = 1.0f,
             .pSampleMask            = nullptr,
@@ -246,15 +247,15 @@ namespace vireo {
             .basePipelineHandle = VK_NULL_HANDLE,
             .basePipelineIndex = -1,
         };
-        vkCheck(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline));
+        vkCheck(vkCreateGraphicsPipelines(device->getDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline));
 #ifdef _DEBUG
-        vkSetObjectName(device, reinterpret_cast<uint64_t>(pipeline), VK_OBJECT_TYPE_PIPELINE,
+        vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(pipeline), VK_OBJECT_TYPE_PIPELINE,
             to_string(L"VKGraphicPipeline : " + name));
 #endif
     }
 
     VKGraphicPipeline::~VKGraphicPipeline() {
-        vkDestroyPipeline(device, pipeline, nullptr);
+        vkDestroyPipeline(device->getDevice(), pipeline, nullptr);
     }
 
 }

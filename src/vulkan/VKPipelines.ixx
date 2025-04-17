@@ -10,6 +10,7 @@ export module vireo.vulkan.pipelines;
 
 import vireo;
 import vireo.vulkan.descriptors;
+import vireo.vulkan.devices;
 import vireo.vulkan.swapchains;
 
 export namespace vireo {
@@ -110,7 +111,7 @@ export namespace vireo {
 
 
         VKGraphicPipeline(
-           VkDevice device,
+           const shared_ptr<VKDevice>& device,
            VKSwapChain& swapChain,
            const shared_ptr<PipelineResources>& pipelineResources,
            const shared_ptr<const VertexInputLayout>& vertexInputLayout,
@@ -124,7 +125,7 @@ export namespace vireo {
         ~VKGraphicPipeline() override;
 
     private:
-        VkDevice     device;
+        const shared_ptr<VKDevice> device;
         VkPipeline   pipeline;
 
         static constexpr auto colorBlendAttachmentEnable = VkPipelineColorBlendAttachmentState {

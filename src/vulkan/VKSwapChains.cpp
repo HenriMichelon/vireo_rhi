@@ -12,6 +12,7 @@ import vireo.tools;
 
 import vireo.vulkan.commands;
 import vireo.vulkan.framedata;
+import vireo.vulkan.resources;
 import vireo.vulkan.tools;
 
 namespace vireo {
@@ -152,7 +153,7 @@ namespace vireo {
         for (const auto &availableFormat : availableFormats) {
             // Using sRGB no-linear color space
             // https://learnopengl.com/Advanced-Lighting/Gamma-Correction
-            if (availableFormat.format == VK_FORMAT_R8G8B8A8_SRGB) { return availableFormat; }
+            if (availableFormat.format == VKImage::vkFormats[static_cast<int>(RENDER_FORMAT)]) { return availableFormat; }
         }
         return availableFormats[0];
     }
