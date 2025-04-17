@@ -100,6 +100,14 @@ export namespace vireo {
             VK_COMPARE_OP_GREATER_OR_EQUAL,
             VK_COMPARE_OP_ALWAYS,
         };
+        static constexpr VkPrimitiveTopology vkPrimitives[]{
+            VK_PRIMITIVE_TOPOLOGY_POINT_LIST,
+            VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
+            VK_PRIMITIVE_TOPOLOGY_LINE_STRIP,
+            VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+            VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP
+        };
+
 
         VKGraphicPipeline(
            VkDevice device,

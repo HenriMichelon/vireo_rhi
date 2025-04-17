@@ -87,6 +87,20 @@ export namespace vireo {
             D3D12_COMPARISON_FUNC_GREATER_EQUAL,
             D3D12_COMPARISON_FUNC_ALWAYS,
         };
+        static constexpr D3D12_PRIMITIVE_TOPOLOGY_TYPE  dxPrimitivesTypes[] {
+            D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT ,
+            D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE ,
+            D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE ,
+            D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE ,
+            D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE ,
+        };
+        static constexpr D3D_PRIMITIVE_TOPOLOGY dxPrimitives[] {
+            D3D_PRIMITIVE_TOPOLOGY_POINTLIST,
+            D3D_PRIMITIVE_TOPOLOGY_LINELIST,
+            D3D_PRIMITIVE_TOPOLOGY_LINESTRIP,
+            D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+            D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP,
+        };
 
         DXGraphicPipeline(
             const ComPtr<ID3D12Device>& device,
@@ -99,8 +113,11 @@ export namespace vireo {
 
         auto getPipelineState() const { return pipelineState; }
 
+        auto getPrimitiveTopology() const { return primitiveTopology; }
+
     private:
         ComPtr<ID3D12PipelineState> pipelineState;
+        const D3D_PRIMITIVE_TOPOLOGY primitiveTopology;
 
         static constexpr auto blendStateEnable = D3D12_BLEND_DESC{
             .AlphaToCoverageEnable = FALSE,

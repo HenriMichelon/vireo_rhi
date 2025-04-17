@@ -51,14 +51,6 @@ export namespace vireo {
 
     class VKCommandList : public CommandList {
     public:
-        static constexpr VkPrimitiveTopology vkPrimitives[]{
-            VK_PRIMITIVE_TOPOLOGY_POINT_LIST,
-            VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
-            VK_PRIMITIVE_TOPOLOGY_LINE_STRIP,
-            VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-            VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP
-        };
-
         VKCommandList(const shared_ptr<const VKDevice>& device, VkCommandPool commandPool);
 
         void begin() const override;
@@ -108,8 +100,6 @@ export namespace vireo {
         void setViewports(uint32_t count, const vector<Extent>& extent) const override;
 
         void setScissors(uint32_t count, const vector<Extent>& extent) const override;
-
-        void setPrimitiveTopology(PrimitiveTopology primitiveTopology) const override;
 
         void barrier(
             const shared_ptr<const Image>& image,

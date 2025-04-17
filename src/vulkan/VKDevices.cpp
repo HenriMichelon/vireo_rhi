@@ -387,11 +387,6 @@ namespace vireo {
 
         // Initialize device extensions and create a logical device
         {
-            // VkPhysicalDeviceExtendedDynamicState3PropertiesEXT deviceExtendedDynamicState3 {
-            //     .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_PROPERTIES_EXT,
-            //     .pNext = nullptr,
-            //     .dynamicPrimitiveTopologyUnrestricted = VK_TRUE,
-            // };
             VkPhysicalDeviceSynchronization2FeaturesKHR sync2Features{
                 .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES,
                 .pNext = nullptr,

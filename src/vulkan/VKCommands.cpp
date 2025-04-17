@@ -184,11 +184,6 @@ namespace vireo {
         vkCmdSetScissorWithCount(commandBuffer, count, scissors.data());
     }
 
-    void VKCommandList::setPrimitiveTopology(PrimitiveTopology primitiveTopology) const {
-        vkCmdSetPrimitiveTopology(commandBuffer, vkPrimitives[static_cast<int>(primitiveTopology)]);
-        vkCmdSetPrimitiveRestartEnable(commandBuffer, VK_FALSE);
-    }
-
     void VKCommandList::beginRendering(
           const shared_ptr<FrameData>& frameData,
           const shared_ptr<SwapChain>& swapChain,

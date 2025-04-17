@@ -476,18 +476,19 @@ export namespace vireo {
     class GraphicPipeline : public Pipeline {
     public:
         struct Configuration {
-            CullMode    cullMode{CullMode::NONE};
-            PolygonMode polygonMode{PolygonMode::FILL};
-            bool        frontFaceCounterClockwise{false};
-            bool        colorBlendEnable{false};
-            bool        depthTestEnable{false};
-            bool        depthWriteEnable{false};
-            bool        depthBiasEnable{false};
-            CompareOp   depthCompareOp{CompareOp::NEVER};
-            float       depthBiasConstantFactor{0.0f};
-            float       depthBiasClamp{0.0f};
-            float       depthBiasSlopeFactor{0.0f};
-            bool        alphaToCoverageEnable{false};
+            PrimitiveTopology primitiveTopology{PrimitiveTopology::TRIANGLE_LIST};
+            CullMode          cullMode{CullMode::NONE};
+            PolygonMode       polygonMode{PolygonMode::FILL};
+            bool              frontFaceCounterClockwise{false};
+            bool              colorBlendEnable{false};
+            bool              depthTestEnable{false};
+            bool              depthWriteEnable{false};
+            bool              depthBiasEnable{false};
+            CompareOp         depthCompareOp{CompareOp::NEVER};
+            float             depthBiasConstantFactor{0.0f};
+            float             depthBiasClamp{0.0f};
+            float             depthBiasSlopeFactor{0.0f};
+            bool              alphaToCoverageEnable{false};
         };
 
     protected:
@@ -544,8 +545,6 @@ export namespace vireo {
         virtual void setViewports(uint32_t count, const vector<Extent>& extent) const = 0;
 
         virtual void setScissors(uint32_t count, const vector<Extent>& extent) const = 0;
-
-        virtual void setPrimitiveTopology(PrimitiveTopology primitiveTopology) const = 0;
 
         virtual void barrier(
             const shared_ptr<const Image>& image,

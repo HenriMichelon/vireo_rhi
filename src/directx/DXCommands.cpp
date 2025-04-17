@@ -107,8 +107,10 @@ namespace vireo {
             commandList->SetPipelineState(static_pointer_cast<const DXComputePipeline>(pipeline)->getPipelineState().Get());
             commandList->SetComputeRootSignature(static_pointer_cast<const DXPipelineResources>(pipeline->getResources())->getRootSignature().Get());
         } else {
-            commandList->SetPipelineState(static_pointer_cast<const DXGraphicPipeline>(pipeline)->getPipelineState().Get());
+            const auto dxPipeline = static_pointer_cast<const DXGraphicPipeline>(pipeline);
+            commandList->SetPipelineState(dxPipeline->getPipelineState().Get());
             commandList->SetGraphicsRootSignature(static_pointer_cast<const DXPipelineResources>(pipeline->getResources())->getRootSignature().Get());
+            commandList->IASetPrimitiveTopology(dxPipeline->getPrimitiveTopology());
         }
     }
 
@@ -154,10 +156,6 @@ namespace vireo {
             scissors[i].bottom = extent[i].height;
         }
         commandList->RSSetScissorRects(1, scissors.data());
-    }
-
-    void DXCommandList::setPrimitiveTopology(PrimitiveTopology primitiveTopology) const {
-        commandList->IASetPrimitiveTopology(dxPrimitives[static_cast<int>(primitiveTopology)]);
     }
 
     void DXCommandList::beginRendering(

@@ -169,8 +169,6 @@ namespace vireo {
         const vector dynamicStates = {
             VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT,
             VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT,
-            VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY,
-            VK_DYNAMIC_STATE_PRIMITIVE_RESTART_ENABLE,
         };
         const auto dynamicState = VkPipelineDynamicStateCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
@@ -222,7 +220,7 @@ namespace vireo {
         };
         const auto IAInfo = VkPipelineInputAssemblyStateCreateInfo{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-            .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+            .topology = vkPrimitives[static_cast<int>(configuration.primitiveTopology)],
         };
         const auto pipelineInfo = VkGraphicsPipelineCreateInfo {
             .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,

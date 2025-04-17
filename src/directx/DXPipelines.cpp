@@ -143,7 +143,8 @@ namespace vireo {
         const shared_ptr<const ShaderModule>& fragmentShader,
         const Configuration& configuration,
         const wstring& name):
-        GraphicPipeline{pipelineResources} {
+        GraphicPipeline{pipelineResources},
+        primitiveTopology{dxPrimitives[static_cast<int>(configuration.primitiveTopology)]} {
         const auto dxVertexInputLayout = static_pointer_cast<const DXVertexInputLayout>(vertexInputLayout);
         const auto dxPipelineResources = static_pointer_cast<const DXPipelineResources>(pipelineResources);
         const auto dxVertexShader = static_pointer_cast<const DXShaderModule>(vertexShader);
@@ -174,7 +175,7 @@ namespace vireo {
                 dxVertexInputLayout->getInputElementDescs().data(),
                 static_cast<UINT>(dxVertexInputLayout->getInputElementDescs().size())
             },
-            .PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,
+            .PrimitiveTopologyType = dxPrimitivesTypes[static_cast<int>(configuration.primitiveTopology)],
             .NumRenderTargets = 1,
             .RTVFormats = { DXSwapChain::RENDER_FORMAT },
             .SampleDesc = {
