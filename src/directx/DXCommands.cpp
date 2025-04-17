@@ -5,13 +5,16 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "vireo/backend/directx/Tools.h"
+#include "vireo/backend/directx/Libraries.h"
 module vireo.directx;
+
+import vireo.tools;
 
 import vireo.directx.descriptors;
 import vireo.directx.framedata;
 import vireo.directx.pipelines;
 import vireo.directx.resources;
+import vireo.directx.tools;
 
 namespace vireo {
 
@@ -21,7 +24,7 @@ namespace vireo {
             .Type = DXCommandList::ListType[static_cast<int>(type)],
             .Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
         };
-        DieIfFailed(device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&commandQueue)));
+        dxCheck(device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&commandQueue)));
     }
 
     void DXSubmitQueue::submit(
@@ -40,17 +43,17 @@ namespace vireo {
 
     void DXSubmitQueue::waitIdle() const {
         ComPtr<ID3D12Fence> inFlightFence;
-        DieIfFailed(device->CreateFence(
+        dxCheck(device->CreateFence(
             0,
             D3D12_FENCE_FLAG_NONE,
             IID_PPV_ARGS(&inFlightFence)));
         const HANDLE inFlightFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
         if (inFlightFenceEvent == nullptr) {
-            DieIfFailed(HRESULT_FROM_WIN32(GetLastError()));
+            dxCheck(HRESULT_FROM_WIN32(GetLastError()));
         }
-        DieIfFailed(commandQueue->Signal(inFlightFence.Get(), 0));
+        dxCheck(commandQueue->Signal(inFlightFence.Get(), 0));
         if (inFlightFence->GetCompletedValue() < 0) {
-            DieIfFailed(inFlightFence->SetEventOnCompletion(
+            dxCheck(inFlightFence->SetEventOnCompletion(
                 0,
                 inFlightFenceEvent));
             WaitForSingleObjectEx(inFlightFenceEvent, INFINITE, FALSE);
@@ -61,13 +64,13 @@ namespace vireo {
     DXCommandAllocator::DXCommandAllocator( const ComPtr<ID3D12Device>& device, const CommandType type):
         CommandAllocator{type},
         device{device} {
-        DieIfFailed(device->CreateCommandAllocator(
+        dxCheck(device->CreateCommandAllocator(
             DXCommandList::ListType[static_cast<int>(type)],
             IID_PPV_ARGS(&commandAllocator)));
     }
 
     void DXCommandAllocator::reset() const {
-        DieIfFailed(commandAllocator->Reset());
+        dxCheck(commandAllocator->Reset());
     }
 
     shared_ptr<CommandList> DXCommandAllocator::createCommandList(const shared_ptr<const Pipeline>& pipeline) const {
@@ -93,13 +96,13 @@ namespace vireo {
         const ComPtr<ID3D12PipelineState>& pipelineState):
         device{device},
         commandAllocator{commandAllocator} {
-        DieIfFailed(device->CreateCommandList(
+        dxCheck(device->CreateCommandList(
             0,
             ListType[static_cast<int>(type)],
             commandAllocator.Get(),
             pipelineState == nullptr ? nullptr : pipelineState.Get(),
             IID_PPV_ARGS(&commandList)));
-        DieIfFailed(commandList->Close());
+        dxCheck(commandList->Close());
     }
 
     void DXCommandList::bindPipeline(const shared_ptr<const Pipeline>& pipeline) {
@@ -260,7 +263,7 @@ namespace vireo {
             srcState = D3D12_RESOURCE_STATE_COPY_SOURCE;
             dstState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
         } else {
-            die("Not implemented");
+            throw Exception("Not implemented");
             return;
         }
         const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
@@ -283,11 +286,11 @@ namespace vireo {
     }
 
     void DXCommandList::begin() const {
-        DieIfFailed(commandList->Reset(commandAllocator.Get(), nullptr));
+        dxCheck(commandList->Reset(commandAllocator.Get(), nullptr));
     }
 
     void DXCommandList::end() const {
-        DieIfFailed(commandList->Close());
+        dxCheck(commandList->Close());
     }
 
     void DXCommandList::cleanup() {
@@ -314,7 +317,7 @@ namespace vireo {
             const auto stagingBufferSize = GetRequiredIntermediateSize(buffer->getBuffer().Get(), 0, 1);
             const auto stagingHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
             const auto stagingResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(stagingBufferSize);
-            DieIfFailed(device->CreateCommittedResource(
+            dxCheck(device->CreateCommittedResource(
                 &stagingHeapProps,
                 D3D12_HEAP_FLAG_NONE,
                 &stagingResourceDesc,
@@ -361,7 +364,7 @@ namespace vireo {
             const auto stagingBufferSize = GetRequiredIntermediateSize(image->getImage().Get(), 0, 1);
             const auto stagingHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
             const auto stagingResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(stagingBufferSize);
-            DieIfFailed(device->CreateCommittedResource(
+            dxCheck(device->CreateCommittedResource(
                 &stagingHeapProps,
                 D3D12_HEAP_FLAG_NONE,
                 &stagingResourceDesc,

@@ -5,10 +5,13 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "vireo/backend/vulkan/Tools.h"
+#include "vireo/backend/vulkan/Libraries.h"
 module vireo.vulkan.descriptors;
 
+import vireo.tools;
+
 import vireo.vulkan.resources;
+import vireo.vulkan.tools;
 
 namespace vireo {
 
@@ -49,7 +52,7 @@ namespace vireo {
         vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &setLayout);
 #ifdef _DEBUG
         vkSetObjectName(device, reinterpret_cast<uint64_t>(setLayout), VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT,
-            wstring_to_string(L"VKDescriptorLayout : " + name).c_str());
+            to_string(L"VKDescriptorLayout : " + name).c_str());
 #endif
     }
 
@@ -87,9 +90,9 @@ namespace vireo {
 
 #ifdef _DEBUG
         vkSetObjectName(device, reinterpret_cast<uint64_t>(pool), VK_OBJECT_TYPE_DESCRIPTOR_POOL,
-             wstring_to_string(L"VKDescriptorSet Pool : " + name).c_str());
+             to_string(L"VKDescriptorSet Pool : " + name).c_str());
         vkSetObjectName(device, reinterpret_cast<uint64_t>(set), VK_OBJECT_TYPE_DESCRIPTOR_SET,
-            wstring_to_string(L"VKDescriptorSet : " + name).c_str());
+            to_string(L"VKDescriptorSet : " + name).c_str());
 #endif
     }
 

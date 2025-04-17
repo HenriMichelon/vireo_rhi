@@ -7,3 +7,4 @@
 #pragma once
 #include "vireo/backend/vulkan/Vulkan.h"
 #include <vulkan/vk_enum_string_helper.h>
+#include "vireo/Libraries.h"

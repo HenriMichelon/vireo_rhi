@@ -5,8 +5,10 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "vireo/Tools.h"
+#include "vireo/Libraries.h"
 module vireo;
+
+import vireo.tools;
 
 #ifdef _WIN32
 import vireo.directx;
@@ -22,7 +24,7 @@ namespace vireo {
 #ifdef _WIN32
         return make_unique<DXVireo>(configuration);
 #endif
-        die("Unsupported backend");
+        throw Exception("Unsupported backend");
     }
 
 }

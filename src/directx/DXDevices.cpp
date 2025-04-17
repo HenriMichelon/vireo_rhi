@@ -5,8 +5,10 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "vireo/backend/directx/Tools.h"
+#include "vireo/backend/directx/Libraries.h"
 module vireo.directx.devices;
+
+import vireo.directx.tools;
 
 namespace vireo {
 
@@ -21,9 +23,9 @@ namespace vireo {
             }
         }
 #endif
-        DieIfFailed(CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&factory)));
+        dxCheck(CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&factory)));
         // This sample does not support fullscreen transitions.
-        DieIfFailed(factory->MakeWindowAssociation(hWnd, DXGI_MWA_NO_ALT_ENTER));
+        dxCheck(factory->MakeWindowAssociation(hWnd, DXGI_MWA_NO_ALT_ENTER));
     }
 
     DXPhysicalDevice::DXPhysicalDevice(const ComPtr<IDXGIFactory4>& factory) {
@@ -42,7 +44,7 @@ namespace vireo {
                     D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device), nullptr)) &&
                 dxgiAdapterDesc1.DedicatedVideoMemory > maxDedicatedVideoMemory) {
                 maxDedicatedVideoMemory = dxgiAdapterDesc1.DedicatedVideoMemory;
-                DieIfFailed(hardwareAdapter.As(&hardwareAdapter4));
+                dxCheck(hardwareAdapter.As(&hardwareAdapter4));
             }
         }
         DXGI_ADAPTER_DESC3 desc;
@@ -56,7 +58,7 @@ namespace vireo {
     }
 
     DXDevice::DXDevice(const ComPtr<IDXGIAdapter4>& hardwareAdapter4) {
-        DieIfFailed(
+        dxCheck(
             D3D12CreateDevice(
                 hardwareAdapter4.Get(),
                 D3D_FEATURE_LEVEL_11_0,
@@ -70,13 +72,13 @@ namespace vireo {
             infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, FALSE);
         }
 #endif
-        DieIfFailed(device->CreateFence(
+        dxCheck(device->CreateFence(
             0,
             D3D12_FENCE_FLAG_NONE,
             IID_PPV_ARGS(&inFlightFence)));
         inFlightFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
         if (inFlightFenceEvent == nullptr) {
-            DieIfFailed(HRESULT_FROM_WIN32(GetLastError()));
+            dxCheck(HRESULT_FROM_WIN32(GetLastError()));
         }
     }
 

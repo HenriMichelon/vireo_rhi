@@ -1,18 +1,23 @@
 /*
-* Copyright (c) 2025-present Henri Michelon
-*
-* This software is released under the MIT License.
-* https://opensource.org/licenses/MIT
+ * Copyright (c) 2024-2025 Henri Michelon
+ * 
+ * This software is released under the MIT License.
+ * https://opensource.org/licenses/MIT
 */
-#pragma once
+module;
 #include "vireo/backend/vulkan/Libraries.h"
-#include "vireo/Tools.h"
+#include "vireo/Libraries.h"
+export module vireo.vulkan.tools;
 
-namespace vireo {
+import vireo.tools;
 
-    inline void DieIfFailed(const VkResult vr) {
+export namespace vireo {
+
+    template <typename... Args>
+    [[noreturn]]
+    void vkCheck(const VkResult vr, Args&&... args) {
         if (vr != VK_SUCCESS) {
-            die(string(string_VkResult(vr)));
+            throw Exception("Vulkan error #", vr, " : ", forward<Args>(args)...);
         }
     }
 

@@ -5,10 +5,11 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "vireo/backend/directx/Tools.h"
+#include "vireo/backend/directx/Libraries.h"
 module vireo.directx.descriptors;
 
 import vireo.directx.resources;
+import vireo.directx.tools;
 
 namespace vireo {
 
@@ -39,7 +40,7 @@ namespace vireo {
             .NumDescriptors = static_cast<UINT>(layout->getCapacity()),
             .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
         };
-        DieIfFailed(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&heap)));
+        dxCheck(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&heap)));
 #ifdef _DEBUG
         heap->SetName((L"DXDescriptorSet : " + name).c_str());
 #endif

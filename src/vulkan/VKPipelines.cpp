@@ -5,8 +5,12 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "vireo/backend/vulkan/Tools.h"
+#include "vireo/backend/vulkan/Libraries.h"
 module vireo.vulkan.pipelines;
+
+import vireo.tools;
+
+import vireo.vulkan.tools;
 
 namespace vireo {
 
@@ -28,7 +32,7 @@ namespace vireo {
         device{device} {
         ifstream file(fileName + ".spv", ios::ate | ios::binary);
         if (!file.is_open()) {
-            die("failed to open shader file " + fileName);
+            throw Exception("failed to open shader file ", fileName);
         }
         const auto fileSize = static_cast<size_t>(file.tellg());
         vector<char> buffer(fileSize);
@@ -40,7 +44,7 @@ namespace vireo {
             .codeSize = buffer.size(),
             .pCode = reinterpret_cast<const uint32_t*>(buffer.data()),
         };
-        DieIfFailed(vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule));
+        vkCheck(vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule));
 #ifdef _DEBUG
         vkSetObjectName(device, reinterpret_cast<uint64_t>(shaderModule), VK_OBJECT_TYPE_SHADER_MODULE,
             "VKShaderModule : " + fileName);
@@ -83,10 +87,10 @@ namespace vireo {
             pipelineLayoutInfo.pushConstantRangeCount = 1;
             pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
         }
-        DieIfFailed(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout));
+        vkCheck(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout));
 #ifdef _DEBUG
         vkSetObjectName(device, reinterpret_cast<uint64_t>(pipelineLayout), VK_OBJECT_TYPE_PIPELINE_LAYOUT,
-            wstring_to_string(L"VKPipelineResources : " + name));
+            to_string(L"VKPipelineResources : " + name));
 #endif
     }
 
@@ -118,10 +122,10 @@ namespace vireo {
             .stage = shaderStage,
             .layout = pipelineLayout,
         };
-        DieIfFailed(vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &pipeline));
+        vkCheck(vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &pipeline));
 #ifdef _DEBUG
         vkSetObjectName(device, reinterpret_cast<uint64_t>(pipeline), VK_OBJECT_TYPE_PIPELINE,
-            wstring_to_string(L"VKComputePipeline : " + name));
+            to_string(L"VKComputePipeline : " + name));
 #endif
     }
 
@@ -242,10 +246,10 @@ namespace vireo {
             .basePipelineHandle = VK_NULL_HANDLE,
             .basePipelineIndex = -1,
         };
-        DieIfFailed(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline));
+        vkCheck(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline));
 #ifdef _DEBUG
         vkSetObjectName(device, reinterpret_cast<uint64_t>(pipeline), VK_OBJECT_TYPE_PIPELINE,
-            wstring_to_string(L"VKGraphicPipeline : " + name));
+            to_string(L"VKGraphicPipeline : " + name));
 #endif
     }
 

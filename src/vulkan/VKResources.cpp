@@ -5,8 +5,12 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "vireo/backend/vulkan/Tools.h"
+#include "vireo/backend/vulkan/Libraries.h"
 module vireo.vulkan.resources;
+
+import vireo.tools;
+
+import vireo.vulkan.tools;
 
 namespace vireo {
     VKBuffer::VKBuffer(
@@ -31,9 +35,9 @@ namespace vireo {
         createBuffer(device, bufferSize, usage, memType, buffer, bufferMemory);
 #ifdef _DEBUG
         vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(buffer), VK_OBJECT_TYPE_BUFFER,
-            "VKBuffer : " + wstring_to_string(name));
+            "VKBuffer : " + to_string(name));
         vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(bufferMemory), VK_OBJECT_TYPE_DEVICE_MEMORY,
-        "VKBuffer Memory : " + wstring_to_string(name));
+        "VKBuffer Memory : " + to_string(name));
 #endif
     }
 
@@ -67,7 +71,7 @@ namespace vireo {
             .usage = usage,
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         };
-        DieIfFailed (vkCreateBuffer(device->getDevice(), &bufferInfo, nullptr, &buffer));
+        vkCheck(vkCreateBuffer(device->getDevice(), &bufferInfo, nullptr, &buffer));
         VkMemoryRequirements memRequirements;
         vkGetBufferMemoryRequirements(device->getDevice(), buffer, &memRequirements);
         const auto allocInfo = VkMemoryAllocateInfo {
@@ -75,7 +79,7 @@ namespace vireo {
             .allocationSize = memRequirements.size,
             .memoryTypeIndex = device->getPhysicalDevice().findMemoryType(memRequirements.memoryTypeBits, memoryType)
         };
-        DieIfFailed(vkAllocateMemory(device->getDevice(), &allocInfo, nullptr, &memory));
+        vkCheck(vkAllocateMemory(device->getDevice(), &allocInfo, nullptr, &memory));
         vkBindBufferMemory(device->getDevice(), buffer, memory, 0);
     }
 
@@ -117,7 +121,7 @@ namespace vireo {
             .borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK,
             .unnormalizedCoordinates = VK_FALSE,
         };
-        DieIfFailed(vkCreateSampler(device->getDevice(), &samplerInfo, nullptr, &sampler));
+        vkCheck(vkCreateSampler(device->getDevice(), &samplerInfo, nullptr, &sampler));
     }
 
     VKSampler::~VKSampler() {
@@ -152,10 +156,10 @@ namespace vireo {
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
             .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
         };
-        DieIfFailed(vkCreateImage(device->getDevice(), &imageInfo, nullptr, &image));
+        vkCheck(vkCreateImage(device->getDevice(), &imageInfo, nullptr, &image));
 #ifdef _DEBUG
         vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(image), VK_OBJECT_TYPE_IMAGE,
-            wstring_to_string((L"VKImage : " + name)));
+            to_string((L"VKImage : " + name)));
 #endif
 
         VkMemoryRequirements memRequirements;
@@ -168,12 +172,12 @@ namespace vireo {
                 memRequirements.memoryTypeBits,
                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
         };
-        DieIfFailed(vkAllocateMemory(device->getDevice(), &allocInfo, nullptr, &imageMemory));
-        DieIfFailed(vkBindImageMemory(device->getDevice(), image, imageMemory, 0));
+        vkCheck(vkAllocateMemory(device->getDevice(), &allocInfo, nullptr, &imageMemory));
+        vkCheck(vkBindImageMemory(device->getDevice(), image, imageMemory, 0));
 
 #ifdef _DEBUG
         vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(imageMemory), VK_OBJECT_TYPE_DEVICE_MEMORY,
-        "VKImage Memory : " + wstring_to_string(name));
+        "VKImage Memory : " + to_string(name));
 #endif
 
         const auto viewInfo = VkImageViewCreateInfo {
@@ -189,10 +193,10 @@ namespace vireo {
                 .layerCount = VK_REMAINING_ARRAY_LAYERS
             }
         };
-        DieIfFailed(vkCreateImageView(device->getDevice(), &viewInfo, nullptr, &imageView));
+        vkCheck(vkCreateImageView(device->getDevice(), &viewInfo, nullptr, &imageView));
 #ifdef _DEBUG
         vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(imageView), VK_OBJECT_TYPE_IMAGE_VIEW,
-            wstring_to_string((L"VKImage view : " + name)));
+            to_string((L"VKImage view : " + name)));
 #endif
     }
 

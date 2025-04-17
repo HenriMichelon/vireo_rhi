@@ -5,8 +5,10 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "vireo/backend/directx/Tools.h"
+#include "vireo/backend/directx/Libraries.h"
 module vireo.directx.resources;
+
+import vireo.directx.tools;
 
 namespace vireo {
 
@@ -26,7 +28,7 @@ namespace vireo {
         // GPU Buffer
         const auto heapProperties = CD3DX12_HEAP_PROPERTIES(type == BufferType::UNIFORM ? D3D12_HEAP_TYPE_UPLOAD : D3D12_HEAP_TYPE_DEFAULT);
         const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
-        DieIfFailed(device->CreateCommittedResource(
+        dxCheck(device->CreateCommittedResource(
             &heapProperties,
             D3D12_HEAP_FLAG_NONE,
             &resourceDesc,
@@ -44,7 +46,7 @@ namespace vireo {
 
     void DXBuffer::map() {
         const CD3DX12_RANGE readRange(0, 0); // We do not intend to read from this resource on the CPU.
-        DieIfFailed(buffer->Map(0, &readRange, &mappedAddress));
+        dxCheck(buffer->Map(0, &readRange, &mappedAddress));
     }
 
     void DXBuffer::unmap() {
@@ -84,7 +86,7 @@ namespace vireo {
                 D3D12_RESOURCE_FLAG_NONE,
         };
 
-        DieIfFailed(device->CreateCommittedResource(
+        dxCheck(device->CreateCommittedResource(
             &heapProperties,
             D3D12_HEAP_FLAG_NONE,
             &imageDesc,

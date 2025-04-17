@@ -5,8 +5,12 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "vireo/backend/vulkan/Tools.h"
+#include "vireo/backend/vulkan/Libraries.h"
 module vireo.vulkan.devices;
+
+import vireo.tools;
+
+import vireo.vulkan.tools;
 
 namespace vireo {
 
@@ -60,7 +64,7 @@ namespace vireo {
                     break;
                 }
             }
-            if (!layerFound) { die("A requested Vulkan layer is not supported"); }
+            if (!layerFound) { throw Exception("A requested Vulkan layer is not supported"); }
         }
 
         vector<const char *> instanceExtensions{};
@@ -81,7 +85,7 @@ namespace vireo {
                                                  requestedLayers.data(),
                                                  static_cast<uint32_t>(instanceExtensions.size()),
                                                  instanceExtensions.data()};
-        DieIfFailed(vkCreateInstance(&createInfo, nullptr, &instance));
+        vkCheck(vkCreateInstance(&createInfo, nullptr, &instance));
         vulkanInitializeInstance(instance);
 
 #ifdef _DEBUG
@@ -96,7 +100,7 @@ namespace vireo {
             .pfnUserCallback = debugCallback,
             .pUserData       = nullptr,
         };
-        DieIfFailed(CreateDebugUtilsMessengerEXT(instance, &debugCreateInfo, nullptr, &debugMessenger));
+        vkCheck(CreateDebugUtilsMessengerEXT(instance, &debugCreateInfo, nullptr, &debugMessenger));
 #endif
     }
 
@@ -136,7 +140,7 @@ namespace vireo {
         uint32_t deviceCount = 0;
         vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
         if (deviceCount == 0) {
-            die("Failed to find GPUs with Vulkan support");
+            throw Exception("Failed to find GPUs with Vulkan support");
         }
 
         // Get a VkSurface for drawing in the window, must be done before picking the better physical device
@@ -149,7 +153,7 @@ namespace vireo {
                 .hwnd = static_cast<HWND>(windowHandle),
         };
         vkCreateWin32SurfaceKHR = reinterpret_cast<PFN_vkCreateWin32SurfaceKHR>(vkGetInstanceProcAddr(instance, "vkCreateWin32SurfaceKHR"));
-        DieIfFailed(vkCreateWin32SurfaceKHR(instance, &surfaceCreateInfo, nullptr, &surface));
+        vkCheck(vkCreateWin32SurfaceKHR(instance, &surfaceCreateInfo, nullptr, &surface));
 #endif
 
 
@@ -177,7 +181,7 @@ namespace vireo {
             // getAdapterDescFromOS();
             vkGetPhysicalDeviceFeatures(physicalDevice, &deviceFeatures);
         } else {
-            die("Failed to find a suitable GPU!");
+            throw Exception("Failed to find a suitable GPU!");
         }
     }
 
@@ -226,7 +230,7 @@ namespace vireo {
                 }
             i++;
         }
-        die("Could not find dedicated transfer queue family");
+        throw Exception("Could not find dedicated transfer queue family");
         return i;
     }
 
@@ -244,7 +248,7 @@ namespace vireo {
                 }
             i++;
         }
-        die("Could not find dedicated compute queue family");
+        throw Exception("Could not find dedicated compute queue family");
         return i;
     }
 
@@ -259,7 +263,7 @@ namespace vireo {
             if ((typeFilter & (1 << i)) &&
                 (memProperties.memoryTypes[i].propertyFlags & properties) == properties) { return i; }
         }
-        die("failed to find suitable memory type!");
+        throw Exception("failed to find suitable memory type!");
         return 0;
     }
 
@@ -420,7 +424,7 @@ namespace vireo {
                 .ppEnabledExtensionNames = physicalDevice.getDeviceExtensions().data(),
                 .pEnabledFeatures = VK_NULL_HANDLE,
             };
-            DieIfFailed(vkCreateDevice(physicalDevice.getPhysicalDevice(), &createInfo, nullptr, &device));
+            vkCheck(vkCreateDevice(physicalDevice.getPhysicalDevice(), &createInfo, nullptr, &device));
 #ifdef _DEBUG
             vkSetObjectName(device, reinterpret_cast<uint64_t>(device), VK_OBJECT_TYPE_DEVICE, "VKDevice");
 #endif
@@ -453,7 +457,7 @@ namespace vireo {
             }
         };
         VkImageView imageView;
-        DieIfFailed(vkCreateImageView(device, &viewInfo, nullptr, &imageView));
+        vkCheck(vkCreateImageView(device, &viewInfo, nullptr, &imageView));
         return imageView;
     }
 

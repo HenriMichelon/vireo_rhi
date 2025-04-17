@@ -61,6 +61,7 @@ target_sources(${VIREO_TARGET}
     FILE_SET CXX_MODULES
     FILES
         ${SRC_DIR}/Configuration.ixx
+        ${SRC_DIR}/Tools.ixx
         ${SRC_DIR}/Vireo.ixx
         ${SRC_DIR}/directx/DXCommands.ixx
         ${SRC_DIR}/directx/DXDescriptors.ixx
@@ -69,6 +70,7 @@ target_sources(${VIREO_TARGET}
         ${SRC_DIR}/directx/DXPipelines.ixx
         ${SRC_DIR}/directx/DXResources.ixx
         ${SRC_DIR}/directx/DXSwapChains.ixx
+        ${SRC_DIR}/directx/DXTools.ixx
         ${SRC_DIR}/directx/DXVireo.ixx
         ${SRC_DIR}/vulkan/VKCommands.ixx
         ${SRC_DIR}/vulkan/VKDevices.ixx
@@ -77,6 +79,7 @@ target_sources(${VIREO_TARGET}
         ${SRC_DIR}/vulkan/VKPipelines.ixx
         ${SRC_DIR}/vulkan/VKResources.ixx
         ${SRC_DIR}/vulkan/VKSwapChains.ixx
+        ${SRC_DIR}/vulkan/VKTools.ixx
         ${SRC_DIR}/vulkan/VKVireo.ixx
 )
 

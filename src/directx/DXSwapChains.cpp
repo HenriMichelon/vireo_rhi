@@ -5,10 +5,13 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "vireo/backend/directx/Tools.h"
+#include "vireo/backend/directx/Libraries.h"
 module vireo.directx.swapchains;
 
+import vireo.tools;
+
 import vireo.directx.commands;
+import vireo.directx.tools;
 
 namespace vireo {
 
@@ -30,7 +33,7 @@ namespace vireo {
     void DXSwapChain::create() {
         RECT windowRect{};
         if (GetClientRect(hWnd, &windowRect) == 0) {
-            die("Error getting window rect");
+            throw Exception("Error getting window rect");
             return;
         }
         const auto width = windowRect.right - windowRect.left;
@@ -50,7 +53,7 @@ namespace vireo {
         };
 
         ComPtr<IDXGISwapChain1> swapChain1;
-        DieIfFailed(factory->CreateSwapChainForHwnd(
+        dxCheck(factory->CreateSwapChainForHwnd(
             presentCommandQueue.Get(),
             // Swap chain needs the queue so that it can force a flush on it.
             hWnd,
@@ -58,7 +61,7 @@ namespace vireo {
             nullptr,
             nullptr,
             &swapChain1));
-        DieIfFailed(swapChain1.As(&swapChain));
+        dxCheck(swapChain1.As(&swapChain));
         currentFrameIndex = swapChain->GetCurrentBackBufferIndex();
 
         // Describe and create a render target view (RTV) descriptor heap.
@@ -67,7 +70,7 @@ namespace vireo {
             .NumDescriptors = FRAMES_IN_FLIGHT,
             .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
         };
-        DieIfFailed(device->getDevice()->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap)));
+        dxCheck(device->getDevice()->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap)));
         rtvDescriptorSize = device->getDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 #ifdef _DEBUG
         rtvHeap->SetName(L"SwapChain Heap");
@@ -80,7 +83,7 @@ namespace vireo {
             .ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D,
         };
         for (UINT n = 0; n < FRAMES_IN_FLIGHT; n++) {
-            DieIfFailed(swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTargets[n])));
+            dxCheck(swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTargets[n])));
 #ifdef _DEBUG
             renderTargets[n]->SetName(L"SwapChain BackBuffer " + n);
 #endif
@@ -101,7 +104,7 @@ namespace vireo {
     void DXSwapChain::recreate() {
         RECT windowRect{};
         if (GetClientRect(hWnd, &windowRect) == 0) {
-            die("Error getting window rect");
+            throw Exception("Error getting window rect");
         }
         const auto width = windowRect.right - windowRect.left;
         const auto height = windowRect.bottom - windowRect.top;
@@ -115,9 +118,9 @@ namespace vireo {
             }
 
             auto swapDesc = DXGI_SWAP_CHAIN_DESC{};
-            DieIfFailed(swapChain->GetDesc(&swapDesc));
+            dxCheck(swapChain->GetDesc(&swapDesc));
 
-            DieIfFailed(swapChain->ResizeBuffers(
+            dxCheck(swapChain->ResizeBuffers(
                 FRAMES_IN_FLIGHT,
                 width,
                 height,
@@ -131,7 +134,7 @@ namespace vireo {
                 .ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D,
             };
             for (UINT n = 0; n < FRAMES_IN_FLIGHT; n++) {
-                DieIfFailed(swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTargets[n])));
+                dxCheck(swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTargets[n])));
 #ifdef _DEBUG
                 renderTargets[n]->SetName(L"SwapChain BackBuffer " + n);
 #endif
@@ -144,9 +147,9 @@ namespace vireo {
     }
 
     void DXSwapChain::waitForLastPresentedFrame() {
-        DieIfFailed(presentCommandQueue->Signal(device->getInFlightFence().Get(), lastPresentedFenceValue));
+        dxCheck(presentCommandQueue->Signal(device->getInFlightFence().Get(), lastPresentedFenceValue));
         if (device->getInFlightFence()->GetCompletedValue() < lastPresentedFenceValue) {
-            DieIfFailed(device->getInFlightFence()->SetEventOnCompletion(
+            dxCheck(device->getInFlightFence()->SetEventOnCompletion(
                 lastPresentedFenceValue,
                 device->getInFlightFenceEvent()
             ));
@@ -162,10 +165,10 @@ namespace vireo {
     bool DXSwapChain::acquire(const shared_ptr<FrameData>& frameData) {
         const auto data = static_pointer_cast<DXFrameData>(frameData);
         const auto currentFenceValue = data->inFlightFenceValue;
-        DieIfFailed(presentCommandQueue->Signal(device->getInFlightFence().Get(), currentFenceValue));
+        dxCheck(presentCommandQueue->Signal(device->getInFlightFence().Get(), currentFenceValue));
         // If the next frame is not ready to be rendered yet, wait until it is ready.
         if (device->getInFlightFence()->GetCompletedValue() < currentFenceValue) {
-            DieIfFailed(device->getInFlightFence()->SetEventOnCompletion(
+            dxCheck(device->getInFlightFence()->SetEventOnCompletion(
                 currentFenceValue,
                 device->getInFlightFenceEvent()
             ));
@@ -176,7 +179,7 @@ namespace vireo {
 
     void DXSwapChain::present(const shared_ptr<FrameData>& frameData) {
         const auto data = static_pointer_cast<DXFrameData>(frameData);
-        DieIfFailed(swapChain->Present(syncInterval, presentFlags));
+        dxCheck(swapChain->Present(syncInterval, presentFlags));
         data->inFlightFenceValue += 1;
         lastPresentedFenceValue = data->inFlightFenceValue;
     }

@@ -5,12 +5,15 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "vireo/backend/vulkan/Tools.h"
+#include "vireo/backend/vulkan/Libraries.h"
 module vireo.vulkan;
+
+import vireo.tools;
 
 import vireo.vulkan.descriptors;
 import vireo.vulkan.framedata;
 import vireo.vulkan.pipelines;
+import vireo.vulkan.tools;
 
 namespace vireo {
 
@@ -52,7 +55,7 @@ namespace vireo {
             .signalSemaphoreInfoCount = 1,
             .pSignalSemaphoreInfos    = &data->renderFinishedSemaphoreSubmitInfo
         };
-        DieIfFailed(vkQueueSubmit2(commandQueue, 1, &submitInfo, data->inFlightFence));
+        vkCheck(vkQueueSubmit2(commandQueue, 1, &submitInfo, data->inFlightFence));
     }
 
     void VKSubmitQueue::submit(const vector<shared_ptr<const CommandList>>& commandLists) const {
@@ -70,7 +73,7 @@ namespace vireo {
             .pCommandBufferInfos      = submitInfos.data(),
             .signalSemaphoreInfoCount = 0,
         };
-        DieIfFailed(vkQueueSubmit2(commandQueue, 1, &submitInfo, VK_NULL_HANDLE));
+        vkCheck(vkQueueSubmit2(commandQueue, 1, &submitInfo, VK_NULL_HANDLE));
     }
 
     VKCommandAllocator::VKCommandAllocator(const shared_ptr<const VKDevice>& device, const CommandType type):
@@ -84,7 +87,7 @@ namespace vireo {
                 type == CommandType::TRANSFER ?  device->getTransferQueueFamilyIndex() :
                 device->getGraphicsQueueFamilyIndex()
         };
-        DieIfFailed(vkCreateCommandPool(device->getDevice(), &poolInfo, nullptr, &commandPool));
+        vkCheck(vkCreateCommandPool(device->getDevice(), &poolInfo, nullptr, &commandPool));
     }
 
     void VKCommandAllocator::reset() const {
@@ -111,7 +114,7 @@ namespace vireo {
             .level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
             .commandBufferCount = 1,
         };
-        DieIfFailed(vkAllocateCommandBuffers(device->getDevice(), &allocInfo, &commandBuffer));
+        vkCheck(vkAllocateCommandBuffers(device->getDevice(), &allocInfo, &commandBuffer));
     }
 
     void VKCommandList::bindVertexBuffer(const shared_ptr<const Buffer>& buffer) const {
@@ -335,7 +338,7 @@ namespace vireo {
             srcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_GENERAL;
         } else {
-            die("Not implemented");
+            throw Exception("Not implemented");
             return;
         }
         const auto barrier = VkImageMemoryBarrier {
@@ -412,11 +415,11 @@ namespace vireo {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         };
         vkResetCommandBuffer(commandBuffer, 0);
-        DieIfFailed(vkBeginCommandBuffer(commandBuffer, &beginInfo));
+        vkCheck(vkBeginCommandBuffer(commandBuffer, &beginInfo));
     }
 
     void VKCommandList::end() const {
-        DieIfFailed(vkEndCommandBuffer(commandBuffer));
+        vkCheck(vkEndCommandBuffer(commandBuffer));
     }
 
     void VKCommandList::cleanup() {

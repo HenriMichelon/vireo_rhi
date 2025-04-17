@@ -5,12 +5,15 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "vireo/backend/vulkan/Tools.h"
+#include "vireo/backend/vulkan/Libraries.h"
 module vireo.vulkan;
+
+import vireo.tools;
 
 import vireo.vulkan.descriptors;
 import vireo.vulkan.framedata;
 import vireo.vulkan.pipelines;
+import vireo.vulkan.tools;
 
 namespace vireo {
 
@@ -53,7 +56,7 @@ namespace vireo {
         if (vkCreateSemaphore(getVKDevice()->getDevice(), &semaphoreInfo, nullptr, &data->imageAvailableSemaphore) != VK_SUCCESS
             || vkCreateSemaphore(getVKDevice()->getDevice(), &semaphoreInfo, nullptr, &data->renderFinishedSemaphore) != VK_SUCCESS
             || vkCreateFence(getVKDevice()->getDevice(), &fenceInfo, nullptr, &data->inFlightFence) != VK_SUCCESS) {
-            die("failed to create semaphores!");
+            throw Exception("failed to create semaphores!");
         }
         data->imageAvailableSemaphoreSubmitInfo = {
             .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,

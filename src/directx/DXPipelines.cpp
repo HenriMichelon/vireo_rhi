@@ -5,11 +5,14 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "vireo/backend/directx/Tools.h"
+#include "vireo/backend/directx/Libraries.h"
 module vireo.directx.pipelines;
+
+import vireo.tools;
 
 import vireo.directx.descriptors;
 import vireo.directx.swapchains;
+import vireo.directx.tools;
 
 namespace vireo {
 
@@ -30,13 +33,11 @@ namespace vireo {
     DXShaderModule::DXShaderModule(const string& fileName) {
         ifstream shaderFile(fileName + ".dxil", ios::binary | ios::ate);
         if (!shaderFile) {
-            die("Error loading shader " + fileName);
+            throw Exception("Error loading shader ", fileName);
         }
         streamsize size = shaderFile.tellg();
         shaderFile.seekg(0, ios::beg);
-        if (FAILED(D3DCreateBlob(size, &shader))) {
-            die("Error creating blob for  shader " + fileName);
-        }
+        dxCheck(D3DCreateBlob(size, &shader), "Error creating blob for  shader ");
         shaderFile.read(static_cast<char*>(shader->GetBufferPointer()), size);
     }
 
@@ -103,10 +104,10 @@ namespace vireo {
             &signature,
             &error);
         if (FAILED(hr)){
-            die(static_cast<char*>(error->GetBufferPointer()));
+            throw Exception(static_cast<char*>(error->GetBufferPointer()));
         }
 
-        DieIfFailed(device->CreateRootSignature(
+        dxCheck(device->CreateRootSignature(
             0,
             signature->GetBufferPointer(),
             signature->GetBufferSize(),
@@ -129,7 +130,7 @@ namespace vireo {
             .CS = CD3DX12_SHADER_BYTECODE(dxShader->getShader().Get()),
         };
 
-        DieIfFailed(device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)));
+        dxCheck(device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)));
 #ifdef _DEBUG
         pipelineState->SetName((L"DXComputePipeline : " + name).c_str());
 #endif
@@ -183,7 +184,7 @@ namespace vireo {
             }
         };
         psoDesc.BlendState.AlphaToCoverageEnable = configuration.alphaToCoverageEnable;
-        DieIfFailed(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)));
+        dxCheck(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)));
 #ifdef _DEBUG
         pipelineState->SetName((L"DXGraphicPipeline : " + name).c_str());
 #endif

@@ -204,6 +204,7 @@ export namespace vireo {
         virtual ~FrameData() = default;
     };
 
+
     class Instance {
     public:
         virtual ~Instance() = default;

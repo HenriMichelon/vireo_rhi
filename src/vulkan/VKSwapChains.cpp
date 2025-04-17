@@ -5,11 +5,14 @@
 * https://opensource.org/licenses/MIT
 */
 module;
-#include "vireo/backend/vulkan/Tools.h"
+#include "vireo/backend/vulkan/Libraries.h"
 module vireo.vulkan.swapchains;
+
+import vireo.tools;
 
 import vireo.vulkan.commands;
 import vireo.vulkan.framedata;
+import vireo.vulkan.tools;
 
 namespace vireo {
 
@@ -73,7 +76,7 @@ namespace vireo {
                 createInfo.pQueueFamilyIndices   = nullptr;
             }
             // Need VK_KHR_SWAPCHAIN extension, or it will crash (no validation error)
-            DieIfFailed(vkCreateSwapchainKHR(device->getDevice(), &createInfo, nullptr, &swapChain));
+            vkCheck(vkCreateSwapchainKHR(device->getDevice(), &createInfo, nullptr, &swapChain));
 #ifdef _DEBUG
             vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(swapChain), VK_OBJECT_TYPE_SWAPCHAIN_KHR,
                 "VKSwapChain");
@@ -95,9 +98,9 @@ namespace vireo {
                                                      1);
 #ifdef _DEBUG
             vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(swapChainImageViews[i]), VK_OBJECT_TYPE_IMAGE_VIEW,
-                "VKSwapChain Image View " + to_string(i));
+                "VKSwapChain Image View " + std::to_string(i));
             vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(swapChainImages[i]), VK_OBJECT_TYPE_IMAGE,
-                "VKSwapChain Image " + to_string(i));
+                "VKSwapChain Image " + std::to_string(i));
 #endif
         }
     }
@@ -171,7 +174,7 @@ namespace vireo {
 #ifdef _WIN32
         RECT windowRect{};
         if (GetClientRect(hWnd, &windowRect) == 0) {
-            die("Error getting window rect");
+            throw Exception("Error getting window rect");
         }
         const VkExtent2D actualExtent{
             .width = static_cast<uint32_t>(windowRect.right - windowRect.left),
@@ -208,7 +211,7 @@ namespace vireo {
             if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
                 recreate();
             } else if (result != VK_SUCCESS) {
-                die("failed to present swap chain image!");
+                throw Exception("failed to present swap chain image!");
             }
         }
     }
@@ -217,7 +220,7 @@ namespace vireo {
         const auto data = static_pointer_cast<VKFrameData>(frameData);
         // wait until the GPU has finished rendering the frame.
         if (vkWaitForFences(device->getDevice(), 1, &data->inFlightFence, VK_TRUE, UINT64_MAX) == VK_TIMEOUT) {
-            die("timeout waiting for inFlightFence");
+            throw Exception("timeout waiting for inFlightFence");
             return false;
         }
         // get the next available swap chain image
@@ -235,7 +238,7 @@ namespace vireo {
                 return false;
             }
             if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-                die("failed to acquire swap chain image :", to_string(result));
+                throw Exception("failed to acquire swap chain image :", to_string(result));
             }
         }
         vkResetFences(device->getDevice(), 1, &data->inFlightFence);
