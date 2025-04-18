@@ -20,7 +20,6 @@ export namespace vireo {
         VkSemaphore             renderFinishedSemaphore{VK_NULL_HANDLE};
         VkSemaphoreSubmitInfo   renderFinishedSemaphoreSubmitInfo{};
         VkFence                 inFlightFence{VK_NULL_HANDLE};
-        uint32_t                imageIndex{0};
         shared_ptr<VKImage>     multisampledAttachment{nullptr};
     };
 

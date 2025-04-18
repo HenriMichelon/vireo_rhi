@@ -29,9 +29,13 @@ export namespace vireo {
 
         auto getFormat() const { return swapChainImageFormat; }
 
-        const auto& getImageViews() const { return swapChainImageViews; }
+        // const auto& getImageViews() const { return swapChainImageViews; }
 
-        const auto& getImages() const { return swapChainImages; }
+        // const auto& getImages() const { return swapChainImages; }
+
+        auto getCurrentImage() const { return swapChainImages[imageIndex[currentFrameIndex]]; }
+
+        auto getCurrentImageView() const { return swapChainImageViews[imageIndex[currentFrameIndex]]; }
 
         void nextSwapChain() override;
 
@@ -62,6 +66,8 @@ export namespace vireo {
         VkExtent2D              swapChainExtent;
         vector<VkImageView>     swapChainImageViews;
         VkQueue                 presentQueue;
+        vector<uint32_t>        imageIndex;
+
 
 #ifdef _WIN32
         HWND hWnd;

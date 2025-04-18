@@ -28,6 +28,7 @@ namespace vireo {
         hWnd{static_cast<HWND>(windowHandle)}
 #endif
     {
+        imageIndex.resize(FRAMES_IN_FLIGHT);
         vkGetDeviceQueue(
             device->getDevice(),
             device->getPresentQueueFamilyIndex(),
@@ -205,7 +206,7 @@ namespace vireo {
                 .pWaitSemaphores    = &data->renderFinishedSemaphore,
                 .swapchainCount     = 1,
                 .pSwapchains        = swapChains,
-                .pImageIndices      = &data->imageIndex,
+                .pImageIndices      = &imageIndex[currentFrameIndex],
                 .pResults           = nullptr // Optional
             };
             const auto result = vkQueuePresentKHR(presentQueue, &presentInfo);
@@ -232,10 +233,9 @@ namespace vireo {
                  UINT64_MAX,
                  data->imageAvailableSemaphore,
                  VK_NULL_HANDLE,
-                 &data->imageIndex);
+                 &imageIndex[currentFrameIndex]);
             if (result == VK_ERROR_OUT_OF_DATE_KHR) {
                 recreate();
-                // for (const auto &renderer : renderers) { renderer->recreateImagesResources(); }
                 return false;
             }
             if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {

@@ -192,17 +192,16 @@ namespace vireo {
           const shared_ptr<SwapChain>& swapChain,
           const float clearColor[]) const {
         const auto vkSwapChain = static_pointer_cast<VKSwapChain>(swapChain);
-        const auto imageIndex = static_pointer_cast<VKFrameData>(frameData)->imageIndex;
         if (device->getPhysicalDevice().getSampleCount() == VK_SAMPLE_COUNT_1_BIT) {
             beginRendering(
-                vkSwapChain->getImageViews()[imageIndex],
+                vkSwapChain->getCurrentImageView(),
                 vkSwapChain->getExtent().width,
                 vkSwapChain->getExtent().height,
                 clearColor);
         } else {
             beginRendering(
                 frameData,
-                vkSwapChain->getImageViews()[imageIndex],
+                vkSwapChain->getCurrentImageView(),
                 vkSwapChain->getExtent().width,
                 vkSwapChain->getExtent().height,
                 clearColor);
@@ -460,7 +459,7 @@ namespace vireo {
         const ResourceState newState) const {
         const auto data = static_pointer_cast<const VKFrameData>(frameData);
         const auto vkSwapChain = static_pointer_cast<const VKSwapChain>(swapChain);
-        barrier(vkSwapChain->getImages()[data->imageIndex], oldState, newState);
+        barrier(vkSwapChain->getCurrentImage(), oldState, newState);
     }
 
     void VKCommandList::pushConstants(
@@ -603,7 +602,7 @@ namespace vireo {
 
         vkCmdCopyImage(commandBuffer,
                        vkSource->getImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                       vkSwapChain->getImages()[data->imageIndex], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                       vkSwapChain->getCurrentImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                        1, &copyRegion);
     }
 
@@ -635,7 +634,7 @@ namespace vireo {
 
         vkCmdBlitImage(commandBuffer,
                        vkSource->getImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                       vkSwapChain->getImages()[data->imageIndex], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                       vkSwapChain->getCurrentImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                        1, &blitRegion,
                        filter == Filter::LINEAR ? VK_FILTER_LINEAR  : VK_FILTER_NEAREST);
     }
