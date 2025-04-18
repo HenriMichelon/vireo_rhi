@@ -75,16 +75,20 @@ export namespace vireo {
             Filter filter) const override;
 
         void beginRendering(
-            const shared_ptr<FrameData>& frameData,
             const shared_ptr<SwapChain>& swapChain,
             const float clearColor[]) const override;
 
         void beginRendering(
-            const shared_ptr<FrameData>& frameData,
+            const shared_ptr<RenderTarget>& multisampledRenderTarget,
+            const shared_ptr<SwapChain>& swapChain,
+            const float clearColor[]) const override;
+
+        void beginRendering(
             const shared_ptr<RenderTarget>& renderTarget,
             const float clearColor[]) const override;
 
         void beginRendering(
+            const shared_ptr<RenderTarget>& multisampledRenderTarget,
             const shared_ptr<RenderTarget>& renderTarget,
             const float clearColor[]) const override;
 
@@ -142,7 +146,8 @@ export namespace vireo {
             const float clearColor[]) const;
 
         void beginRendering(
-            const shared_ptr<FrameData>& frameData,
+            VkImage multisampledImage,
+            VkImageView multisampledImageView,
             VkImageView imageView,
             uint32_t width,
             uint32_t height,

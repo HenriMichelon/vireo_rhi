@@ -42,7 +42,8 @@ export namespace vireo {
             VK_SAMPLE_COUNT_64_BIT,
         };
 
-        VKPhysicalDevice(VkInstance instance, void* windowHandle, MSAA msaa);
+        VKPhysicalDevice(VkInstance instance, void* windowHandle);
+
         ~VKPhysicalDevice() override;
 
         auto getPhysicalDevice() const { return physicalDevice; }

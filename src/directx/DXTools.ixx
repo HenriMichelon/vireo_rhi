@@ -14,7 +14,6 @@ import vireo.tools;
 export namespace vireo {
 
     template <typename... Args>
-    [[noreturn]]
     void dxCheck(const HRESULT hr, Args&&... args) {
         if (FAILED(hr)) {
              throw Exception("DirectX error : ", forward<Args>(args)...);

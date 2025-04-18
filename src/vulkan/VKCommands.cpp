@@ -188,24 +188,29 @@ namespace vireo {
     }
 
     void VKCommandList::beginRendering(
-          const shared_ptr<FrameData>& frameData,
           const shared_ptr<SwapChain>& swapChain,
           const float clearColor[]) const {
         const auto vkSwapChain = static_pointer_cast<VKSwapChain>(swapChain);
-        if (device->getPhysicalDevice().getSampleCount() == VK_SAMPLE_COUNT_1_BIT) {
-            beginRendering(
-                vkSwapChain->getCurrentImageView(),
-                vkSwapChain->getExtent().width,
-                vkSwapChain->getExtent().height,
-                clearColor);
-        } else {
-            beginRendering(
-                frameData,
-                vkSwapChain->getCurrentImageView(),
-                vkSwapChain->getExtent().width,
-                vkSwapChain->getExtent().height,
-                clearColor);
-        }
+        beginRendering(
+            vkSwapChain->getCurrentImageView(),
+            vkSwapChain->getExtent().width,
+            vkSwapChain->getExtent().height,
+            clearColor);
+    }
+
+    void VKCommandList::beginRendering(
+      const shared_ptr<RenderTarget>& multisampledRenderTarget,
+      const shared_ptr<SwapChain>& swapChain,
+      const float clearColor[]) const {
+        const auto vkMultiSampledImage = static_pointer_cast<VKImage>(multisampledRenderTarget->getImage());
+        const auto vkSwapChain = static_pointer_cast<VKSwapChain>(swapChain);
+        beginRendering(
+            vkMultiSampledImage->getImage(),
+            vkMultiSampledImage->getImageView(),
+            vkSwapChain->getCurrentImageView(),
+            vkSwapChain->getExtent().width,
+            vkSwapChain->getExtent().height,
+            clearColor);
     }
 
     void VKCommandList::beginRendering(
@@ -220,37 +225,31 @@ namespace vireo {
     }
 
     void VKCommandList::beginRendering(
-        const shared_ptr<FrameData>& frameData,
+        const shared_ptr<RenderTarget>& multisampledRenderTarget,
         const shared_ptr<RenderTarget>& renderTarget,
         const float clearColor[]) const {
+        const auto vkMultiSampledImage = static_pointer_cast<VKImage>(multisampledRenderTarget->getImage());
         const auto vkImage = static_pointer_cast<VKImage>(renderTarget->getImage());
-        if (device->getPhysicalDevice().getSampleCount() == VK_SAMPLE_COUNT_1_BIT) {
-            beginRendering(
-                vkImage->getImageView(),
-                vkImage->getWidth(),
-                vkImage->getHeight(),
-                clearColor);
-        } else {
-            beginRendering(
-                frameData,
-                vkImage->getImageView(),
-                vkImage->getWidth(),
-                vkImage->getHeight(),
-                clearColor);
-        }
+        beginRendering(
+            vkMultiSampledImage->getImage(),
+            vkMultiSampledImage->getImageView(),
+            vkImage->getImageView(),
+            vkImage->getWidth(),
+            vkImage->getHeight(),
+            clearColor);
     }
 
     void VKCommandList::beginRendering(
-        const shared_ptr<FrameData>& frameData,
+        const VkImage multisampledImage,
+        const VkImageView multisampledImageView,
         const VkImageView imageView,
         const uint32_t width,
         const uint32_t height,
         const float clearColor[]) const {
-        const auto vkFrameData = static_pointer_cast<VKFrameData>(frameData);
-        barrier(vkFrameData->multisampledAttachment->getImage(), ResourceState::UNDEFINED, ResourceState::RENDER_TARGET);
+        barrier(multisampledImage, ResourceState::UNDEFINED, ResourceState::RENDER_TARGET);
         const auto colorAttachmentInfo = VkRenderingAttachmentInfo {
             .sType              = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
-            .imageView          = vkFrameData->multisampledAttachment->getImageView(),
+            .imageView          = multisampledImageView,
             .imageLayout        = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
             .resolveMode        = VK_RESOLVE_MODE_AVERAGE_BIT,
             .resolveImageView   = imageView,

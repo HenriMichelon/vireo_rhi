@@ -347,6 +347,22 @@ export namespace vireo {
             16, // BC7_UNORM_SRGB
         };
 
+        enum class MSAA : uint8_t {
+            NONE = 0,
+            //! 2x MSAA
+            X2   = 1,
+            //! 4x MSAA
+            X4   = 2,
+            //! 8x MSAA
+            X8   = 3,
+            //! 16x MSAA
+            X16  = 4,
+            //! 32x MSAA
+            X32  = 5,
+            //! 64x MSAA
+            X64  = 6
+        };
+
         virtual ~Image() = default;
 
         auto getFormat() const { return format; }
@@ -522,16 +538,20 @@ export namespace vireo {
             Filter filter = Filter::NEAREST) const = 0;
 
         virtual void beginRendering(
-            const shared_ptr<FrameData>& frameData,
             const shared_ptr<SwapChain>& swapChain,
             const float clearColor[]) const = 0;
 
         virtual void beginRendering(
-            const shared_ptr<FrameData>& frameData,
+            const shared_ptr<RenderTarget>& multisampledRenderTarget,
+            const shared_ptr<SwapChain>& swapChain,
+            const float clearColor[]) const = 0;
+
+        virtual void beginRendering(
             const shared_ptr<RenderTarget>& renderTarget,
             const float clearColor[]) const = 0;
 
         virtual void beginRendering(
+            const shared_ptr<RenderTarget>& multisampledRenderTarget,
             const shared_ptr<RenderTarget>& renderTarget,
             const float clearColor[]) const = 0;
 

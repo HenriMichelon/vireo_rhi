@@ -78,18 +78,22 @@ export namespace vireo {
             Filter filter) const override;
 
         void beginRendering(
-            const shared_ptr<FrameData>& frameData,
             const shared_ptr<SwapChain>& swapChain,
             const float clearColor[]) const override;
 
         void beginRendering(
-            const shared_ptr<FrameData>& frameData,
-            const shared_ptr<RenderTarget>& renderTarget,
-            const float clearColor[]) const override { throw runtime_error("DXCommandList::beginRendering(const shared_ptr<FrameData>&, const shared_ptr<RenderTarget>&, const float clearColor[]) const override");};
+            const shared_ptr<RenderTarget>& multisampledRenderTarget,
+            const shared_ptr<SwapChain>& swapChain,
+            const float clearColor[]) const override { throw runtime_error("DXCommandList::beginRendering(const shared_ptr<FrameData>&, const shared_ptr<SwapChain>&, const float clearColor[]) const override");};
 
         void beginRendering(
             const shared_ptr<RenderTarget>& renderTarget,
             const float clearColor[]) const override;
+
+        void beginRendering(
+            const shared_ptr<RenderTarget>& multisampledRenderTarget,
+            const shared_ptr<RenderTarget>& renderTarget,
+            const float clearColor[]) const override { throw runtime_error("DXCommandList::beginRendering(const shared_ptr<FrameData>&, const shared_ptr<RenderTarget>&, const float clearColor[]) const override");};
 
         void dispatch(uint32_t x, uint32_t y, uint32_t z) const override;
 

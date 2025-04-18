@@ -125,7 +125,7 @@ namespace vireo {
     PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
 #endif
 
-    VKPhysicalDevice::VKPhysicalDevice(const VkInstance instance, void* windowHandle, const MSAA msaa):
+    VKPhysicalDevice::VKPhysicalDevice(const VkInstance instance, void* windowHandle):
         instance(instance),
         // Requested device extensions
         deviceExtensions {
@@ -179,10 +179,6 @@ namespace vireo {
         if (candidates.rbegin()->first > 0) {
             // Select the better suitable device found
             physicalDevice = candidates.rbegin()->second;
-            // Validate the MSAA parameter
-            if (msaa != MSAA::NONE) {
-                sampleCount = min(vkSampleCountFlag[static_cast<int>(msaa)], getMaxUsableMSAASampleCount());
-            }
             deviceProperties.pNext = &physDeviceIDProps;
             vkGetPhysicalDeviceProperties2(physicalDevice, &deviceProperties);
             // Get the GPU description and total memory

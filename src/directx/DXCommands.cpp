@@ -162,7 +162,6 @@ namespace vireo {
     }
 
     void DXCommandList::beginRendering(
-        const shared_ptr<FrameData>&,
         const shared_ptr<SwapChain>& swapChain,
         const float clearColor[]) const {
         const auto dxSwapChain = static_pointer_cast<const DXSwapChain>(swapChain);
