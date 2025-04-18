@@ -11,7 +11,6 @@ module vireo.vulkan;
 import vireo.tools;
 
 import vireo.vulkan.descriptors;
-import vireo.vulkan.framedata;
 import vireo.vulkan.pipelines;
 import vireo.vulkan.tools;
 
@@ -35,27 +34,6 @@ namespace vireo {
 #endif
             configuration.presentMode
         );
-    }
-
-    void VKVireo::destroyFrameData(const shared_ptr<FrameData>& frameData) {
-        const auto data = static_pointer_cast<VKFrameData>(frameData);
-    }
-
-    shared_ptr<FrameData> VKVireo::createFrameData(const uint32_t frameIndex) {
-        auto data = make_shared<VKFrameData>();
-        // if (configuration.msaa != MSAA::NONE) {
-        //     data->multisampledAttachment = make_shared<VKImage>(
-        //         getVKDevice(),
-        //         VKSwapChain::RENDER_FORMAT,
-        //         getSwapChain()->getExtent().width,
-        //         getSwapChain()->getExtent().height,
-        //         L"Multisampled Attachment " + to_wstring(frameIndex),
-        //         false,
-        //         true,
-        //         getVKPhysicalDevice()->getSampleCount());
-        // }
-
-        return data;
     }
 
     shared_ptr<VertexInputLayout> VKVireo::createVertexLayout(

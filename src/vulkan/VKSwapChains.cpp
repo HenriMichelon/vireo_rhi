@@ -11,7 +11,6 @@ module vireo.vulkan.swapchains;
 import vireo.tools;
 
 import vireo.vulkan.commands;
-import vireo.vulkan.framedata;
 import vireo.vulkan.resources;
 import vireo.vulkan.tools;
 
@@ -215,8 +214,7 @@ namespace vireo {
         currentFrameIndex = (currentFrameIndex + 1) % FRAMES_IN_FLIGHT;
     }
 
-    void VKSwapChain::present(const shared_ptr<FrameData>& frameData) {
-        const auto data = static_pointer_cast<VKFrameData>(frameData);
+    void VKSwapChain::present() {
         {
             const VkSwapchainKHR   swapChains[] = { swapChain };
             const VkPresentInfoKHR presentInfo{

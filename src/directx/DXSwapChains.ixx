@@ -11,7 +11,6 @@ export module vireo.directx.swapchains;
 import vireo;
 import vireo.config;
 import vireo.directx.devices;
-import vireo.directx.framedata;
 
 export namespace vireo {
 
@@ -39,7 +38,7 @@ export namespace vireo {
 
         bool acquire(const shared_ptr<Fence>& fence) override;
 
-        void present(const shared_ptr<FrameData>& frameData) override;
+        void present() override;
 
         void recreate() override;
 

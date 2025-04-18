@@ -181,8 +181,7 @@ namespace vireo {
         return true;
     }
 
-    void DXSwapChain::present(const shared_ptr<FrameData>& frameData) {
-        const auto data = static_pointer_cast<DXFrameData>(frameData);
+    void DXSwapChain::present() {
         dxCheck(swapChain->Present(syncInterval, presentFlags));
     }
 }

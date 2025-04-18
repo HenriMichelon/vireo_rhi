@@ -11,7 +11,6 @@ module vireo.directx;
 import vireo.tools;
 
 import vireo.directx.descriptors;
-import vireo.directx.framedata;
 import vireo.directx.pipelines;
 import vireo.directx.resources;
 import vireo.directx.tools;
@@ -218,7 +217,6 @@ namespace vireo {
     }
 
     void DXCommandList::barrier(
-        const shared_ptr<const FrameData>& frameData,
         const shared_ptr<const SwapChain>& swapChain,
         const ResourceState oldState,
         const ResourceState newState) const {
@@ -398,9 +396,7 @@ namespace vireo {
 
     void DXCommandList::copy(
         const shared_ptr<const Image>& source,
-        const shared_ptr<const FrameData>& frameData,
         const shared_ptr<const SwapChain>& swapChain) const {
-        const auto data = static_pointer_cast<const DXFrameData>(frameData);
         const auto dxSource = static_pointer_cast<const DXImage>(source);
         const auto dxSwapChain = static_pointer_cast<const DXSwapChain>(swapChain);
 
@@ -420,10 +416,9 @@ namespace vireo {
 
     void DXCommandList::blit(
        const shared_ptr<const Image>& source,
-       const shared_ptr<const FrameData>& frameData,
        const shared_ptr<const SwapChain>& swapChain,
        Filter filter) const {
-       copy(source, frameData, swapChain);
+       copy(source, swapChain);
     }
 
 }

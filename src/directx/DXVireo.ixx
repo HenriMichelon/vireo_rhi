@@ -28,8 +28,6 @@ export namespace vireo {
 
         shared_ptr<CommandAllocator> createCommandAllocator(CommandType type) const override;
 
-        shared_ptr<FrameData> createFrameData(uint32_t frameIndex) override;
-
         shared_ptr<VertexInputLayout> createVertexLayout(
             size_t size,
             const vector<VertexAttributeDesc>& attributesDescriptions) const override;

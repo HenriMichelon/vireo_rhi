@@ -65,12 +65,10 @@ export namespace vireo {
 
         void copy(
             const shared_ptr<const Image>& source,
-            const shared_ptr<const FrameData>& frameData,
             const shared_ptr<const SwapChain>& swapChain) const override;
 
         void blit(
             const shared_ptr<const Image>& source,
-            const shared_ptr<const FrameData>& frameData,
             const shared_ptr<const SwapChain>& swapChain,
             Filter filter) const override;
 
@@ -121,7 +119,6 @@ export namespace vireo {
             ResourceState newState) const override;
 
         void barrier(
-            const shared_ptr<const FrameData>& frameData,
             const shared_ptr<const SwapChain>& swapChain,
             ResourceState oldState,
             ResourceState newState) const override;

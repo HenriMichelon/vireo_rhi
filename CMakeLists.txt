@@ -66,7 +66,6 @@ target_sources(${VIREO_TARGET}
         ${SRC_DIR}/directx/DXCommands.ixx
         ${SRC_DIR}/directx/DXDescriptors.ixx
         ${SRC_DIR}/directx/DXDevices.ixx
-        ${SRC_DIR}/directx/DXFrameData.ixx
         ${SRC_DIR}/directx/DXPipelines.ixx
         ${SRC_DIR}/directx/DXResources.ixx
         ${SRC_DIR}/directx/DXSwapChains.ixx
@@ -75,7 +74,6 @@ target_sources(${VIREO_TARGET}
         ${SRC_DIR}/vulkan/VKCommands.ixx
         ${SRC_DIR}/vulkan/VKDevices.ixx
         ${SRC_DIR}/vulkan/VKDescriptors.ixx
-        ${SRC_DIR}/vulkan/VKFrameData.ixx
         ${SRC_DIR}/vulkan/VKPipelines.ixx
         ${SRC_DIR}/vulkan/VKResources.ixx
         ${SRC_DIR}/vulkan/VKSwapChains.ixx

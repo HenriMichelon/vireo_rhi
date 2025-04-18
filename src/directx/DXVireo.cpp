@@ -9,7 +9,6 @@ module;
 module vireo.directx;
 
 import vireo.directx.descriptors;
-import vireo.directx.framedata;
 import vireo.directx.pipelines;
 import vireo.directx.resources;
 
@@ -30,10 +29,6 @@ namespace vireo {
             getDXGraphicCommandQueue()->getCommandQueue(),
             hWnd,
             configuration.presentMode);
-    }
-
-    shared_ptr<FrameData> DXVireo::createFrameData(const uint32_t frameIndex) {
-        return make_shared<DXFrameData>();
     }
 
     shared_ptr<PipelineResources> DXVireo::createPipelineResources(

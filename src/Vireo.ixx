@@ -200,10 +200,6 @@ export namespace vireo {
         uint32_t        offset;
     };
 
-    struct FrameData {
-        virtual ~FrameData() = default;
-    };
-
     class Fence {
     public:
         virtual ~Fence() = default;
@@ -532,12 +528,10 @@ export namespace vireo {
 
         virtual void copy(
             const shared_ptr<const Image>& source,
-            const shared_ptr<const FrameData>& frameData,
             const shared_ptr<const SwapChain>& swapChain) const = 0;
 
         virtual void blit(
             const shared_ptr<const Image>& source,
-            const shared_ptr<const FrameData>& frameData,
             const shared_ptr<const SwapChain>& swapChain,
             Filter filter = Filter::NEAREST) const = 0;
 
@@ -588,7 +582,6 @@ export namespace vireo {
             ResourceState newState) const = 0;
 
         virtual void barrier(
-            const shared_ptr<const FrameData>& frameData,
             const shared_ptr<const SwapChain>& swapChain,
             ResourceState oldState,
             ResourceState newState) const = 0;
@@ -656,7 +649,7 @@ export namespace vireo {
 
         virtual bool acquire(const shared_ptr<Fence>& fence) = 0;
 
-        virtual void present(const shared_ptr<FrameData>& frameData) = 0;
+        virtual void present() = 0;
 
         virtual void recreate() = 0;
 
@@ -673,10 +666,6 @@ export namespace vireo {
         static unique_ptr<Vireo> create(const Configuration& configuration);
 
         virtual ~Vireo() = default;
-
-        virtual shared_ptr<FrameData> createFrameData(uint32_t frameIndex) = 0;
-
-        virtual void destroyFrameData(const shared_ptr<FrameData>& frameData) {}
 
         virtual void waitIdle() = 0;
 

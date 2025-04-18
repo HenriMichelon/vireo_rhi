@@ -11,7 +11,6 @@ module vireo.vulkan;
 import vireo.tools;
 
 import vireo.vulkan.descriptors;
-import vireo.vulkan.framedata;
 import vireo.vulkan.pipelines;
 import vireo.vulkan.tools;
 
@@ -467,11 +466,9 @@ namespace vireo {
     }
 
     void VKCommandList::barrier(
-        const shared_ptr<const FrameData>& frameData,
         const shared_ptr<const SwapChain>& swapChain,
         const ResourceState oldState,
         const ResourceState newState) const {
-        const auto data = static_pointer_cast<const VKFrameData>(frameData);
         const auto vkSwapChain = static_pointer_cast<const VKSwapChain>(swapChain);
         barrier(vkSwapChain->getCurrentImage(), oldState, newState);
     }
@@ -596,9 +593,7 @@ namespace vireo {
 
     void VKCommandList::copy(
         const shared_ptr<const Image>& source,
-        const shared_ptr<const FrameData>& frameData,
         const shared_ptr<const SwapChain>& swapChain) const {
-        const auto data = static_pointer_cast<const VKFrameData>(frameData);
         const auto vkSource = static_pointer_cast<const VKImage>(source);
         const auto vkSwapChain = static_pointer_cast<const VKSwapChain>(swapChain);
         auto copyRegion = VkImageCopy {
@@ -622,10 +617,8 @@ namespace vireo {
 
     void VKCommandList::blit(
         const shared_ptr<const Image>& source,
-        const shared_ptr<const FrameData>& frameData,
         const shared_ptr<const SwapChain>& swapChain,
-        Filter filter) const {
-        const auto data = static_pointer_cast<const VKFrameData>(frameData);
+        const Filter filter) const {
         const auto vkSource = static_pointer_cast<const VKImage>(source);
         const auto vkSwapChain = static_pointer_cast<const VKSwapChain>(swapChain);
         auto blitRegion = VkImageBlit {

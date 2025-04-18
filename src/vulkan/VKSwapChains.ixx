@@ -41,7 +41,7 @@ export namespace vireo {
 
         bool acquire(const shared_ptr<Fence>& fence) override;
 
-        void present(const shared_ptr<FrameData>& framesData) override;
+        void present() override;
 
         void recreate() override;
 
