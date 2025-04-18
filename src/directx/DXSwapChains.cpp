@@ -167,9 +167,8 @@ namespace vireo {
         assert(currentFrameIndex < FRAMES_IN_FLIGHT);
     }
 
-    bool DXSwapChain::acquire(const shared_ptr<Fence>& fence, const shared_ptr<FrameData>& frameData) {
+    bool DXSwapChain::acquire(const shared_ptr<Fence>& fence) {
         const auto dxFence = static_pointer_cast<DXFence>(fence);
-        const auto data = static_pointer_cast<DXFrameData>(frameData);
         // If the next frame is not ready to be rendered yet, wait until it is ready.
         if (dxFence->getFence()->GetCompletedValue() < dxFence->getValue()) {
             dxCheck(dxFence->getFence()->SetEventOnCompletion(

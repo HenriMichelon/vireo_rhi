@@ -628,7 +628,7 @@ export namespace vireo {
 
     class SubmitQueue {
     public:
-        virtual void submit(const shared_ptr<Fence>& fence, const shared_ptr<const FrameData>& frameData, const vector<shared_ptr<const CommandList>>& commandLists) const = 0;
+        virtual void submit(const shared_ptr<Fence>& fence, const shared_ptr<const SwapChain>& swap, const vector<shared_ptr<const CommandList>>& commandLists) const = 0;
 
         virtual void submit(const vector<shared_ptr<const CommandList>>& commandLists) const = 0;
 
@@ -654,7 +654,7 @@ export namespace vireo {
 
         virtual void nextSwapChain() = 0;
 
-        virtual bool acquire(const shared_ptr<Fence>& fence, const shared_ptr<FrameData>& frameData) = 0;
+        virtual bool acquire(const shared_ptr<Fence>& fence) = 0;
 
         virtual void present(const shared_ptr<FrameData>& frameData) = 0;
 

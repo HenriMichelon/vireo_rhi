@@ -29,6 +29,25 @@ namespace vireo {
 #endif
     {
         imageIndex.resize(FRAMES_IN_FLIGHT);
+        imageAvailableSemaphore.resize(FRAMES_IN_FLIGHT);
+        renderFinishedSemaphore.resize(FRAMES_IN_FLIGHT);
+
+        constexpr VkSemaphoreCreateInfo semaphoreInfo{
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
+        };
+        for (int i = 0; i < FRAMES_IN_FLIGHT; i++) {
+            if (vkCreateSemaphore(device->getDevice(), &semaphoreInfo, nullptr, &imageAvailableSemaphore[i]) != VK_SUCCESS
+                || vkCreateSemaphore(device->getDevice(), &semaphoreInfo, nullptr, &renderFinishedSemaphore[i]) != VK_SUCCESS) {
+                throw Exception("failed to create semaphores!");
+            }
+#ifdef _DEBUG
+            vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(imageAvailableSemaphore[i]), VK_OBJECT_TYPE_SEMAPHORE,
+                "VKFrameData image Semaphore : " + to_string(i));
+            vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(renderFinishedSemaphore[i]), VK_OBJECT_TYPE_SEMAPHORE,
+        "VKFrameData render Semaphore : " + to_string(i));
+#endif
+        }
+
         vkGetDeviceQueue(
             device->getDevice(),
             device->getPresentQueueFamilyIndex(),
@@ -203,7 +222,7 @@ namespace vireo {
             const VkPresentInfoKHR presentInfo{
                 .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
                 .waitSemaphoreCount = 1,
-                .pWaitSemaphores    = &data->renderFinishedSemaphore,
+                .pWaitSemaphores    = &renderFinishedSemaphore[currentFrameIndex],
                 .swapchainCount     = 1,
                 .pSwapchains        = swapChains,
                 .pImageIndices      = &imageIndex[currentFrameIndex],
@@ -218,9 +237,8 @@ namespace vireo {
         }
     }
 
-    bool VKSwapChain::acquire(const shared_ptr<Fence>& fence, const shared_ptr<FrameData>& frameData) {
+    bool VKSwapChain::acquire(const shared_ptr<Fence>& fence) {
         const auto vkFence = static_pointer_cast<VKFence>(fence);
-        const auto data = static_pointer_cast<VKFrameData>(frameData);
         // wait until the GPU has finished rendering the frame.
         if (vkWaitForFences(device->getDevice(), 1, &vkFence->getFence(), VK_TRUE, UINT64_MAX) == VK_TIMEOUT) {
             throw Exception("timeout waiting for inFlightFence");
@@ -231,7 +249,7 @@ namespace vireo {
                  device->getDevice(),
                  swapChain,
                  UINT64_MAX,
-                 data->imageAvailableSemaphore,
+                 imageAvailableSemaphore[currentFrameIndex],
                  VK_NULL_HANDLE,
                  &imageIndex[currentFrameIndex]);
             if (result == VK_ERROR_OUT_OF_DATE_KHR) {
@@ -248,6 +266,10 @@ namespace vireo {
 
     VKSwapChain::~VKSwapChain() {
         cleanup();
+        for (int i = 0; i < FRAMES_IN_FLIGHT; i++) {
+            vkDestroySemaphore(device->getDevice(), imageAvailableSemaphore[i], nullptr);
+            vkDestroySemaphore(device->getDevice(), renderFinishedSemaphore[i], nullptr);
+        }
     }
 
 }

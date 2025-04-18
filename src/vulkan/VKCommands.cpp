@@ -37,9 +37,9 @@ namespace vireo {
 
     void VKSubmitQueue::submit(
         const shared_ptr<Fence>& fence,
-        const shared_ptr<const FrameData>& frameData,
+        const shared_ptr<const SwapChain>& swapChain,
         const vector<shared_ptr<const CommandList>>& commandLists) const {
-        const auto data = static_pointer_cast<const VKFrameData>(frameData);
+        const auto vkSwapChain = static_pointer_cast<const VKSwapChain>(swapChain);
         const auto vkFence = static_pointer_cast<const VKFence>(fence);
         auto submitInfos = vector<VkCommandBufferSubmitInfo>(commandLists.size());
         for (int i = 0; i < commandLists.size(); i++) {
@@ -48,14 +48,27 @@ namespace vireo {
                 .commandBuffer = static_pointer_cast<const VKCommandList>(commandLists[i])->getCommandBuffer(),
             };
         }
+        const auto waitSemaphoreInfo = VkSemaphoreSubmitInfo {
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+            .semaphore = vkSwapChain->getCurrentImageAvailableSemaphore(),
+            .value = 1,
+            .stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR,
+            .deviceIndex = 0
+        };
+        const auto renderFinishedSemaphoreSubmitInfo = VkSemaphoreSubmitInfo {
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+            .semaphore = vkSwapChain->getCurrentRenderFinishedSemaphore(),
+            .stageMask = VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
+            .deviceIndex = 0
+        };
         const auto submitInfo = VkSubmitInfo2  {
             .sType                    = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
             .waitSemaphoreInfoCount   = 1,
-            .pWaitSemaphoreInfos      = &data->imageAvailableSemaphoreSubmitInfo,
+            .pWaitSemaphoreInfos      = &waitSemaphoreInfo,
             .commandBufferInfoCount   = static_cast<uint32_t>(submitInfos.size()),
             .pCommandBufferInfos      = submitInfos.data(),
             .signalSemaphoreInfoCount = 1,
-            .pSignalSemaphoreInfos    = &data->renderFinishedSemaphoreSubmitInfo
+            .pSignalSemaphoreInfos    = &renderFinishedSemaphoreSubmitInfo
         };
         vkCheck(vkQueueSubmit2(commandQueue, 1, &submitInfo, vkFence->getFence()));
     }

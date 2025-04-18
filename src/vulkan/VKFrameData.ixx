@@ -15,10 +15,6 @@ import vireo.vulkan.resources;
 export namespace vireo {
 
     struct VKFrameData : FrameData {
-        VkSemaphore             imageAvailableSemaphore{VK_NULL_HANDLE};
-        VkSemaphoreSubmitInfo   imageAvailableSemaphoreSubmitInfo{};
-        VkSemaphore             renderFinishedSemaphore{VK_NULL_HANDLE};
-        VkSemaphoreSubmitInfo   renderFinishedSemaphoreSubmitInfo{};
     };
 
 }

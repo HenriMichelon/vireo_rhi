@@ -39,33 +39,10 @@ namespace vireo {
 
     void VKVireo::destroyFrameData(const shared_ptr<FrameData>& frameData) {
         const auto data = static_pointer_cast<VKFrameData>(frameData);
-        vkDestroySemaphore(getVKDevice()->getDevice(), data->imageAvailableSemaphore, nullptr);
-        vkDestroySemaphore(getVKDevice()->getDevice(), data->renderFinishedSemaphore, nullptr);
     }
 
     shared_ptr<FrameData> VKVireo::createFrameData(const uint32_t frameIndex) {
         auto data = make_shared<VKFrameData>();
-        constexpr VkSemaphoreCreateInfo semaphoreInfo{
-            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
-        };
-        if (vkCreateSemaphore(getVKDevice()->getDevice(), &semaphoreInfo, nullptr, &data->imageAvailableSemaphore) != VK_SUCCESS
-            || vkCreateSemaphore(getVKDevice()->getDevice(), &semaphoreInfo, nullptr, &data->renderFinishedSemaphore) != VK_SUCCESS) {
-            throw Exception("failed to create semaphores!");
-        }
-        data->imageAvailableSemaphoreSubmitInfo = {
-            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-            .semaphore = data->imageAvailableSemaphore,
-            .value = 1,
-            .stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR,
-            .deviceIndex = 0
-        };
-        data->renderFinishedSemaphoreSubmitInfo = {
-            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-            .semaphore = data->renderFinishedSemaphore,
-            .value = 1,
-            .stageMask = VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
-            .deviceIndex = 0
-        };
         // if (configuration.msaa != MSAA::NONE) {
         //     data->multisampledAttachment = make_shared<VKImage>(
         //         getVKDevice(),
@@ -77,12 +54,7 @@ namespace vireo {
         //         true,
         //         getVKPhysicalDevice()->getSampleCount());
         // }
-#ifdef _DEBUG
-        vkSetObjectName(getVKDevice()->getDevice(), reinterpret_cast<uint64_t>(data->imageAvailableSemaphore), VK_OBJECT_TYPE_SEMAPHORE,
-            "VKFrameData image Semaphore : " + to_string(frameIndex));
-        vkSetObjectName(getVKDevice()->getDevice(), reinterpret_cast<uint64_t>(data->renderFinishedSemaphore), VK_OBJECT_TYPE_SEMAPHORE,
-    "VKFrameData render Semaphore : " + to_string(frameIndex));
-#endif
+
         return data;
     }
 

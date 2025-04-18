@@ -22,7 +22,7 @@ export namespace vireo {
 
         auto getCommandQueue() const { return commandQueue; }
 
-        void submit(const shared_ptr<Fence>& fence, const shared_ptr<const FrameData>& frameData, const vector<shared_ptr<const CommandList>>& commandLists) const override;
+        void submit(const shared_ptr<Fence>& fence, const shared_ptr<const SwapChain>& swapChain, const vector<shared_ptr<const CommandList>>& commandLists) const override;
 
         void submit(const vector<shared_ptr<const CommandList>>& commandLists) const override;
 

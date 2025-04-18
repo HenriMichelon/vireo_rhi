@@ -39,11 +39,15 @@ export namespace vireo {
 
         void nextSwapChain() override;
 
-        bool acquire(const shared_ptr<Fence>& fence, const shared_ptr<FrameData>& frameData) override;
+        bool acquire(const shared_ptr<Fence>& fence) override;
 
         void present(const shared_ptr<FrameData>& framesData) override;
 
         void recreate() override;
+
+        auto& getCurrentImageAvailableSemaphore() const { return imageAvailableSemaphore[imageIndex[currentFrameIndex]]; }
+
+        auto& getCurrentRenderFinishedSemaphore() const { return renderFinishedSemaphore[imageIndex[currentFrameIndex]]; }
 
     private:
         static constexpr VkPresentModeKHR vkPresentModes[] {
@@ -59,7 +63,7 @@ export namespace vireo {
 
         const shared_ptr<const VKDevice>         device;
         const VKPhysicalDevice& physicalDevice;
-        const PresentMode         vSyncMode;
+        const PresentMode       vSyncMode;
         VkSwapchainKHR          swapChain;
         vector<VkImage>         swapChainImages;
         VkFormat                swapChainImageFormat;
@@ -67,7 +71,8 @@ export namespace vireo {
         vector<VkImageView>     swapChainImageViews;
         VkQueue                 presentQueue;
         vector<uint32_t>        imageIndex;
-
+        vector<VkSemaphore>     imageAvailableSemaphore;
+        vector<VkSemaphore>     renderFinishedSemaphore;
 
 #ifdef _WIN32
         HWND hWnd;
