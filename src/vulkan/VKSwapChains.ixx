@@ -39,7 +39,7 @@ export namespace vireo {
 
         void nextSwapChain() override;
 
-        bool acquire(const shared_ptr<FrameData>& frameData) override;
+        bool acquire(const shared_ptr<Fence>& fence, const shared_ptr<FrameData>& frameData) override;
 
         void present(const shared_ptr<FrameData>& framesData) override;
 

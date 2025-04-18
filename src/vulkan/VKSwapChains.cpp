@@ -218,12 +218,12 @@ namespace vireo {
         }
     }
 
-    bool VKSwapChain::acquire(const shared_ptr<FrameData>& frameData) {
+    bool VKSwapChain::acquire(const shared_ptr<Fence>& fence, const shared_ptr<FrameData>& frameData) {
+        const auto vkFence = static_pointer_cast<VKFence>(fence);
         const auto data = static_pointer_cast<VKFrameData>(frameData);
         // wait until the GPU has finished rendering the frame.
-        if (vkWaitForFences(device->getDevice(), 1, &data->inFlightFence, VK_TRUE, UINT64_MAX) == VK_TIMEOUT) {
+        if (vkWaitForFences(device->getDevice(), 1, &vkFence->getFence(), VK_TRUE, UINT64_MAX) == VK_TIMEOUT) {
             throw Exception("timeout waiting for inFlightFence");
-            return false;
         }
         // get the next available swap chain image
         {
@@ -242,7 +242,7 @@ namespace vireo {
                 throw Exception("failed to acquire swap chain image :", to_string(result));
             }
         }
-        vkResetFences(device->getDevice(), 1, &data->inFlightFence);
+        vkResetFences(device->getDevice(), 1, &vkFence->getFence());
         return true;
     }
 

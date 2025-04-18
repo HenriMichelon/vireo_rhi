@@ -12,7 +12,7 @@ import vireo.directx.tools;
 
 namespace vireo {
 
-    DXInstance::DXInstance(HWND hWnd) {
+    DXInstance::DXInstance(const HWND hWnd) {
         UINT dxgiFactoryFlags = 0;
 #if defined(_DEBUG)
         {
@@ -72,18 +72,13 @@ namespace vireo {
             infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, FALSE);
         }
 #endif
+    }
+
+    DXFence::DXFence(const ComPtr<ID3D12Device>& device) {
         dxCheck(device->CreateFence(
             0,
             D3D12_FENCE_FLAG_NONE,
-            IID_PPV_ARGS(&inFlightFence)));
-        inFlightFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-        if (inFlightFenceEvent == nullptr) {
-            dxCheck(HRESULT_FROM_WIN32(GetLastError()));
-        }
-    }
-
-    DXDevice::~DXDevice() {
-        CloseHandle(inFlightFenceEvent);
+            IID_PPV_ARGS(&fence)));
     }
 
 }

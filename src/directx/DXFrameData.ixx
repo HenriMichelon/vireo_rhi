@@ -13,7 +13,6 @@ import vireo;
 export namespace vireo {
 
     struct DXFrameData : FrameData {
-        UINT64 inFlightFenceValue{0};
     };
 
 }

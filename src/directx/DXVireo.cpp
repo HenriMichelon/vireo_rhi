@@ -147,6 +147,10 @@ namespace vireo {
             minLod, maxLod, anisotropyEnable, mipMapMode);
     }
 
+    shared_ptr<Fence> DXVireo::createFence(const wstring& name) const {
+        return make_shared<DXFence>(getDXDevice()->getDevice());
+    }
+
     shared_ptr<CommandAllocator> DXVireo::createCommandAllocator(const CommandType type) const {
         return make_shared<DXCommandAllocator>(getDXDevice()->getDevice(), type);
     }
@@ -156,7 +160,7 @@ namespace vireo {
     }
 
     void DXVireo::waitIdle() {
-        getDXSwapChain()->waitForLastPresentedFrame();
+        // getDXSwapChain()->waitForLastPresentedFrame();
         graphicCommandQueue->waitIdle();
         computeCommandQueue->waitIdle();
         transferCommandQueue->waitIdle();

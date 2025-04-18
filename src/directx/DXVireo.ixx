@@ -24,6 +24,8 @@ export namespace vireo {
 
         void waitIdle() override;
 
+        shared_ptr<Fence> createFence(const wstring& name) const override;
+
         shared_ptr<CommandAllocator> createCommandAllocator(CommandType type) const override;
 
         shared_ptr<FrameData> createFrameData(uint32_t frameIndex) override;

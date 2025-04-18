@@ -510,4 +510,21 @@ namespace vireo {
         vkDestroyDevice(device, nullptr);
     }
 
+    VKFence::VKFence(const shared_ptr<const VKDevice>& device, const wstring& name):
+        device{device->getDevice()} {
+        constexpr VkFenceCreateInfo fenceInfo{
+            .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+            .flags = VK_FENCE_CREATE_SIGNALED_BIT
+        };
+        vkCheck(vkCreateFence(device->getDevice(), &fenceInfo, nullptr, &fence));
+#ifdef _DEBUG
+        vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(fence), VK_OBJECT_TYPE_FENCE,
+    "VKFence : " + to_string(name));
+#endif
+    }
+
+     VKFence::~VKFence() {
+        vkDestroyFence(device, fence, nullptr);
+    }
+
 }

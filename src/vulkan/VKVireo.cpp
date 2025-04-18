@@ -41,7 +41,6 @@ namespace vireo {
         const auto data = static_pointer_cast<VKFrameData>(frameData);
         vkDestroySemaphore(getVKDevice()->getDevice(), data->imageAvailableSemaphore, nullptr);
         vkDestroySemaphore(getVKDevice()->getDevice(), data->renderFinishedSemaphore, nullptr);
-        vkDestroyFence(getVKDevice()->getDevice(), data->inFlightFence, nullptr);
     }
 
     shared_ptr<FrameData> VKVireo::createFrameData(const uint32_t frameIndex) {
@@ -49,13 +48,8 @@ namespace vireo {
         constexpr VkSemaphoreCreateInfo semaphoreInfo{
             .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
         };
-        constexpr VkFenceCreateInfo fenceInfo{
-            .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
-            .flags = VK_FENCE_CREATE_SIGNALED_BIT
-        };
         if (vkCreateSemaphore(getVKDevice()->getDevice(), &semaphoreInfo, nullptr, &data->imageAvailableSemaphore) != VK_SUCCESS
-            || vkCreateSemaphore(getVKDevice()->getDevice(), &semaphoreInfo, nullptr, &data->renderFinishedSemaphore) != VK_SUCCESS
-            || vkCreateFence(getVKDevice()->getDevice(), &fenceInfo, nullptr, &data->inFlightFence) != VK_SUCCESS) {
+            || vkCreateSemaphore(getVKDevice()->getDevice(), &semaphoreInfo, nullptr, &data->renderFinishedSemaphore) != VK_SUCCESS) {
             throw Exception("failed to create semaphores!");
         }
         data->imageAvailableSemaphoreSubmitInfo = {
@@ -88,8 +82,6 @@ namespace vireo {
             "VKFrameData image Semaphore : " + to_string(frameIndex));
         vkSetObjectName(getVKDevice()->getDevice(), reinterpret_cast<uint64_t>(data->renderFinishedSemaphore), VK_OBJECT_TYPE_SEMAPHORE,
     "VKFrameData render Semaphore : " + to_string(frameIndex));
-        vkSetObjectName(getVKDevice()->getDevice(), reinterpret_cast<uint64_t>(data->inFlightFence), VK_OBJECT_TYPE_FENCE,
-    "VKFrameData Fence: " + to_string(frameIndex));
 #endif
         return data;
     }
@@ -98,6 +90,10 @@ namespace vireo {
            size_t size,
            const vector<VertexAttributeDesc>& attributesDescriptions) const {
         return make_shared<VKVertexInputLayout>(size, attributesDescriptions);
+    }
+
+    shared_ptr<Fence> VKVireo::createFence(const wstring& name) const {
+        return make_shared<VKFence>(getVKDevice(), name);
     }
 
     shared_ptr<CommandAllocator> VKVireo::createCommandAllocator(CommandType type) const {

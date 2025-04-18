@@ -36,9 +36,11 @@ namespace vireo {
     }
 
     void VKSubmitQueue::submit(
+        const shared_ptr<Fence>& fence,
         const shared_ptr<const FrameData>& frameData,
         const vector<shared_ptr<const CommandList>>& commandLists) const {
         const auto data = static_pointer_cast<const VKFrameData>(frameData);
+        const auto vkFence = static_pointer_cast<const VKFence>(fence);
         auto submitInfos = vector<VkCommandBufferSubmitInfo>(commandLists.size());
         for (int i = 0; i < commandLists.size(); i++) {
             submitInfos[i] = {
@@ -55,7 +57,7 @@ namespace vireo {
             .signalSemaphoreInfoCount = 1,
             .pSignalSemaphoreInfos    = &data->renderFinishedSemaphoreSubmitInfo
         };
-        vkCheck(vkQueueSubmit2(commandQueue, 1, &submitInfo, data->inFlightFence));
+        vkCheck(vkQueueSubmit2(commandQueue, 1, &submitInfo, vkFence->getFence()));
     }
 
     void VKSubmitQueue::submit(const vector<shared_ptr<const CommandList>>& commandLists) const {

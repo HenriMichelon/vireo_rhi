@@ -28,9 +28,12 @@ namespace vireo {
     }
 
     void DXSubmitQueue::submit(
-        const shared_ptr<const FrameData>&,
+        const shared_ptr<Fence>& fence,
+        const shared_ptr<const FrameData>& frameData,
         const vector<shared_ptr<const CommandList>>& commandLists) const {
         submit(commandLists);
+        const auto dxFence = static_pointer_cast<DXFence>(fence);
+        dxCheck(commandQueue->Signal(dxFence->getFence().Get(), dxFence->getValue()));
     }
 
     void DXSubmitQueue::submit(const vector<shared_ptr<const CommandList>>& commandLists) const {

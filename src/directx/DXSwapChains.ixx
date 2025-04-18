@@ -37,13 +37,13 @@ export namespace vireo {
 
         void nextSwapChain() override;
 
-        bool acquire(const shared_ptr<FrameData>& frameData) override;
+        bool acquire(const shared_ptr<Fence>& fence, const shared_ptr<FrameData>& frameData) override;
 
         void present(const shared_ptr<FrameData>& frameData) override;
 
         void recreate() override;
 
-        void waitForLastPresentedFrame();
+        // void waitForLastPresentedFrame();
 
     private:
         const shared_ptr<DXDevice>   device;
@@ -56,7 +56,8 @@ export namespace vireo {
         HWND                         hWnd;
         const UINT                   syncInterval;
         const UINT                   presentFlags;
-        UINT64                       lastPresentedFenceValue{0};
+        HANDLE                       fenceEvent;
+
 
         void create();
     };

@@ -28,6 +28,10 @@ namespace vireo {
         syncInterval{static_cast<UINT>(vSyncMode == PresentMode::IMMEDIATE ? 0 : 1)},
         presentFlags{static_cast<UINT>(vSyncMode == PresentMode::IMMEDIATE ? DXGI_PRESENT_ALLOW_TEARING : 0)} {
         create();
+        fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+        if (fenceEvent == nullptr) {
+            dxCheck(HRESULT_FROM_WIN32(GetLastError()));
+        }
     }
 
     void DXSwapChain::create() {
@@ -93,12 +97,13 @@ namespace vireo {
     }
 
     DXSwapChain::~DXSwapChain() {
-        waitForLastPresentedFrame();
+        // waitForLastPresentedFrame();
         for (UINT i = 0; i < FRAMES_IN_FLIGHT; ++i) {
             renderTargets[i].Reset();
         }
         rtvHeap.Reset();
         swapChain.Reset();
+        CloseHandle(fenceEvent);
     }
 
     void DXSwapChain::recreate() {
@@ -109,7 +114,7 @@ namespace vireo {
         const auto width = windowRect.right - windowRect.left;
         const auto height = windowRect.bottom - windowRect.top;
         if (width != extent.width || height != extent.height) {
-            waitForLastPresentedFrame();
+            // waitForLastPresentedFrame();
             extent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
             aspectRatio = static_cast<float>(extent.width) / static_cast<float>(extent.height);
 
@@ -146,41 +151,39 @@ namespace vireo {
         }
     }
 
-    void DXSwapChain::waitForLastPresentedFrame() {
-        dxCheck(presentCommandQueue->Signal(device->getInFlightFence().Get(), lastPresentedFenceValue));
-        if (device->getInFlightFence()->GetCompletedValue() < lastPresentedFenceValue) {
-            dxCheck(device->getInFlightFence()->SetEventOnCompletion(
-                lastPresentedFenceValue,
-                device->getInFlightFenceEvent()
-            ));
-            WaitForSingleObjectEx(device->getInFlightFenceEvent(), INFINITE, FALSE);
-        }
-    }
+    // void DXSwapChain::waitForLastPresentedFrame() {
+    //     dxCheck(presentCommandQueue->Signal(device->getInFlightFence().Get(), lastPresentedFenceValue));
+    //     if (device->getInFlightFence()->GetCompletedValue() < lastPresentedFenceValue) {
+    //         dxCheck(device->getInFlightFence()->SetEventOnCompletion(
+    //             lastPresentedFenceValue,
+    //             device->getInFlightFenceEvent()
+    //         ));
+    //         WaitForSingleObjectEx(device->getInFlightFenceEvent(), INFINITE, FALSE);
+    //     }
+    // }
 
     void DXSwapChain::nextSwapChain() {
         currentFrameIndex = swapChain->GetCurrentBackBufferIndex();
         assert(currentFrameIndex < FRAMES_IN_FLIGHT);
     }
 
-    bool DXSwapChain::acquire(const shared_ptr<FrameData>& frameData) {
+    bool DXSwapChain::acquire(const shared_ptr<Fence>& fence, const shared_ptr<FrameData>& frameData) {
+        const auto dxFence = static_pointer_cast<DXFence>(fence);
         const auto data = static_pointer_cast<DXFrameData>(frameData);
-        const auto currentFenceValue = data->inFlightFenceValue;
-        dxCheck(presentCommandQueue->Signal(device->getInFlightFence().Get(), currentFenceValue));
         // If the next frame is not ready to be rendered yet, wait until it is ready.
-        if (device->getInFlightFence()->GetCompletedValue() < currentFenceValue) {
-            dxCheck(device->getInFlightFence()->SetEventOnCompletion(
-                currentFenceValue,
-                device->getInFlightFenceEvent()
+        if (dxFence->getFence()->GetCompletedValue() < dxFence->getValue()) {
+            dxCheck(dxFence->getFence()->SetEventOnCompletion(
+                dxFence->getValue(),
+                fenceEvent
             ));
-            WaitForSingleObjectEx(device->getInFlightFenceEvent(), INFINITE, FALSE);
+            WaitForSingleObjectEx(fenceEvent, INFINITE, FALSE);
         }
+        dxFence->increment();
         return true;
     }
 
     void DXSwapChain::present(const shared_ptr<FrameData>& frameData) {
         const auto data = static_pointer_cast<DXFrameData>(frameData);
         dxCheck(swapChain->Present(syncInterval, presentFlags));
-        data->inFlightFenceValue += 1;
-        lastPresentedFenceValue = data->inFlightFenceValue;
     }
 }
