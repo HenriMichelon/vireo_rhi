@@ -5,6 +5,6 @@
 * https://opensource.org/licenses/MIT
 */
 #pragma once
+#include "vireo/Libraries.h"
 #include "vireo/backend/vulkan/Vulkan.h"
 #include <vulkan/vk_enum_string_helper.h>
-#include "vireo/Libraries.h"
