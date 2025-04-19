@@ -47,27 +47,14 @@ namespace vireo {
                 .commandBuffer = static_pointer_cast<const VKCommandList>(commandLists[i])->getCommandBuffer(),
             };
         }
-        const auto waitSemaphoreInfo = VkSemaphoreSubmitInfo {
-            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-            .semaphore = vkSwapChain->getCurrentImageAvailableSemaphore(),
-            .value = 1,
-            .stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR,
-            .deviceIndex = 0
-        };
-        const auto renderFinishedSemaphoreSubmitInfo = VkSemaphoreSubmitInfo {
-            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-            .semaphore = vkSwapChain->getCurrentRenderFinishedSemaphore(),
-            .stageMask = VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
-            .deviceIndex = 0
-        };
         const auto submitInfo = VkSubmitInfo2  {
             .sType                    = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
             .waitSemaphoreInfoCount   = 1,
-            .pWaitSemaphoreInfos      = &waitSemaphoreInfo,
+            .pWaitSemaphoreInfos      = &vkSwapChain->getCurrentImageAvailableSemaphoreInfo(),
             .commandBufferInfoCount   = static_cast<uint32_t>(submitInfos.size()),
             .pCommandBufferInfos      = submitInfos.data(),
             .signalSemaphoreInfoCount = 1,
-            .pSignalSemaphoreInfos    = &renderFinishedSemaphoreSubmitInfo
+            .pSignalSemaphoreInfos    = &vkSwapChain->getCurrentRenderFinishedSemaphoreInfo()
         };
         vkCheck(vkQueueSubmit2(commandQueue, 1, &submitInfo, vkFence->getFence()));
     }

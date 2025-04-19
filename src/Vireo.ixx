@@ -706,7 +706,10 @@ export namespace vireo {
 
     class SubmitQueue {
     public:
-        virtual void submit(const shared_ptr<Fence>& fence, const shared_ptr<const SwapChain>& swap, const vector<shared_ptr<const CommandList>>& commandLists) const = 0;
+        virtual void submit(
+            const shared_ptr<Fence>& fence,
+            const shared_ptr<const SwapChain>& swap,
+            const vector<shared_ptr<const CommandList>>& commandLists) const = 0;
 
         virtual void submit(const vector<shared_ptr<const CommandList>>& commandLists) const = 0;
 

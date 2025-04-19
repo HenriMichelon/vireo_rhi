@@ -32,6 +32,8 @@ namespace vireo {
         imageIndex.resize(framesInFlight);
         imageAvailableSemaphore.resize(framesInFlight);
         renderFinishedSemaphore.resize(framesInFlight);
+        imageAvailableSemaphoreInfo.resize(framesInFlight);
+        renderFinishedSemaphoreInfo.resize(framesInFlight);
 
         constexpr VkSemaphoreCreateInfo semaphoreInfo{
             .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
@@ -41,6 +43,19 @@ namespace vireo {
                 || vkCreateSemaphore(device->getDevice(), &semaphoreInfo, nullptr, &renderFinishedSemaphore[i]) != VK_SUCCESS) {
                 throw Exception("failed to create semaphores!");
             }
+            renderFinishedSemaphoreInfo[i] = VkSemaphoreSubmitInfo {
+                .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+                .semaphore = renderFinishedSemaphore[i],
+                .stageMask = VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
+                .deviceIndex = 0
+            };
+            imageAvailableSemaphoreInfo[i] = VkSemaphoreSubmitInfo {
+                .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+                .semaphore = imageAvailableSemaphore[i],
+                .value = 1,
+                .stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR,
+                .deviceIndex = 0
+            };
 #ifdef _DEBUG
             vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(imageAvailableSemaphore[i]), VK_OBJECT_TYPE_SEMAPHORE,
                 "VKFrameData image Semaphore : " + to_string(i));
@@ -84,7 +99,7 @@ namespace vireo {
                 .preTransform = swapChainSupport.capabilities.currentTransform,
                 .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
                 .presentMode = presentMode,
-                .clipped = VK_TRUE
+                .clipped = VK_TRUE,
             };
             if (device->getPresentQueueFamilyIndex() != device->getGraphicsQueueFamilyIndex()) {
                 const uint32_t queueFamilyIndices[] = {device->getPresentQueueFamilyIndex(), device->getGraphicsQueueFamilyIndex()};
@@ -237,21 +252,18 @@ namespace vireo {
             throw Exception("timeout waiting for inFlightFence");
         }
         // get the next available swap chain image
-        {
-            const auto result = vkAcquireNextImageKHR(
-                 device->getDevice(),
-                 swapChain,
-                 UINT64_MAX,
-                 imageAvailableSemaphore[currentFrameIndex],
-                 VK_NULL_HANDLE,
-                 &imageIndex[currentFrameIndex]);
-            if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-                recreate();
-                return false;
-            }
-            if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-                throw Exception("failed to acquire swap chain image :", to_string(result));
-            }
+        const auto result = vkAcquireNextImageKHR(
+             device->getDevice(),
+             swapChain,
+             UINT64_MAX,
+             imageAvailableSemaphore[currentFrameIndex],
+             VK_NULL_HANDLE,
+             &imageIndex[currentFrameIndex]);
+        if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+            return false;
+        }
+        if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+            throw Exception("failed to acquire swap chain image :", to_string(result));
         }
         vkResetFences(device->getDevice(), 1, &vkFence->getFence());
         return true;
