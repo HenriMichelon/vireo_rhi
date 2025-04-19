@@ -25,11 +25,12 @@ namespace vireo {
         transferCommandQueue = make_shared<DXSubmitQueue>(getDXDevice()->getDevice(), CommandType::GRAPHIC);
     }
 
-    shared_ptr<SwapChain> DXVireo::createSwapChain(const PresentMode presentMode, const uint32_t framesInFlight) const {
+    shared_ptr<SwapChain> DXVireo::createSwapChain(const ImageFormat format, const PresentMode presentMode, const uint32_t framesInFlight) const {
         return make_shared<DXSwapChain>(
             getDXInstance()->getFactory(),
             getDXDevice(),
             getDXGraphicCommandQueue()->getCommandQueue(),
+            format,
             hWnd,
             presentMode,
             framesInFlight);
@@ -94,7 +95,7 @@ namespace vireo {
         uint32_t width,
         uint32_t height,
         const wstring& name) const {
-        return make_shared<DXImage>(getDXDevice()->getDevice(), format, width, height, name, false, false);
+        return make_shared<DXImage>(getDXDevice()->getDevice(), format, width, height, name, false, false, MSAA::NONE);
     }
 
     shared_ptr<Image> DXVireo::createReadWriteImage(
@@ -102,19 +103,44 @@ namespace vireo {
         uint32_t width,
         uint32_t height,
         const wstring& name) const {
-            return make_shared<DXImage>(getDXDevice()->getDevice(), format, width, height, name, true, false);
+            return make_shared<DXImage>(getDXDevice()->getDevice(), format, width, height, name, true, false, MSAA::NONE);
     }
 
     shared_ptr<RenderTarget> DXVireo::createRenderTarget(
            const ImageFormat format,
            const uint32_t width,
            const uint32_t height,
+           const MSAA msaa,
            const wstring& name) const {
         return make_shared<DXRenderTarget>(
             getDXDevice()->getDevice(),
-            make_shared<DXImage>(getDXDevice()->getDevice(), format, width, height, name, false, true));
+            make_shared<DXImage>(
+                getDXDevice()->getDevice(),
+                format,
+                width,
+                height,
+                name,
+                false,
+                true,
+                msaa));
     }
 
+    shared_ptr<RenderTarget> DXVireo::createRenderTarget(
+           const shared_ptr<const SwapChain>& swapChain,
+           const MSAA msaa,
+           const wstring& name) const {
+        return make_shared<DXRenderTarget>(
+            getDXDevice()->getDevice(),
+            make_shared<DXImage>(
+                getDXDevice()->getDevice(),
+                swapChain->getFormat(),
+                swapChain->getExtent().width,
+                swapChain->getExtent().height,
+                name,
+                false,
+                true,
+                msaa));
+    }
     shared_ptr<DescriptorLayout> DXVireo::createDescriptorLayout(
         const wstring& name) {
         return make_shared<DXDescriptorLayout>(false);

@@ -91,7 +91,7 @@ export namespace vireo {
         void beginRendering(
             const shared_ptr<RenderTarget>& multisampledRenderTarget,
             const shared_ptr<RenderTarget>& renderTarget,
-            const float clearColor[]) const override { throw runtime_error("DXCommandList::beginRendering(const shared_ptr<FrameData>&, const shared_ptr<RenderTarget>&, const float clearColor[]) const override");};
+            const float clearColor[]) const override;
 
         void dispatch(uint32_t x, uint32_t y, uint32_t z) const override;
 
@@ -117,7 +117,7 @@ export namespace vireo {
         void barrier(
             const shared_ptr<const RenderTarget>& renderTarget,
             ResourceState oldState,
-            ResourceState newState) const override { throw runtime_error("DXCommandList::barrier(const shared_ptr<const RenderTarget>&, ResourceState oldState, ResourceState newState) const override");};
+            ResourceState newState) const override;
 
         void barrier(
             const shared_ptr<const SwapChain>& swapChain,

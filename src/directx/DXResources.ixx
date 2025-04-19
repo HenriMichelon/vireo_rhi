@@ -153,8 +153,6 @@ export namespace vireo {
             DXGI_FORMAT_BC7_UNORM_SRGB,
         };
 
-
-
         DXImage(
             const ComPtr<ID3D12Device> &device,
             ImageFormat format,
@@ -162,7 +160,8 @@ export namespace vireo {
             uint32_t    height,
             const wstring& name,
             bool        useByComputeShader,
-            bool        allowRenderTarget);
+            bool        allowRenderTarget,
+            MSAA        msaa);
 
         auto getImage() const { return image; }
 

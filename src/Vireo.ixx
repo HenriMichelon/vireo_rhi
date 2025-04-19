@@ -181,6 +181,22 @@ export namespace vireo {
         SHADER_READ,
     };
 
+    enum class MSAA {
+        NONE = 0,
+        //! 2x MSAA
+        X2   = 1,
+        //! 4x MSAA
+        X4   = 2,
+        //! 8x MSAA
+        X8   = 3,
+        //! 16x MSAA
+        X16  = 4,
+        //! 32x MSAA
+        X32  = 5,
+        //! 64x MSAA
+        X64  = 6
+    };
+
     enum class PresentMode {
         IMMEDIATE = 0,
         VSYNC     = 1,
@@ -351,21 +367,84 @@ export namespace vireo {
             16, // BC7_UNORM
             16, // BC7_UNORM_SRGB
         };
+        static constexpr ImageFormat formats[] {
+            ImageFormat::R8_UNORM,
+            ImageFormat::R8_SNORM,
+            ImageFormat::R8_UINT,
+            ImageFormat::R8_SINT,
 
-        enum class MSAA : uint8_t {
-            NONE = 0,
-            //! 2x MSAA
-            X2   = 1,
-            //! 4x MSAA
-            X4   = 2,
-            //! 8x MSAA
-            X8   = 3,
-            //! 16x MSAA
-            X16  = 4,
-            //! 32x MSAA
-            X32  = 5,
-            //! 64x MSAA
-            X64  = 6
+            ImageFormat::R8G8_UNORM,
+            ImageFormat::R8G8_SNORM,
+            ImageFormat::R8G8_UINT,
+            ImageFormat::R8G8_SINT,
+
+            ImageFormat::R8G8B8A8_UNORM,
+            ImageFormat::R8G8B8A8_SNORM,
+            ImageFormat::R8G8B8A8_UINT,
+            ImageFormat::R8G8B8A8_SINT,
+            ImageFormat::R8G8B8A8_SRGB,
+
+            ImageFormat::B8G8R8A8_UNORM,
+            ImageFormat::B8G8R8A8_SRGB,
+            ImageFormat::B8G8R8X8_UNORM,
+            ImageFormat::B8G8R8X8_SRGB,
+
+            ImageFormat::A2B10G10R10_UNORM,
+            ImageFormat::A2B10G10R10_UINT,
+
+            ImageFormat::R16_UNORM,
+            ImageFormat::R16_SNORM,
+            ImageFormat::R16_UINT,
+            ImageFormat::R16_SINT,
+            ImageFormat::R16_SFLOAT,
+
+            ImageFormat::R16G16_UNORM,
+            ImageFormat::R16G16_SNORM,
+            ImageFormat::R16G16_UINT,
+            ImageFormat::R16G16_SINT,
+            ImageFormat::R16G16_SFLOAT,
+
+            ImageFormat::R16G16B16A16_UNORM,
+            ImageFormat::R16G16B16A16_SNORM,
+            ImageFormat::R16G16B16A16_UINT,
+            ImageFormat::R16G16B16A16_SINT,
+            ImageFormat::R16G16B16A16_SFLOAT,
+
+            ImageFormat::R32_UINT,
+            ImageFormat::R32_SINT,
+            ImageFormat::R32_SFLOAT,
+
+            ImageFormat::R32G32_UINT,
+            ImageFormat::R32G32_SINT,
+            ImageFormat::R32G32_SFLOAT,
+
+            ImageFormat::R32G32B32_UINT,
+            ImageFormat::R32G32B32_SINT,
+            ImageFormat::R32G32B32_SFLOAT,
+
+            ImageFormat::R32G32B32A32_UINT,
+            ImageFormat::R32G32B32A32_SINT,
+            ImageFormat::R32G32B32A32_SFLOAT,
+
+            ImageFormat::D16_UNORM,
+            ImageFormat::D24_UNORM_S8_UINT,
+            ImageFormat::D32_SFLOAT,
+            ImageFormat::D32_SFLOAT_S8_UINT,
+
+            ImageFormat::BC1_UNORM,
+            ImageFormat::BC1_UNORM_SRGB,
+            ImageFormat::BC2_UNORM,
+            ImageFormat::BC2_UNORM_SRGB,
+            ImageFormat::BC3_UNORM,
+            ImageFormat::BC3_UNORM_SRGB,
+            ImageFormat::BC4_UNORM,
+            ImageFormat::BC4_SNORM,
+            ImageFormat::BC5_UNORM,
+            ImageFormat::BC5_SNORM,
+            ImageFormat::BC6H_UFLOAT,
+            ImageFormat::BC6H_SFLOAT,
+            ImageFormat::BC7_UNORM,
+            ImageFormat::BC7_UNORM_SRGB,
         };
 
         virtual ~Image() = default;
@@ -498,8 +577,9 @@ export namespace vireo {
     class GraphicPipeline : public Pipeline {
     public:
         struct Configuration {
+            ImageFormat       colorRenderFormat{ImageFormat::R8G8B8A8_UNORM};
             PrimitiveTopology primitiveTopology{PrimitiveTopology::TRIANGLE_LIST};
-            bool              useMSAA{false};
+            MSAA              msaa{MSAA::NONE};
             CullMode          cullMode{CullMode::NONE};
             PolygonMode       polygonMode{PolygonMode::FILL};
             bool              frontFaceCounterClockwise{false};
@@ -650,6 +730,8 @@ export namespace vireo {
 
         auto getFramesInFlight() const { return framesInFlight; }
 
+        auto getFormat() const { return format; }
+
         virtual void nextSwapChain() = 0;
 
         virtual bool acquire(const shared_ptr<Fence>& fence) = 0;
@@ -660,12 +742,14 @@ export namespace vireo {
 
     protected:
         const PresentMode presentMode;
+        const ImageFormat format;
         uint32_t    framesInFlight;
         Extent      extent{};
         float       aspectRatio{};
         uint32_t    currentFrameIndex{0};
 
-        SwapChain(const PresentMode presentMode, const uint32_t framesInFlight) :
+        SwapChain(const ImageFormat format, const PresentMode presentMode, const uint32_t framesInFlight) :
+            format{format},
             presentMode{presentMode},
             framesInFlight{framesInFlight} {}
     };
@@ -678,7 +762,10 @@ export namespace vireo {
 
         virtual void waitIdle() = 0;
 
-        virtual shared_ptr<SwapChain> createSwapChain(PresentMode presentMode = PresentMode::VSYNC, uint32_t framesInFlight = 2) const = 0;
+        virtual shared_ptr<SwapChain> createSwapChain(
+            ImageFormat format,
+            PresentMode presentMode = PresentMode::VSYNC,
+            uint32_t framesInFlight = 2) const = 0;
 
         virtual shared_ptr<Fence> createFence(const wstring& name = L"Fence") const = 0;
 
@@ -732,6 +819,12 @@ export namespace vireo {
             ImageFormat format,
             uint32_t width,
             uint32_t height,
+            MSAA msaa = MSAA::NONE,
+            const wstring& name = L"RenderTarget") const = 0;
+
+        virtual shared_ptr<RenderTarget> createRenderTarget(
+            const shared_ptr<const SwapChain>& swapChain,
+            MSAA msaa = MSAA::NONE,
             const wstring& name = L"RenderTarget") const = 0;
 
         virtual shared_ptr<DescriptorLayout> createDescriptorLayout(
@@ -774,4 +867,5 @@ export namespace vireo {
 
         Vireo(const Configuration& configuration) : configuration{configuration} {}
     };
+
 }

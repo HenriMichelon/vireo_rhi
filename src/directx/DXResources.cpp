@@ -8,6 +8,7 @@ module;
 #include "vireo/backend/directx/Libraries.h"
 module vireo.directx.resources;
 
+import vireo.directx.devices;
 import vireo.directx.tools;
 
 namespace vireo {
@@ -69,7 +70,8 @@ namespace vireo {
             const uint32_t    height,
             const wstring&    name,
             const bool        useByComputeShader,
-            const bool        allowRenderTarget):
+            const bool        allowRenderTarget,
+            const MSAA        msaa):
         Image{format, width, height} {
         const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
         const auto imageDesc = D3D12_RESOURCE_DESC{
@@ -79,7 +81,9 @@ namespace vireo {
             .DepthOrArraySize = 1,
             .MipLevels = 1,
             .Format = dxFormats[static_cast<int>(format)],
-            .SampleDesc = { 1, 0 },
+            .SampleDesc = {
+                DXPhysicalDevice::dxSampleCount[static_cast<int>(msaa)],
+                0 },
             .Flags =
                 allowRenderTarget ? D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET :
                 useByComputeShader ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS :

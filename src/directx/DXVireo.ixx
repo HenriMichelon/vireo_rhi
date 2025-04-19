@@ -24,7 +24,7 @@ export namespace vireo {
 
         void waitIdle() override;
 
-        shared_ptr<SwapChain> createSwapChain(PresentMode presentMode, uint32_t framesInFlight) const override;
+        shared_ptr<SwapChain> createSwapChain(ImageFormat format, PresentMode presentMode, uint32_t framesInFlight) const override;
 
         shared_ptr<Fence> createFence(const wstring& name) const override;
 
@@ -77,6 +77,12 @@ export namespace vireo {
             ImageFormat format,
             uint32_t width,
             uint32_t height,
+            MSAA msaa = MSAA::NONE,
+            const wstring& name = L"RenderTarget") const override;
+
+        shared_ptr<RenderTarget> createRenderTarget(
+            const shared_ptr<const SwapChain>& swapChain,
+            MSAA msaa = MSAA::NONE,
             const wstring& name = L"RenderTarget") const override;
 
         shared_ptr<DescriptorLayout> createDescriptorLayout(

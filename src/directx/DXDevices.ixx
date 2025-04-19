@@ -24,6 +24,16 @@ export namespace vireo {
 
     class DXPhysicalDevice : public PhysicalDevice {
     public:
+        static constexpr UINT dxSampleCount[] {
+            1,
+            2,
+            4,
+            8,
+            16,
+            32,
+            64,
+        };
+
         DXPhysicalDevice(const ComPtr<IDXGIFactory4>& factory);
 
         auto getHardwareAdapter() { return hardwareAdapter4; }

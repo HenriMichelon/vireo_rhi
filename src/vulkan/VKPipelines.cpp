@@ -200,7 +200,7 @@ namespace vireo {
         };
         const auto multisampling = VkPipelineMultisampleStateCreateInfo {
             .sType                  = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-            .rasterizationSamples   = VK_SAMPLE_COUNT_1_BIT,
+            .rasterizationSamples   = VKPhysicalDevice::vkSampleCountFlag[static_cast<int>(configuration.msaa)],
             .sampleShadingEnable    = VK_FALSE,
             .minSampleShading       = 1.0f,
             .pSampleMask            = nullptr,

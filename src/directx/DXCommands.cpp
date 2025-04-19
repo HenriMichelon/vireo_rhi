@@ -188,6 +188,13 @@ namespace vireo {
     }
 
     void DXCommandList::beginRendering(
+        const shared_ptr<RenderTarget>& multisampledRenderTarget,
+        const shared_ptr<RenderTarget>& renderTarget,
+        const float clearColor[]) const {
+        const auto dxRenderTarget = static_pointer_cast<DXRenderTarget>(renderTarget);
+    }
+
+    void DXCommandList::beginRendering(
         const D3D12_CPU_DESCRIPTOR_HANDLE& handle,
         const float clearColor[]) const {
         commandList->OMSetRenderTargets(
@@ -222,6 +229,14 @@ namespace vireo {
         const ResourceState newState) const {
         const auto dxSwapChain = static_pointer_cast<const DXSwapChain>(swapChain);
         barrier(dxSwapChain->getRenderTargets()[dxSwapChain->getCurrentFrameIndex()], oldState, newState);
+    }
+
+    void DXCommandList::barrier(
+       const shared_ptr<const RenderTarget>& renderTarget,
+       const ResourceState oldState,
+       const ResourceState newState) const {
+        const auto dxRenderTarget = static_pointer_cast<const DXImage>(renderTarget->getImage());
+        barrier(dxRenderTarget->getImage(), oldState, newState);
     }
 
     void DXCommandList::barrier(

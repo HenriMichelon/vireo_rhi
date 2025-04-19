@@ -11,6 +11,7 @@ module vireo.directx.swapchains;
 import vireo.tools;
 
 import vireo.directx.commands;
+import vireo.directx.resources;
 import vireo.directx.tools;
 
 namespace vireo {
@@ -19,10 +20,11 @@ namespace vireo {
         const ComPtr<IDXGIFactory4>& factory,
         const shared_ptr<DXDevice>& dxdevice,
         const ComPtr<ID3D12CommandQueue>& commandQueue,
+        const ImageFormat format,
         const HWND hWnd,
         const PresentMode vSyncMode,
         const uint32_t framesInFlight) :
-        SwapChain{vSyncMode, framesInFlight},
+        SwapChain{format, vSyncMode, framesInFlight},
         device{dxdevice},
         factory{factory},
         presentCommandQueue{commandQueue},
@@ -85,8 +87,8 @@ namespace vireo {
 
         // Create frame resources.
         CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(rtvHeap->GetCPUDescriptorHandleForHeapStart());
-        constexpr auto rtvDesc = D3D12_RENDER_TARGET_VIEW_DESC{
-            .Format = RENDER_FORMAT,
+        const auto rtvDesc = D3D12_RENDER_TARGET_VIEW_DESC{
+            .Format = DXImage::dxFormats[static_cast<int>(format)],
             .ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D,
         };
         for (UINT n = 0; n < framesInFlight; n++) {
@@ -137,8 +139,8 @@ namespace vireo {
             ));
 
             CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(rtvHeap->GetCPUDescriptorHandleForHeapStart());
-            constexpr auto rtvDesc = D3D12_RENDER_TARGET_VIEW_DESC{
-                .Format = RENDER_FORMAT,
+            const auto rtvDesc = D3D12_RENDER_TARGET_VIEW_DESC{
+                .Format = DXImage::dxFormats[static_cast<int>(format)],
                 .ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D,
             };
             for (UINT n = 0; n < framesInFlight; n++) {

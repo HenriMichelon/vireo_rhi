@@ -16,11 +16,10 @@ export namespace vireo {
 
     class VKSwapChain : public SwapChain {
     public:
-        static constexpr auto RENDER_FORMAT{ImageFormat::R8G8B8A8_SRGB};
-
         VKSwapChain(
             const shared_ptr<const VKDevice>& device,
             void* windowHandle,
+            ImageFormat format,
             PresentMode vSyncMode,
             uint32_t framesInFlight);
 
@@ -81,9 +80,8 @@ export namespace vireo {
         // Get the swap chain capabilities
         static SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice vkPhysicalDevice, VkSurfaceKHR surface);
 
-        // Get the swap chain format, default for sRGB/NON-LINEAR
-        static VkSurfaceFormatKHR chooseSwapSurfaceFormat(
-                const vector<VkSurfaceFormatKHR> &availableFormats);
+        // Get the swap chain format
+        VkSurfaceFormatKHR chooseSwapSurfaceFormat(const vector<VkSurfaceFormatKHR> &availableFormats);
 
         // Get the swap chain present mode
         VkPresentModeKHR chooseSwapPresentMode(const vector<VkPresentModeKHR> &availablePresentModes) const;

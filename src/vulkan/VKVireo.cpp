@@ -30,11 +30,12 @@ namespace vireo {
         transferCommandQueue = make_shared<VKSubmitQueue>(getVKDevice(), CommandType::TRANSFER, "Transfer");
     }
 
-    shared_ptr<SwapChain> VKVireo::createSwapChain(const PresentMode presentMode, const uint32_t framesInFlight) const {
+    shared_ptr<SwapChain> VKVireo::createSwapChain(const ImageFormat format, const PresentMode presentMode, const uint32_t framesInFlight) const {
         return make_shared<VKSwapChain>(getVKDevice(),
 #ifdef _WIN32
             hWnd,
 #endif
+            format,
             presentMode,
             framesInFlight);
     }
@@ -113,7 +114,8 @@ namespace vireo {
             height,
             name,
             false,
-            false);
+            false,
+            MSAA::NONE);
     }
 
     shared_ptr<Image> VKVireo::createReadWriteImage(
@@ -128,13 +130,15 @@ namespace vireo {
             height,
             name,
             true,
-            false);
+            false,
+            MSAA::NONE);
     }
 
     shared_ptr<RenderTarget> VKVireo::createRenderTarget(
             const ImageFormat format,
             const uint32_t width,
             const uint32_t height,
+            const MSAA msaa,
             const wstring& name) const {
         return make_shared<RenderTarget>(
             make_shared<VKImage>(
@@ -144,7 +148,24 @@ namespace vireo {
                 height,
                 name,
                 false,
-                true));
+                true,
+                msaa));
+    }
+
+    shared_ptr<RenderTarget> VKVireo::createRenderTarget(
+        const shared_ptr<const SwapChain>& swapChain,
+        MSAA msaa,
+        const wstring& name) const {
+        return make_shared<RenderTarget>(
+            make_shared<VKImage>(
+                getVKDevice(),
+                swapChain->getFormat(),
+                swapChain->getExtent().width,
+                swapChain->getExtent().height,
+                name,
+                false,
+                true,
+                msaa));
     }
 
     void VKVireo::waitIdle() {

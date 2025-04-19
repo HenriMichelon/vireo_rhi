@@ -10,7 +10,6 @@ export module vireo.config;
 
 export namespace vireo {
 
-
     enum class Backends {
         UNDEFINED,
         DIRECTX,

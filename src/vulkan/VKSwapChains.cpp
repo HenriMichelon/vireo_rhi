@@ -19,9 +19,10 @@ namespace vireo {
     VKSwapChain::VKSwapChain(
         const shared_ptr<const VKDevice>& device,
         void* windowHandle,
+        const ImageFormat format,
         const PresentMode vSyncMode,
         const uint32_t framesInFlight):
-        SwapChain{vSyncMode, framesInFlight},
+        SwapChain{format, vSyncMode, framesInFlight},
         device{device},
         physicalDevice{device->getPhysicalDevice()},
 #ifdef _WIN32
@@ -170,9 +171,7 @@ namespace vireo {
     VkSurfaceFormatKHR VKSwapChain::chooseSwapSurfaceFormat(const vector<VkSurfaceFormatKHR> &availableFormats) {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain#page_Choosing-the-right-settings-for-the-swap-chain
         for (const auto &availableFormat : availableFormats) {
-            // Using sRGB no-linear color space
-            // https://learnopengl.com/Advanced-Lighting/Gamma-Correction
-            if (availableFormat.format == VKImage::vkFormats[static_cast<int>(RENDER_FORMAT)]) { return availableFormat; }
+            if (availableFormat.format == VKImage::vkFormats[static_cast<int>(format)]) { return availableFormat; }
         }
         return availableFormats[0];
     }

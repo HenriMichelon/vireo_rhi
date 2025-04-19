@@ -11,6 +11,7 @@ module vireo.directx.pipelines;
 import vireo.tools;
 
 import vireo.directx.descriptors;
+import vireo.directx.resources;
 import vireo.directx.swapchains;
 import vireo.directx.tools;
 
@@ -35,7 +36,7 @@ namespace vireo {
         if (!shaderFile) {
             throw Exception("Error loading shader ", fileName);
         }
-        streamsize size = shaderFile.tellg();
+        const streamsize size = shaderFile.tellg();
         shaderFile.seekg(0, ios::beg);
         dxCheck(D3DCreateBlob(size, &shader), "Error creating blob for  shader ");
         shaderFile.read(static_cast<char*>(shader->GetBufferPointer()), size);
@@ -178,7 +179,9 @@ namespace vireo {
             },
             .PrimitiveTopologyType = dxPrimitivesTypes[static_cast<int>(configuration.primitiveTopology)],
             .NumRenderTargets = 1,
-            .RTVFormats = { DXSwapChain::RENDER_FORMAT },
+            .RTVFormats = {
+                DXImage::dxFormats[static_cast<int>(configuration.colorRenderFormat)]
+            },
             .SampleDesc = {
                 .Count = 1,
             }

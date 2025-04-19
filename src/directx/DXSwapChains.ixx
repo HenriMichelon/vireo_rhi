@@ -16,12 +16,11 @@ export namespace vireo {
 
     class DXSwapChain : public SwapChain {
     public:
-        static constexpr auto RENDER_FORMAT{DXGI_FORMAT_R8G8B8A8_UNORM_SRGB};
-
         DXSwapChain(
             const ComPtr<IDXGIFactory4>& factory,
             const shared_ptr<DXDevice>& device,
             const ComPtr<ID3D12CommandQueue>& commandQueue,
+            ImageFormat format,
             HWND hWnd, PresentMode vSyncMode, uint32_t framesInFlight);
 
         ~DXSwapChain() override;
