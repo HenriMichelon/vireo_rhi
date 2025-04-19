@@ -100,7 +100,7 @@ namespace vireo {
     }
 
     DXSwapChain::~DXSwapChain() {
-        // waitForLastPresentedFrame();
+        waitForLastPresentedFrame();
         for (auto &renderTarget : renderTargets) {
             renderTarget.Reset();
         }
@@ -117,7 +117,7 @@ namespace vireo {
         const auto width = windowRect.right - windowRect.left;
         const auto height = windowRect.bottom - windowRect.top;
         if (width != extent.width || height != extent.height) {
-            // waitForLastPresentedFrame();
+            waitForLastPresentedFrame();
             extent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
             aspectRatio = static_cast<float>(extent.width) / static_cast<float>(extent.height);
 
@@ -154,16 +154,16 @@ namespace vireo {
         }
     }
 
-    // void DXSwapChain::waitForLastPresentedFrame() {
-    //     dxCheck(presentCommandQueue->Signal(device->getInFlightFence().Get(), lastPresentedFenceValue));
-    //     if (device->getInFlightFence()->GetCompletedValue() < lastPresentedFenceValue) {
-    //         dxCheck(device->getInFlightFence()->SetEventOnCompletion(
-    //             lastPresentedFenceValue,
-    //             device->getInFlightFenceEvent()
-    //         ));
-    //         WaitForSingleObjectEx(device->getInFlightFenceEvent(), INFINITE, FALSE);
-    //     }
-    // }
+    void DXSwapChain::waitForLastPresentedFrame() const {
+        dxCheck(presentCommandQueue->Signal(lastFence->getFence().Get(), lastFence->getValue()));
+        if (lastFence->getFence()->GetCompletedValue() < lastFence->getValue()) {
+            dxCheck(lastFence->getFence()->SetEventOnCompletion(
+                lastFence->getValue(),
+                fenceEvent
+            ));
+            WaitForSingleObjectEx(fenceEvent, INFINITE, FALSE);
+        }
+    }
 
     void DXSwapChain::nextSwapChain() {
         currentFrameIndex = swapChain->GetCurrentBackBufferIndex();
@@ -179,6 +179,7 @@ namespace vireo {
                 fenceEvent
             ));
             WaitForSingleObjectEx(fenceEvent, INFINITE, FALSE);
+            lastFence = dxFence;
         }
         dxFence->increment();
         return true;
@@ -187,4 +188,5 @@ namespace vireo {
     void DXSwapChain::present() {
         dxCheck(swapChain->Present(syncInterval, presentFlags));
     }
+
 }
