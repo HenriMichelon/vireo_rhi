@@ -24,19 +24,27 @@ namespace vireo {
         instance = make_shared<VKInstance>();
         physicalDevice = make_shared<VKPhysicalDevice>(getVKInstance()->getInstance(), hWnd);
         device = make_shared<VKDevice>(*getVKPhysicalDevice(), getVKInstance()->getRequestedLayers());
-        computeCommandQueue = make_shared<VKSubmitQueue>(getVKDevice(), CommandType::COMPUTE, "Compute");
-        graphicCommandQueue = make_shared<VKSubmitQueue>(getVKDevice(), CommandType::GRAPHIC, "Graphic");
-        transferCommandQueue = make_shared<VKSubmitQueue>(getVKDevice(), CommandType::TRANSFER, "Transfer");
     }
 
-    shared_ptr<SwapChain> VKVireo::createSwapChain(const ImageFormat format, const PresentMode presentMode, const uint32_t framesInFlight) const {
+    shared_ptr<SwapChain> VKVireo::createSwapChain(
+        const ImageFormat format,
+        const shared_ptr<const SubmitQueue>& submitQueue,
+        const PresentMode presentMode,
+        const uint32_t framesInFlight) const {
         return make_shared<VKSwapChain>(getVKDevice(),
+            static_pointer_cast<const VKSubmitQueue>(submitQueue)->getCommandQueue(),
 #ifdef _WIN32
             hWnd,
 #endif
             format,
             presentMode,
             framesInFlight);
+    }
+
+    shared_ptr<SubmitQueue> VKVireo::createSubmitQueue(
+            CommandType commandType,
+            const wstring& name) const {
+        return make_shared<VKSubmitQueue>(getVKDevice(), commandType, name);
     }
 
     shared_ptr<VertexInputLayout> VKVireo::createVertexLayout(

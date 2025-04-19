@@ -767,12 +767,17 @@ export namespace vireo {
 
         virtual ~Vireo() = default;
 
-        virtual void waitIdle() = 0;
+        virtual void waitIdle() {}
 
         virtual shared_ptr<SwapChain> createSwapChain(
             ImageFormat format,
+            const shared_ptr<const SubmitQueue>& submitQueue,
             PresentMode presentMode = PresentMode::VSYNC,
             uint32_t framesInFlight = 2) const = 0;
+
+        virtual shared_ptr<SubmitQueue> createSubmitQueue(
+            CommandType commandType,
+            const wstring& name = L"SubmitQueue") const = 0;
 
         virtual shared_ptr<Fence> createFence(const wstring& name = L"Fence") const = 0;
 
@@ -855,19 +860,10 @@ export namespace vireo {
             bool anisotropyEnable = true,
             MipMapMode mipMapMode = MipMapMode::LINEAR) const = 0;
 
-        auto getGraphicCommandQueue() const { return graphicCommandQueue; }
-
-        auto getTransferCommandQueue() const { return transferCommandQueue; }
-
-        auto getComputeCommandQueue() const { return computeCommandQueue; }
-
     protected:
         shared_ptr<Instance>        instance;
         shared_ptr<PhysicalDevice>  physicalDevice;
         shared_ptr<Device>          device;
-        shared_ptr<SubmitQueue>     computeCommandQueue;
-        shared_ptr<SubmitQueue>     graphicCommandQueue;
-        shared_ptr<SubmitQueue>     transferCommandQueue;
     };
 
 }

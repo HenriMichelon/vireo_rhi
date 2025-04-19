@@ -16,7 +16,10 @@ import vireo.vulkan.tools;
 
 namespace vireo {
 
-    VKSubmitQueue::VKSubmitQueue(const shared_ptr<const VKDevice>& device, const CommandType type, const string& name) {
+    VKSubmitQueue::VKSubmitQueue(
+        const shared_ptr<const VKDevice>& device,
+        const CommandType type,
+        const wstring& name) {
         vkGetDeviceQueue(
             device->getDevice(),
             type == CommandType::COMPUTE ? device->getComputeQueueFamilyIndex() :
@@ -26,7 +29,7 @@ namespace vireo {
             &commandQueue);
 #ifdef _DEBUG
         vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(commandQueue), VK_OBJECT_TYPE_QUEUE,
-            "VKSubmitQueue : " + name);
+            "VKSubmitQueue : " + to_string(name));
 #endif
     }
 

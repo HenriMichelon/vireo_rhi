@@ -22,7 +22,15 @@ export namespace vireo {
 
         void waitIdle() override;
 
-        shared_ptr<SwapChain> createSwapChain(ImageFormat format, PresentMode presentMode, uint32_t framesInFlight) const override;
+        shared_ptr<SwapChain> createSwapChain(
+            ImageFormat format,
+            const shared_ptr<const SubmitQueue>& submitQueue,
+            PresentMode presentMode,
+            uint32_t framesInFlight) const override;
+
+        shared_ptr<SubmitQueue> createSubmitQueue(
+            CommandType commandType,
+            const wstring& name = L"SubmitQueue") const override;
 
         shared_ptr<Fence> createFence(const wstring& name) const override;
 
@@ -109,8 +117,6 @@ export namespace vireo {
         auto getVKPhysicalDevice() const { return reinterpret_pointer_cast<VKPhysicalDevice>(physicalDevice); }
 
         auto getVKDevice() const { return reinterpret_pointer_cast<VKDevice>(device); }
-
-        auto getVKGraphicCommandQueue() const { return reinterpret_pointer_cast<VKSubmitQueue>(graphicCommandQueue); }
 
     private:
 #ifdef _WIN32

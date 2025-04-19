@@ -17,6 +17,7 @@ export namespace vireo {
     public:
         VKSwapChain(
             const shared_ptr<const VKDevice>& device,
+            VkQueue presentQueue,
             void* windowHandle,
             ImageFormat format,
             PresentMode vSyncMode,

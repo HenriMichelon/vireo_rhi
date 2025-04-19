@@ -18,6 +18,7 @@ namespace vireo {
 
     VKSwapChain::VKSwapChain(
         const shared_ptr<const VKDevice>& device,
+        VkQueue presentQueue,
         void* windowHandle,
         const ImageFormat format,
         const PresentMode vSyncMode,
@@ -26,8 +27,9 @@ namespace vireo {
         device{device},
         physicalDevice{device->getPhysicalDevice()},
 #ifdef _WIN32
-        hWnd{static_cast<HWND>(windowHandle)}
+        hWnd{static_cast<HWND>(windowHandle)},
 #endif
+        presentQueue{presentQueue}
     {
         imageIndex.resize(framesInFlight);
         imageAvailableSemaphore.resize(framesInFlight);
@@ -63,12 +65,6 @@ namespace vireo {
         "VKFrameData render Semaphore : " + to_string(i));
 #endif
         }
-
-        vkGetDeviceQueue(
-            device->getDevice(),
-            device->getPresentQueueFamilyIndex(),
-            0,
-            &presentQueue);
         create();
     }
 

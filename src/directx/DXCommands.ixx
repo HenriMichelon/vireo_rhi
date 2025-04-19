@@ -16,7 +16,7 @@ export namespace vireo {
     public:
         DXSubmitQueue(const ComPtr<ID3D12Device>& device, CommandType type);
 
-        auto getCommandQueue() { return commandQueue; }
+        auto getCommandQueue() const { return commandQueue; }
 
         void submit(const shared_ptr<Fence>& fence, const shared_ptr<const SwapChain>& swapChain, const vector<shared_ptr<const CommandList>>& commandLists) const override;
 

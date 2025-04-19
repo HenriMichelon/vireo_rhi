@@ -18,7 +18,7 @@ export namespace vireo {
 
     class VKSubmitQueue : public SubmitQueue {
     public:
-        VKSubmitQueue(const shared_ptr<const VKDevice>& device, CommandType type, const string& name);
+        VKSubmitQueue(const shared_ptr<const VKDevice>& device, CommandType type, const wstring& name);
 
         auto getCommandQueue() const { return commandQueue; }
 

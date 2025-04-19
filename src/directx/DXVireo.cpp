@@ -19,20 +19,27 @@ namespace vireo {
         instance = make_shared<DXInstance>(hWnd);
         physicalDevice = make_shared<DXPhysicalDevice>(getDXInstance()->getFactory());
         device = make_shared<DXDevice>(getDXPhysicalDevice()->getHardwareAdapter());
-        computeCommandQueue = make_shared<DXSubmitQueue>(getDXDevice()->getDevice(), CommandType::COMPUTE);
-        graphicCommandQueue = make_shared<DXSubmitQueue>(getDXDevice()->getDevice(), CommandType::GRAPHIC);
-        transferCommandQueue = make_shared<DXSubmitQueue>(getDXDevice()->getDevice(), CommandType::GRAPHIC);
     }
 
-    shared_ptr<SwapChain> DXVireo::createSwapChain(const ImageFormat format, const PresentMode presentMode, const uint32_t framesInFlight) const {
+    shared_ptr<SwapChain> DXVireo::createSwapChain(
+        const ImageFormat format,
+        const shared_ptr<const SubmitQueue>& submitQueue,
+        const PresentMode presentMode,
+        const uint32_t framesInFlight) const {
         return make_shared<DXSwapChain>(
             getDXInstance()->getFactory(),
             getDXDevice(),
-            getDXGraphicCommandQueue()->getCommandQueue(),
+            static_pointer_cast<const DXSubmitQueue>(submitQueue)->getCommandQueue(),
             format,
             hWnd,
             presentMode,
             framesInFlight);
+    }
+
+    shared_ptr<SubmitQueue> DXVireo::createSubmitQueue(
+            CommandType commandType,
+            const wstring& name) const {
+        return make_shared<DXSubmitQueue>(getDXDevice()->getDevice(), commandType);
     }
 
     shared_ptr<PipelineResources> DXVireo::createPipelineResources(
@@ -177,17 +184,6 @@ namespace vireo {
 
     shared_ptr<CommandAllocator> DXVireo::createCommandAllocator(const CommandType type) const {
         return make_shared<DXCommandAllocator>(getDXDevice()->getDevice(), type);
-    }
-
-    DXVireo::~DXVireo() {
-        DXVireo::waitIdle();
-    }
-
-    void DXVireo::waitIdle() {
-        // getDXSwapChain()->waitForLastPresentedFrame();
-        graphicCommandQueue->waitIdle();
-        computeCommandQueue->waitIdle();
-        transferCommandQueue->waitIdle();
     }
 
 }
