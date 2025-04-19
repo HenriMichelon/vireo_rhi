@@ -17,12 +17,12 @@ import vireo.vulkan;
 
 namespace vireo {
 
-    unique_ptr<Vireo> Vireo::create(const Configuration& configuration) {
-        if (configuration.backend == Backends::VULKAN) {
-            return make_unique<VKVireo>(configuration);
+    unique_ptr<Vireo> Vireo::create(const Backend backend, void* windowHandle) {
+        if (backend == Backend::VULKAN) {
+            return make_unique<VKVireo>(windowHandle);
         }
 #ifdef _WIN32
-        return make_unique<DXVireo>(configuration);
+        return make_unique<DXVireo>(windowHandle);
 #endif
         throw Exception("Unsupported backend");
     }

@@ -9,7 +9,6 @@ module;
 export module vireo.vulkan.swapchains;
 
 import vireo;
-import vireo.config;
 import vireo.vulkan.devices;
 
 export namespace vireo {

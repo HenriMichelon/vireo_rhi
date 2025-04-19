@@ -9,7 +9,6 @@ module;
 export module vireo.vulkan;
 
 import vireo;
-import vireo.config;
 import vireo.vulkan.commands;
 import vireo.vulkan.devices;
 import vireo.vulkan.resources;
@@ -19,7 +18,7 @@ export namespace vireo {
 
     class VKVireo : public Vireo {
     public:
-        VKVireo(const Configuration& configuration);
+        VKVireo(void* windowHandle);
 
         void waitIdle() override;
 

@@ -60,7 +60,6 @@ target_sources(${VIREO_TARGET}
     PUBLIC
     FILE_SET CXX_MODULES
     FILES
-        ${SRC_DIR}/Configuration.ixx
         ${SRC_DIR}/Tools.ixx
         ${SRC_DIR}/Vireo.ixx
         ${SRC_DIR}/directx/DXCommands.ixx

@@ -16,10 +16,9 @@ import vireo.vulkan.tools;
 
 namespace vireo {
 
-    VKVireo::VKVireo(const Configuration& configuration) :
-    Vireo{configuration},
+    VKVireo::VKVireo(void* windowHandle) :
 #ifdef _WIN32
-    hWnd{static_cast<HWND>(configuration.windowHandle)}
+    hWnd{static_cast<HWND>(windowHandle)}
 #endif
     {
         instance = make_shared<VKInstance>();

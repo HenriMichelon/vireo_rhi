@@ -9,7 +9,6 @@ module;
 export module vireo.directx;
 
 import vireo;
-import vireo.config;
 import vireo.directx.commands;
 import vireo.directx.devices;
 import vireo.directx.swapchains;
@@ -18,7 +17,7 @@ export namespace vireo {
 
     class DXVireo : public Vireo {
     public:
-        DXVireo(const Configuration& configuration);
+        DXVireo(void* windowHandle);
 
         ~DXVireo() override;
 

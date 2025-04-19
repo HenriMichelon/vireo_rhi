@@ -8,9 +8,13 @@ module;
 #include "vireo/Libraries.h"
 export module vireo;
 
-import vireo.config;
-
 export namespace vireo {
+
+    enum class Backend {
+        UNDEFINED,
+        DIRECTX,
+        VULKAN,
+    };
 
     enum class Filter {
         NEAREST,
@@ -759,7 +763,7 @@ export namespace vireo {
 
     class Vireo {
     public:
-        static unique_ptr<Vireo> create(const Configuration& configuration);
+        static unique_ptr<Vireo> create(Backend backend, void* windowHandle);
 
         virtual ~Vireo() = default;
 
@@ -857,18 +861,13 @@ export namespace vireo {
 
         auto getComputeCommandQueue() const { return computeCommandQueue; }
 
-        const auto& getConfiguration() const { return configuration; }
-
     protected:
-        const Configuration&        configuration;
         shared_ptr<Instance>        instance;
         shared_ptr<PhysicalDevice>  physicalDevice;
         shared_ptr<Device>          device;
         shared_ptr<SubmitQueue>     computeCommandQueue;
         shared_ptr<SubmitQueue>     graphicCommandQueue;
         shared_ptr<SubmitQueue>     transferCommandQueue;
-
-        Vireo(const Configuration& configuration) : configuration{configuration} {}
     };
 
 }

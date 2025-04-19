@@ -14,9 +14,8 @@ import vireo.directx.resources;
 
 namespace vireo {
 
-    DXVireo::DXVireo(const Configuration& configuration):
-        Vireo{configuration},
-        hWnd{static_cast<HWND>(configuration.windowHandle)} {
+    DXVireo::DXVireo(void* windowHandle):
+        hWnd{static_cast<HWND>(windowHandle)} {
         instance = make_shared<DXInstance>(hWnd);
         physicalDevice = make_shared<DXPhysicalDevice>(getDXInstance()->getFactory());
         device = make_shared<DXDevice>(getDXPhysicalDevice()->getHardwareAdapter());

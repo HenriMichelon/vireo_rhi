@@ -9,13 +9,13 @@ module;
 export module vireo.vulkan.devices;
 
 import vireo;
-import vireo.config;
 
 export namespace vireo {
 
     class VKInstance : public Instance {
     public:
         VKInstance();
+
         ~VKInstance() override;
 
         auto getInstance() const { return instance; }
