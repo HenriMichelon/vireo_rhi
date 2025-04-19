@@ -24,6 +24,8 @@ export namespace vireo {
 
         void waitIdle() override;
 
+        shared_ptr<SwapChain> createSwapChain(PresentMode presentMode) const override;
+
         shared_ptr<Fence> createFence(const wstring& name) const override;
 
         shared_ptr<CommandAllocator> createCommandAllocator(CommandType type) const override;
@@ -107,8 +109,6 @@ export namespace vireo {
         auto getDXGraphicCommandQueue() const { return reinterpret_pointer_cast<DXSubmitQueue>(graphicCommandQueue); }
 
         auto getDXTransferCommandQueue() const { return reinterpret_pointer_cast<DXSubmitQueue>(transferCommandQueue); }
-
-        auto getDXSwapChain() const { return reinterpret_pointer_cast<DXSwapChain>(swapChain); }
 
     private:
         HWND hWnd;

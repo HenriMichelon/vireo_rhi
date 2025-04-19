@@ -23,12 +23,15 @@ namespace vireo {
         computeCommandQueue = make_shared<DXSubmitQueue>(getDXDevice()->getDevice(), CommandType::COMPUTE);
         graphicCommandQueue = make_shared<DXSubmitQueue>(getDXDevice()->getDevice(), CommandType::GRAPHIC);
         transferCommandQueue = make_shared<DXSubmitQueue>(getDXDevice()->getDevice(), CommandType::GRAPHIC);
-        swapChain = make_shared<DXSwapChain>(
+    }
+
+    shared_ptr<SwapChain> DXVireo::createSwapChain(const PresentMode presentMode) const {
+        return make_shared<DXSwapChain>(
             getDXInstance()->getFactory(),
             getDXDevice(),
             getDXGraphicCommandQueue()->getCommandQueue(),
             hWnd,
-            configuration.presentMode);
+            presentMode);
     }
 
     shared_ptr<PipelineResources> DXVireo::createPipelineResources(

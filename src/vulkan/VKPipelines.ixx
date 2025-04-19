@@ -112,7 +112,6 @@ export namespace vireo {
 
         VKGraphicPipeline(
            const shared_ptr<VKDevice>& device,
-           VKSwapChain& swapChain,
            const shared_ptr<PipelineResources>& pipelineResources,
            const shared_ptr<const VertexInputLayout>& vertexInputLayout,
            const shared_ptr<const ShaderModule>& vertexShader,

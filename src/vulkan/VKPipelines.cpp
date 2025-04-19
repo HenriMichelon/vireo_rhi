@@ -136,7 +136,6 @@ namespace vireo {
 
     VKGraphicPipeline::VKGraphicPipeline(
            const shared_ptr<VKDevice>& device,
-           VKSwapChain& swapChain,
            const shared_ptr<PipelineResources>& pipelineResources,
            const shared_ptr<const VertexInputLayout>& vertexInputLayout,
            const shared_ptr<const ShaderModule>& vertexShader,
@@ -201,7 +200,7 @@ namespace vireo {
         };
         const auto multisampling = VkPipelineMultisampleStateCreateInfo {
             .sType                  = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-            .rasterizationSamples   = device->getPhysicalDevice().getSampleCount(),
+            .rasterizationSamples   = VK_SAMPLE_COUNT_1_BIT,
             .sampleShadingEnable    = VK_FALSE,
             .minSampleShading       = 1.0f,
             .pSampleMask            = nullptr,
@@ -216,12 +215,9 @@ namespace vireo {
             .pAttachments   = configuration.colorBlendEnable ? &colorBlendAttachmentEnable : &colorBlendAttachmentDisable,
             .blendConstants = { 0.0f, 0.0f, 0.0f, 0.0f },
         };
-        const auto swapChainImageFormat = swapChain.getFormat();
-        const auto dynamicRenderingCreateInfo = VkPipelineRenderingCreateInfoKHR{
+        constexpr auto dynamicRenderingCreateInfo = VkPipelineRenderingCreateInfo{
             .sType                   = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR,
             .pNext                   = VK_NULL_HANDLE,
-            .colorAttachmentCount    = 1,
-            .pColorAttachmentFormats = &swapChainImageFormat,
         };
         const auto IAInfo = VkPipelineInputAssemblyStateCreateInfo{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,

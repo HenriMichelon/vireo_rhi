@@ -181,6 +181,11 @@ export namespace vireo {
         SHADER_READ,
     };
 
+    enum class PresentMode {
+        IMMEDIATE = 0,
+        VSYNC     = 1,
+    };
+
     using DescriptorIndex = uint32_t;
 
     struct Extent {
@@ -654,11 +659,12 @@ export namespace vireo {
         virtual void recreate() = 0;
 
     protected:
+        const PresentMode presentMode;
         Extent      extent{};
         float       aspectRatio{};
         uint32_t    currentFrameIndex{0};
 
-        SwapChain() = default;
+        SwapChain(const PresentMode presentMode) : presentMode{presentMode} {}
     };
 
     class Vireo {
@@ -668,6 +674,8 @@ export namespace vireo {
         virtual ~Vireo() = default;
 
         virtual void waitIdle() = 0;
+
+        virtual shared_ptr<SwapChain> createSwapChain(PresentMode presentMode) const = 0;
 
         virtual shared_ptr<Fence> createFence(const wstring& name = L"Fence") const = 0;
 
@@ -750,8 +758,6 @@ export namespace vireo {
 
         auto getComputeCommandQueue() const { return computeCommandQueue; }
 
-        auto getSwapChain() const { return swapChain; }
-
         const auto& getConfiguration() const { return configuration; }
 
     protected:
@@ -762,7 +768,6 @@ export namespace vireo {
         shared_ptr<SubmitQueue>     computeCommandQueue;
         shared_ptr<SubmitQueue>     graphicCommandQueue;
         shared_ptr<SubmitQueue>     transferCommandQueue;
-        shared_ptr<SwapChain>       swapChain;
 
         Vireo(const Configuration& configuration) : configuration{configuration} {}
     };

@@ -29,10 +29,6 @@ export namespace vireo {
 
         auto getFormat() const { return swapChainImageFormat; }
 
-        // const auto& getImageViews() const { return swapChainImageViews; }
-
-        // const auto& getImages() const { return swapChainImages; }
-
         auto getCurrentImage() const { return swapChainImages[imageIndex[currentFrameIndex]]; }
 
         auto getCurrentImageView() const { return swapChainImageViews[imageIndex[currentFrameIndex]]; }
@@ -63,7 +59,6 @@ export namespace vireo {
 
         const shared_ptr<const VKDevice>         device;
         const VKPhysicalDevice& physicalDevice;
-        const PresentMode       vSyncMode;
         VkSwapchainKHR          swapChain;
         vector<VkImage>         swapChainImages;
         VkFormat                swapChainImageFormat;
@@ -90,9 +85,7 @@ export namespace vireo {
                 const vector<VkSurfaceFormatKHR> &availableFormats);
 
         // Get the swap chain present mode
-        static VkPresentModeKHR chooseSwapPresentMode(
-                PresentMode vSyncMode,
-                const vector<VkPresentModeKHR> &availablePresentModes);
+        VkPresentModeKHR chooseSwapPresentMode(const vector<VkPresentModeKHR> &availablePresentModes) const;
 
         // Get the swap chain images sizes
         VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities) const;

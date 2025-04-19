@@ -21,12 +21,13 @@ namespace vireo {
         const ComPtr<ID3D12CommandQueue>& commandQueue,
         const HWND hWnd,
         const PresentMode vSyncMode) :
+        SwapChain{vSyncMode},
         device{dxdevice},
         factory{factory},
         presentCommandQueue{commandQueue},
         hWnd{hWnd},
-        syncInterval{static_cast<UINT>(vSyncMode == PresentMode::IMMEDIATE ? 0 : 1)},
-        presentFlags{static_cast<UINT>(vSyncMode == PresentMode::IMMEDIATE ? DXGI_PRESENT_ALLOW_TEARING : 0)} {
+        syncInterval{static_cast<UINT>(presentMode == PresentMode::IMMEDIATE ? 0 : 1)},
+        presentFlags{static_cast<UINT>(presentMode == PresentMode::IMMEDIATE ? DXGI_PRESENT_ALLOW_TEARING : 0)} {
         create();
         fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
         if (fenceEvent == nullptr) {

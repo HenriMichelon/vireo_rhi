@@ -10,10 +10,6 @@ export module vireo.config;
 
 export namespace vireo {
 
-    enum class PresentMode : uint8_t {
-        IMMEDIATE = 0,
-        VSYNC     = 1,
-    };
 
     enum class Backends {
         UNDEFINED,
@@ -24,7 +20,5 @@ export namespace vireo {
     struct Configuration {
         void*    windowHandle           {nullptr};
         Backends backend                {Backends::DIRECTX};
-        //! Presentation mode
-        PresentMode        presentMode  {PresentMode::VSYNC};
     };
 }

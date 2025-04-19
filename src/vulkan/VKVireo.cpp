@@ -28,11 +28,14 @@ namespace vireo {
         computeCommandQueue = make_shared<VKSubmitQueue>(getVKDevice(), CommandType::COMPUTE, "Compute");
         graphicCommandQueue = make_shared<VKSubmitQueue>(getVKDevice(), CommandType::GRAPHIC, "Graphic");
         transferCommandQueue = make_shared<VKSubmitQueue>(getVKDevice(), CommandType::TRANSFER, "Transfer");
-        swapChain = make_shared<VKSwapChain>(getVKDevice(),
+    }
+
+    shared_ptr<SwapChain> VKVireo::createSwapChain(const PresentMode presentMode) const {
+        return make_shared<VKSwapChain>(getVKDevice(),
 #ifdef _WIN32
             hWnd,
 #endif
-            configuration.presentMode
+            presentMode
         );
     }
 
@@ -77,7 +80,6 @@ namespace vireo {
         const wstring& name) const {
         return make_shared<VKGraphicPipeline>(
             getVKDevice(),
-            *getVKSwapChain(),
             pipelineResources,
             vertexInputLayout,
             vertexShader,

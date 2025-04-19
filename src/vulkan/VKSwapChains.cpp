@@ -20,9 +20,9 @@ namespace vireo {
         const shared_ptr<const VKDevice>& device,
         void* windowHandle,
         const PresentMode vSyncMode):
+        SwapChain{vSyncMode},
         device{device},
         physicalDevice{device->getPhysicalDevice()},
-        vSyncMode{vSyncMode},
 #ifdef _WIN32
         hWnd{static_cast<HWND>(windowHandle)}
 #endif
@@ -59,7 +59,7 @@ namespace vireo {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain
         const SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice.getPhysicalDevice(), physicalDevice.getSurface());
         const VkSurfaceFormatKHR surfaceFormat= chooseSwapSurfaceFormat(swapChainSupport.formats);
-        const VkPresentModeKHR presentMode = chooseSwapPresentMode(vSyncMode, swapChainSupport.presentModes);
+        const VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
         swapChainExtent = chooseSwapExtent(swapChainSupport.capabilities);
 
         uint32_t imageCount = FRAMES_IN_FLIGHT;
@@ -177,12 +177,10 @@ namespace vireo {
         return availableFormats[0];
     }
 
-    VkPresentModeKHR VKSwapChain::chooseSwapPresentMode(
-        const PresentMode vSyncMode,
-        const vector<VkPresentModeKHR> &availablePresentModes) {
+    VkPresentModeKHR VKSwapChain::chooseSwapPresentMode(const vector<VkPresentModeKHR> &availablePresentModes) const {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain#page_Presentation-mode
         for (const auto &availablePresentMode : availablePresentModes) {
-            if (availablePresentMode == vkPresentModes[static_cast<int>(vSyncMode)]) {
+            if (availablePresentMode == vkPresentModes[static_cast<int>(presentMode)]) {
                 return availablePresentMode;
             }
         }
@@ -215,23 +213,21 @@ namespace vireo {
     }
 
     void VKSwapChain::present() {
-        {
-            const VkSwapchainKHR   swapChains[] = { swapChain };
-            const VkPresentInfoKHR presentInfo{
-                .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-                .waitSemaphoreCount = 1,
-                .pWaitSemaphores    = &renderFinishedSemaphore[currentFrameIndex],
-                .swapchainCount     = 1,
-                .pSwapchains        = swapChains,
-                .pImageIndices      = &imageIndex[currentFrameIndex],
-                .pResults           = nullptr // Optional
-            };
-            const auto result = vkQueuePresentKHR(presentQueue, &presentInfo);
-            if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
-                recreate();
-            } else if (result != VK_SUCCESS) {
-                throw Exception("failed to present swap chain image!");
-            }
+        const VkSwapchainKHR   swapChains[] = { swapChain };
+        const VkPresentInfoKHR presentInfo{
+            .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+            .waitSemaphoreCount = 1,
+            .pWaitSemaphores    = &renderFinishedSemaphore[currentFrameIndex],
+            .swapchainCount     = 1,
+            .pSwapchains        = swapChains,
+            .pImageIndices      = &imageIndex[currentFrameIndex],
+            .pResults           = nullptr // Optional
+        };
+        const auto result = vkQueuePresentKHR(presentQueue, &presentInfo);
+        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+            recreate();
+        } else if (result != VK_SUCCESS) {
+            throw Exception("failed to present swap chain image!");
         }
     }
 
