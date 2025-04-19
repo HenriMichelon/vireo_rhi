@@ -190,8 +190,27 @@ namespace vireo {
     void DXCommandList::beginRendering(
         const shared_ptr<RenderTarget>& multisampledRenderTarget,
         const shared_ptr<RenderTarget>& renderTarget,
-        const float clearColor[]) const {
-        const auto dxRenderTarget = static_pointer_cast<DXRenderTarget>(renderTarget);
+        const float clearColor[]) {
+        resolveSource = multisampledRenderTarget->getImage();
+        resolveDestination = static_pointer_cast<DXImage>(renderTarget->getImage())->getImage();
+        const auto dxRenderTarget = static_pointer_cast<DXRenderTarget>(multisampledRenderTarget);
+        beginRendering(
+            dxRenderTarget->getHandle(),
+            clearColor
+        );
+    }
+
+    void DXCommandList::beginRendering(
+        const shared_ptr<RenderTarget>& multisampledRenderTarget,
+        const shared_ptr<SwapChain>& swapChain,
+        const float clearColor[]) {
+        resolveSource = multisampledRenderTarget->getImage();
+        resolveDestination = static_pointer_cast<DXSwapChain>(swapChain)->getRenderTargets()[swapChain->getCurrentFrameIndex()];
+        const auto dxRenderTarget = static_pointer_cast<DXRenderTarget>(multisampledRenderTarget);
+        beginRendering(
+            dxRenderTarget->getHandle(),
+            clearColor
+        );
     }
 
     void DXCommandList::beginRendering(
@@ -209,6 +228,44 @@ namespace vireo {
             dxClearColor,
             0,
             nullptr);
+    }
+
+    void DXCommandList::endRendering() {
+        if (resolveSource) {
+            const auto source = static_pointer_cast<DXImage>(resolveSource)->getImage().Get();
+            {
+                const auto barrier1 = CD3DX12_RESOURCE_BARRIER::Transition(
+                       source,
+                       D3D12_RESOURCE_STATE_RENDER_TARGET,
+                       D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
+                commandList->ResourceBarrier(1, &barrier1);
+                const auto barrier2 = CD3DX12_RESOURCE_BARRIER::Transition(
+                   resolveDestination.Get(),
+                   D3D12_RESOURCE_STATE_RENDER_TARGET,
+                   D3D12_RESOURCE_STATE_RESOLVE_DEST);
+                commandList->ResourceBarrier(1, &barrier2);
+            }
+            commandList->ResolveSubresource(
+                resolveDestination.Get(),
+                0,
+                source,
+                0,
+                DXImage::dxFormats[static_cast<int>(resolveSource->getFormat())]);
+            {
+                const auto barrier1 = CD3DX12_RESOURCE_BARRIER::Transition(
+                       source,
+                       D3D12_RESOURCE_STATE_RESOLVE_SOURCE,
+                       D3D12_RESOURCE_STATE_RENDER_TARGET);
+                commandList->ResourceBarrier(1, &barrier1);
+                const auto barrier2 = CD3DX12_RESOURCE_BARRIER::Transition(
+                   resolveDestination.Get(),
+                   D3D12_RESOURCE_STATE_RESOLVE_DEST,
+                   D3D12_RESOURCE_STATE_RENDER_TARGET);
+                commandList->ResourceBarrier(1, &barrier2);
+            }
+            resolveSource = nullptr;
+            resolveDestination = nullptr;
+        }
     }
 
     void DXCommandList::dispatch(const uint32_t x, const uint32_t y, const uint32_t z) const {
@@ -271,8 +328,14 @@ namespace vireo {
         } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::COPY_SRC) {
             srcState = D3D12_RESOURCE_STATE_COMMON;
             dstState = D3D12_RESOURCE_STATE_COPY_SOURCE;
+        } else if (oldState == ResourceState::RENDER_TARGET && newState == ResourceState::COPY_SRC) {
+            srcState = D3D12_RESOURCE_STATE_RENDER_TARGET;
+            dstState = D3D12_RESOURCE_STATE_COPY_SOURCE;
         } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::UNDEFINED) {
             srcState = D3D12_RESOURCE_STATE_COPY_SOURCE;
+            dstState = D3D12_RESOURCE_STATE_COMMON;
+        } else if (oldState == ResourceState::RENDER_TARGET && newState == ResourceState::UNDEFINED) {
+            srcState = D3D12_RESOURCE_STATE_RENDER_TARGET;
             dstState = D3D12_RESOURCE_STATE_COMMON;
         } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::DISPATCH_TARGET) {
             srcState = D3D12_RESOURCE_STATE_COPY_SOURCE;

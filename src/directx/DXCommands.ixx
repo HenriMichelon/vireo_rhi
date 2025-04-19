@@ -82,7 +82,7 @@ export namespace vireo {
         void beginRendering(
             const shared_ptr<RenderTarget>& multisampledRenderTarget,
             const shared_ptr<SwapChain>& swapChain,
-            const float clearColor[]) const override { throw runtime_error("DXCommandList::beginRendering(const shared_ptr<FrameData>&, const shared_ptr<SwapChain>&, const float clearColor[]) const override");};
+            const float clearColor[]) override;
 
         void beginRendering(
             const shared_ptr<RenderTarget>& renderTarget,
@@ -91,7 +91,9 @@ export namespace vireo {
         void beginRendering(
             const shared_ptr<RenderTarget>& multisampledRenderTarget,
             const shared_ptr<RenderTarget>& renderTarget,
-            const float clearColor[]) const override;
+            const float clearColor[]) override;
+
+        void endRendering() override;
 
         void dispatch(uint32_t x, uint32_t y, uint32_t z) const override;
 
@@ -140,6 +142,8 @@ export namespace vireo {
         ComPtr<ID3D12GraphicsCommandList> commandList;
         ComPtr<ID3D12CommandAllocator>    commandAllocator;
         vector<ComPtr<ID3D12Resource>>    stagingBuffers{};
+        shared_ptr<Image>                 resolveSource;
+        ComPtr<ID3D12Resource>            resolveDestination;
 
         void beginRendering(
             const D3D12_CPU_DESCRIPTOR_HANDLE& handle,

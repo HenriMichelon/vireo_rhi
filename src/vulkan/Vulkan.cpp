@@ -102,6 +102,7 @@ PFN_vkResetCommandBuffer vkResetCommandBuffer;
 PFN_vkResetCommandPool vkResetCommandPool;
 PFN_vkResetDescriptorPool vkResetDescriptorPool;
 PFN_vkResetFences vkResetFences;
+PFN_vkCmdResolveImage vkCmdResolveImage;
 PFN_vkCmdSetColorWriteMaskEXT vkCmdSetColorWriteMaskEXT;
 PFN_vkCmdSetCullMode vkCmdSetCullMode;
 PFN_vkCmdSetDepthBiasEnable vkCmdSetDepthBiasEnable;
@@ -242,6 +243,7 @@ void vulkanInitializeDevice(VkDevice device) {
 	vkResetCommandPool = (PFN_vkResetCommandPool)vkGetDeviceProcAddr(device, "vkResetCommandPool");
 	vkResetDescriptorPool = (PFN_vkResetDescriptorPool)vkGetDeviceProcAddr(device, "vkResetDescriptorPool");
 	vkResetFences = (PFN_vkResetFences)vkGetDeviceProcAddr(device, "vkResetFences");
+	vkCmdResolveImage = (PFN_vkCmdResolveImage)vkGetDeviceProcAddr(device, "vkCmdResolveImage");
 	vkUnmapMemory = (PFN_vkUnmapMemory)vkGetDeviceProcAddr(device, "vkUnmapMemory");
 	vkUpdateDescriptorSets = (PFN_vkUpdateDescriptorSets)vkGetDeviceProcAddr(device, "vkUpdateDescriptorSets");
 	vkWaitForFences = (PFN_vkWaitForFences)vkGetDeviceProcAddr(device, "vkWaitForFences");

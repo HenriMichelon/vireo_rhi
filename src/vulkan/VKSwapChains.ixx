@@ -27,8 +27,6 @@ export namespace vireo {
 
         auto getSwapChain() const { return swapChain; }
 
-        auto getFormat() const { return swapChainImageFormat; }
-
         auto getCurrentImage() const { return swapChainImages[imageIndex[currentFrameIndex]]; }
 
         auto getCurrentImageView() const { return swapChainImageViews[imageIndex[currentFrameIndex]]; }

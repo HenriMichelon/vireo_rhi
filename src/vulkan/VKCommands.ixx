@@ -79,7 +79,7 @@ export namespace vireo {
         void beginRendering(
             const shared_ptr<RenderTarget>& multisampledRenderTarget,
             const shared_ptr<SwapChain>& swapChain,
-            const float clearColor[]) const override;
+            const float clearColor[]) override;
 
         void beginRendering(
             const shared_ptr<RenderTarget>& renderTarget,
@@ -88,9 +88,9 @@ export namespace vireo {
         void beginRendering(
             const shared_ptr<RenderTarget>& multisampledRenderTarget,
             const shared_ptr<RenderTarget>& renderTarget,
-            const float clearColor[]) const override;
+            const float clearColor[]) override;
 
-        void endRendering() const override;
+        void endRendering() override;
 
         void dispatch(uint32_t x, uint32_t y, uint32_t z) const override;
 
@@ -129,7 +129,6 @@ export namespace vireo {
             const void* data) const;
 
         auto getCommandBuffer() const { return commandBuffer; }
-
 
     private:
         const shared_ptr<const VKDevice> device;

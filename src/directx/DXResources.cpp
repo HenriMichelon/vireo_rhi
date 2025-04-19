@@ -73,6 +73,18 @@ namespace vireo {
             const bool        allowRenderTarget,
             const MSAA        msaa):
         Image{format, width, height} {
+        const auto dxFormat = dxFormats[static_cast<int>(format)];
+        const auto samples = DXPhysicalDevice::dxSampleCount[static_cast<int>(msaa)];
+        UINT quality = 0;
+        if (msaa != MSAA::NONE) {
+            auto qualityLevels = D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS {
+                .Format = dxFormat,
+                .SampleCount = samples,
+                .Flags = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE,
+            };
+            dxCheck(device->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &qualityLevels, sizeof(qualityLevels)));
+            quality = qualityLevels.NumQualityLevels > 0 ? qualityLevels.NumQualityLevels - 1 : 0;
+        }
         const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
         const auto imageDesc = D3D12_RESOURCE_DESC{
             .Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
@@ -80,10 +92,11 @@ namespace vireo {
             .Height = height,
             .DepthOrArraySize = 1,
             .MipLevels = 1,
-            .Format = dxFormats[static_cast<int>(format)],
+            .Format = dxFormat,
             .SampleDesc = {
-                DXPhysicalDevice::dxSampleCount[static_cast<int>(msaa)],
-                0 },
+                samples,
+                quality
+            },
             .Flags =
                 allowRenderTarget ? D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET :
                 useByComputeShader ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS :

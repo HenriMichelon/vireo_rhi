@@ -215,7 +215,7 @@ namespace vireo {
     void VKCommandList::beginRendering(
       const shared_ptr<RenderTarget>& multisampledRenderTarget,
       const shared_ptr<SwapChain>& swapChain,
-      const float clearColor[]) const {
+      const float clearColor[]) {
         const auto vkMultiSampledImage = static_pointer_cast<VKImage>(multisampledRenderTarget->getImage());
         const auto vkSwapChain = static_pointer_cast<VKSwapChain>(swapChain);
         beginRendering(
@@ -241,7 +241,7 @@ namespace vireo {
     void VKCommandList::beginRendering(
         const shared_ptr<RenderTarget>& multisampledRenderTarget,
         const shared_ptr<RenderTarget>& renderTarget,
-        const float clearColor[]) const {
+        const float clearColor[]) {
         const auto vkMultiSampledImage = static_pointer_cast<VKImage>(multisampledRenderTarget->getImage());
         const auto vkImage = static_pointer_cast<VKImage>(renderTarget->getImage());
         beginRendering(
@@ -323,7 +323,7 @@ namespace vireo {
         vkCmdBeginRendering(commandBuffer, &renderingInfo);
     }
 
-    void VKCommandList::endRendering() const {
+    void VKCommandList::endRendering() {
         vkCmdEndRendering(commandBuffer);
     }
 
@@ -416,6 +416,13 @@ namespace vireo {
             dstAccess = 0;
             srcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        } else if (oldState == ResourceState::RENDER_TARGET && newState == ResourceState::UNDEFINED) {
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            srcAccess = 0;
+            dstAccess = VK_ACCESS_TRANSFER_READ_BIT; // XXX
+            srcLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL; // XXX
         } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::DISPATCH_TARGET) {
             srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;

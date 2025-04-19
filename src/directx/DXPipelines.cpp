@@ -11,6 +11,7 @@ module vireo.directx.pipelines;
 import vireo.tools;
 
 import vireo.directx.descriptors;
+import vireo.directx.devices;
 import vireo.directx.resources;
 import vireo.directx.swapchains;
 import vireo.directx.tools;
@@ -165,6 +166,20 @@ namespace vireo {
         depthStencil.DepthWriteMask = configuration.depthWriteEnable ? D3D12_DEPTH_WRITE_MASK_ALL  : D3D12_DEPTH_WRITE_MASK_ZERO;
         depthStencil.DepthFunc = dxCompareOp[static_cast<int>(configuration.depthCompareOp)];
 
+        const auto format = DXImage::dxFormats[static_cast<int>(configuration.colorRenderFormat)];
+        const auto samples = DXPhysicalDevice::dxSampleCount[static_cast<int>(configuration.msaa)];
+
+        UINT quality = 0;
+        if (configuration.msaa != MSAA::NONE) {
+            auto qualityLevels = D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS {
+                .Format = format,
+                .SampleCount = samples,
+                .Flags = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE,
+            };
+            dxCheck(device->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &qualityLevels, sizeof(qualityLevels)));
+            quality = qualityLevels.NumQualityLevels > 0 ? qualityLevels.NumQualityLevels - 1 : 0;
+        }
+
         auto psoDesc = D3D12_GRAPHICS_PIPELINE_STATE_DESC{
             .pRootSignature = dxPipelineResources->getRootSignature().Get(),
             .VS = CD3DX12_SHADER_BYTECODE(dxVertexShader->getShader().Get()),
@@ -180,10 +195,11 @@ namespace vireo {
             .PrimitiveTopologyType = dxPrimitivesTypes[static_cast<int>(configuration.primitiveTopology)],
             .NumRenderTargets = 1,
             .RTVFormats = {
-                DXImage::dxFormats[static_cast<int>(configuration.colorRenderFormat)]
+                format
             },
             .SampleDesc = {
-                .Count = 1,
+                .Count = samples,
+                .Quality = quality
             }
         };
         psoDesc.BlendState.AlphaToCoverageEnable = configuration.alphaToCoverageEnable;

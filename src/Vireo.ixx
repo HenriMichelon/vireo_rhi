@@ -627,7 +627,7 @@ export namespace vireo {
         virtual void beginRendering(
             const shared_ptr<RenderTarget>& multisampledRenderTarget,
             const shared_ptr<SwapChain>& swapChain,
-            const float clearColor[]) const = 0;
+            const float clearColor[]) = 0;
 
         virtual void beginRendering(
             const shared_ptr<RenderTarget>& renderTarget,
@@ -636,9 +636,9 @@ export namespace vireo {
         virtual void beginRendering(
             const shared_ptr<RenderTarget>& multisampledRenderTarget,
             const shared_ptr<RenderTarget>& renderTarget,
-            const float clearColor[]) const = 0;
+            const float clearColor[]) = 0;
 
-        virtual void endRendering() const {}
+        virtual void endRendering() {}
 
         virtual void dispatch(uint32_t x, uint32_t y, uint32_t z) const = 0;
 

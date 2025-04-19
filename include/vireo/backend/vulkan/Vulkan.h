@@ -121,6 +121,7 @@ extern PFN_vkResetCommandBuffer vkResetCommandBuffer;
 extern PFN_vkResetCommandPool vkResetCommandPool;
 extern PFN_vkResetDescriptorPool vkResetDescriptorPool;
 extern PFN_vkResetFences vkResetFences;
+extern PFN_vkCmdResolveImage vkCmdResolveImage;
 extern PFN_vkCmdSetColorWriteMaskEXT vkCmdSetColorWriteMaskEXT;
 extern PFN_vkCmdSetCullMode vkCmdSetCullMode;
 extern PFN_vkCmdSetDepthBiasEnable vkCmdSetDepthBiasEnable;
