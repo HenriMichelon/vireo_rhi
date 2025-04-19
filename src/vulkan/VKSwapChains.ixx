@@ -21,7 +21,8 @@ export namespace vireo {
         VKSwapChain(
             const shared_ptr<const VKDevice>& device,
             void* windowHandle,
-            PresentMode vSyncMode);
+            PresentMode vSyncMode,
+            uint32_t framesInFlight);
 
         ~VKSwapChain() override;
 

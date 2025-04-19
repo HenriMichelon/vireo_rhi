@@ -30,13 +30,13 @@ namespace vireo {
         transferCommandQueue = make_shared<VKSubmitQueue>(getVKDevice(), CommandType::TRANSFER, "Transfer");
     }
 
-    shared_ptr<SwapChain> VKVireo::createSwapChain(const PresentMode presentMode) const {
+    shared_ptr<SwapChain> VKVireo::createSwapChain(const PresentMode presentMode, const uint32_t framesInFlight) const {
         return make_shared<VKSwapChain>(getVKDevice(),
 #ifdef _WIN32
             hWnd,
 #endif
-            presentMode
-        );
+            presentMode,
+            framesInFlight);
     }
 
     shared_ptr<VertexInputLayout> VKVireo::createVertexLayout(

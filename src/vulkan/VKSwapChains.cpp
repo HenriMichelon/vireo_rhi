@@ -19,22 +19,23 @@ namespace vireo {
     VKSwapChain::VKSwapChain(
         const shared_ptr<const VKDevice>& device,
         void* windowHandle,
-        const PresentMode vSyncMode):
-        SwapChain{vSyncMode},
+        const PresentMode vSyncMode,
+        const uint32_t framesInFlight):
+        SwapChain{vSyncMode, framesInFlight},
         device{device},
         physicalDevice{device->getPhysicalDevice()},
 #ifdef _WIN32
         hWnd{static_cast<HWND>(windowHandle)}
 #endif
     {
-        imageIndex.resize(FRAMES_IN_FLIGHT);
-        imageAvailableSemaphore.resize(FRAMES_IN_FLIGHT);
-        renderFinishedSemaphore.resize(FRAMES_IN_FLIGHT);
+        imageIndex.resize(framesInFlight);
+        imageAvailableSemaphore.resize(framesInFlight);
+        renderFinishedSemaphore.resize(framesInFlight);
 
         constexpr VkSemaphoreCreateInfo semaphoreInfo{
             .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
         };
-        for (int i = 0; i < FRAMES_IN_FLIGHT; i++) {
+        for (int i = 0; i < framesInFlight; i++) {
             if (vkCreateSemaphore(device->getDevice(), &semaphoreInfo, nullptr, &imageAvailableSemaphore[i]) != VK_SUCCESS
                 || vkCreateSemaphore(device->getDevice(), &semaphoreInfo, nullptr, &renderFinishedSemaphore[i]) != VK_SUCCESS) {
                 throw Exception("failed to create semaphores!");
@@ -62,17 +63,16 @@ namespace vireo {
         const VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
         swapChainExtent = chooseSwapExtent(swapChainSupport.capabilities);
 
-        uint32_t imageCount = FRAMES_IN_FLIGHT;
         if (swapChainSupport.capabilities.maxImageCount > 0 &&
-            imageCount > swapChainSupport.capabilities.maxImageCount) {
-            imageCount = swapChainSupport.capabilities.maxImageCount;
+            framesInFlight > swapChainSupport.capabilities.maxImageCount) {
+            framesInFlight = swapChainSupport.capabilities.maxImageCount;
         }
 
         {
             VkSwapchainCreateInfoKHR createInfo = {
                 .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
                 .surface = physicalDevice.getSurface(),
-                .minImageCount = imageCount,
+                .minImageCount = framesInFlight,
                 .imageFormat = surfaceFormat.format,
                 .imageColorSpace = surfaceFormat.colorSpace,
                 .imageExtent = swapChainExtent,
@@ -102,12 +102,12 @@ namespace vireo {
                 "VKSwapChain");
 #endif
         }
-        vkGetSwapchainImagesKHR(device->getDevice(), swapChain, &imageCount, nullptr);
-        swapChainImages.resize(imageCount);
+        vkGetSwapchainImagesKHR(device->getDevice(), swapChain, &framesInFlight, nullptr);
+        swapChainImages.resize(framesInFlight);
         swapChainImageViews.resize(swapChainImages.size());
         swapChainImageFormat = surfaceFormat.format;
 
-        vkGetSwapchainImagesKHR(device->getDevice(), swapChain, &imageCount, swapChainImages.data());
+        vkGetSwapchainImagesKHR(device->getDevice(), swapChain, &framesInFlight, swapChainImages.data());
         extent      = Extent{ swapChainExtent.width, swapChainExtent.height };
         aspectRatio = static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height);
 
@@ -209,7 +209,7 @@ namespace vireo {
     }
 
     void VKSwapChain::nextSwapChain() {
-        currentFrameIndex = (currentFrameIndex + 1) % FRAMES_IN_FLIGHT;
+        currentFrameIndex = (currentFrameIndex + 1) % framesInFlight;
     }
 
     void VKSwapChain::present() {
@@ -260,7 +260,7 @@ namespace vireo {
 
     VKSwapChain::~VKSwapChain() {
         cleanup();
-        for (int i = 0; i < FRAMES_IN_FLIGHT; i++) {
+        for (int i = 0; i < framesInFlight; i++) {
             vkDestroySemaphore(device->getDevice(), imageAvailableSemaphore[i], nullptr);
             vkDestroySemaphore(device->getDevice(), renderFinishedSemaphore[i], nullptr);
         }

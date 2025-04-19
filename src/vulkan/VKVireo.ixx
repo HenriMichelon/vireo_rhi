@@ -23,7 +23,7 @@ export namespace vireo {
 
         void waitIdle() override;
 
-        shared_ptr<SwapChain> createSwapChain(PresentMode presentMode) const override;
+        shared_ptr<SwapChain> createSwapChain(PresentMode presentMode, uint32_t framesInFlight) const override;
 
         shared_ptr<Fence> createFence(const wstring& name) const override;
 

@@ -20,14 +20,16 @@ namespace vireo {
         const shared_ptr<DXDevice>& dxdevice,
         const ComPtr<ID3D12CommandQueue>& commandQueue,
         const HWND hWnd,
-        const PresentMode vSyncMode) :
-        SwapChain{vSyncMode},
+        const PresentMode vSyncMode,
+        const uint32_t framesInFlight) :
+        SwapChain{vSyncMode, framesInFlight},
         device{dxdevice},
         factory{factory},
         presentCommandQueue{commandQueue},
         hWnd{hWnd},
         syncInterval{static_cast<UINT>(presentMode == PresentMode::IMMEDIATE ? 0 : 1)},
         presentFlags{static_cast<UINT>(presentMode == PresentMode::IMMEDIATE ? DXGI_PRESENT_ALLOW_TEARING : 0)} {
+        renderTargets.resize(framesInFlight);
         create();
         fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
         if (fenceEvent == nullptr) {
@@ -52,7 +54,7 @@ namespace vireo {
             .Format = DXGI_FORMAT_R8G8B8A8_UNORM,
             .SampleDesc = {.Count = 1},
             .BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
-            .BufferCount = FRAMES_IN_FLIGHT,
+            .BufferCount = framesInFlight,
             .SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,
             .Flags = presentFlags == DXGI_PRESENT_ALLOW_TEARING ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0u,
         };
@@ -70,9 +72,9 @@ namespace vireo {
         currentFrameIndex = swapChain->GetCurrentBackBufferIndex();
 
         // Describe and create a render target view (RTV) descriptor heap.
-        constexpr auto rtvHeapDesc = D3D12_DESCRIPTOR_HEAP_DESC{
+        const auto rtvHeapDesc = D3D12_DESCRIPTOR_HEAP_DESC{
             .Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
-            .NumDescriptors = FRAMES_IN_FLIGHT,
+            .NumDescriptors = framesInFlight,
             .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
         };
         dxCheck(device->getDevice()->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap)));
@@ -87,7 +89,7 @@ namespace vireo {
             .Format = RENDER_FORMAT,
             .ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D,
         };
-        for (UINT n = 0; n < FRAMES_IN_FLIGHT; n++) {
+        for (UINT n = 0; n < framesInFlight; n++) {
             dxCheck(swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTargets[n])));
 #ifdef _DEBUG
             renderTargets[n]->SetName(L"SwapChain BackBuffer " + n);
@@ -99,8 +101,8 @@ namespace vireo {
 
     DXSwapChain::~DXSwapChain() {
         // waitForLastPresentedFrame();
-        for (UINT i = 0; i < FRAMES_IN_FLIGHT; ++i) {
-            renderTargets[i].Reset();
+        for (auto &renderTarget : renderTargets) {
+            renderTarget.Reset();
         }
         rtvHeap.Reset();
         swapChain.Reset();
@@ -119,15 +121,15 @@ namespace vireo {
             extent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
             aspectRatio = static_cast<float>(extent.width) / static_cast<float>(extent.height);
 
-            for (UINT i = 0; i < FRAMES_IN_FLIGHT; ++i) {
-                renderTargets[i].Reset();
+            for (auto &renderTarget : renderTargets) {
+                renderTarget.Reset();
             }
 
             auto swapDesc = DXGI_SWAP_CHAIN_DESC{};
             dxCheck(swapChain->GetDesc(&swapDesc));
 
             dxCheck(swapChain->ResizeBuffers(
-                FRAMES_IN_FLIGHT,
+                framesInFlight,
                 width,
                 height,
                 swapDesc.BufferDesc.Format,
@@ -139,7 +141,7 @@ namespace vireo {
                 .Format = RENDER_FORMAT,
                 .ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D,
             };
-            for (UINT n = 0; n < FRAMES_IN_FLIGHT; n++) {
+            for (UINT n = 0; n < framesInFlight; n++) {
                 dxCheck(swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTargets[n])));
 #ifdef _DEBUG
                 renderTargets[n]->SetName(L"SwapChain BackBuffer " + n);
@@ -165,7 +167,7 @@ namespace vireo {
 
     void DXSwapChain::nextSwapChain() {
         currentFrameIndex = swapChain->GetCurrentBackBufferIndex();
-        assert(currentFrameIndex < FRAMES_IN_FLIGHT);
+        assert(currentFrameIndex < framesInFlight);
     }
 
     bool DXSwapChain::acquire(const shared_ptr<Fence>& fence) {

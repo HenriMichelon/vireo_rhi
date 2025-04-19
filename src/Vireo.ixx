@@ -640,8 +640,6 @@ export namespace vireo {
 
     class SwapChain {
     public:
-        static constexpr uint32_t FRAMES_IN_FLIGHT = 2;
-
         virtual ~SwapChain() = default;
 
         const auto& getExtent() const { return extent; }
@@ -649,6 +647,8 @@ export namespace vireo {
         auto getAspectRatio() const { return aspectRatio; }
 
         auto getCurrentFrameIndex() const { return currentFrameIndex; }
+
+        auto getFramesInFlight() const { return framesInFlight; }
 
         virtual void nextSwapChain() = 0;
 
@@ -660,11 +660,14 @@ export namespace vireo {
 
     protected:
         const PresentMode presentMode;
+        uint32_t    framesInFlight;
         Extent      extent{};
         float       aspectRatio{};
         uint32_t    currentFrameIndex{0};
 
-        SwapChain(const PresentMode presentMode) : presentMode{presentMode} {}
+        SwapChain(const PresentMode presentMode, const uint32_t framesInFlight) :
+            presentMode{presentMode},
+            framesInFlight{framesInFlight} {}
     };
 
     class Vireo {
@@ -675,7 +678,7 @@ export namespace vireo {
 
         virtual void waitIdle() = 0;
 
-        virtual shared_ptr<SwapChain> createSwapChain(PresentMode presentMode) const = 0;
+        virtual shared_ptr<SwapChain> createSwapChain(PresentMode presentMode = PresentMode::VSYNC, uint32_t framesInFlight = 2) const = 0;
 
         virtual shared_ptr<Fence> createFence(const wstring& name = L"Fence") const = 0;
 
