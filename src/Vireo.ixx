@@ -686,6 +686,8 @@ export namespace vireo {
 
         virtual void recreate() = 0;
 
+        virtual void waitIdle() const = 0;
+
     protected:
         const PresentMode presentMode;
         const ImageFormat format;

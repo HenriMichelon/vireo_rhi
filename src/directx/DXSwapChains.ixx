@@ -42,6 +42,8 @@ export namespace vireo {
 
         void waitForLastPresentedFrame() const;
 
+        void waitIdle() const override { waitForLastPresentedFrame(); }
+
     private:
         const shared_ptr<DXDevice>     device;
         const ComPtr<IDXGIFactory4>    factory;
