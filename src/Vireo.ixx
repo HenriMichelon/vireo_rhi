@@ -812,7 +812,7 @@ export namespace vireo {
             BufferType type,
             size_t size,
             size_t count = 1,
-            size_t alignment = 1,
+            size_t alignment = 256,
             const wstring& name = L"Buffer") const = 0;
 
         virtual shared_ptr<Image> createImage(
