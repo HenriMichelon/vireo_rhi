@@ -148,6 +148,7 @@ namespace vireo {
             const uint32_t width,
             const uint32_t height,
             const RenderTargetType type,
+            const ClearValue clearValue,
             const MSAA msaa,
             const wstring& name) const {
         return make_shared<RenderTarget>(
@@ -166,6 +167,7 @@ namespace vireo {
 
     shared_ptr<RenderTarget> VKVireo::createRenderTarget(
         const shared_ptr<const SwapChain>& swapChain,
+        const ClearValue clearValue,
         MSAA msaa,
         const wstring& name) const {
         return make_shared<RenderTarget>(

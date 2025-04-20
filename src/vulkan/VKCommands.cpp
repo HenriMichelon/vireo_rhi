@@ -213,8 +213,8 @@ namespace vireo {
             depthAttachmentInfo.storeOp     = VK_ATTACHMENT_STORE_OP_DONT_CARE,
             depthAttachmentInfo.clearValue  = {
                 .depthStencil = {
-                    .depth = conf.depthClearValue.depth,
-                    .stencil = conf.depthClearValue.stencil,
+                    .depth = conf.depthClearValue.depthStencil.depth,
+                    .stencil = conf.depthClearValue.depthStencil.stencil,
                 }
             };
             width = vkDepthImage->getWidth();
@@ -228,10 +228,10 @@ namespace vireo {
             colorAttachmentInfo.loadOp      = conf.clearColor ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
             colorAttachmentInfo.storeOp     = VK_ATTACHMENT_STORE_OP_STORE;
             colorAttachmentInfo.clearValue  = {
-                conf.clearColorValue[0],
-                conf.clearColorValue[1],
-                conf.clearColorValue[2],
-                conf.clearColorValue[3]
+                conf.clearColorValue.color[0],
+                conf.clearColorValue.color[1],
+                conf.clearColorValue.color[2],
+                conf.clearColorValue.color[3]
             };
             width = vkSwapChain ? vkSwapChain->getExtent().width : vkColorImage->getWidth();
             height = vkSwapChain ? vkSwapChain->getExtent().height : vkColorImage->getHeight();

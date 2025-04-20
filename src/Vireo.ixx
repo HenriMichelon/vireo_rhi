@@ -231,6 +231,16 @@ export namespace vireo {
         uint32_t        offset;
     };
 
+    struct DepthClearValue {
+        float    depth{1.0f};
+        uint32_t stencil{0};
+    };
+
+    typedef union ClearValue {
+        float           color[4]{0.0f, 0.0f, 0.0f, 1.0f};
+        DepthClearValue depthStencil;
+    } ClearValue;
+
     class Fence {
     public:
         virtual ~Fence() = default;
@@ -538,19 +548,14 @@ export namespace vireo {
 
     class SwapChain;
 
-    struct DepthClearValue {
-        float    depth;
-        uint32_t stencil;
-    };
-
     struct RenderingConfiguration {
         shared_ptr<SwapChain>    swapChain{nullptr};
         shared_ptr<RenderTarget> colorRenderTarget{nullptr};
         shared_ptr<RenderTarget> depthRenderTarget{nullptr};
         shared_ptr<RenderTarget> multisampledColorRenderTarget{nullptr};
         shared_ptr<RenderTarget> multisampledDepthRenderTarget{nullptr};
-        float                    clearColorValue[4]{0.0f, 0.0f, 0.0f, 0.0f};
-        DepthClearValue          depthClearValue{1.0f, 0};
+        ClearValue               clearColorValue{ .color = {0.0f, 0.0f, 0.0f, 0.0f} };
+        ClearValue               depthClearValue{ .depthStencil = {1.0f, 0} };
         bool                     clearColor{true};
         bool                     clearDepth{true};
     };
@@ -766,11 +771,13 @@ export namespace vireo {
             uint32_t width,
             uint32_t height,
             RenderTargetType type = RenderTargetType::COLOR,
+            ClearValue clearValue = {},
             MSAA msaa = MSAA::NONE,
             const wstring& name = L"RenderTarget") const = 0;
 
         virtual shared_ptr<RenderTarget> createRenderTarget(
             const shared_ptr<const SwapChain>& swapChain,
+            ClearValue clearValue = {},
             MSAA msaa = MSAA::NONE,
             const wstring& name = L"RenderTarget") const = 0;
 

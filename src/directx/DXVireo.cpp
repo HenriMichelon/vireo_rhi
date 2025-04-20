@@ -101,7 +101,14 @@ namespace vireo {
         uint32_t width,
         uint32_t height,
         const wstring& name) const {
-        return make_shared<DXImage>(getDXDevice()->getDevice(), format, width, height, name, false, false, false, MSAA::NONE);
+        return make_shared<DXImage>(
+            getDXDevice()->getDevice(),
+            format,
+            width, height,
+            name,
+            false, false, false,
+            DXImage::defaultClearValue,
+            MSAA::NONE);
     }
 
     shared_ptr<Image> DXVireo::createReadWriteImage(
@@ -109,7 +116,14 @@ namespace vireo {
         uint32_t width,
         uint32_t height,
         const wstring& name) const {
-            return make_shared<DXImage>(getDXDevice()->getDevice(), format, width, height, name, true, false, false, MSAA::NONE);
+            return make_shared<DXImage>(
+                getDXDevice()->getDevice(),
+                format,
+                width, height,
+                name,
+                true, false, false,
+                DXImage::defaultClearValue,
+                MSAA::NONE);
     }
 
     shared_ptr<RenderTarget> DXVireo::createRenderTarget(
@@ -117,6 +131,7 @@ namespace vireo {
            const uint32_t width,
            const uint32_t height,
            const RenderTargetType type,
+           const ClearValue clearValue,
            const MSAA msaa,
            const wstring& name) const {
         return make_shared<DXRenderTarget>(
@@ -130,12 +145,14 @@ namespace vireo {
                 false,
                 true,
                 type == RenderTargetType::DEPTH,
+                clearValue,
                 msaa),
             type);
     }
 
     shared_ptr<RenderTarget> DXVireo::createRenderTarget(
            const shared_ptr<const SwapChain>& swapChain,
+           const ClearValue clearValue,
            const MSAA msaa,
            const wstring& name) const {
         return make_shared<DXRenderTarget>(
@@ -149,6 +166,7 @@ namespace vireo {
                 false,
                 true,
                 false,
+                clearValue,
                 msaa),
             RenderTargetType::COLOR);
     }

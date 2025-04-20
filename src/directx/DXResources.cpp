@@ -72,6 +72,7 @@ namespace vireo {
             const bool        useByComputeShader,
             const bool        allowRenderTarget,
             const bool        isDepthBuffer,
+            const ClearValue  clearValue,
             const MSAA        msaa):
         Image{format, width, height} {
         const auto dxFormat = dxFormats[static_cast<int>(format)];
@@ -105,18 +106,26 @@ namespace vireo {
                 useByComputeShader ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS :
                 D3D12_RESOURCE_FLAG_NONE,
         };
-        auto clearValue = D3D12_CLEAR_VALUE{
+        auto dxClearValue = D3D12_CLEAR_VALUE{
             .Format = imageDesc.Format,
         };
         if (isDepthBuffer) {
-            clearValue.DepthStencil = { 1.0f, 0 };
+            dxClearValue.DepthStencil = {
+                clearValue.depthStencil.depth,
+                static_cast<UINT8>(clearValue.depthStencil.stencil)
+            };
+        } else {
+            dxClearValue.Color[0] = clearValue.color[0];
+            dxClearValue.Color[1] = clearValue.color[1];
+            dxClearValue.Color[2] = clearValue.color[2];
+            dxClearValue.Color[3] = clearValue.color[3];
         }
         dxCheck(device->CreateCommittedResource(
             &heapProperties,
             D3D12_HEAP_FLAG_NONE,
             &imageDesc,
             D3D12_RESOURCE_STATE_COMMON,
-            isDepthBuffer ? &clearValue : nullptr,
+            &dxClearValue,
             IID_PPV_ARGS(&image)));
 
 #ifdef _DEBUG

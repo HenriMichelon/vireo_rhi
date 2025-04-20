@@ -81,11 +81,13 @@ export namespace vireo {
             uint32_t width,
             uint32_t height,
             RenderTargetType type,
+            ClearValue clearValue,
             MSAA msaa,
             const wstring& name) const override;
 
         shared_ptr<RenderTarget> createRenderTarget(
             const shared_ptr<const SwapChain>& swapChain,
+            ClearValue clearValue,
             MSAA msaa,
             const wstring& name) const override;
 

@@ -201,10 +201,10 @@ namespace vireo {
         const bool haveColorResource = dxSwapChain || dxColorImage || conf.multisampledColorRenderTarget;
         if (conf.clearColor && haveColorResource) {
             const FLOAT clearColor[] = {
-                conf.clearColorValue[0],
-                conf.clearColorValue[1],
-                conf.clearColorValue[2],
-                conf.clearColorValue[3]
+                conf.clearColorValue.color[0],
+                conf.clearColorValue.color[1],
+                conf.clearColorValue.color[2],
+                conf.clearColorValue.color[3]
             };
             commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
         }
@@ -214,7 +214,7 @@ namespace vireo {
             commandList->ClearDepthStencilView(
                 dsvHandle,
                 D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
-                conf.depthClearValue.depth, conf.depthClearValue.stencil,
+                conf.depthClearValue.depthStencil.depth, conf.depthClearValue.depthStencil.stencil,
                 0, nullptr);
         }
 

@@ -73,6 +73,7 @@ export namespace vireo {
 
     class DXImage : public Image {
     public:
+        static constexpr ClearValue defaultClearValue {};
         static constexpr DXGI_FORMAT dxFormats[] = {
             DXGI_FORMAT_R8_UNORM,
             DXGI_FORMAT_R8_SNORM,
@@ -162,6 +163,7 @@ export namespace vireo {
             bool        useByComputeShader,
             bool        allowRenderTarget,
             bool        isDepthBuffer,
+            ClearValue  clearValue,
             MSAA        msaa);
 
         auto getImage() const { return image; }
