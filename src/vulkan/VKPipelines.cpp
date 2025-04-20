@@ -11,6 +11,7 @@ module vireo.vulkan.pipelines;
 import vireo.tools;
 
 import vireo.vulkan.devices;
+import vireo.vulkan.resources;
 import vireo.vulkan.tools;
 
 namespace vireo {
@@ -213,11 +214,11 @@ namespace vireo {
             .logicOp        = VK_LOGIC_OP_COPY,
             .attachmentCount= 1,
             .pAttachments   = configuration.colorBlendEnable ? &colorBlendAttachmentEnable : &colorBlendAttachmentDisable,
-            .blendConstants = { 0.0f, 0.0f, 0.0f, 0.0f },
         };
-        constexpr auto dynamicRenderingCreateInfo = VkPipelineRenderingCreateInfo{
-            .sType                   = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR,
-            .pNext                   = VK_NULL_HANDLE,
+        const auto dynamicRenderingCreateInfo = VkPipelineRenderingCreateInfo{
+            .sType                  = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR,
+            .pNext                  = VK_NULL_HANDLE,
+            .depthAttachmentFormat  = VKImage::vkFormats[static_cast<int>(configuration.depthImageFormat)],
         };
         const auto IAInfo = VkPipelineInputAssemblyStateCreateInfo{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,

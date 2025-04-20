@@ -180,7 +180,7 @@ namespace vireo {
             quality = qualityLevels.NumQualityLevels > 0 ? qualityLevels.NumQualityLevels - 1 : 0;
         }
 
-        auto psoDesc = D3D12_GRAPHICS_PIPELINE_STATE_DESC{
+        auto psoDesc = D3D12_GRAPHICS_PIPELINE_STATE_DESC {
             .pRootSignature = dxPipelineResources->getRootSignature().Get(),
             .VS = CD3DX12_SHADER_BYTECODE(dxVertexShader->getShader().Get()),
             .PS = CD3DX12_SHADER_BYTECODE(dxPixelShader->getShader().Get()),
@@ -197,6 +197,7 @@ namespace vireo {
             .RTVFormats = {
                 format
             },
+            .DSVFormat = DXImage::dxFormats[static_cast<int>(configuration.depthImageFormat)],
             .SampleDesc = {
                 .Count = samples,
                 .Quality = quality

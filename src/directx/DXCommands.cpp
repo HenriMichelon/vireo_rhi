@@ -163,71 +163,66 @@ namespace vireo {
         commandList->RSSetScissorRects(1, scissors.data());
     }
 
-    void DXCommandList::beginRendering(
-        const shared_ptr<SwapChain>& swapChain,
-        const float clearColor[]) const {
-        const auto dxSwapChain = static_pointer_cast<const DXSwapChain>(swapChain);
-        const auto frameIndex = swapChain->getCurrentFrameIndex();
-        const CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(
-            dxSwapChain->getHeap()->GetCPUDescriptorHandleForHeapStart(),
-            frameIndex,
-            dxSwapChain->getDescriptorSize());
-        beginRendering(
-            rtvHandle,
-            clearColor);
-    }
 
-    void DXCommandList::beginRendering(
-        const shared_ptr<RenderTarget>& renderTarget,
-        const float clearColor[]) const {
-        const auto dxRenderTarget = static_pointer_cast<DXRenderTarget>(renderTarget);
-        beginRendering(
-            dxRenderTarget->getHandle(),
-            clearColor
-        );
-    }
+    void DXCommandList::beginRendering(const RenderingConfiguration& conf) {
+        const auto dxSwapChain =
+            conf.swapChain ? static_pointer_cast<DXSwapChain>(conf.swapChain) : nullptr;
+        const auto dxColorImage =
+            conf.colorRenderTarget ? static_pointer_cast<DXRenderTarget>(conf.colorRenderTarget) : nullptr;
+        const auto dxDepthImage =
+            conf.depthRenderTarget ? static_pointer_cast<DXRenderTarget>(conf.depthRenderTarget) : nullptr;
 
-    void DXCommandList::beginRendering(
-        const shared_ptr<RenderTarget>& multisampledRenderTarget,
-        const shared_ptr<RenderTarget>& renderTarget,
-        const float clearColor[]) {
-        resolveSource = multisampledRenderTarget->getImage();
-        resolveDestination = static_pointer_cast<DXImage>(renderTarget->getImage())->getImage();
-        const auto dxRenderTarget = static_pointer_cast<DXRenderTarget>(multisampledRenderTarget);
-        beginRendering(
-            dxRenderTarget->getHandle(),
-            clearColor
-        );
-    }
+        D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle{};
+        D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle{};
 
-    void DXCommandList::beginRendering(
-        const shared_ptr<RenderTarget>& multisampledRenderTarget,
-        const shared_ptr<SwapChain>& swapChain,
-        const float clearColor[]) {
-        resolveSource = multisampledRenderTarget->getImage();
-        resolveDestination = static_pointer_cast<DXSwapChain>(swapChain)->getRenderTargets()[swapChain->getCurrentFrameIndex()];
-        const auto dxRenderTarget = static_pointer_cast<DXRenderTarget>(multisampledRenderTarget);
-        beginRendering(
-            dxRenderTarget->getHandle(),
-            clearColor
-        );
-    }
+        if (conf.multisampledDepthRenderTarget) {
+            const auto dxMsaaTarget = static_pointer_cast<DXRenderTarget>(conf.multisampledDepthRenderTarget);
+            dsvHandle = dxMsaaTarget->getHandle();
+        } else if (dxDepthImage) {
+            dsvHandle = dxDepthImage->getHandle();
+        }
 
-    void DXCommandList::beginRendering(
-        const D3D12_CPU_DESCRIPTOR_HANDLE& handle,
-        const float clearColor[]) const {
+        if (conf.multisampledColorRenderTarget) {
+            const auto dxMsaaTarget = static_pointer_cast<DXRenderTarget>(conf.multisampledColorRenderTarget);
+            rtvHandle = dxMsaaTarget->getHandle();
+            resolveSource = dxMsaaTarget->getImage();
+            resolveDestination =
+                dxSwapChain ? dxSwapChain->getRenderTargets()[dxSwapChain->getCurrentFrameIndex()].Get() :
+                static_pointer_cast<DXImage>(dxColorImage->getImage())->getImage().Get();
+        } else if (dxSwapChain) {
+            rtvHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(
+                dxSwapChain->getHeap()->GetCPUDescriptorHandleForHeapStart(),
+                dxSwapChain->getCurrentFrameIndex(),
+                dxSwapChain->getDescriptorSize());
+        } else if (dxColorImage) {
+            rtvHandle = dxColorImage->getHandle();
+        }
+
+        const bool haveColorResource = dxSwapChain || dxColorImage || conf.multisampledColorRenderTarget;
+        if (conf.clearColor && haveColorResource) {
+            const FLOAT clearColor[] = {
+                conf.clearColorValue[0],
+                conf.clearColorValue[1],
+                conf.clearColorValue[2],
+                conf.clearColorValue[3]
+            };
+            commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+        }
+
+        const bool haveDepthResource = dxDepthImage || conf.multisampledDepthRenderTarget;
+        if (conf.clearDepth && haveDepthResource) {
+            commandList->ClearDepthStencilView(
+                dsvHandle,
+                D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
+                conf.depthClearValue.depth, conf.depthClearValue.stencil,
+                0, nullptr);
+        }
+
         commandList->OMSetRenderTargets(
-            1,
-            &handle,
+            haveColorResource ? 1 : 0,
+            haveColorResource ? &rtvHandle : nullptr,
             FALSE,
-            nullptr);
-
-        const float dxClearColor[] = {clearColor[0], clearColor[1], clearColor[2], clearColor[3]};
-        commandList->ClearRenderTargetView(
-            handle,
-            dxClearColor,
-            0,
-            nullptr);
+            haveDepthResource ? &dsvHandle : nullptr);
     }
 
     void DXCommandList::endRendering() {
@@ -304,10 +299,13 @@ namespace vireo {
         if (oldState == ResourceState::UNDEFINED && newState == ResourceState::DISPATCH_TARGET) {
             srcState = D3D12_RESOURCE_STATE_COMMON;
             dstState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-        } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::RENDER_TARGET) {
+        } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::RENDER_TARGET_COLOR) {
             srcState = D3D12_RESOURCE_STATE_COMMON;
             dstState = D3D12_RESOURCE_STATE_RENDER_TARGET;
-        } else if (oldState == ResourceState::RENDER_TARGET && newState == ResourceState::PRESENT) {
+        } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::RENDER_TARGET_DEPTH_STENCIL) {
+            srcState = D3D12_RESOURCE_STATE_COMMON;
+            dstState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+        } else if (oldState == ResourceState::RENDER_TARGET_COLOR && newState == ResourceState::PRESENT) {
             srcState = D3D12_RESOURCE_STATE_RENDER_TARGET;
             dstState = D3D12_RESOURCE_STATE_PRESENT;
         } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::PRESENT) {
@@ -328,14 +326,17 @@ namespace vireo {
         } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::COPY_SRC) {
             srcState = D3D12_RESOURCE_STATE_COMMON;
             dstState = D3D12_RESOURCE_STATE_COPY_SOURCE;
-        } else if (oldState == ResourceState::RENDER_TARGET && newState == ResourceState::COPY_SRC) {
+        } else if (oldState == ResourceState::RENDER_TARGET_COLOR && newState == ResourceState::COPY_SRC) {
             srcState = D3D12_RESOURCE_STATE_RENDER_TARGET;
             dstState = D3D12_RESOURCE_STATE_COPY_SOURCE;
         } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::UNDEFINED) {
             srcState = D3D12_RESOURCE_STATE_COPY_SOURCE;
             dstState = D3D12_RESOURCE_STATE_COMMON;
-        } else if (oldState == ResourceState::RENDER_TARGET && newState == ResourceState::UNDEFINED) {
+        } else if (oldState == ResourceState::RENDER_TARGET_COLOR && newState == ResourceState::UNDEFINED) {
             srcState = D3D12_RESOURCE_STATE_RENDER_TARGET;
+            dstState = D3D12_RESOURCE_STATE_COMMON;
+        } else if (oldState == ResourceState::RENDER_TARGET_DEPTH_STENCIL && newState == ResourceState::UNDEFINED) {
+            srcState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
             dstState = D3D12_RESOURCE_STATE_COMMON;
         } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::DISPATCH_TARGET) {
             srcState = D3D12_RESOURCE_STATE_COPY_SOURCE;

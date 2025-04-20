@@ -182,7 +182,8 @@ export namespace vireo {
     enum class ResourceState {
         UNDEFINED,
         GENERAL,
-        RENDER_TARGET,
+        RENDER_TARGET_COLOR,
+        RENDER_TARGET_DEPTH_STENCIL,
         DISPATCH_TARGET,
         PRESENT,
         COPY_SRC,
@@ -517,12 +518,13 @@ export namespace vireo {
             MSAA              msaa{MSAA::NONE};
             CullMode          cullMode{CullMode::NONE};
             PolygonMode       polygonMode{PolygonMode::FILL};
-            bool              frontFaceCounterClockwise{false};
+            bool              frontFaceCounterClockwise{true};
             bool              colorBlendEnable{false};
+            ImageFormat       depthImageFormat{ImageFormat::D32_SFLOAT};
             bool              depthTestEnable{false};
             bool              depthWriteEnable{false};
             bool              depthBiasEnable{false};
-            CompareOp         depthCompareOp{CompareOp::NEVER};
+            CompareOp         depthCompareOp{CompareOp::LESS_OR_EQUAL};
             float             depthBiasConstantFactor{0.0f};
             float             depthBiasClamp{0.0f};
             float             depthBiasSlopeFactor{0.0f};
@@ -573,24 +575,6 @@ export namespace vireo {
             Filter filter = Filter::NEAREST) const = 0;
 
         virtual void beginRendering(const RenderingConfiguration& configuration) = 0;
-
-        virtual void beginRendering(
-            const shared_ptr<SwapChain>& swapChain,
-            const float clearColor[]) const = 0;
-
-        virtual void beginRendering(
-            const shared_ptr<RenderTarget>& multisampledRenderTarget,
-            const shared_ptr<SwapChain>& swapChain,
-            const float clearColor[]) = 0;
-
-        virtual void beginRendering(
-            const shared_ptr<RenderTarget>& renderTarget,
-            const float clearColor[]) const = 0;
-
-        virtual void beginRendering(
-            const shared_ptr<RenderTarget>& multisampledRenderTarget,
-            const shared_ptr<RenderTarget>& renderTarget,
-            const float clearColor[]) = 0;
 
         virtual void endRendering() {}
 

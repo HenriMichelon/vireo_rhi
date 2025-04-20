@@ -75,25 +75,7 @@ export namespace vireo {
             const shared_ptr<const SwapChain>& swapChain,
             Filter filter) const override;
 
-        void beginRendering(const RenderingConfiguration& configuration) override {}
-
-        void beginRendering(
-            const shared_ptr<SwapChain>& swapChain,
-            const float clearColor[]) const override;
-
-        void beginRendering(
-            const shared_ptr<RenderTarget>& multisampledRenderTarget,
-            const shared_ptr<SwapChain>& swapChain,
-            const float clearColor[]) override;
-
-        void beginRendering(
-            const shared_ptr<RenderTarget>& renderTarget,
-            const float clearColor[]) const override;
-
-        void beginRendering(
-            const shared_ptr<RenderTarget>& multisampledRenderTarget,
-            const shared_ptr<RenderTarget>& renderTarget,
-            const float clearColor[]) override;
+        void beginRendering(const RenderingConfiguration& conf) override;
 
         void endRendering() override;
 
@@ -131,7 +113,7 @@ export namespace vireo {
         void pushConstants(
             const shared_ptr<const PipelineResources>& pipelineResources,
             const PushConstantsDesc& pushConstants,
-            const void* data) const;
+            const void* data) const override;
 
         void cleanup() override;
 
@@ -146,10 +128,6 @@ export namespace vireo {
         vector<ComPtr<ID3D12Resource>>    stagingBuffers{};
         shared_ptr<Image>                 resolveSource;
         ComPtr<ID3D12Resource>            resolveDestination;
-
-        void beginRendering(
-            const D3D12_CPU_DESCRIPTOR_HANDLE& handle,
-            const float clearColor[]) const;
 
         void barrier(
            const ComPtr<ID3D12Resource>& resource,

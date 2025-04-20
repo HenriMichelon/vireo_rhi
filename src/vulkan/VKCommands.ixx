@@ -74,24 +74,6 @@ export namespace vireo {
 
         void beginRendering(const RenderingConfiguration& conf) override;
 
-        void beginRendering(
-            const shared_ptr<SwapChain>& swapChain,
-            const float clearColor[]) const override;
-
-        void beginRendering(
-            const shared_ptr<RenderTarget>& multisampledRenderTarget,
-            const shared_ptr<SwapChain>& swapChain,
-            const float clearColor[]) override;
-
-        void beginRendering(
-            const shared_ptr<RenderTarget>& renderTarget,
-            const float clearColor[]) const override;
-
-        void beginRendering(
-            const shared_ptr<RenderTarget>& multisampledRenderTarget,
-            const shared_ptr<RenderTarget>& renderTarget,
-            const float clearColor[]) override;
-
         void endRendering() override;
 
         void dispatch(uint32_t x, uint32_t y, uint32_t z) const override;
@@ -137,19 +119,6 @@ export namespace vireo {
         VkCommandBuffer                  commandBuffer;
         vector<VkBuffer>                 stagingBuffers{};
         vector<VkDeviceMemory>           stagingBuffersMemory{};
-
-        void beginRendering(
-            VkImageView imageView,
-            uint32_t width, uint32_t height,
-            const float clearColor[]) const;
-
-        void beginRendering(
-            VkImage multisampledImage,
-            VkImageView multisampledImageView,
-            VkImageView imageView,
-            uint32_t width,
-            uint32_t height,
-            const float clearColor[]) const;
 
         void barrier(
            VkImage image,

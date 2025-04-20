@@ -239,7 +239,7 @@ namespace vireo {
 
         if (conf.multisampledColorRenderTarget) {
             const auto msaaColor = static_pointer_cast<VKImage>(conf.multisampledColorRenderTarget->getImage());
-            barrier(msaaColor->getImage(), ResourceState::UNDEFINED, ResourceState::RENDER_TARGET);
+            barrier(msaaColor->getImage(), ResourceState::UNDEFINED, ResourceState::RENDER_TARGET_COLOR);
             colorAttachmentInfo.imageView = msaaColor->getImageView(),
             colorAttachmentInfo.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
             colorAttachmentInfo.resolveImageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
@@ -276,128 +276,6 @@ namespace vireo {
         vkCmdBeginRendering(commandBuffer, &renderingInfo);
     }
 
-    void VKCommandList::beginRendering(
-        const shared_ptr<SwapChain>& swapChain,
-        const float clearColor[]) const {
-        const auto vkSwapChain = static_pointer_cast<VKSwapChain>(swapChain);
-        beginRendering(
-            vkSwapChain->getCurrentImageView(),
-            vkSwapChain->getExtent().width,
-            vkSwapChain->getExtent().height,
-            clearColor);
-    }
-
-    void VKCommandList::beginRendering(
-      const shared_ptr<RenderTarget>& multisampledRenderTarget,
-      const shared_ptr<SwapChain>& swapChain,
-      const float clearColor[]) {
-        const auto vkMultiSampledImage = static_pointer_cast<VKImage>(multisampledRenderTarget->getImage());
-        const auto vkSwapChain = static_pointer_cast<VKSwapChain>(swapChain);
-        beginRendering(
-            vkMultiSampledImage->getImage(),
-            vkMultiSampledImage->getImageView(),
-            vkSwapChain->getCurrentImageView(),
-            vkSwapChain->getExtent().width,
-            vkSwapChain->getExtent().height,
-            clearColor);
-    }
-
-    void VKCommandList::beginRendering(
-      const shared_ptr<RenderTarget>& renderTarget,
-      const float clearColor[]) const {
-        const auto vkImage = static_pointer_cast<VKImage>(renderTarget->getImage());
-        beginRendering(
-            vkImage->getImageView(),
-            vkImage->getWidth(),
-            vkImage->getHeight(),
-            clearColor);
-    }
-
-    void VKCommandList::beginRendering(
-        const shared_ptr<RenderTarget>& multisampledRenderTarget,
-        const shared_ptr<RenderTarget>& renderTarget,
-        const float clearColor[]) {
-        const auto vkMultiSampledImage = static_pointer_cast<VKImage>(multisampledRenderTarget->getImage());
-        const auto vkImage = static_pointer_cast<VKImage>(renderTarget->getImage());
-        beginRendering(
-            vkMultiSampledImage->getImage(),
-            vkMultiSampledImage->getImageView(),
-            vkImage->getImageView(),
-            vkImage->getWidth(),
-            vkImage->getHeight(),
-            clearColor);
-    }
-
-    void VKCommandList::beginRendering(
-        const VkImage multisampledImage,
-        const VkImageView multisampledImageView,
-        const VkImageView imageView,
-        const uint32_t width,
-        const uint32_t height,
-        const float clearColor[]) const {
-        barrier(multisampledImage, ResourceState::UNDEFINED, ResourceState::RENDER_TARGET);
-        const auto colorAttachmentInfo = VkRenderingAttachmentInfo {
-            .sType              = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
-            .imageView          = multisampledImageView,
-            .imageLayout        = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-            .resolveMode        = VK_RESOLVE_MODE_AVERAGE_BIT,
-            .resolveImageView   = imageView,
-            .resolveImageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-            .loadOp             = VK_ATTACHMENT_LOAD_OP_CLEAR,
-            .storeOp            = VK_ATTACHMENT_STORE_OP_STORE,
-            .clearValue         = {
-                clearColor[0], clearColor[1], clearColor[2], clearColor[3]
-            },
-        };
-        const auto renderingInfo = VkRenderingInfo {
-            .sType               = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR,
-            .pNext                = nullptr,
-            .renderArea           = {
-                {0, 0},
-                {width, height}
-            },
-            .layerCount           = 1,
-            .colorAttachmentCount = 1,
-            .pColorAttachments    = &colorAttachmentInfo,
-            .pDepthAttachment     = nullptr,
-            .pStencilAttachment   = nullptr
-        };
-        vkCmdBeginRendering(commandBuffer, &renderingInfo);
-    }
-
-    void VKCommandList::beginRendering(
-        const VkImageView imageView,
-        const uint32_t width,
-        const uint32_t height,
-        const float clearColor[]) const {
-
-        const auto colorAttachmentInfo = VkRenderingAttachmentInfo {
-            .sType              = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
-            .imageView          = imageView,
-            .imageLayout        = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-            .resolveMode        = VK_RESOLVE_MODE_NONE,
-            .loadOp             = VK_ATTACHMENT_LOAD_OP_CLEAR,
-            .storeOp            = VK_ATTACHMENT_STORE_OP_STORE,
-            .clearValue         = {
-                clearColor[0], clearColor[1], clearColor[2], clearColor[3]
-            },
-        };
-        const auto renderingInfo = VkRenderingInfo {
-            .sType               = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR,
-            .pNext                = nullptr,
-            .renderArea           = {
-                {0, 0},
-                {width, height}
-            },
-            .layerCount           = 1,
-            .colorAttachmentCount = 1,
-            .pColorAttachments    = &colorAttachmentInfo,
-            .pDepthAttachment     = nullptr,
-            .pStencilAttachment   = nullptr
-        };
-        vkCmdBeginRendering(commandBuffer, &renderingInfo);
-    }
-
     void VKCommandList::endRendering() {
         vkCmdEndRendering(commandBuffer);
     }
@@ -413,6 +291,7 @@ namespace vireo {
         VkPipelineStageFlags srcStage, dstStage;
         VkAccessFlags srcAccess, dstAccess;
         VkImageLayout srcLayout, dstLayout;
+        VkImageAspectFlagBits aspectFlag = VK_IMAGE_ASPECT_COLOR_BIT;
 
         if (oldState == ResourceState::UNDEFINED && newState == ResourceState::DISPATCH_TARGET) {
             srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
@@ -421,21 +300,29 @@ namespace vireo {
             dstAccess = VK_ACCESS_SHADER_WRITE_BIT;
             srcLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             dstLayout = VK_IMAGE_LAYOUT_GENERAL;
-        } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::RENDER_TARGET) {
+        } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::RENDER_TARGET_COLOR) {
             srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
             dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
             srcAccess = 0;
             dstAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
             srcLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             dstLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        } else if (oldState == ResourceState::RENDER_TARGET && newState == ResourceState::COPY_SRC) {
+        } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::RENDER_TARGET_DEPTH_STENCIL) {
+            srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+            srcAccess = 0;
+            dstAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            dstLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+            aspectFlag = VK_IMAGE_ASPECT_DEPTH_BIT;
+        } else if (oldState == ResourceState::RENDER_TARGET_COLOR && newState == ResourceState::COPY_SRC) {
             srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
             dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             srcAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
             dstAccess = 0;
             srcLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-        } else if (oldState == ResourceState::RENDER_TARGET && newState == ResourceState::PRESENT) {
+        } else if (oldState == ResourceState::RENDER_TARGET_COLOR && newState == ResourceState::PRESENT) {
             srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
             dstStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
             srcAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
@@ -491,13 +378,21 @@ namespace vireo {
             dstAccess = 0;
             srcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        } else if (oldState == ResourceState::RENDER_TARGET && newState == ResourceState::UNDEFINED) {
+        } else if (oldState == ResourceState::RENDER_TARGET_COLOR && newState == ResourceState::UNDEFINED) {
             srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             srcAccess = 0;
-            dstAccess = VK_ACCESS_TRANSFER_READ_BIT; // XXX
+            dstAccess = 0;
             srcLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-            dstLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL; // XXX
+            dstLayout = VK_IMAGE_LAYOUT_GENERAL;
+        } else if (oldState == ResourceState::RENDER_TARGET_DEPTH_STENCIL && newState == ResourceState::UNDEFINED) {
+            srcStage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+            srcAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+            dstAccess = 0;
+            srcLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_GENERAL;
+            aspectFlag = VK_IMAGE_ASPECT_DEPTH_BIT;
         } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::DISPATCH_TARGET) {
             srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
@@ -519,7 +414,7 @@ namespace vireo {
             .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .image = image,
             .subresourceRange = {
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .aspectMask = static_cast<uint32_t>(aspectFlag),
                 .baseMipLevel = 0,
                 .levelCount = VK_REMAINING_MIP_LEVELS,
                 .baseArrayLayer = 0,
