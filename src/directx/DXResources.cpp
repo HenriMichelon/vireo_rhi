@@ -71,6 +71,7 @@ namespace vireo {
             const wstring&    name,
             const bool        useByComputeShader,
             const bool        allowRenderTarget,
+            const bool        isDepthBuffer,
             const MSAA        msaa):
         Image{format, width, height} {
         const auto dxFormat = dxFormats[static_cast<int>(format)];
@@ -98,7 +99,9 @@ namespace vireo {
                 quality
             },
             .Flags =
-                allowRenderTarget ? D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET :
+                allowRenderTarget ?
+                    isDepthBuffer ? D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL :
+                    D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET :
                 useByComputeShader ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS :
                 D3D12_RESOURCE_FLAG_NONE,
         };
@@ -107,7 +110,7 @@ namespace vireo {
             &heapProperties,
             D3D12_HEAP_FLAG_NONE,
             &imageDesc,
-            D3D12_RESOURCE_STATE_COMMON,
+            isDepthBuffer ? D3D12_RESOURCE_STATE_DEPTH_WRITE : D3D12_RESOURCE_STATE_COMMON,
             nullptr,
             IID_PPV_ARGS(&image)));
 
@@ -154,16 +157,21 @@ namespace vireo {
 
     DXRenderTarget::DXRenderTarget(
         const ComPtr<ID3D12Device> &device,
-        const shared_ptr<DXImage>& image) :
-        RenderTarget{image} {
-        const auto rtvHeapDesc = D3D12_DESCRIPTOR_HEAP_DESC{
-            .Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
+        const shared_ptr<DXImage>& image,
+        const RenderTargetType type) :
+        RenderTarget{type, image} {
+        const auto heapDesc = D3D12_DESCRIPTOR_HEAP_DESC{
+            .Type = type == RenderTargetType::COLOR ? D3D12_DESCRIPTOR_HEAP_TYPE_RTV : D3D12_DESCRIPTOR_HEAP_TYPE_DSV,
             .NumDescriptors = 1,
             .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
         };
-        device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&heap));
+        dxCheck(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&heap)));
         handle = heap->GetCPUDescriptorHandleForHeapStart();
-        device->CreateRenderTargetView(image->getImage().Get(), nullptr, handle);
+        if (type == RenderTargetType::COLOR) {
+            device->CreateRenderTargetView(image->getImage().Get(), nullptr, handle);
+        } else {
+            device->CreateDepthStencilView(image->getImage().Get(), nullptr, handle);
+        }
     }
 
 }

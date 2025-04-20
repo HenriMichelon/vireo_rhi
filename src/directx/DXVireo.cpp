@@ -101,7 +101,7 @@ namespace vireo {
         uint32_t width,
         uint32_t height,
         const wstring& name) const {
-        return make_shared<DXImage>(getDXDevice()->getDevice(), format, width, height, name, false, false, MSAA::NONE);
+        return make_shared<DXImage>(getDXDevice()->getDevice(), format, width, height, name, false, false, false, MSAA::NONE);
     }
 
     shared_ptr<Image> DXVireo::createReadWriteImage(
@@ -109,13 +109,14 @@ namespace vireo {
         uint32_t width,
         uint32_t height,
         const wstring& name) const {
-            return make_shared<DXImage>(getDXDevice()->getDevice(), format, width, height, name, true, false, MSAA::NONE);
+            return make_shared<DXImage>(getDXDevice()->getDevice(), format, width, height, name, true, false, false, MSAA::NONE);
     }
 
     shared_ptr<RenderTarget> DXVireo::createRenderTarget(
            const ImageFormat format,
            const uint32_t width,
            const uint32_t height,
+           const RenderTargetType type,
            const MSAA msaa,
            const wstring& name) const {
         return make_shared<DXRenderTarget>(
@@ -128,7 +129,9 @@ namespace vireo {
                 name,
                 false,
                 true,
-                msaa));
+                type == RenderTargetType::DEPTH,
+                msaa),
+            type);
     }
 
     shared_ptr<RenderTarget> DXVireo::createRenderTarget(
@@ -145,7 +148,9 @@ namespace vireo {
                 name,
                 false,
                 true,
-                msaa));
+                false,
+                msaa),
+            RenderTargetType::COLOR);
     }
     shared_ptr<DescriptorLayout> DXVireo::createDescriptorLayout(
         const wstring& name) {

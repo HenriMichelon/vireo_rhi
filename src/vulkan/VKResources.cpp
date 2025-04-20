@@ -88,7 +88,6 @@ namespace vireo {
         vkFreeMemory(device->getDevice(), bufferMemory, nullptr);
     }
 
-
     VKSampler::VKSampler(
         const shared_ptr<const VKDevice>& device,
         const Filter minFilter,
@@ -136,11 +135,16 @@ namespace vireo {
             const wstring&    name,
             const bool        useByComputeShader,
             const bool        isRenderTarget,
+            const bool        isDepthBuffer,
             const MSAA        msaa):
         Image{format, width, height},
         device{device} {
         const VkImageUsageFlags usage =
-            isRenderTarget ? VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT :
+            isRenderTarget ?
+                isDepthBuffer ?
+                    msaa != MSAA::NONE ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT :
+                           VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT
+                    : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT :
             useByComputeShader ? VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT :
             VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
         const auto imageInfo = VkImageCreateInfo {
@@ -181,13 +185,14 @@ namespace vireo {
         "VKImage Memory : " + to_string(name));
 #endif
 
+        const VkImageAspectFlagBits aspect = isDepthBuffer ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
         const auto viewInfo = VkImageViewCreateInfo {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .image = image,
             .viewType = VK_IMAGE_VIEW_TYPE_2D,
             .format = vkFormats[static_cast<int>(format)],
             .subresourceRange = {
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .aspectMask = static_cast<uint32_t>(aspect),
                 .baseMipLevel = 0,
                 .levelCount = 1,
                 .baseArrayLayer = 0,

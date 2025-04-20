@@ -80,13 +80,14 @@ export namespace vireo {
             ImageFormat format,
             uint32_t width,
             uint32_t height,
-            MSAA msaa = MSAA::NONE,
-            const wstring& name = L"RenderTarget") const override;
+            RenderTargetType type,
+            MSAA msaa,
+            const wstring& name) const override;
 
         shared_ptr<RenderTarget> createRenderTarget(
             const shared_ptr<const SwapChain>& swapChain,
-            MSAA msaa = MSAA::NONE,
-            const wstring& name = L"RenderTarget") const override;
+            MSAA msaa,
+            const wstring& name) const override;
 
         shared_ptr<DescriptorLayout> createDescriptorLayout(
             const wstring& name) override;

@@ -161,18 +161,22 @@ export namespace vireo {
             const wstring& name,
             bool        useByComputeShader,
             bool        allowRenderTarget,
+            bool        isDepthBuffer,
             MSAA        msaa);
 
         auto getImage() const { return image; }
 
     private:
-        ComPtr<ID3D12Device>            device;
-        ComPtr<ID3D12Resource>          image;
+        ComPtr<ID3D12Device>   device;
+        ComPtr<ID3D12Resource> image;
     };
 
     class DXRenderTarget : public RenderTarget {
     public:
-        DXRenderTarget(const ComPtr<ID3D12Device> &device, const shared_ptr<DXImage>& image);
+        DXRenderTarget(
+            const ComPtr<ID3D12Device> &device,
+            const shared_ptr<DXImage>& image,
+            RenderTargetType type);
 
         auto& getHandle() const { return handle; }
 

@@ -138,6 +138,11 @@ export namespace vireo {
         R32G32B32A32_FLOAT,
     };
 
+    enum class RenderTargetType {
+        COLOR,
+        DEPTH,
+    };
+
     enum class CullMode {
         NONE,
         FRONT,
@@ -371,85 +376,6 @@ export namespace vireo {
             16, // BC7_UNORM
             16, // BC7_UNORM_SRGB
         };
-        static constexpr ImageFormat formats[] {
-            ImageFormat::R8_UNORM,
-            ImageFormat::R8_SNORM,
-            ImageFormat::R8_UINT,
-            ImageFormat::R8_SINT,
-
-            ImageFormat::R8G8_UNORM,
-            ImageFormat::R8G8_SNORM,
-            ImageFormat::R8G8_UINT,
-            ImageFormat::R8G8_SINT,
-
-            ImageFormat::R8G8B8A8_UNORM,
-            ImageFormat::R8G8B8A8_SNORM,
-            ImageFormat::R8G8B8A8_UINT,
-            ImageFormat::R8G8B8A8_SINT,
-            ImageFormat::R8G8B8A8_SRGB,
-
-            ImageFormat::B8G8R8A8_UNORM,
-            ImageFormat::B8G8R8A8_SRGB,
-            ImageFormat::B8G8R8X8_UNORM,
-            ImageFormat::B8G8R8X8_SRGB,
-
-            ImageFormat::A2B10G10R10_UNORM,
-            ImageFormat::A2B10G10R10_UINT,
-
-            ImageFormat::R16_UNORM,
-            ImageFormat::R16_SNORM,
-            ImageFormat::R16_UINT,
-            ImageFormat::R16_SINT,
-            ImageFormat::R16_SFLOAT,
-
-            ImageFormat::R16G16_UNORM,
-            ImageFormat::R16G16_SNORM,
-            ImageFormat::R16G16_UINT,
-            ImageFormat::R16G16_SINT,
-            ImageFormat::R16G16_SFLOAT,
-
-            ImageFormat::R16G16B16A16_UNORM,
-            ImageFormat::R16G16B16A16_SNORM,
-            ImageFormat::R16G16B16A16_UINT,
-            ImageFormat::R16G16B16A16_SINT,
-            ImageFormat::R16G16B16A16_SFLOAT,
-
-            ImageFormat::R32_UINT,
-            ImageFormat::R32_SINT,
-            ImageFormat::R32_SFLOAT,
-
-            ImageFormat::R32G32_UINT,
-            ImageFormat::R32G32_SINT,
-            ImageFormat::R32G32_SFLOAT,
-
-            ImageFormat::R32G32B32_UINT,
-            ImageFormat::R32G32B32_SINT,
-            ImageFormat::R32G32B32_SFLOAT,
-
-            ImageFormat::R32G32B32A32_UINT,
-            ImageFormat::R32G32B32A32_SINT,
-            ImageFormat::R32G32B32A32_SFLOAT,
-
-            ImageFormat::D16_UNORM,
-            ImageFormat::D24_UNORM_S8_UINT,
-            ImageFormat::D32_SFLOAT,
-            ImageFormat::D32_SFLOAT_S8_UINT,
-
-            ImageFormat::BC1_UNORM,
-            ImageFormat::BC1_UNORM_SRGB,
-            ImageFormat::BC2_UNORM,
-            ImageFormat::BC2_UNORM_SRGB,
-            ImageFormat::BC3_UNORM,
-            ImageFormat::BC3_UNORM_SRGB,
-            ImageFormat::BC4_UNORM,
-            ImageFormat::BC4_SNORM,
-            ImageFormat::BC5_UNORM,
-            ImageFormat::BC5_SNORM,
-            ImageFormat::BC6H_UFLOAT,
-            ImageFormat::BC6H_SFLOAT,
-            ImageFormat::BC7_UNORM,
-            ImageFormat::BC7_UNORM_SRGB,
-        };
 
         virtual ~Image() = default;
 
@@ -477,14 +403,19 @@ export namespace vireo {
 
     class RenderTarget {
     public:
-        RenderTarget(const shared_ptr<Image>& image) : image{image} {}
+        RenderTarget(const RenderTargetType type, const shared_ptr<Image>& image) :
+            type{type},
+            image{image} {}
 
         virtual ~RenderTarget() = default;
 
         auto getImage() const { return image; }
 
+        auto getType() const { return type; }
+
     private:
-        shared_ptr<Image> image;
+        const RenderTargetType  type;
+        const shared_ptr<Image> image;
     };
 
     class DescriptorLayout {
@@ -605,6 +536,23 @@ export namespace vireo {
 
     class SwapChain;
 
+    struct DepthClearValue {
+        float    depth;
+        uint32_t stencil;
+    };
+
+    struct RenderingConfiguration {
+        shared_ptr<SwapChain>    swapChain{nullptr};
+        shared_ptr<RenderTarget> colorRenderTarget{nullptr};
+        shared_ptr<RenderTarget> depthRenderTarget{nullptr};
+        shared_ptr<RenderTarget> multisampledColorRenderTarget{nullptr};
+        shared_ptr<RenderTarget> multisampledDepthRenderTarget{nullptr};
+        float                    clearColorValue[4]{0.0f, 0.0f, 0.0f, 0.0f};
+        DepthClearValue          depthClearValue{1.0f, 0};
+        bool                     clearColor{true};
+        bool                     clearDepth{true};
+    };
+
     class CommandList {
     public:
         virtual void begin() const = 0;
@@ -623,6 +571,8 @@ export namespace vireo {
             const shared_ptr<const Image>& source,
             const shared_ptr<const SwapChain>& swapChain,
             Filter filter = Filter::NEAREST) const = 0;
+
+        virtual void beginRendering(const RenderingConfiguration& configuration) = 0;
 
         virtual void beginRendering(
             const shared_ptr<SwapChain>& swapChain,
@@ -831,6 +781,7 @@ export namespace vireo {
             ImageFormat format,
             uint32_t width,
             uint32_t height,
+            RenderTargetType type = RenderTargetType::COLOR,
             MSAA msaa = MSAA::NONE,
             const wstring& name = L"RenderTarget") const = 0;
 

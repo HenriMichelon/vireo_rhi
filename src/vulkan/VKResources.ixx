@@ -162,6 +162,7 @@ export namespace vireo {
             const wstring& name,
             bool useByComputeShader,
             bool isRenderTarget,
+            bool isDepthBuffer,
             MSAA msaa);
 
         ~VKImage() override;

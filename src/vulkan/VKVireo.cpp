@@ -122,6 +122,7 @@ namespace vireo {
             name,
             false,
             false,
+            false,
             MSAA::NONE);
     }
 
@@ -138,6 +139,7 @@ namespace vireo {
             name,
             true,
             false,
+            false,
             MSAA::NONE);
     }
 
@@ -145,9 +147,11 @@ namespace vireo {
             const ImageFormat format,
             const uint32_t width,
             const uint32_t height,
+            const RenderTargetType type,
             const MSAA msaa,
             const wstring& name) const {
         return make_shared<RenderTarget>(
+            type,
             make_shared<VKImage>(
                 getVKDevice(),
                 format,
@@ -156,6 +160,7 @@ namespace vireo {
                 name,
                 false,
                 true,
+                type == RenderTargetType::DEPTH,
                 msaa));
     }
 
@@ -164,6 +169,7 @@ namespace vireo {
         MSAA msaa,
         const wstring& name) const {
         return make_shared<RenderTarget>(
+            RenderTargetType::COLOR,
             make_shared<VKImage>(
                 getVKDevice(),
                 swapChain->getFormat(),
@@ -172,6 +178,7 @@ namespace vireo {
                 name,
                 false,
                 true,
+                false,
                 msaa));
     }
 
