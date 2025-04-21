@@ -132,12 +132,13 @@ namespace vireo {
             const ImageFormat format,
             const uint32_t    width,
             const uint32_t    height,
+            const uint32_t    arraySize,
             const wstring&    name,
             const bool        useByComputeShader,
             const bool        isRenderTarget,
             const bool        isDepthBuffer,
             const MSAA        msaa):
-        Image{format, width, height},
+        Image{format, width, height, arraySize},
         device{device} {
         const VkImageUsageFlags usage =
             isRenderTarget ?
@@ -147,14 +148,15 @@ namespace vireo {
                     : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT :
             useByComputeShader ? VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT :
             VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+        const VkImageCreateFlags flags = arraySize == 6 ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0;
         const auto imageInfo = VkImageCreateInfo {
             .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-            .flags = 0,
+            .flags = flags,
             .imageType =  VK_IMAGE_TYPE_2D,
             .format = vkFormats[static_cast<int>(format)],
             .extent = {width, height, 1},
             .mipLevels = 1,
-            .arrayLayers = 1,
+            .arrayLayers = arraySize,
             .samples = VKPhysicalDevice::vkSampleCountFlag[static_cast<int>(msaa)],
             .tiling = VK_IMAGE_TILING_OPTIMAL,
             .usage = usage,
@@ -189,7 +191,7 @@ namespace vireo {
         const auto viewInfo = VkImageViewCreateInfo {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .image = image,
-            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .viewType = arraySize == 6 ? VK_IMAGE_VIEW_TYPE_CUBE : VK_IMAGE_VIEW_TYPE_2D,
             .format = vkFormats[static_cast<int>(format)],
             .subresourceRange = {
                 .aspectMask = static_cast<uint32_t>(aspect),

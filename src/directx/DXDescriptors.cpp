@@ -70,15 +70,27 @@ namespace vireo {
         if (useByComputeShader) {
             const auto viewDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC {
                 .Format = DXImage::dxFormats[static_cast<int>(image->getFormat())],
-                .ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D,
+                .ViewDimension = image->getArraySize() > 1 ? D3D12_UAV_DIMENSION_TEXTURE2DARRAY : D3D12_UAV_DIMENSION_TEXTURE2D,
+                .Texture2DArray = {
+                    .MipSlice = 0,
+                    .FirstArraySlice = 0,
+                    .ArraySize = image->getArraySize(),
+                },
             };
             device->CreateUnorderedAccessView(dxImage->getImage().Get(), nullptr, &viewDesc, cpuHandle);
         } else {
             const auto viewDesc = D3D12_SHADER_RESOURCE_VIEW_DESC {
                 .Format = DXImage::dxFormats[static_cast<int>(image->getFormat())],
-                .ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
+                .ViewDimension =
+                    image->getArraySize() > 1 ?
+                        image->getArraySize() == 6 ?
+                        D3D12_SRV_DIMENSION_TEXTURECUBE :
+                        D3D12_SRV_DIMENSION_TEXTURE2DARRAY :
+                    D3D12_SRV_DIMENSION_TEXTURE2D,
                 .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
-                .Texture2D= { .MipLevels = 1 },
+                .Texture2D= {
+                    .MipLevels = 1
+                },
             };
             device->CreateShaderResourceView(dxImage->getImage().Get(), &viewDesc, cpuHandle);
         }

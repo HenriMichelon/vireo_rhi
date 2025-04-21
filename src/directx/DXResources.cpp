@@ -65,13 +65,14 @@ namespace vireo {
             const ImageFormat format,
             const uint32_t    width,
             const uint32_t    height,
+            const uint32_t    arraySize,
             const wstring&    name,
             const bool        useByComputeShader,
             const bool        isRenderTarget,
             const bool        isDepthBuffer,
             const ClearValue  clearValue,
             const MSAA        msaa):
-        Image{format, width, height} {
+        Image{format, width, height, arraySize} {
         const auto dxFormat = dxFormats[static_cast<int>(format)];
         const auto samples = DXPhysicalDevice::dxSampleCount[static_cast<int>(msaa)];
         UINT quality = 0;
@@ -89,7 +90,7 @@ namespace vireo {
             .Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
             .Width = width,
             .Height = height,
-            .DepthOrArraySize = 1,
+            .DepthOrArraySize = static_cast<UINT16>(arraySize),
             .MipLevels = 1,
             .Format = dxFormat,
             .SampleDesc = {

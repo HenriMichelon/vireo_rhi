@@ -71,12 +71,14 @@ export namespace vireo {
             ImageFormat format,
             uint32_t width,
             uint32_t height,
+            uint32_t arraySize,
             const wstring& name) const override;
 
         shared_ptr<Image> createReadWriteImage(
             ImageFormat format,
             uint32_t width,
             uint32_t height,
+            uint32_t arraySize,
             const wstring& name) const override;
 
         shared_ptr<RenderTarget> createRenderTarget(

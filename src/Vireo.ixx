@@ -421,20 +421,24 @@ export namespace vireo {
 
         auto getHeight() const { return height; }
 
+        auto getArraySize() const { return arraySize; }
+
         auto getSize() const { return width * height * pixelSize[static_cast<int>(format)]; }
 
         auto getRowPitch() const { return width * pixelSize[static_cast<int>(format)]; }
 
     protected:
-        Image(const ImageFormat format, const uint32_t width, const uint32_t height) :
+        Image(const ImageFormat format, const uint32_t width, const uint32_t height, const uint32_t arraySize) :
             format{format},
             width{width},
-            height{height} {}
+            height{height},
+            arraySize{arraySize} {}
 
     private:
         const ImageFormat format;
         const uint32_t    width;
         const uint32_t    height;
+        const uint32_t    arraySize;
     };
 
     class RenderTarget {
@@ -787,12 +791,14 @@ export namespace vireo {
             ImageFormat format,
             uint32_t width,
             uint32_t height,
+            uint32_t arraySize = 1,
             const wstring& name = L"Image") const = 0;
 
         virtual shared_ptr<Image> createReadWriteImage(
             ImageFormat format,
             uint32_t width,
             uint32_t height,
+            uint32_t arraySize = 1,
             const wstring& name = L"RWImage") const = 0;
 
         virtual shared_ptr<RenderTarget> createRenderTarget(

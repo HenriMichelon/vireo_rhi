@@ -97,14 +97,16 @@ namespace vireo {
     }
 
     shared_ptr<Image> DXVireo::createImage(
-        ImageFormat format,
-        uint32_t width,
-        uint32_t height,
+        const ImageFormat format,
+        const uint32_t width,
+        const uint32_t height,
+        const uint32_t arraySize,
         const wstring& name) const {
         return make_shared<DXImage>(
             getDXDevice()->getDevice(),
             format,
             width, height,
+            arraySize,
             name,
             false, false, false,
             DXImage::defaultClearValue,
@@ -112,14 +114,16 @@ namespace vireo {
     }
 
     shared_ptr<Image> DXVireo::createReadWriteImage(
-        ImageFormat format,
-        uint32_t width,
-        uint32_t height,
+        const ImageFormat format,
+        const uint32_t width,
+        const uint32_t height,
+        const uint32_t arraySize,
         const wstring& name) const {
             return make_shared<DXImage>(
                 getDXDevice()->getDevice(),
                 format,
                 width, height,
+                arraySize,
                 name,
                 true, false, false,
                 DXImage::defaultClearValue,
@@ -141,6 +145,7 @@ namespace vireo {
                 format,
                 width,
                 height,
+                1,
                 name,
                 false,
                 true,
@@ -162,6 +167,7 @@ namespace vireo {
                 swapChain->getFormat(),
                 swapChain->getExtent().width,
                 swapChain->getExtent().height,
+                1,
                 name,
                 false,
                 true,
