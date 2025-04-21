@@ -7,7 +7,7 @@
 cmake_minimum_required(VERSION 3.29)
 
 #######################################################
-project(vireo_ral)
+project(vireo_rhi)
 set(VIREO_TARGET ${PROJECT_NAME})
 
 #######################################################
