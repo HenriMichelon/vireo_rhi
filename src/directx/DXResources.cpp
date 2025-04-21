@@ -20,7 +20,8 @@ namespace vireo {
         const size_t count,
         const size_t minOffsetAlignment,
         const wstring& name):
-        Buffer{type} {
+        Buffer{type},
+        size{size} {
         alignmentSize = minOffsetAlignment > 0
             ? (size + minOffsetAlignment - 1) & ~(minOffsetAlignment - 1)
             : size;
@@ -39,10 +40,6 @@ namespace vireo {
 #ifdef _DEBUG
         buffer->SetName((L"DXBuffer : " + name).c_str());
 #endif
-
-        bufferView.BufferLocation = buffer->GetGPUVirtualAddress();
-        bufferView.StrideInBytes = size;
-        bufferView.SizeInBytes = bufferSize;
     }
 
     void DXBuffer::map() {

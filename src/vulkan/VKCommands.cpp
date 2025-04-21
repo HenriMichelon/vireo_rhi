@@ -123,15 +123,46 @@ namespace vireo {
         vkCheck(vkAllocateCommandBuffers(device->getDevice(), &allocInfo, &commandBuffer));
     }
 
-    void VKCommandList::bindVertexBuffer(const shared_ptr<const Buffer>& buffer) const {
+    void VKCommandList::bindVertexBuffers(const vector<shared_ptr<const Buffer>>& buffers, const vector<size_t> offsets) const {
+        vector<VkBuffer> vkBuffers(buffers.size());
+        vector<VkDeviceSize> vkOffsets(buffers.size());
+        for (int i = 0; i < buffers.size(); i++) {
+            vkBuffers[i] = static_pointer_cast<const VKBuffer>(buffers[i])->getBuffer();
+            vkOffsets[i] = offsets.empty() ? 0 : offsets[i];
+        }
+        vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), vkBuffers.data(), vkOffsets.data());
+    }
+
+    void VKCommandList::bindVertexBuffer(const shared_ptr<const Buffer>& buffer, const size_t offset) const {
         const auto vkBuffer = static_pointer_cast<const VKBuffer>(buffer);
-        const VkBuffer         buffers[] = {vkBuffer->getBuffer()};
-        constexpr VkDeviceSize offsets[] = {0};
+        const VkBuffer     buffers[] = {vkBuffer->getBuffer()};
+        const VkDeviceSize offsets[] = {offset};
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
     }
 
-    void VKCommandList::drawInstanced(const uint32_t vertexCountPerInstance, const uint32_t instanceCount) const {
-        vkCmdDraw(commandBuffer, vertexCountPerInstance, instanceCount, 0, 0);
+    void VKCommandList::bindIndexBuffer(const shared_ptr<const Buffer>& buffer, IndexType indexType, const size_t offset) const {
+        const auto vkBuffer = static_pointer_cast<const VKBuffer>(buffer);
+        vkCmdBindIndexBuffer(commandBuffer,
+            vkBuffer->getBuffer(),
+            offset,
+            vkIndexTypes[static_cast<int>(indexType)]);
+    }
+
+    void VKCommandList::draw(
+        const uint32_t vertexCountPerInstance,
+        const uint32_t instanceCount,
+        const uint32_t firstVertex,
+        const uint32_t firstInstance) const {
+        vkCmdDraw(commandBuffer, vertexCountPerInstance, instanceCount, firstVertex, firstInstance);
+    }
+
+    void VKCommandList::drawIndexed(
+        const uint32_t indexCountPerInstance,
+        const uint32_t instanceCount,
+        const uint32_t firstIndex,
+        const uint32_t vertexOffset,
+        const uint32_t firstInstance) const {
+        vkCmdDrawIndexed(commandBuffer, indexCountPerInstance, instanceCount, firstIndex, vertexOffset, firstInstance);
     }
 
     void VKCommandList::bindPipeline(const shared_ptr<const Pipeline>& pipeline) {

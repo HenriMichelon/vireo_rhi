@@ -27,7 +27,7 @@ export namespace vireo {
 
         shared_ptr<SubmitQueue> createSubmitQueue(
         CommandType commandType,
-        const wstring& name = L"SubmitQueue") const override;
+        const wstring& name) const override;
 
         shared_ptr<Fence> createFence(const wstring& name) const override;
 
@@ -41,13 +41,13 @@ export namespace vireo {
 
         shared_ptr<PipelineResources> createPipelineResources(
             const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts,
-            const PushConstantsDesc& pushConstant = {},
-            const wstring& name = L"PipelineResource") const override;
+            const PushConstantsDesc& pushConstant,
+            const wstring& name) const override;
 
         shared_ptr<ComputePipeline> createComputePipeline(
             const shared_ptr<PipelineResources>& pipelineResources,
             const shared_ptr<const ShaderModule>& shader,
-            const wstring& name = L"ComputePipeline") const override;
+            const wstring& name) const override;
 
         shared_ptr<GraphicPipeline> createGraphicPipeline(
             const shared_ptr<PipelineResources>& pipelineResources,
@@ -55,26 +55,26 @@ export namespace vireo {
             const shared_ptr<const ShaderModule>& vertexShader,
             const shared_ptr<const ShaderModule>& fragmentShader,
             const GraphicPipelineConfiguration& configuration,
-            const wstring& name = L"GraphicPipeline") const override;
+            const wstring& name) const override;
 
         shared_ptr<Buffer> createBuffer(
             BufferType type,
             size_t size,
-            size_t count = 1,
-            size_t alignment = 1,
-            const wstring& name = L"Buffer") const override;
+            size_t count,
+            size_t alignment,
+            const wstring& name) const override;
 
         shared_ptr<Image> createImage(
             ImageFormat format,
             uint32_t width,
             uint32_t height,
-            const wstring& name = L"Image") const override;
+            const wstring& name) const override;
 
         shared_ptr<Image> createReadWriteImage(
             ImageFormat format,
             uint32_t width,
             uint32_t height,
-            const wstring& name = L"RWImage") const override;
+            const wstring& name) const override;
 
         shared_ptr<RenderTarget> createRenderTarget(
             ImageFormat format,
@@ -95,7 +95,7 @@ export namespace vireo {
             const wstring& name) override;
 
         shared_ptr<DescriptorLayout> createSamplerDescriptorLayout(
-            const wstring& name = L"createSamplerDescriptorLayout") override;
+            const wstring& name) override;
 
         shared_ptr<DescriptorSet> createDescriptorSet(
             const shared_ptr<const DescriptorLayout>& layout,
@@ -107,10 +107,10 @@ export namespace vireo {
                AddressMode addressModeU,
                AddressMode addressModeV,
                AddressMode addressModeW,
-               float minLod = 0.0f,
-               float maxLod = 1.0f,
-               bool anisotropyEnable = true,
-               MipMapMode mipMapMode = MipMapMode::LINEAR) const override;
+               float minLod,
+               float maxLod,
+               bool anisotropyEnable,
+               MipMapMode mipMapMode) const override;
 
         auto getDXInstance() const { return reinterpret_pointer_cast<DXInstance>(instance); }
 

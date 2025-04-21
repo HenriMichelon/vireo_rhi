@@ -54,6 +54,11 @@ export namespace vireo {
 
     class VKCommandList : public CommandList {
     public:
+        static constexpr VkIndexType vkIndexTypes[] {
+            VK_INDEX_TYPE_UINT16,
+            VK_INDEX_TYPE_UINT32,
+        };
+
         VKCommandList(const shared_ptr<const VKDevice>& device, VkCommandPool commandPool);
 
         void begin() const override;
@@ -81,7 +86,13 @@ export namespace vireo {
 
         void dispatch(uint32_t x, uint32_t y, uint32_t z) const override;
 
-        void bindVertexBuffer(const shared_ptr<const Buffer>& buffer) const override;
+        void bindVertexBuffers(
+            const vector<shared_ptr<const Buffer>>& buffers,
+            vector<size_t> offsets = {}) const override;
+
+        void bindVertexBuffer(const shared_ptr<const Buffer>& buffer, size_t offset) const override;
+
+        void bindIndexBuffer(const shared_ptr<const Buffer>& buffer, IndexType indexType, size_t offset) const override;
 
         void bindPipeline(const shared_ptr<const Pipeline>& pipeline) override;
 
@@ -89,7 +100,18 @@ export namespace vireo {
             const shared_ptr<const Pipeline>& pipeline,
             const vector<shared_ptr<const DescriptorSet>>& descriptors) const override;
 
-        void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) const override;
+        void draw(
+            uint32_t vertexCountPerInstance,
+            uint32_t instanceCount = 1,
+            uint32_t firstVertex = 0,
+            uint32_t firstInstance = 0) const override;
+
+        void drawIndexed(
+            uint32_t indexCountPerInstance,
+            uint32_t instanceCount = 0,
+            uint32_t firstIndex = 0,
+            uint32_t vertexOffset = 0,
+            uint32_t firstInstance = 0) const override;
 
         void setViewports(uint32_t count, const vector<Extent>& extent) const override;
 

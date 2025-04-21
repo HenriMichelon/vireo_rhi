@@ -119,6 +119,11 @@ export namespace vireo {
         UNIFORM,
     };
 
+    enum class IndexType {
+        UINT16,
+        UINT32,
+    };
+
     enum class DescriptorType {
         BUFFER,
         SAMPLED_IMAGE,
@@ -585,7 +590,18 @@ export namespace vireo {
 
         virtual void dispatch(uint32_t x, uint32_t y, uint32_t z) const = 0;
 
-        virtual void bindVertexBuffer(const shared_ptr<const Buffer>& buffer) const = 0;
+        virtual void bindVertexBuffer(
+            const shared_ptr<const Buffer>& buffer,
+            size_t offset = 0) const = 0;
+
+        virtual void bindVertexBuffers(
+            const vector<shared_ptr<const Buffer>>& buffers,
+            vector<size_t> offsets = {}) const = 0;
+
+        virtual void bindIndexBuffer(
+            const shared_ptr<const Buffer>& buffer,
+            IndexType indexType = IndexType::UINT32,
+            size_t offset = 0) const = 0;
 
         virtual void bindPipeline(const shared_ptr<const Pipeline>& pipeline) = 0;
 
@@ -593,7 +609,18 @@ export namespace vireo {
             const shared_ptr<const Pipeline>& pipeline,
             const vector<shared_ptr<const DescriptorSet>>& descriptors) const = 0;
 
-        virtual void drawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount = 1) const = 0;
+        virtual void draw(
+            uint32_t vertexCountPerInstance,
+            uint32_t instanceCount = 1,
+            uint32_t firstVertex = 0,
+            uint32_t firstInstance = 0) const = 0;
+
+        virtual void drawIndexed(
+            uint32_t indexCountPerInstance,
+            uint32_t instanceCount = 1,
+            uint32_t firstIndex = 0,
+            uint32_t vertexOffset = 0,
+            uint32_t firstInstance = 0) const = 0;
 
         virtual void setViewports(uint32_t count, const vector<Extent>& extent) const = 0;
 

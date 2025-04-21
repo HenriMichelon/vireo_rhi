@@ -34,14 +34,14 @@ export namespace vireo {
 
         void write(const void* data, size_t size = WHOLE_SIZE, size_t offset = 0) override;
 
-        const auto& getBufferView() const { return bufferView; }
-
         auto& getBuffer() const { return buffer; }
 
+        auto getStride() const { return size; }
+
     private:
+        const size_t                    size;
         ComPtr<ID3D12Device>            device;
         ComPtr<ID3D12Resource>          buffer;
-        D3D12_VERTEX_BUFFER_VIEW        bufferView;
         D3D12_CONSTANT_BUFFER_VIEW_DESC bufferViewDesc;
     };
 

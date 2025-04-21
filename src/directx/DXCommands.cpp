@@ -379,13 +379,55 @@ namespace vireo {
         stagingBuffers.clear();
     }
 
-    void DXCommandList::bindVertexBuffer(const shared_ptr<const Buffer>& buffer) const {
-        const auto& vertexBuffer = static_pointer_cast<const DXBuffer>(buffer);
-        commandList->IASetVertexBuffers(0, 1, &vertexBuffer->getBufferView());
+    void DXCommandList::bindVertexBuffers(const vector<shared_ptr<const Buffer>>& buffers, const vector<size_t> offsets) const {
+        vector<D3D12_VERTEX_BUFFER_VIEW> bufferViews(buffers.size());
+        for (int i = 0; i < buffers.size(); i++) {
+            const auto& vertexBuffer = static_pointer_cast<const DXBuffer>(buffers[i]);
+            const auto offset = offsets.empty() ? 0 : offsets[i];
+            bufferViews[i] = D3D12_VERTEX_BUFFER_VIEW {
+                .BufferLocation = vertexBuffer->getBuffer().Get()->GetGPUVirtualAddress() + offset,
+                .SizeInBytes = static_cast<UINT>(vertexBuffer->getSize() - offset),
+                .StrideInBytes = static_cast<UINT>(vertexBuffer->getStride()),
+            };
+        }
+        commandList->IASetVertexBuffers(0, static_cast<UINT>(buffers.size()), bufferViews.data());
     }
 
-    void DXCommandList::drawInstanced(const uint32_t vertexCountPerInstance, const uint32_t instanceCount) const {
-        commandList->DrawInstanced(vertexCountPerInstance, instanceCount, 0, 0);
+    void DXCommandList::bindVertexBuffer(const shared_ptr<const Buffer>& buffer, const size_t offset) const {
+        const auto& vertexBuffer = static_pointer_cast<const DXBuffer>(buffer);
+        const auto bufferView = D3D12_VERTEX_BUFFER_VIEW {
+            .BufferLocation = vertexBuffer->getBuffer().Get()->GetGPUVirtualAddress() + offset,
+            .SizeInBytes = static_cast<UINT>(vertexBuffer->getSize() - offset),
+            .StrideInBytes = static_cast<UINT>(vertexBuffer->getStride()),
+        };
+        commandList->IASetVertexBuffers(0, 1, &bufferView);
+    }
+
+    void DXCommandList::bindIndexBuffer(const shared_ptr<const Buffer>& buffer, IndexType indexType, const size_t offset) const {
+        const auto& indexBuffer = static_pointer_cast<const DXBuffer>(buffer);
+        const auto bufferView = D3D12_INDEX_BUFFER_VIEW {
+            .BufferLocation = indexBuffer->getBuffer().Get()->GetGPUVirtualAddress() + offset,
+            .SizeInBytes = static_cast<UINT>(indexBuffer->getSize() - offset),
+            .Format = dxIndexType[static_cast<int>(indexType)]
+        };
+        commandList->IASetIndexBuffer(&bufferView);
+    }
+
+    void DXCommandList::draw(
+        const uint32_t vertexCountPerInstance,
+        const uint32_t instanceCount,
+        const uint32_t firstVertex,
+        const uint32_t firstInstance) const {
+        commandList->DrawInstanced(vertexCountPerInstance, instanceCount, firstVertex, firstInstance);
+    }
+
+    void DXCommandList::drawIndexed(
+        const uint32_t indexCountPerInstance,
+        const uint32_t instanceCount,
+        const uint32_t firstIndex,
+        const uint32_t vertexOffset,
+        const uint32_t firstInstance) const {
+        commandList->DrawIndexedInstanced(indexCountPerInstance, instanceCount, firstIndex, vertexOffset, firstInstance);
     }
 
     void DXCommandList::upload(const shared_ptr<const Buffer>& destination, const void* source) {
