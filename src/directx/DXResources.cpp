@@ -70,7 +70,7 @@ namespace vireo {
             const uint32_t    height,
             const wstring&    name,
             const bool        useByComputeShader,
-            const bool        allowRenderTarget,
+            const bool        isRenderTarget,
             const bool        isDepthBuffer,
             const ClearValue  clearValue,
             const MSAA        msaa):
@@ -100,32 +100,33 @@ namespace vireo {
                 quality
             },
             .Flags =
-                allowRenderTarget ?
+                isRenderTarget ?
                     isDepthBuffer ? D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL :
                     D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET :
                 useByComputeShader ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS :
                 D3D12_RESOURCE_FLAG_NONE,
         };
-        auto dxClearValue = D3D12_CLEAR_VALUE{
-            .Format = imageDesc.Format,
-        };
-        if (isDepthBuffer) {
-            dxClearValue.DepthStencil = {
-                clearValue.depthStencil.depth,
-                static_cast<UINT8>(clearValue.depthStencil.stencil)
-            };
-        } else {
-            dxClearValue.Color[0] = clearValue.color[0];
-            dxClearValue.Color[1] = clearValue.color[1];
-            dxClearValue.Color[2] = clearValue.color[2];
-            dxClearValue.Color[3] = clearValue.color[3];
+        auto dxClearValue = D3D12_CLEAR_VALUE{};
+        if (isRenderTarget) {
+            dxClearValue.Format = imageDesc.Format;
+            if (isDepthBuffer) {
+                dxClearValue.DepthStencil = {
+                    clearValue.depthStencil.depth,
+                    static_cast<UINT8>(clearValue.depthStencil.stencil)
+                };
+            } else {
+                dxClearValue.Color[0] = clearValue.color[0];
+                dxClearValue.Color[1] = clearValue.color[1];
+                dxClearValue.Color[2] = clearValue.color[2];
+                dxClearValue.Color[3] = clearValue.color[3];
+            }
         }
         dxCheck(device->CreateCommittedResource(
             &heapProperties,
             D3D12_HEAP_FLAG_NONE,
             &imageDesc,
             D3D12_RESOURCE_STATE_COMMON,
-            &dxClearValue,
+            isRenderTarget ? &dxClearValue : nullptr,
             IID_PPV_ARGS(&image)));
 
 #ifdef _DEBUG

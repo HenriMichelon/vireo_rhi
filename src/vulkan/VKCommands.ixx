@@ -22,7 +22,10 @@ export namespace vireo {
 
         auto getCommandQueue() const { return commandQueue; }
 
-        void submit(const shared_ptr<Fence>& fence, const shared_ptr<const SwapChain>& swapChain, const vector<shared_ptr<const CommandList>>& commandLists) const override;
+        void submit(
+            const shared_ptr<Fence>& fence,
+            const shared_ptr<const SwapChain>& swapChain,
+            const vector<shared_ptr<const CommandList>>& commandLists) const override;
 
         void submit(const vector<shared_ptr<const CommandList>>& commandLists) const override;
 
@@ -110,7 +113,7 @@ export namespace vireo {
         void pushConstants(
             const shared_ptr<const PipelineResources>& pipelineResources,
             const PushConstantsDesc& pushConstants,
-            const void* data) const;
+            const void* data) const override;
 
         auto getCommandBuffer() const { return commandBuffer; }
 

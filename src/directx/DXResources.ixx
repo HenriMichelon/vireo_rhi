@@ -161,7 +161,7 @@ export namespace vireo {
             uint32_t    height,
             const wstring& name,
             bool        useByComputeShader,
-            bool        allowRenderTarget,
+            bool        isRenderTarget,
             bool        isDepthBuffer,
             ClearValue  clearValue,
             MSAA        msaa);

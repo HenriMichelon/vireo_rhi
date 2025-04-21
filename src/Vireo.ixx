@@ -130,6 +130,7 @@ export namespace vireo {
         GRAPHIC,
         TRANSFER,
         COMPUTE,
+        PRESENT,
     };
 
     enum class AttributeFormat {

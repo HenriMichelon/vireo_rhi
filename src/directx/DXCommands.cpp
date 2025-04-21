@@ -20,7 +20,7 @@ namespace vireo {
     DXSubmitQueue::DXSubmitQueue(const ComPtr<ID3D12Device>& device, const CommandType type) :
         device{device} {
         const auto queueDesc = D3D12_COMMAND_QUEUE_DESC {
-            .Type = DXCommandList::ListType[static_cast<int>(type)],
+            .Type = DXCommandList::dxType[static_cast<int>(type)],
             .Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
         };
         dxCheck(device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&commandQueue)));
@@ -67,7 +67,7 @@ namespace vireo {
         CommandAllocator{type},
         device{device} {
         dxCheck(device->CreateCommandAllocator(
-            DXCommandList::ListType[static_cast<int>(type)],
+            DXCommandList::dxType[static_cast<int>(type)],
             IID_PPV_ARGS(&commandAllocator)));
     }
 
@@ -100,7 +100,7 @@ namespace vireo {
         commandAllocator{commandAllocator} {
         dxCheck(device->CreateCommandList(
             0,
-            ListType[static_cast<int>(type)],
+            dxType[static_cast<int>(type)],
             commandAllocator.Get(),
             pipelineState == nullptr ? nullptr : pipelineState.Get(),
             IID_PPV_ARGS(&commandList)));
