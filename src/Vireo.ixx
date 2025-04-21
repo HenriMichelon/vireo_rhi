@@ -236,6 +236,25 @@ export namespace vireo {
         uint32_t stencil{0};
     };
 
+    struct GraphicPipelineConfiguration {
+        ImageFormat       colorRenderFormat{ImageFormat::R8G8B8A8_UNORM};
+        PrimitiveTopology primitiveTopology{PrimitiveTopology::TRIANGLE_LIST};
+        MSAA              msaa{MSAA::NONE};
+        CullMode          cullMode{CullMode::NONE};
+        PolygonMode       polygonMode{PolygonMode::FILL};
+        bool              frontFaceCounterClockwise{true};
+        bool              colorBlendEnable{false};
+        ImageFormat       depthImageFormat{ImageFormat::D32_SFLOAT};
+        bool              depthTestEnable{false};
+        bool              depthWriteEnable{false};
+        bool              depthBiasEnable{false};
+        CompareOp         depthCompareOp{CompareOp::LESS_OR_EQUAL};
+        float             depthBiasConstantFactor{0.0f};
+        float             depthBiasClamp{0.0f};
+        float             depthBiasSlopeFactor{0.0f};
+        bool              alphaToCoverageEnable{false};
+    };
+
     typedef union ClearValue {
         float           color[4]{0.0f, 0.0f, 0.0f, 1.0f};
         DepthClearValue depthStencil;
@@ -521,26 +540,6 @@ export namespace vireo {
     };
 
     class GraphicPipeline : public Pipeline {
-    public:
-        struct Configuration {
-            ImageFormat       colorRenderFormat{ImageFormat::R8G8B8A8_UNORM};
-            PrimitiveTopology primitiveTopology{PrimitiveTopology::TRIANGLE_LIST};
-            MSAA              msaa{MSAA::NONE};
-            CullMode          cullMode{CullMode::NONE};
-            PolygonMode       polygonMode{PolygonMode::FILL};
-            bool              frontFaceCounterClockwise{true};
-            bool              colorBlendEnable{false};
-            ImageFormat       depthImageFormat{ImageFormat::D32_SFLOAT};
-            bool              depthTestEnable{false};
-            bool              depthWriteEnable{false};
-            bool              depthBiasEnable{false};
-            CompareOp         depthCompareOp{CompareOp::LESS_OR_EQUAL};
-            float             depthBiasConstantFactor{0.0f};
-            float             depthBiasClamp{0.0f};
-            float             depthBiasSlopeFactor{0.0f};
-            bool              alphaToCoverageEnable{false};
-        };
-
     protected:
         GraphicPipeline(const shared_ptr<PipelineResources>& pipelineResources) :
             Pipeline{GRAPHIC, pipelineResources} {}
@@ -746,7 +745,7 @@ export namespace vireo {
             const shared_ptr<const VertexInputLayout>& vertexInputLayout,
             const shared_ptr<const ShaderModule>& vertexShader,
             const shared_ptr<const ShaderModule>& fragmentShader,
-            const GraphicPipeline::Configuration& configuration,
+            const GraphicPipelineConfiguration& configuration,
             const wstring& name = L"GraphicPipeline") const = 0;
 
         virtual shared_ptr<Buffer> createBuffer(

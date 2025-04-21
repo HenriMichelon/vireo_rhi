@@ -54,7 +54,7 @@ export namespace vireo {
             const shared_ptr<const VertexInputLayout>& vertexInputLayout,
             const shared_ptr<const ShaderModule>& vertexShader,
             const shared_ptr<const ShaderModule>& fragmentShader,
-            const GraphicPipeline::Configuration& configuration,
+            const GraphicPipelineConfiguration& configuration,
             const wstring& name = L"GraphicPipeline") const override;
 
         shared_ptr<Buffer> createBuffer(

@@ -141,7 +141,7 @@ namespace vireo {
            const shared_ptr<const VertexInputLayout>& vertexInputLayout,
            const shared_ptr<const ShaderModule>& vertexShader,
            const shared_ptr<const ShaderModule>& fragmentShader,
-           const Configuration& configuration,
+           const GraphicPipelineConfiguration& configuration,
            const wstring& name):
         GraphicPipeline{pipelineResources},
         device{device} {
