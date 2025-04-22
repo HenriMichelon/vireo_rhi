@@ -534,7 +534,8 @@ namespace vireo {
             device,
             BufferType::TRANSFER,
             buffer->getInstanceSize(),
-            buffer->getInstanceCount());
+            buffer->getInstanceCount(),
+            L"StagingBuffer for buffer");
         stagingBuffer->map();
         if ((buffer->getAlignmentSize() == 1) || (buffer->getInstanceCount() == 1)) {
             stagingBuffer->write(source);
@@ -569,7 +570,8 @@ namespace vireo {
            device,
            BufferType::TRANSFER,
            image->getImageSize(),
-           image->getArraySize());
+           image->getArraySize(),
+           L"StagingBuffer for image");
         stagingBuffer->map();
         if (image->getArraySize() == 1) {
             stagingBuffer->write(source);
@@ -610,12 +612,14 @@ namespace vireo {
     }
 
     void VKCommandList::upload(const shared_ptr<const Image>& destination, const vector<void*>& sources) {
+        assert(sources.size() == destination->getArraySize());
         const auto image = static_pointer_cast<const VKImage>(destination);
         const auto stagingBuffer = make_shared<VKBuffer>(
            device,
            BufferType::TRANSFER,
            image->getImageSize(),
-           image->getArraySize());
+           image->getArraySize(),
+           L"StagingBuffer for image array");
         stagingBuffer->map();
         for (int i = 0; i < image->getArraySize(); i++) {
             stagingBuffer->write(
@@ -625,7 +629,6 @@ namespace vireo {
         }
         stagingBuffer->unmap();
 
-        // https://vulkan-tutorial.com/Texture_mapping/Images#page_Copying-buffer-to-image
         const auto region = VkBufferImageCopy {
             .bufferOffset = 0,
             .bufferRowLength = 0,
@@ -639,7 +642,6 @@ namespace vireo {
             .imageOffset = {0, 0, 0},
             .imageExtent = {image->getWidth(), image->getHeight(), 1},
         };
-
         vkCmdCopyBufferToImage(
                 commandBuffer,
                 stagingBuffer->getBuffer(),
@@ -647,7 +649,6 @@ namespace vireo {
                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                 1,
                 &region);
-
         stagingBuffers.push_back(stagingBuffer);
     }
 

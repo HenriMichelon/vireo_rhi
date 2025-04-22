@@ -53,10 +53,10 @@ namespace vireo {
         if (inFlightFenceEvent == nullptr) {
             dxCheck(HRESULT_FROM_WIN32(GetLastError()));
         }
-        dxCheck(commandQueue->Signal(inFlightFence.Get(), 0));
-        if (inFlightFence->GetCompletedValue() < 0) {
+        dxCheck(commandQueue->Signal(inFlightFence.Get(), 1));
+        if (inFlightFence->GetCompletedValue() < 1) {
             dxCheck(inFlightFence->SetEventOnCompletion(
-                0,
+                1,
                 inFlightFenceEvent));
             WaitForSingleObjectEx(inFlightFenceEvent, INFINITE, FALSE);
         }
@@ -373,9 +373,6 @@ namespace vireo {
     }
 
     void DXCommandList::cleanup() {
-        for (int i = 0; i < stagingBuffers.size(); i++) {
-            // stagingBuffers[i]->Release();
-        }
         stagingBuffers.clear();
     }
 
@@ -479,10 +476,12 @@ namespace vireo {
 
     void DXCommandList::upload(const shared_ptr<const Image>& destination, const void* source) {
         const auto image = static_pointer_cast<const DXImage>(destination);
-
         auto stagingBuffer = ComPtr<ID3D12Resource>{nullptr};
         {
-            const auto stagingBufferSize = GetRequiredIntermediateSize(image->getImage().Get(), 0, 1);
+            const auto stagingBufferSize = GetRequiredIntermediateSize(
+                image->getImage().Get(),
+                0,
+                1);
             const auto stagingHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
             const auto stagingResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(stagingBufferSize);
             dxCheck(device->CreateCommittedResource(
