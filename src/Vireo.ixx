@@ -592,6 +592,12 @@ export namespace vireo {
             const shared_ptr<const Image>& source,
             const shared_ptr<const SwapChain>& swapChain) const = 0;
 
+        inline void copy(
+            const shared_ptr<const RenderTarget>& source,
+            const shared_ptr<const SwapChain>& swapChain) const {
+            copy(source->getImage(), swapChain);
+        }
+
         virtual void blit(
             const shared_ptr<const Image>& source,
             const shared_ptr<const SwapChain>& swapChain,

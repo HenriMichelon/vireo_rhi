@@ -398,7 +398,7 @@ namespace vireo {
             srcLayout = VK_IMAGE_LAYOUT_GENERAL;
             dstLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
         } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::COPY_SRC) {
-            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
             dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             srcAccess = 0;
             dstAccess = VK_ACCESS_TRANSFER_READ_BIT;
@@ -410,10 +410,10 @@ namespace vireo {
             srcAccess = VK_ACCESS_TRANSFER_READ_BIT;
             dstAccess = 0;
             srcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-            dstLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            dstLayout = VK_IMAGE_LAYOUT_GENERAL;
         } else if (oldState == ResourceState::RENDER_TARGET_COLOR && newState == ResourceState::UNDEFINED) {
             srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-            dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
             srcAccess = 0;
             dstAccess = 0;
             srcLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -433,9 +433,15 @@ namespace vireo {
             dstAccess = VK_ACCESS_SHADER_WRITE_BIT;
             srcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_GENERAL;
+        } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::RENDER_TARGET_COLOR) {
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            srcAccess = 0;
+            dstAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         } else {
             throw Exception("Not implemented");
-            return;
         }
         const auto barrier = VkImageMemoryBarrier {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,

@@ -302,6 +302,9 @@ namespace vireo {
         } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::RENDER_TARGET_COLOR) {
             srcState = D3D12_RESOURCE_STATE_COMMON;
             dstState = D3D12_RESOURCE_STATE_RENDER_TARGET;
+        } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::RENDER_TARGET_COLOR) {
+            srcState = D3D12_RESOURCE_STATE_COPY_SOURCE;
+            dstState = D3D12_RESOURCE_STATE_RENDER_TARGET;
         } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::RENDER_TARGET_DEPTH_STENCIL) {
             srcState = D3D12_RESOURCE_STATE_COMMON;
             dstState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
