@@ -58,7 +58,7 @@ namespace vireo {
         const auto dxBuffer = static_pointer_cast<const DXBuffer>(buffer);
         const auto bufferViewDesc = D3D12_CONSTANT_BUFFER_VIEW_DESC{
             .BufferLocation = dxBuffer->getBuffer()->GetGPUVirtualAddress(),
-            .SizeInBytes = static_cast<UINT>(dxBuffer->getSize()),
+            .SizeInBytes = static_cast<UINT>(dxBuffer->getAlignmentSize()),
         };
         const auto cpuHandle = D3D12_CPU_DESCRIPTOR_HANDLE { cpuBase.ptr + index * descriptorSize };
         device->CreateConstantBufferView(&bufferViewDesc, cpuHandle);

@@ -64,7 +64,6 @@ export namespace vireo {
             BufferType type,
             size_t size,
             size_t count,
-            size_t alignment,
             const wstring& name) const override;
 
         shared_ptr<Image> createImage(

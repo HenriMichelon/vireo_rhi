@@ -525,29 +525,28 @@ namespace vireo {
     }
 
     void VKCommandList::cleanup() {
-        for (int i = 0; i < stagingBuffers.size(); i++) {
-            vkDestroyBuffer(device->getDevice(), stagingBuffers[i], nullptr);
-            vkFreeMemory(device->getDevice(), stagingBuffersMemory[i], nullptr);
-        }
         stagingBuffers.clear();
-        stagingBuffersMemory.clear();
     }
 
     void VKCommandList::upload(const shared_ptr<const Buffer>& destination, const void* source) {
         const auto buffer = static_pointer_cast<const VKBuffer>(destination);
-        auto stagingBuffer = VkBuffer{VK_NULL_HANDLE};
-        auto stagingBufferMemory = VkDeviceMemory {VK_NULL_HANDLE};
-        VKBuffer::createBuffer(
+        const auto stagingBuffer = make_shared<VKBuffer>(
             device,
-            buffer->getSize(),
-            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            stagingBuffer, stagingBufferMemory);
-
-        void* stagingData;
-        vkMapMemory(device->getDevice(), stagingBufferMemory, 0, buffer->getSize(), 0, &stagingData);
-        memcpy(stagingData, source, buffer->getSize());
-        vkUnmapMemory(device->getDevice(), stagingBufferMemory);
+            BufferType::TRANSFER,
+            buffer->getInstanceSize(),
+            buffer->getInstanceCount());
+        stagingBuffer->map();
+        if ((buffer->getAlignmentSize() == 1) || (buffer->getInstanceCount() == 1)) {
+            stagingBuffer->write(source);
+        } else {
+            for (int i = 0; i < buffer->getInstanceCount(); i++) {
+                stagingBuffer->write(
+                    static_cast<const unsigned char*>(source) + i * buffer->getInstanceSize(),
+                    buffer->getInstanceSize(),
+                    buffer->getAlignmentSize() * i);
+            }
+        }
+        stagingBuffer->unmap();
 
         const auto copyRegion = VkBufferCopy{
             .srcOffset = 0,
@@ -556,30 +555,33 @@ namespace vireo {
         };
         vkCmdCopyBuffer(
             commandBuffer,
-            stagingBuffer,
+            stagingBuffer->getBuffer(),
             buffer->getBuffer(),
             1,
             &copyRegion);
 
         stagingBuffers.push_back(stagingBuffer);
-        stagingBuffersMemory.push_back(stagingBufferMemory);
     }
 
     void VKCommandList::upload(const shared_ptr<const Image>& destination, const void* source) {
         const auto image = static_pointer_cast<const VKImage>(destination);
-        auto stagingBuffer = VkBuffer{VK_NULL_HANDLE};
-        auto stagingBufferMemory = VkDeviceMemory{VK_NULL_HANDLE};
-        VKBuffer::createBuffer(
-            device,
-            image->getSize(),
-            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            stagingBuffer, stagingBufferMemory);
-
-        void* stagingData;
-        vkMapMemory(device->getDevice(), stagingBufferMemory, 0, image->getSize(), 0, &stagingData);
-        memcpy(stagingData, source, image->getSize());
-        vkUnmapMemory(device->getDevice(), stagingBufferMemory);
+        const auto stagingBuffer = make_shared<VKBuffer>(
+           device,
+           BufferType::TRANSFER,
+           image->getImageSize(),
+           image->getArraySize());
+        stagingBuffer->map();
+        if (image->getArraySize() == 1) {
+            stagingBuffer->write(source);
+        } else {
+            for (int i = 0; i < image->getArraySize(); i++) {
+                stagingBuffer->write(
+                    static_cast<const unsigned char*>(source) + i * image->getImageSize(),
+                    image->getImageSize(),
+                    stagingBuffer->getAlignmentSize() * i);
+            }
+        }
+        stagingBuffer->unmap();
 
         // https://vulkan-tutorial.com/Texture_mapping/Images#page_Copying-buffer-to-image
         const auto region = VkBufferImageCopy {
@@ -590,7 +592,7 @@ namespace vireo {
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                 .mipLevel = 0,
                 .baseArrayLayer = 0,
-                .layerCount = 1,
+                .layerCount = destination->getArraySize(),
             },
             .imageOffset = {0, 0, 0},
             .imageExtent = {image->getWidth(), image->getHeight(), 1},
@@ -598,14 +600,13 @@ namespace vireo {
 
         vkCmdCopyBufferToImage(
                 commandBuffer,
-                stagingBuffer,
+                stagingBuffer->getBuffer(),
                 image->getImage(),
                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                 1,
                 &region);
 
         stagingBuffers.push_back(stagingBuffer);
-        stagingBuffersMemory.push_back(stagingBufferMemory);
     }
 
     void VKCommandList::copy(

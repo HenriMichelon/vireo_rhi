@@ -501,7 +501,7 @@ namespace vireo {
             const auto copyData = D3D12_SUBRESOURCE_DATA {
                 .pData = source,
                 .RowPitch = static_cast<LONG_PTR>(image->getRowPitch()),
-                .SlicePitch = static_cast<LONG_PTR>(image->getSize()),
+                .SlicePitch = static_cast<LONG_PTR>(image->getImageSize()),
             };
             UpdateSubresources(
                 commandList.Get(),

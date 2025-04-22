@@ -142,8 +142,7 @@ export namespace vireo {
     private:
         const shared_ptr<const VKDevice> device;
         VkCommandBuffer                  commandBuffer;
-        vector<VkBuffer>                 stagingBuffers{};
-        vector<VkDeviceMemory>           stagingBuffersMemory{};
+        vector<shared_ptr<VKBuffer>>     stagingBuffers{};
 
         void barrier(
            VkImage image,

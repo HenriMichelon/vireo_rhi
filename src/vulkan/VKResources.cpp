@@ -13,21 +13,28 @@ import vireo.tools;
 import vireo.vulkan.tools;
 
 namespace vireo {
+
     VKBuffer::VKBuffer(
             const shared_ptr<const VKDevice>& device,
             const BufferType type,
             const size_t size,
             const size_t count,
-            const size_t minOffsetAlignment,
             const wstring& name) : Buffer{type},device{device} {
+        auto minOffsetAlignment = 0;
+        if (type == BufferType::UNIFORM) {
+            minOffsetAlignment = device->getPhysicalDevice().getDeviceProperties().limits.minUniformBufferOffsetAlignment;
+        }
         alignmentSize = minOffsetAlignment > 0
                ? (size + minOffsetAlignment - 1) & ~(minOffsetAlignment - 1)
                : size;
         bufferSize = alignmentSize * count;
+        instanceSize = size;
+        instanceCount = count;
 
         const VkBufferCreateFlags usage =
             type == BufferType::VERTEX ? VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT :
             type == BufferType::INDEX ? VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT:
+            type == BufferType::TRANSFER ? VK_BUFFER_USAGE_TRANSFER_SRC_BIT:
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
         const auto memType = (type == BufferType::VERTEX || type == BufferType::INDEX) ?
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT :

@@ -21,8 +21,7 @@ export namespace vireo {
             BufferType type,
             size_t size,
             size_t count,
-            size_t minOffsetAlignment,
-            const wstring& name);
+            const wstring& name = L"");
 
         ~VKBuffer() override;
 
@@ -34,6 +33,14 @@ export namespace vireo {
 
         inline auto getBuffer() const { return buffer; }
 
+        auto getAlignmentSize() const { return alignmentSize; }
+
+    private:
+        const shared_ptr<const VKDevice> device;
+        VkBuffer        buffer{VK_NULL_HANDLE};
+        VkDeviceMemory  bufferMemory{VK_NULL_HANDLE};
+        size_t alignmentSize{0};
+
         static void createBuffer(
             const shared_ptr<const VKDevice>& device,
             VkDeviceSize size,
@@ -41,11 +48,6 @@ export namespace vireo {
             uint32_t memoryTypeIndex,
             VkBuffer& buffer,
             VkDeviceMemory& memory);
-
-    private:
-        const shared_ptr<const VKDevice> device;
-        VkBuffer        buffer{VK_NULL_HANDLE};
-        VkDeviceMemory  bufferMemory{VK_NULL_HANDLE};
     };
 
     class VKSampler : public Sampler {

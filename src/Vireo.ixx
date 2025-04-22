@@ -117,6 +117,7 @@ export namespace vireo {
         VERTEX,
         INDEX,
         UNIFORM,
+        TRANSFER,
     };
 
     enum class IndexType {
@@ -303,7 +304,12 @@ export namespace vireo {
 
         auto getSize() const { return bufferSize; }
 
+
         auto getType() const { return type; }
+
+        auto getInstanceSize() const { return instanceSize; }
+
+        auto getInstanceCount() const { return instanceCount; }
 
         virtual void map() = 0;
 
@@ -313,7 +319,8 @@ export namespace vireo {
 
     protected:
         size_t bufferSize{0};
-        size_t alignmentSize{0};
+        size_t instanceSize{0};
+        size_t instanceCount{0};
         void*  mappedAddress{nullptr};
 
         Buffer(const BufferType type): type{type} {}
@@ -423,7 +430,7 @@ export namespace vireo {
 
         auto getArraySize() const { return arraySize; }
 
-        auto getSize() const { return width * height * pixelSize[static_cast<int>(format)]; }
+        auto getImageSize() const { return width * height * pixelSize[static_cast<int>(format)]; }
 
         auto getRowPitch() const { return width * pixelSize[static_cast<int>(format)]; }
 
@@ -784,7 +791,6 @@ export namespace vireo {
             BufferType type,
             size_t size,
             size_t count = 1,
-            size_t alignment = 256,
             const wstring& name = L"Buffer") const = 0;
 
         virtual shared_ptr<Image> createImage(

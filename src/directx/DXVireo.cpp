@@ -91,9 +91,8 @@ namespace vireo {
         const BufferType type,
         const size_t size,
         const size_t count,
-        const size_t alignment,
         const wstring& name) const {
-        return make_shared<DXBuffer>(getDXDevice()->getDevice(), type, size, count, alignment, name);
+        return make_shared<DXBuffer>(getDXDevice()->getDevice(), type, size, count, name);
     }
 
     shared_ptr<Image> DXVireo::createImage(

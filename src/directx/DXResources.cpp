@@ -18,18 +18,23 @@ namespace vireo {
         const BufferType type,
         const size_t size,
         const size_t count,
-        const size_t minOffsetAlignment,
         const wstring& name):
         Buffer{type},
         size{size} {
+        auto minOffsetAlignment = 0;
+        if (type == BufferType::UNIFORM) {
+            minOffsetAlignment = 256;
+        }
+        bufferSize = size * count;
         alignmentSize = minOffsetAlignment > 0
-            ? (size + minOffsetAlignment - 1) & ~(minOffsetAlignment - 1)
-            : size;
-        bufferSize = alignmentSize * count;
+            ? (bufferSize + minOffsetAlignment - 1) & ~(minOffsetAlignment - 1)
+            : bufferSize;
+        instanceSize = size;
+        instanceCount = count;
 
         // GPU Buffer
         const auto heapProperties = CD3DX12_HEAP_PROPERTIES(type == BufferType::UNIFORM ? D3D12_HEAP_TYPE_UPLOAD : D3D12_HEAP_TYPE_DEFAULT);
-        const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
+        const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(alignmentSize);
         dxCheck(device->CreateCommittedResource(
             &heapProperties,
             D3D12_HEAP_FLAG_NONE,
