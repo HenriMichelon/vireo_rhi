@@ -515,6 +515,48 @@ namespace vireo {
         stagingBuffers.push_back(stagingBuffer);
     }
 
+    void DXCommandList::upload(const shared_ptr<const Image>& destination, const vector<void*>& sources) {
+        const auto image = static_pointer_cast<const DXImage>(destination);
+
+        auto stagingBuffer = ComPtr<ID3D12Resource>{nullptr};
+        {
+            const auto stagingBufferSize = GetRequiredIntermediateSize(
+                image->getImage().Get(),
+                0,
+                sources.size());
+            const auto stagingHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+            const auto stagingResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(stagingBufferSize);
+            dxCheck(device->CreateCommittedResource(
+                &stagingHeapProps,
+                D3D12_HEAP_FLAG_NONE,
+                &stagingResourceDesc,
+                D3D12_RESOURCE_STATE_COMMON,
+                nullptr,
+                IID_PPV_ARGS(&stagingBuffer)));
+#ifdef _DEBUG
+            stagingBuffer->SetName(L"stagingBuffer image");
+#endif
+        }
+
+        {
+            auto copyData = vector<D3D12_SUBRESOURCE_DATA>(sources.size());
+            for (int i = 0; i < sources.size(); i++) {
+                copyData[i].pData = sources[i];
+                copyData[i].RowPitch = static_cast<LONG_PTR>(image->getRowPitch());
+                copyData[i].SlicePitch = static_cast<LONG_PTR>(image->getImageSize());
+            }
+            UpdateSubresources(
+                commandList.Get(),
+                image->getImage().Get(),
+                stagingBuffer.Get(),
+                0,
+                0,
+                copyData.size(),
+                copyData.data());
+        }
+        stagingBuffers.push_back(stagingBuffer);
+    }
+
     void DXCommandList::copy(
         const shared_ptr<const Image>& source,
         const shared_ptr<const SwapChain>& swapChain) const {

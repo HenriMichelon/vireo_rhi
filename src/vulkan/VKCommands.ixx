@@ -71,6 +71,8 @@ export namespace vireo {
 
         void upload(const shared_ptr<const Image>& destination, const void* source) override;
 
+        void upload(const shared_ptr<const Image>& destination, const vector<void*>& sources) override;
+
         void copy(
             const shared_ptr<const Image>& source,
             const shared_ptr<const SwapChain>& swapChain) const override;

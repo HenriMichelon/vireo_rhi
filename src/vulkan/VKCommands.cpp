@@ -609,6 +609,48 @@ namespace vireo {
         stagingBuffers.push_back(stagingBuffer);
     }
 
+    void VKCommandList::upload(const shared_ptr<const Image>& destination, const vector<void*>& sources) {
+        const auto image = static_pointer_cast<const VKImage>(destination);
+        const auto stagingBuffer = make_shared<VKBuffer>(
+           device,
+           BufferType::TRANSFER,
+           image->getImageSize(),
+           image->getArraySize());
+        stagingBuffer->map();
+        for (int i = 0; i < image->getArraySize(); i++) {
+            stagingBuffer->write(
+                sources[i],
+                image->getImageSize(),
+                stagingBuffer->getAlignmentSize() * i);
+        }
+        stagingBuffer->unmap();
+
+        // https://vulkan-tutorial.com/Texture_mapping/Images#page_Copying-buffer-to-image
+        const auto region = VkBufferImageCopy {
+            .bufferOffset = 0,
+            .bufferRowLength = 0,
+            .bufferImageHeight = 0,
+            .imageSubresource = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .mipLevel = 0,
+                .baseArrayLayer = 0,
+                .layerCount = destination->getArraySize(),
+            },
+            .imageOffset = {0, 0, 0},
+            .imageExtent = {image->getWidth(), image->getHeight(), 1},
+        };
+
+        vkCmdCopyBufferToImage(
+                commandBuffer,
+                stagingBuffer->getBuffer(),
+                image->getImage(),
+                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                1,
+                &region);
+
+        stagingBuffers.push_back(stagingBuffer);
+    }
+
     void VKCommandList::copy(
         const shared_ptr<const Image>& source,
         const shared_ptr<const SwapChain>& swapChain) const {

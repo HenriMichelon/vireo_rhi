@@ -586,6 +586,8 @@ export namespace vireo {
 
         virtual void upload(const shared_ptr<const Image>& destination, const void* source) = 0;
 
+        virtual void upload(const shared_ptr<const Image>& destination, const vector<void*>& sources) = 0;
+
         virtual void copy(
             const shared_ptr<const Image>& source,
             const shared_ptr<const SwapChain>& swapChain) const = 0;
