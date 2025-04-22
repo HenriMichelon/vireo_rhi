@@ -64,10 +64,10 @@ namespace vireo {
         device->CreateConstantBufferView(&bufferViewDesc, cpuHandle);
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const shared_ptr<const Image>& image, const bool useByComputeShader) const {
+    void DXDescriptorSet::update(const DescriptorIndex index, const shared_ptr<const Image>& image) const {
         const auto dxImage = static_pointer_cast<const DXImage>(image);
         const auto cpuHandle= D3D12_CPU_DESCRIPTOR_HANDLE{ cpuBase.ptr + index * descriptorSize };
-        if (useByComputeShader) {
+        if (image->isReadWrite()) {
             const auto viewDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC {
                 .Format = DXImage::dxFormats[static_cast<int>(image->getFormat())],
                 .ViewDimension = image->getArraySize() > 1 ? D3D12_UAV_DIMENSION_TEXTURE2DARRAY : D3D12_UAV_DIMENSION_TEXTURE2D,
@@ -109,9 +109,9 @@ namespace vireo {
         }
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<Image>>& images, const bool useByComputeShader) const {
+    void DXDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<Image>>& images) const {
         for (int i = 0; i < images.size(); ++i) {
-            update(index + i, images[i], useByComputeShader);
+            update(index + i, images[i]);
         }
     }
 

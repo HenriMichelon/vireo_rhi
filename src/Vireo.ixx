@@ -196,6 +196,7 @@ export namespace vireo {
         COPY_SRC,
         COPY_DST,
         SHADER_READ,
+        COMPUTE_READ,
     };
 
     enum class MSAA {
@@ -434,18 +435,22 @@ export namespace vireo {
 
         auto getRowPitch() const { return width * pixelSize[static_cast<int>(format)]; }
 
+        auto isReadWrite() const { return readWrite; }
+
     protected:
-        Image(const ImageFormat format, const uint32_t width, const uint32_t height, const uint32_t arraySize) :
+        Image(const ImageFormat format, const uint32_t width, const uint32_t height, const uint32_t arraySize, const bool isReadWrite) :
             format{format},
             width{width},
             height{height},
-            arraySize{arraySize} {}
+            arraySize{arraySize},
+            readWrite{isReadWrite} {}
 
     private:
         const ImageFormat format;
         const uint32_t    width;
         const uint32_t    height;
         const uint32_t    arraySize;
+        const bool        readWrite;
     };
 
     class RenderTarget {
@@ -487,11 +492,11 @@ export namespace vireo {
 
         virtual void update(DescriptorIndex index, const shared_ptr<const Buffer>& buffer) const = 0;
 
-        virtual void update(DescriptorIndex index, const shared_ptr<const Image>& image, bool useByComputeShader = false) const = 0;
+        virtual void update(DescriptorIndex index, const shared_ptr<const Image>& image) const = 0;
 
         virtual void update(DescriptorIndex index, const shared_ptr<const Sampler>& sampler) const = 0;
 
-        virtual void update(DescriptorIndex index, const vector<shared_ptr<Image>>& images, bool useByComputeShader = false) const = 0;
+        virtual void update(DescriptorIndex index, const vector<shared_ptr<Image>>& images) const = 0;
 
         virtual void update(DescriptorIndex index, const vector<shared_ptr<Buffer>>& buffer) const = 0;
 

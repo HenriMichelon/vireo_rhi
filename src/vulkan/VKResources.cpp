@@ -145,15 +145,15 @@ namespace vireo {
             const bool        isRenderTarget,
             const bool        isDepthBuffer,
             const MSAA        msaa):
-        Image{format, width, height, arraySize},
+        Image{format, width, height, arraySize, useByComputeShader},
         device{device} {
         const VkImageUsageFlags usage =
             isRenderTarget ?
                 isDepthBuffer ?
                     msaa != MSAA::NONE ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT :
                            VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT
-                    : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT :
-            useByComputeShader ? VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT :
+                    : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT:
+            useByComputeShader ? VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT:
             VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
         const VkImageCreateFlags flags = arraySize == 6 ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0;
         const auto imageInfo = VkImageCreateInfo {
