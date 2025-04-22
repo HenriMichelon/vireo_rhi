@@ -516,6 +516,7 @@ namespace vireo {
     }
 
     void DXCommandList::upload(const shared_ptr<const Image>& destination, const vector<void*>& sources) {
+        assert(sources.size() == destination->getArraySize());
         const auto image = static_pointer_cast<const DXImage>(destination);
 
         auto stagingBuffer = ComPtr<ID3D12Resource>{nullptr};
