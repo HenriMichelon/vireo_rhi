@@ -147,7 +147,7 @@ namespace vireo {
             viewports[i].Width = static_cast<FLOAT>(extent[i].width);
             viewports[i].Height = static_cast<FLOAT>(extent[i].height);
             viewports[i].MinDepth = 0.0f;
-            viewports[i].MaxDepth = 0.0f;
+            viewports[i].MaxDepth = 1.0f;
         }
         commandList->RSSetViewports(count, viewports.data());
     }
