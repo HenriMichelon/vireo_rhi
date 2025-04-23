@@ -6,13 +6,15 @@
 */
 module;
 #include "vireo/backend/directx/Libraries.h"
-module vireo.directx;
+module vireo.directx.commands;
 
 import vireo.tools;
 
 import vireo.directx.descriptors;
+import vireo.directx.devices;
 import vireo.directx.pipelines;
 import vireo.directx.resources;
+import vireo.directx.swapchains;
 import vireo.directx.tools;
 
 namespace vireo {

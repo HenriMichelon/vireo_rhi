@@ -6,13 +6,14 @@
 */
 module;
 #include "vireo/backend/vulkan/Libraries.h"
-module vireo.vulkan;
+module vireo.vulkan.commands;
 
 import vireo.tools;
 
 import vireo.vulkan.descriptors;
 import vireo.vulkan.pipelines;
 import vireo.vulkan.tools;
+import vireo.vulkan.swapchains;
 
 namespace vireo {
 

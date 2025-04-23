@@ -16,7 +16,7 @@ export namespace vireo {
     template <typename... Args>
     void dxCheck(const HRESULT hr, Args&&... args) {
         if (FAILED(hr)) {
-             throw Exception("DirectX error : ", forward<Args>(args)...);
+             throw Exception("DirectX error : ", std::forward<Args>(args)...);
         }
     }
 

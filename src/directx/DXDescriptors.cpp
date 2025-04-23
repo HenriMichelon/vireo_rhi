@@ -45,8 +45,13 @@ namespace vireo {
 #endif
 
         descriptorSize = device->GetDescriptorHandleIncrementSize(heapDesc.Type);
+#ifdef _MSC_VER
         cpuBase = heap->GetCPUDescriptorHandleForHeapStart();
         gpuBase = heap->GetGPUDescriptorHandleForHeapStart();
+#else
+        heap->GetCPUDescriptorHandleForHeapStart(&cpuBase);
+        heap->GetGPUDescriptorHandleForHeapStart(&gpuBase);
+#endif
     }
 
     DXDescriptorSet::~DXDescriptorSet() {
