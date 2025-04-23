@@ -23,9 +23,8 @@ namespace vireo {
                 count,
                 index,
                 0, // set when binding
-                type == DescriptorType::SAMPLER ? D3D12_DESCRIPTOR_RANGE_FLAG_NONE :
-                type == DescriptorType::READWRITE_IMAGE ? D3D12_DESCRIPTOR_RANGE_FLAG_NONE :
-                D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+                type == DescriptorType::BUFFER ? D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC :
+                D3D12_DESCRIPTOR_RANGE_FLAG_NONE);
         ranges.push_back(range);
         capacity += count;
         return *this;
