@@ -325,7 +325,89 @@ namespace vireo {
         VkAccessFlags srcAccess, dstAccess;
         VkImageLayout srcLayout, dstLayout;
         VkImageAspectFlagBits aspectFlag = VK_IMAGE_ASPECT_COLOR_BIT;
+        convertState(oldState, newState, srcStage, dstStage, srcAccess, dstAccess, srcLayout, dstLayout, aspectFlag);
+        const auto barrier = VkImageMemoryBarrier {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .srcAccessMask =  srcAccess,
+            .dstAccessMask = dstAccess,
+            .oldLayout = srcLayout,
+            .newLayout = dstLayout,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = image,
+            .subresourceRange = {
+                .aspectMask = static_cast<uint32_t>(aspectFlag),
+                .baseMipLevel = 0,
+                .levelCount = VK_REMAINING_MIP_LEVELS,
+                .baseArrayLayer = 0,
+                .layerCount = VK_REMAINING_ARRAY_LAYERS,
+            }
+        };
+        vkCmdPipelineBarrier(commandBuffer,
+            srcStage,
+            dstStage,
+            0,
+            0,
+            nullptr,
+            0,
+            nullptr,
+            1,
+            &barrier);
+    }
 
+    void VKCommandList::barrier(
+        const vector<VkImage>& images,
+        const ResourceState oldState,
+        const ResourceState newState) const {
+        VkPipelineStageFlags srcStage, dstStage;
+        VkAccessFlags srcAccess, dstAccess;
+        VkImageLayout srcLayout, dstLayout;
+        VkImageAspectFlagBits aspectFlag = VK_IMAGE_ASPECT_COLOR_BIT;
+        convertState(
+            oldState, newState,
+            srcStage, dstStage,
+            srcAccess, dstAccess,
+            srcLayout, dstLayout,
+            aspectFlag);
+
+        vector<VkImageMemoryBarrier> barriers(images.size());
+        for (int i = 0; i < images.size(); i++) {
+            barriers[i].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+            barriers[i].srcAccessMask =  srcAccess;
+            barriers[i].dstAccessMask = dstAccess;
+            barriers[i].oldLayout = srcLayout;
+            barriers[i].newLayout = dstLayout;
+            barriers[i].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            barriers[i].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            barriers[i].image = images[i];
+            barriers[i].subresourceRange.aspectMask = static_cast<uint32_t>(aspectFlag);
+            barriers[i].subresourceRange.baseMipLevel = 0;
+            barriers[i].subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
+            barriers[i].subresourceRange.baseArrayLayer = 0;
+            barriers[i].subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
+        }
+        vkCmdPipelineBarrier(commandBuffer,
+            srcStage,
+            dstStage,
+            0,
+            0,
+            nullptr,
+            0,
+            nullptr,
+            barriers.size(),
+            barriers.data());
+    }
+
+    void VKCommandList::convertState(
+            ResourceState oldState,
+            ResourceState newState,
+            VkPipelineStageFlags& srcStage,
+            VkPipelineStageFlags& dstStage,
+            VkAccessFlags& srcAccess,
+            VkAccessFlags& dstAccess,
+            VkImageLayout& srcLayout,
+            VkImageLayout& dstLayout,
+            VkImageAspectFlagBits& aspectFlag) {
         if (oldState == ResourceState::UNDEFINED && newState == ResourceState::DISPATCH_TARGET) {
             srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
             dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
@@ -492,57 +574,37 @@ namespace vireo {
         } else {
             throw Exception("Not implemented");
         }
-        const auto barrier = VkImageMemoryBarrier {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .srcAccessMask =  srcAccess,
-            .dstAccessMask = dstAccess,
-            .oldLayout = srcLayout,
-            .newLayout = dstLayout,
-            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .image = image,
-            .subresourceRange = {
-                .aspectMask = static_cast<uint32_t>(aspectFlag),
-                .baseMipLevel = 0,
-                .levelCount = VK_REMAINING_MIP_LEVELS,
-                .baseArrayLayer = 0,
-                .layerCount = VK_REMAINING_ARRAY_LAYERS,
-            }
-        };
-        vkCmdPipelineBarrier(commandBuffer,
-            srcStage,
-            dstStage,
-            0,
-            0,
-            nullptr,
-            0,
-            nullptr,
-            1,
-            &barrier);
     }
 
     void VKCommandList::barrier(
         const shared_ptr<const Image>& image,
         const ResourceState oldState,
         const ResourceState newState) const {
-        const auto vkImage = static_pointer_cast<const VKImage>(image);
-        barrier(vkImage->getImage(), oldState, newState);
+        barrier(static_pointer_cast<const VKImage>(image)->getImage(), oldState, newState);
     }
 
     void VKCommandList::barrier(
         const shared_ptr<const RenderTarget>& renderTarget,
         const ResourceState oldState,
         const ResourceState newState) const {
-        const auto vkImage = static_pointer_cast<const VKImage>(renderTarget->getImage());
-        barrier(vkImage->getImage(), oldState, newState);
+        barrier(static_pointer_cast<const VKImage>(renderTarget->getImage())->getImage(), oldState, newState);
     }
 
     void VKCommandList::barrier(
         const shared_ptr<const SwapChain>& swapChain,
         const ResourceState oldState,
         const ResourceState newState) const {
-        const auto vkSwapChain = static_pointer_cast<const VKSwapChain>(swapChain);
-        barrier(vkSwapChain->getCurrentImage(), oldState, newState);
+        barrier(static_pointer_cast<const VKSwapChain>(swapChain)->getCurrentImage(), oldState, newState);
+    }
+
+    void VKCommandList::barrier(
+            const vector<shared_ptr<const RenderTarget>>& renderTargets,
+            ResourceState oldState,
+            ResourceState newState) const {
+        const auto r = views::transform(renderTargets, [](const shared_ptr<const RenderTarget>& renderTarget) {
+            return static_pointer_cast<const VKImage>(renderTarget->getImage())->getImage();
+        });
+        barrier(vector<VkImage>{r.begin(), r.end()}, oldState, newState);
     }
 
     void VKCommandList::pushConstants(

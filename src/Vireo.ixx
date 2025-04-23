@@ -661,6 +661,11 @@ export namespace vireo {
             ResourceState newState) const = 0;
 
         virtual void barrier(
+            const vector<shared_ptr<const RenderTarget>>& renderTargets,
+            ResourceState oldState,
+            ResourceState newState) const = 0;
+
+        virtual void barrier(
             const shared_ptr<const SwapChain>& swapChain,
             ResourceState oldState,
             ResourceState newState) const = 0;

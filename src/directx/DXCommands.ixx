@@ -134,6 +134,11 @@ export namespace vireo {
             ResourceState oldState,
             ResourceState newState) const override;
 
+        void barrier(
+            const vector<shared_ptr<const RenderTarget>>& renderTargets,
+            ResourceState oldState,
+            ResourceState newState) const override;
+
         void pushConstants(
             const shared_ptr<const PipelineResources>& pipelineResources,
             const PushConstantsDesc& pushConstants,
@@ -153,10 +158,21 @@ export namespace vireo {
         shared_ptr<Image>                 resolveSource;
         ComPtr<ID3D12Resource>            resolveDestination;
 
+        static void convertState(
+            ResourceState oldState,
+            ResourceState newState,
+            D3D12_RESOURCE_STATES& srcState,
+            D3D12_RESOURCE_STATES& dstState);
+
         void barrier(
            const ComPtr<ID3D12Resource>& resource,
            ResourceState oldState,
            ResourceState newState) const;
-    };
+
+        void barrier(
+           const vector<ID3D12Resource*>& resources,
+           ResourceState oldState,
+           ResourceState newState) const;
+        };
 
 }

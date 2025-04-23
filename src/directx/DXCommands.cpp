@@ -271,8 +271,7 @@ namespace vireo {
         const shared_ptr<const Image>& image,
         const ResourceState oldState,
         const ResourceState newState) const {
-        const auto dxImage = static_pointer_cast<const DXImage>(image)->getImage();
-        barrier(dxImage, oldState, newState);
+        barrier(static_pointer_cast<const DXImage>(image)->getImage(), oldState, newState);
     }
 
     void DXCommandList::barrier(
@@ -287,15 +286,24 @@ namespace vireo {
        const shared_ptr<const RenderTarget>& renderTarget,
        const ResourceState oldState,
        const ResourceState newState) const {
-        const auto dxRenderTarget = static_pointer_cast<const DXImage>(renderTarget->getImage());
-        barrier(dxRenderTarget->getImage(), oldState, newState);
+        barrier( static_pointer_cast<const DXImage>(renderTarget->getImage())->getImage(), oldState, newState);
     }
 
     void DXCommandList::barrier(
-       const ComPtr<ID3D12Resource>& resource,
-       const ResourceState oldState,
-       const ResourceState newState) const {
-        D3D12_RESOURCE_STATES srcState, dstState;
+        const vector<shared_ptr<const RenderTarget>>& renderTargets,
+        const ResourceState oldState,
+        const ResourceState newState) const {
+        const auto r = views::transform(renderTargets, [](const shared_ptr<const RenderTarget>& renderTarget) {
+            return static_pointer_cast<const DXImage>(renderTarget->getImage())->getImage().Get();
+        });
+        barrier(vector<ID3D12Resource*>{r.begin(), r.end()}, oldState, newState);
+    }
+
+    void DXCommandList::convertState(
+            const ResourceState oldState,
+            const ResourceState newState,
+            D3D12_RESOURCE_STATES& srcState,
+            D3D12_RESOURCE_STATES& dstState) {
         if (oldState == ResourceState::UNDEFINED && newState == ResourceState::DISPATCH_TARGET) {
             srcState = D3D12_RESOURCE_STATE_COMMON;
             dstState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
@@ -366,11 +374,32 @@ namespace vireo {
             throw Exception("Not implemented");
             return;
         }
+    }
+
+    void DXCommandList::barrier(
+       const ComPtr<ID3D12Resource>& resource,
+       const ResourceState oldState,
+       const ResourceState newState) const {
+        D3D12_RESOURCE_STATES srcState, dstState;
+        convertState(oldState, newState, srcState, dstState);
         const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
             resource.Get(),
             srcState,
             dstState);
         commandList->ResourceBarrier(1, &barrier);
+    }
+
+    void DXCommandList::barrier(
+       const vector<ID3D12Resource*>& resources,
+       const ResourceState oldState,
+       const ResourceState newState) const {
+        D3D12_RESOURCE_STATES srcState, dstState;
+        convertState(oldState, newState, srcState, dstState);
+        vector<D3D12_RESOURCE_BARRIER> barriers(resources.size());
+        for (int i = 0; i < resources.size(); i++) {
+            barriers[i] = CD3DX12_RESOURCE_BARRIER::Transition(resources[i], srcState, dstState);
+        }
+        commandList->ResourceBarrier(barriers.size(), barriers.data());
     }
 
     void DXCommandList::pushConstants(

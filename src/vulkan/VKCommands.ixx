@@ -134,6 +134,11 @@ export namespace vireo {
             ResourceState oldState,
             ResourceState newState) const override;
 
+        void barrier(
+            const vector<shared_ptr<const RenderTarget>>& renderTargets,
+            ResourceState oldState,
+            ResourceState newState) const override;
+
         void pushConstants(
             const shared_ptr<const PipelineResources>& pipelineResources,
             const PushConstantsDesc& pushConstants,
@@ -146,10 +151,26 @@ export namespace vireo {
         VkCommandBuffer                  commandBuffer;
         vector<shared_ptr<VKBuffer>>     stagingBuffers{};
 
+        static void convertState(
+            ResourceState oldState,
+            ResourceState newState,
+            VkPipelineStageFlags& srcStage,
+            VkPipelineStageFlags& dstStage,
+            VkAccessFlags& srcAccess,
+            VkAccessFlags& dstAccess,
+            VkImageLayout& srcLayout,
+            VkImageLayout& dstLayout,
+            VkImageAspectFlagBits& aspectFlag);
+
+        void barrier(const vector<VkImage>& images,
+           ResourceState oldState,
+           ResourceState newState) const;
+
         void barrier(
            VkImage image,
            ResourceState oldState,
            ResourceState newState) const;
+
     };
 
 }
