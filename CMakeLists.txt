@@ -83,10 +83,12 @@ target_sources(${VIREO_TARGET}
 compile_options(${VIREO_TARGET})
 target_include_directories(${VIREO_TARGET} PRIVATE ${INCLUDE_DIR} ${Vulkan_INCLUDE_DIRS} ${DirectXH_DIR}/include/directx)
 target_link_libraries(${VIREO_TARGET} std-cxx-modules)
+if(MSVC)
 target_precompile_headers(${VIREO_TARGET} PRIVATE
         "<vulkan/vulkan.h>"
         "<vulkan/vk_enum_string_helper.h>"
 )
+endif ()
 if(WIN32)
     target_precompile_headers(${VIREO_TARGET} PRIVATE
             "<windows.h>"

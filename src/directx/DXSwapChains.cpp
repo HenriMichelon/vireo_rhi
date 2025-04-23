@@ -86,7 +86,13 @@ namespace vireo {
 #endif
 
         // Create frame resources.
-        CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(rtvHeap->GetCPUDescriptorHandleForHeapStart());
+        D3D12_CPU_DESCRIPTOR_HANDLE cpuBase;
+#ifdef _MSC_VER
+        cpuBase = rtvHeap->GetCPUDescriptorHandleForHeapStart();
+#else
+        rtvHeap->GetCPUDescriptorHandleForHeapStart(&cpuBase);
+#endif
+        auto rtvHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE{cpuBase};
         const auto rtvDesc = D3D12_RENDER_TARGET_VIEW_DESC{
             .Format = DXImage::dxFormats[static_cast<int>(format)],
             .ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D,
@@ -138,7 +144,13 @@ namespace vireo {
                 swapDesc.Flags
             ));
 
-            CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(rtvHeap->GetCPUDescriptorHandleForHeapStart());
+            D3D12_CPU_DESCRIPTOR_HANDLE cpuBase;
+#ifdef _MSC_VER
+            cpuBase = rtvHeap->GetCPUDescriptorHandleForHeapStart();
+#else
+            rtvHeap->GetCPUDescriptorHandleForHeapStart(&cpuBase);
+#endif
+            auto rtvHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE{cpuBase};
             const auto rtvDesc = D3D12_RENDER_TARGET_VIEW_DESC{
                 .Format = DXImage::dxFormats[static_cast<int>(format)],
                 .ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D,

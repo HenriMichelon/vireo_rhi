@@ -15,7 +15,7 @@ export namespace vireo {
         template <typename... Args>
         explicit Exception(Args&&... args) {
             ostringstream oss;
-            (oss << ... << forward<Args>(args));
+            (oss << ... << std::forward<Args>(args));
             message = oss.str();
 #ifdef _DEBUG
 #ifdef _WIN32
@@ -28,9 +28,9 @@ export namespace vireo {
 #ifdef _MSC_VER
                 __debugbreak();
 #endif
-#endif
 #ifdef _WIN32
             }
+#endif
 #endif
         }
 

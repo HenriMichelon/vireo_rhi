@@ -184,7 +184,11 @@ namespace vireo {
             .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
         };
         dxCheck(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&heap)));
+#ifdef _MSC_VER
         handle = heap->GetCPUDescriptorHandleForHeapStart();
+#else
+        heap->GetCPUDescriptorHandleForHeapStart(&handle);
+#endif
         if (type == RenderTargetType::COLOR) {
             device->CreateRenderTargetView(image->getImage().Get(), nullptr, handle);
         } else {

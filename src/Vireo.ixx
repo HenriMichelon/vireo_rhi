@@ -8,6 +8,8 @@ module;
 #include "vireo/Libraries.h"
 export module vireo;
 
+export import vireo.tools;
+
 export namespace vireo {
 
     enum class Backend {

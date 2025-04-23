@@ -6,7 +6,6 @@
 */
 module;
 #include "vireo/backend/vulkan/Libraries.h"
-#include "vireo/Libraries.h"
 export module vireo.vulkan.tools;
 
 import vireo.tools;
