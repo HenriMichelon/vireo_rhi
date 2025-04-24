@@ -208,12 +208,22 @@ namespace vireo {
             .alphaToCoverageEnable  = configuration.alphaToCoverageEnable,
             .alphaToOneEnable       = VK_FALSE
         };
+        const auto colorBlendState = VkPipelineColorBlendAttachmentState {
+            .blendEnable         = configuration.colorBlendDesc.blendEnable ? VK_TRUE : VK_FALSE,
+            .srcColorBlendFactor = vkBlendFactor[static_cast<size_t>(configuration.colorBlendDesc.srcColorBlendFactor)],
+            .dstColorBlendFactor = vkBlendFactor[static_cast<size_t>(configuration.colorBlendDesc.dstColorBlendFactor)],
+            .colorBlendOp        = vkBlendOp[static_cast<size_t>(configuration.colorBlendDesc.colorBlendOp)],
+            .srcAlphaBlendFactor = vkBlendFactor[static_cast<size_t>(configuration.colorBlendDesc.srcAlphaBlendFactor)],
+            .dstAlphaBlendFactor = vkBlendFactor[static_cast<size_t>(configuration.colorBlendDesc.dstAlphaBlendFactor)],
+            .alphaBlendOp        = vkBlendOp[static_cast<size_t>(configuration.colorBlendDesc.alphaBlendOp)],
+            .colorWriteMask      = static_cast<VkColorComponentFlags>(configuration.colorBlendDesc.colorWriteMask),
+        };
         const auto colorBlending = VkPipelineColorBlendStateCreateInfo {
             .sType          = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-            .logicOpEnable  = VK_FALSE,
-            .logicOp        = VK_LOGIC_OP_COPY,
+            .logicOpEnable  = configuration.colorBlendDesc.logicOpEnable ? VK_TRUE : VK_FALSE,
+            .logicOp        = vkLogicOp[static_cast<size_t>(configuration.colorBlendDesc.logicOp)],
             .attachmentCount= 1,
-            .pAttachments   = configuration.colorBlendEnable ? &colorBlendAttachmentEnable : &colorBlendAttachmentDisable,
+            .pAttachments   = &colorBlendState,
         };
         const auto dynamicRenderingCreateInfo = VkPipelineRenderingCreateInfo{
             .sType                  = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR,

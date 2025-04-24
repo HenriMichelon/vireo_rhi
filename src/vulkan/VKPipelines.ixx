@@ -108,7 +108,52 @@ export namespace vireo {
             VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
             VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP
         };
-
+        static constexpr VkBlendFactor vkBlendFactor[] = {
+            VK_BLEND_FACTOR_ZERO,                   // ZERO
+            VK_BLEND_FACTOR_ONE,                    // ONE
+            VK_BLEND_FACTOR_SRC_COLOR,              // SRC_COLOR
+            VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR,    // ONE_MINUS_SRC_COLOR
+            VK_BLEND_FACTOR_DST_COLOR,              // DST_COLOR
+            VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR,    // ONE_MINUS_DST_COLOR
+            VK_BLEND_FACTOR_SRC_ALPHA,              // SRC_ALPHA
+            VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,    // ONE_MINUS_SRC_ALPHA
+            VK_BLEND_FACTOR_DST_ALPHA,              // DST_ALPHA
+            VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,    // ONE_MINUS_DST_ALPHA
+            VK_BLEND_FACTOR_CONSTANT_COLOR,         // CONSTANT_COLOR
+            VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR, // ONE_MINUS_CONSTANT_COLOR
+            VK_BLEND_FACTOR_CONSTANT_ALPHA,         // CONSTANT_ALPHA
+            VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA, // ONE_MINUS_CONSTANT_ALPHA
+            VK_BLEND_FACTOR_SRC_ALPHA_SATURATE,     // SRC_ALPHA_SATURATE
+            VK_BLEND_FACTOR_SRC1_COLOR,             // SRC1_COLOR
+            VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR,   // ONE_MINUS_SRC1_COLOR
+            VK_BLEND_FACTOR_SRC1_ALPHA,             // SRC1_ALPHA
+            VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA    // ONE_MINUS_SRC1_ALPHA
+        };
+        static constexpr VkBlendOp vkBlendOp[] = {
+            VK_BLEND_OP_ADD,                 // ADD
+            VK_BLEND_OP_SUBTRACT,            // SUBTRACT
+            VK_BLEND_OP_REVERSE_SUBTRACT,    // REVERSE_SUBTRACT
+            VK_BLEND_OP_MIN,                 // MIN
+            VK_BLEND_OP_MAX                  // MAX
+        };
+        static constexpr VkLogicOp vkLogicOp[] = {
+            VK_LOGIC_OP_CLEAR,          // CLEAR
+            VK_LOGIC_OP_SET,            // SET
+            VK_LOGIC_OP_COPY,           // COPY
+            VK_LOGIC_OP_COPY_INVERTED,  // COPY_INVERTED
+            VK_LOGIC_OP_NO_OP,          // NOOP
+            VK_LOGIC_OP_INVERT,         // INVERT
+            VK_LOGIC_OP_AND,            // AND
+            VK_LOGIC_OP_NAND,           // NAND
+            VK_LOGIC_OP_OR,             // OR
+            VK_LOGIC_OP_NOR,            // NOR
+            VK_LOGIC_OP_XOR,            // XOR
+            VK_LOGIC_OP_EQUIVALENT,     // EQUIV
+            VK_LOGIC_OP_AND_REVERSE,    // AND_REVERSE
+            VK_LOGIC_OP_AND_INVERTED,   // AND_INVERTED
+            VK_LOGIC_OP_OR_REVERSE,     // OR_REVERSE
+            VK_LOGIC_OP_OR_INVERTED     // OR_INVERTED
+        };
 
         VKGraphicPipeline(
            const shared_ptr<VKDevice>& device,
@@ -126,21 +171,6 @@ export namespace vireo {
     private:
         const shared_ptr<VKDevice> device;
         VkPipeline   pipeline;
-
-        static constexpr auto colorBlendAttachmentEnable = VkPipelineColorBlendAttachmentState {
-            .blendEnable = VK_TRUE,
-            .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
-            .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-            .colorBlendOp = VK_BLEND_OP_ADD,
-            .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
-            .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
-            .alphaBlendOp = VK_BLEND_OP_ADD,
-            .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
-        };
-        static constexpr auto colorBlendAttachmentDisable = VkPipelineColorBlendAttachmentState {
-            .blendEnable = VK_FALSE,
-            .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
-        };
     };
 
 }

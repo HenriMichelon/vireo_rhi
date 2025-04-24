@@ -81,7 +81,7 @@ namespace vireo {
         }
 
         {
-            VkSwapchainCreateInfoKHR createInfo = {
+            auto createInfo = VkSwapchainCreateInfoKHR {
                 .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
                 .surface = physicalDevice.getSurface(),
                 .minImageCount = framesInFlight,

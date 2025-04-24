@@ -101,6 +101,52 @@ export namespace vireo {
             D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
             D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP,
         };
+        static constexpr D3D12_BLEND dxBlendFactor[] = {
+            D3D12_BLEND_ZERO,                    // ZERO
+            D3D12_BLEND_ONE,                     // ONE
+            D3D12_BLEND_SRC_COLOR,              // SRC_COLOR
+            D3D12_BLEND_INV_SRC_COLOR,          // ONE_MINUS_SRC_COLOR
+            D3D12_BLEND_DEST_COLOR,             // DST_COLOR
+            D3D12_BLEND_INV_DEST_COLOR,         // ONE_MINUS_DST_COLOR
+            D3D12_BLEND_SRC_ALPHA,              // SRC_ALPHA
+            D3D12_BLEND_INV_SRC_ALPHA,          // ONE_MINUS_SRC_ALPHA
+            D3D12_BLEND_DEST_ALPHA,             // DST_ALPHA
+            D3D12_BLEND_INV_DEST_ALPHA,         // ONE_MINUS_DST_ALPHA
+            D3D12_BLEND_BLEND_FACTOR,           // CONSTANT_COLOR
+            D3D12_BLEND_INV_BLEND_FACTOR,       // ONE_MINUS_CONSTANT_COLOR
+            D3D12_BLEND_BLEND_FACTOR,           // CONSTANT_ALPHA
+            D3D12_BLEND_INV_BLEND_FACTOR,       // ONE_MINUS_CONSTANT_ALPHA
+            D3D12_BLEND_SRC_ALPHA_SAT,          // SRC_ALPHA_SATURATE
+            D3D12_BLEND_SRC1_COLOR,             // SRC1_COLOR
+            D3D12_BLEND_INV_SRC1_COLOR,         // ONE_MINUS_SRC1_COLOR
+            D3D12_BLEND_SRC1_ALPHA,             // SRC1_ALPHA
+            D3D12_BLEND_INV_SRC1_ALPHA          // ONE_MINUS_SRC1_ALPHA
+        };
+        static constexpr D3D12_BLEND_OP dxBlendOp[] = {
+            D3D12_BLEND_OP_ADD,              // ADD
+            D3D12_BLEND_OP_SUBTRACT,         // SUBTRACT
+            D3D12_BLEND_OP_REV_SUBTRACT,     // REVERSE_SUBTRACT
+            D3D12_BLEND_OP_MIN,              // MIN
+            D3D12_BLEND_OP_MAX               // MAX
+        };
+        static constexpr D3D12_LOGIC_OP dxLogicOp[] = {
+            D3D12_LOGIC_OP_CLEAR,          // CLEAR
+            D3D12_LOGIC_OP_SET,            // SET
+            D3D12_LOGIC_OP_COPY,           // COPY
+            D3D12_LOGIC_OP_COPY_INVERTED,  // COPY_INVERTED
+            D3D12_LOGIC_OP_NOOP,           // NOOP
+            D3D12_LOGIC_OP_INVERT,         // INVERT
+            D3D12_LOGIC_OP_AND,            // AND
+            D3D12_LOGIC_OP_NAND,           // NAND
+            D3D12_LOGIC_OP_OR,             // OR
+            D3D12_LOGIC_OP_NOR,            // NOR
+            D3D12_LOGIC_OP_XOR,            // XOR
+            D3D12_LOGIC_OP_EQUIV,          // EQUIV
+            D3D12_LOGIC_OP_AND_REVERSE,    // AND_REVERSE
+            D3D12_LOGIC_OP_AND_INVERTED,   // AND_INVERTED
+            D3D12_LOGIC_OP_OR_REVERSE,     // OR_REVERSE
+            D3D12_LOGIC_OP_OR_INVERTED     // OR_INVERTED
+        };
 
         DXGraphicPipeline(
             const ComPtr<ID3D12Device>& device,

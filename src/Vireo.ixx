@@ -182,6 +182,76 @@ export namespace vireo {
         ALWAYS,
     };
 
+    enum class BlendFactor {
+        ZERO,
+        ONE,
+        SRC_COLOR,
+        ONE_MINUS_SRC_COLOR,
+        DST_COLOR,
+        ONE_MINUS_DST_COLOR,
+        SRC_ALPHA,
+        ONE_MINUS_SRC_ALPHA,
+        DST_ALPHA,
+        ONE_MINUS_DST_ALPHA,
+        CONSTANT_COLOR,
+        ONE_MINUS_CONSTANT_COLOR,
+        CONSTANT_ALPHA,
+        ONE_MINUS_CONSTANT_ALPHA,
+        SRC_ALPHA_SATURATE,
+        SRC1_COLOR,
+        ONE_MINUS_SRC1_COLOR,
+        SRC1_ALPHA,
+        ONE_MINUS_SRC1_ALPHA
+    };
+
+    enum class BlendOp {
+        ADD,
+        SUBTRACT,
+        REVERSE_SUBTRACT,
+        MIN,
+        MAX
+    };
+
+    enum class LogicOp {
+        CLEAR,
+        SET,
+        COPY,
+        COPY_INVERTED,
+        NOOP,
+        INVERT,
+        AND,
+        NAND,
+        OR,
+        NOR,
+        XOR,
+        EQUIV,
+        AND_REVERSE,
+        AND_INVERTED,
+        OR_REVERSE,
+        OR_INVERTED
+    };
+
+    enum class ColorWriteMask : uint8_t {
+        RED  = 0x00000001,
+        G    = 0x00000002,
+        B    = 0x00000004,
+        A    = 0x00000008,
+        ALL  = 0x0000000f,
+    };
+
+    struct ColorBlendDesc {
+        bool            blendEnable{false};
+        BlendFactor     srcColorBlendFactor{BlendFactor::ONE};
+        BlendFactor     dstColorBlendFactor{BlendFactor::ZERO};
+        BlendOp         colorBlendOp{BlendOp::ADD};
+        BlendFactor     srcAlphaBlendFactor{BlendFactor::ONE};
+        BlendFactor     dstAlphaBlendFactor{BlendFactor::ZERO};
+        BlendOp         alphaBlendOp{BlendOp::ADD};
+        ColorWriteMask  colorWriteMask{ColorWriteMask::ALL};
+        bool            logicOpEnable{false};
+        LogicOp         logicOp{LogicOp::NOOP};
+    };
+
     enum class ShaderStage{
         ALL,
         VERTEX,
@@ -253,7 +323,7 @@ export namespace vireo {
         CullMode          cullMode{CullMode::NONE};
         PolygonMode       polygonMode{PolygonMode::FILL};
         bool              frontFaceCounterClockwise{true};
-        bool              colorBlendEnable{false};
+        ColorBlendDesc    colorBlendDesc{};
         ImageFormat       depthImageFormat{ImageFormat::D32_SFLOAT};
         bool              depthTestEnable{false};
         bool              depthWriteEnable{false};

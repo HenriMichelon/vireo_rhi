@@ -184,7 +184,22 @@ namespace vireo {
             .pRootSignature = dxPipelineResources->getRootSignature().Get(),
             .VS = CD3DX12_SHADER_BYTECODE(dxVertexShader->getShader().Get()),
             .PS = CD3DX12_SHADER_BYTECODE(dxPixelShader->getShader().Get()),
-            .BlendState = configuration.colorBlendEnable ? blendStateEnable : blendStateDisable,
+            .BlendState = {
+                .AlphaToCoverageEnable = FALSE,
+                .IndependentBlendEnable = FALSE,
+                .RenderTarget = {{
+                    .BlendEnable           = configuration.colorBlendDesc.blendEnable,
+                    .LogicOpEnable         = configuration.colorBlendDesc.logicOpEnable,
+                    .SrcBlend              = dxBlendFactor[static_cast<size_t>(configuration.colorBlendDesc.srcColorBlendFactor)],
+                    .DestBlend             = dxBlendFactor[static_cast<size_t>(configuration.colorBlendDesc.dstColorBlendFactor)],
+                    .BlendOp               = dxBlendOp[static_cast<size_t>(configuration.colorBlendDesc.colorBlendOp)],
+                    .SrcBlendAlpha         = dxBlendFactor[static_cast<size_t>(configuration.colorBlendDesc.srcAlphaBlendFactor)],
+                    .DestBlendAlpha        = dxBlendFactor[static_cast<size_t>(configuration.colorBlendDesc.dstAlphaBlendFactor)],
+                    .BlendOpAlpha          = dxBlendOp[static_cast<size_t>(configuration.colorBlendDesc.alphaBlendOp)],
+                    .LogicOp               = dxLogicOp[static_cast<size_t>(configuration.colorBlendDesc.logicOp)],
+                    .RenderTargetWriteMask = static_cast<UINT8>(configuration.colorBlendDesc.colorWriteMask),
+                }}
+            },
             .SampleMask = UINT_MAX,
             .RasterizerState = rasterizerState,
             .DepthStencilState = depthStencil,
