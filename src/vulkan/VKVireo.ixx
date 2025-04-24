@@ -18,13 +18,14 @@ export namespace vireo {
 
     class VKVireo : public Vireo {
     public:
-        VKVireo(void* windowHandle);
+        VKVireo();
 
         void waitIdle() override;
 
         shared_ptr<SwapChain> createSwapChain(
             ImageFormat format,
             const shared_ptr<const SubmitQueue>& submitQueue,
+            void* windowHandle,
             PresentMode presentMode,
             uint32_t framesInFlight) const override;
 
@@ -121,11 +122,6 @@ export namespace vireo {
         auto getVKPhysicalDevice() const { return reinterpret_pointer_cast<VKPhysicalDevice>(physicalDevice); }
 
         auto getVKDevice() const { return reinterpret_pointer_cast<VKDevice>(device); }
-
-    private:
-#ifdef _WIN32
-        HWND hWnd;
-#endif
     };
 
 }

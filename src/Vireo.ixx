@@ -837,17 +837,32 @@ export namespace vireo {
             framesInFlight{framesInFlight} {}
     };
 
+    /**
+     * Main Vireo abstraction class
+     */
     class Vireo {
     public:
-        static unique_ptr<Vireo> create(Backend backend, void* windowHandle);
+        /**
+         * Creates a new Vireo class using the given backend and store the window handle for the future swap chains
+         */
+        static unique_ptr<Vireo> create(Backend backend);
 
         virtual ~Vireo() = default;
 
         virtual void waitIdle() {}
 
+        /**
+         * Creates a swap chain.
+         * @param format            Color format of the swap chain images
+         * @param presentQueue      Queue used to present the swap chain images in the window surface
+         * @param presentMode       Presentation mode
+         * @param windowHandle      Opaque window handle to present the swap chain images
+         * @param framesInFlight    Number of concurrent swap chain images
+         */
         virtual shared_ptr<SwapChain> createSwapChain(
             ImageFormat format,
-            const shared_ptr<const SubmitQueue>& submitQueue,
+            const shared_ptr<const SubmitQueue>& presentQueue,
+            void* windowHandle,
             PresentMode presentMode = PresentMode::VSYNC,
             uint32_t framesInFlight = 2) const = 0;
 

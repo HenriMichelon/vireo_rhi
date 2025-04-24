@@ -31,6 +31,7 @@ namespace vireo {
         hWnd{hWnd},
         syncInterval{static_cast<UINT>(presentMode == PresentMode::IMMEDIATE ? 0 : 1)},
         presentFlags{static_cast<UINT>(presentMode == PresentMode::IMMEDIATE ? DXGI_PRESENT_ALLOW_TEARING : 0)} {
+        dxCheck(factory->MakeWindowAssociation(hWnd, 0));
         renderTargets.resize(framesInFlight);
         create();
         fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);

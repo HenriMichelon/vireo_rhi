@@ -16,26 +16,21 @@ import vireo.vulkan.tools;
 
 namespace vireo {
 
-    VKVireo::VKVireo(void* windowHandle) :
-#ifdef _WIN32
-    hWnd{static_cast<HWND>(windowHandle)}
-#endif
-    {
+    VKVireo::VKVireo() {
         instance = make_shared<VKInstance>();
-        physicalDevice = make_shared<VKPhysicalDevice>(getVKInstance()->getInstance(), hWnd);
+        physicalDevice = make_shared<VKPhysicalDevice>(getVKInstance()->getInstance());
         device = make_shared<VKDevice>(*getVKPhysicalDevice(), getVKInstance()->getRequestedLayers());
     }
 
     shared_ptr<SwapChain> VKVireo::createSwapChain(
         const ImageFormat format,
         const shared_ptr<const SubmitQueue>& submitQueue,
+        void* windowHandle,
         const PresentMode presentMode,
         const uint32_t framesInFlight) const {
         return make_shared<VKSwapChain>(getVKDevice(),
             static_pointer_cast<const VKSubmitQueue>(submitQueue)->getCommandQueue(),
-#ifdef _WIN32
-            hWnd,
-#endif
+            windowHandle,
             format,
             presentMode,
             framesInFlight);

@@ -25,12 +25,25 @@ namespace vireo {
         const uint32_t framesInFlight):
         SwapChain{format, vSyncMode, framesInFlight},
         device{device},
-        physicalDevice{device->getPhysicalDevice()},
 #ifdef _WIN32
         hWnd{static_cast<HWND>(windowHandle)},
 #endif
         presentQueue{presentQueue}
     {
+        // Get a VkSurface for drawing in the window, must be done before picking the better physical device
+        // since we need the VkSurface for vkGetPhysicalDeviceSurfaceCapabilitiesKHR
+        // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Window_surface#page_Window-surface-creation
+#ifdef _WIN32
+        const VkWin32SurfaceCreateInfoKHR surfaceCreateInfo{
+            .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
+            .hinstance = GetModuleHandle(nullptr),
+            .hwnd = static_cast<HWND>(windowHandle),
+        };
+        const auto vkCreateWin32SurfaceKHR = reinterpret_cast<PFN_vkCreateWin32SurfaceKHR>(
+            vkGetInstanceProcAddr(device->getPhysicalDevice().getInstance(), "vkCreateWin32SurfaceKHR"));
+        vkCheck(vkCreateWin32SurfaceKHR(device->getPhysicalDevice().getInstance(), &surfaceCreateInfo, nullptr, &surface));
+#endif
+
         imageIndex.resize(framesInFlight);
         imageAvailableSemaphore.resize(framesInFlight);
         renderFinishedSemaphore.resize(framesInFlight);
@@ -70,7 +83,7 @@ namespace vireo {
 
     void VKSwapChain::create() {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain
-        const auto swapChainSupport  = querySwapChainSupport(physicalDevice.getPhysicalDevice(), physicalDevice.getSurface());
+        const auto swapChainSupport  = querySwapChainSupport(device->getPhysicalDevice().getPhysicalDevice(), surface);
         const auto surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
         const auto presentMode  = chooseSwapPresentMode(swapChainSupport.presentModes);
         swapChainExtent = chooseSwapExtent(swapChainSupport.capabilities);
@@ -83,7 +96,7 @@ namespace vireo {
         {
             auto createInfo = VkSwapchainCreateInfoKHR {
                 .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-                .surface = physicalDevice.getSurface(),
+                .surface = surface,
                 .minImageCount = framesInFlight,
                 .imageFormat = surfaceFormat.format,
                 .imageColorSpace = surfaceFormat.colorSpace,
@@ -97,16 +110,9 @@ namespace vireo {
                 .presentMode = presentMode,
                 .clipped = VK_TRUE,
             };
-            if (device->getPresentQueueFamilyIndex() != device->getGraphicsQueueFamilyIndex()) {
-                const uint32_t queueFamilyIndices[] = {device->getPresentQueueFamilyIndex(), device->getGraphicsQueueFamilyIndex()};
-                createInfo.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
-                createInfo.queueFamilyIndexCount = 2;
-                createInfo.pQueueFamilyIndices   = queueFamilyIndices;
-            } else {
-                createInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
-                createInfo.queueFamilyIndexCount = 0;
-                createInfo.pQueueFamilyIndices   = nullptr;
-            }
+            createInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
+            createInfo.queueFamilyIndexCount = 0;
+            createInfo.pQueueFamilyIndices   = nullptr;
             // Need VK_KHR_SWAPCHAIN extension, or it will crash (no validation error)
             vkCheck(vkCreateSwapchainKHR(device->getDevice(), &createInfo, nullptr, &swapChain));
 #ifdef _DEBUG
@@ -139,7 +145,9 @@ namespace vireo {
     }
 
     void VKSwapChain::recreate() {
-        const auto swapChainSupport  = querySwapChainSupport(physicalDevice.getPhysicalDevice(), physicalDevice.getSurface());
+        const auto swapChainSupport  = querySwapChainSupport(
+            device->getPhysicalDevice().getPhysicalDevice(),
+            surface);
         const auto newExtent = chooseSwapExtent(swapChainSupport.capabilities);
         if (newExtent.width != swapChainExtent.width || newExtent.height != swapChainExtent.height) {
             vkDeviceWaitIdle(device->getDevice());
@@ -272,6 +280,7 @@ namespace vireo {
             vkDestroySemaphore(device->getDevice(), imageAvailableSemaphore[i], nullptr);
             vkDestroySemaphore(device->getDevice(), renderFinishedSemaphore[i], nullptr);
         }
+        vkDestroySurfaceKHR(device->getPhysicalDevice().getInstance(), surface, nullptr);
     }
 
 }

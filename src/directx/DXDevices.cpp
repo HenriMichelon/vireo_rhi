@@ -12,7 +12,7 @@ import vireo.directx.tools;
 
 namespace vireo {
 
-    DXInstance::DXInstance(const HWND hWnd) {
+    DXInstance::DXInstance() {
         UINT dxgiFactoryFlags = 0;
 #if defined(_DEBUG)
         {
@@ -24,8 +24,6 @@ namespace vireo {
         }
 #endif
         dxCheck(CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&factory)));
-        // This sample does not support fullscreen transitions.
-        dxCheck(factory->MakeWindowAssociation(hWnd, DXGI_MWA_NO_ALT_ENTER));
     }
 
     DXPhysicalDevice::DXPhysicalDevice(const ComPtr<IDXGIFactory4>& factory) {

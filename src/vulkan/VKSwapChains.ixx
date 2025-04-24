@@ -58,7 +58,7 @@ export namespace vireo {
         };
 
         const shared_ptr<const VKDevice> device;
-        const VKPhysicalDevice& physicalDevice;
+        VkSurfaceKHR            surface;
         VkSwapchainKHR          swapChain{VK_NULL_HANDLE};
         vector<VkImage>         swapChainImages;
         VkFormat                swapChainImageFormat;

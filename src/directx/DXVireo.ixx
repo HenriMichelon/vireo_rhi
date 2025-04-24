@@ -17,11 +17,12 @@ export namespace vireo {
 
     class DXVireo : public Vireo {
     public:
-        DXVireo(void* windowHandle);
+        DXVireo();
 
         shared_ptr<SwapChain> createSwapChain(
             ImageFormat format,
             const shared_ptr<const SubmitQueue>& submitQueue,
+            void* windowHandle,
             PresentMode presentMode,
             uint32_t framesInFlight) const override;
 
@@ -118,9 +119,6 @@ export namespace vireo {
         auto getDXPhysicalDevice() const { return reinterpret_pointer_cast<DXPhysicalDevice>(physicalDevice); }
 
         auto getDXDevice() const { return reinterpret_pointer_cast<DXDevice>(device); }
-
-    private:
-        HWND hWnd;
-    };
+   };
 
 }

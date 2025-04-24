@@ -14,7 +14,7 @@ export namespace vireo {
 
     class DXInstance : public Instance {
     public:
-        DXInstance(HWND hWnd);
+        DXInstance();
 
         auto getFactory() { return factory; }
 

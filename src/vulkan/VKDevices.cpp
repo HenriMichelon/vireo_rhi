@@ -118,11 +118,7 @@ namespace vireo {
         vulkanFinalize();
     }
 
-#ifdef _WIN32
-    PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
-#endif
-
-    VKPhysicalDevice::VKPhysicalDevice(const VkInstance instance, void* windowHandle):
+    VKPhysicalDevice::VKPhysicalDevice(const VkInstance instance):
         instance(instance),
         // Requested device extensions
         deviceExtensions {
@@ -148,19 +144,6 @@ namespace vireo {
         if (deviceCount == 0) {
             throw Exception("Failed to find GPUs with Vulkan support");
         }
-
-        // Get a VkSurface for drawing in the window, must be done before picking the better physical device
-        // since we need the VkSurface for vkGetPhysicalDeviceSurfaceCapabilitiesKHR
-        // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Window_surface#page_Window-surface-creation
-#ifdef _WIN32
-        const VkWin32SurfaceCreateInfoKHR surfaceCreateInfo{
-                .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
-                .hinstance = GetModuleHandle(nullptr),
-                .hwnd = static_cast<HWND>(windowHandle),
-        };
-        vkCreateWin32SurfaceKHR = reinterpret_cast<PFN_vkCreateWin32SurfaceKHR>(vkGetInstanceProcAddr(instance, "vkCreateWin32SurfaceKHR"));
-        vkCheck(vkCreateWin32SurfaceKHR(instance, &surfaceCreateInfo, nullptr, &surface));
-#endif
 
         // Use the better Vulkan physical device found
         // https://vulkan-tutorial.com/Drawing_a_triangle/Setup/Physical_devices_and_queue_families#page_Base-device-suitability-checks
@@ -205,10 +188,6 @@ namespace vireo {
                 indices.computeFamily = i;
             }
             VkBool32 presentSupport = false;
-            vkGetPhysicalDeviceSurfaceSupportKHR(vkPhysicalDevice, i, surface, &presentSupport);
-            if (presentSupport) {
-                indices.presentFamily = i;
-            }
             if (indices.isComplete()) {
                 break;
             }
@@ -252,7 +231,6 @@ namespace vireo {
     }
 
     VKPhysicalDevice::~VKPhysicalDevice() {
-        vkDestroySurfaceKHR(instance, surface, nullptr);
     }
 
     uint32_t VKPhysicalDevice::findMemoryType(const uint32_t typeFilter, const VkMemoryPropertyFlags properties) const {
@@ -295,7 +273,7 @@ namespace vireo {
         if (_deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
             score += 1000;
         }
-        // Maximum possible size of textures affects graphics quality
+        // The maximum possible size of textures affects graphics quality
         score += _deviceProperties.limits.maxImageDimension2D;
         // Application can't function without geometry shaders
         if (!deviceFeatures.geometryShader) {
@@ -303,13 +281,14 @@ namespace vireo {
         }
 
         bool extensionsSupported = checkDeviceExtensionSupport(vkPhysicalDevice, deviceExtensions);
-        bool swapChainAdequate   = false;
-        if (extensionsSupported) {
-            SwapChainSupportDetails swapChainSupport = querySwapChainSupport(vkPhysicalDevice);
-            swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
-        }
+        // bool swapChainAdequate   = false;
+        // if (extensionsSupported) {
+            // SwapChainSupportDetails swapChainSupport = querySwapChainSupport(vkPhysicalDevice);
+            // swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+        // }
         QueueFamilyIndices indices = findQueueFamilies(vkPhysicalDevice);
-        if ((!extensionsSupported) || (!indices.isComplete()) || (!swapChainAdequate)) {
+        // if ((!extensionsSupported) || (!indices.isComplete()) || (!swapChainAdequate)) {
+        if ((!extensionsSupported) || (!indices.isComplete())) {
             return 0;
         }
         return score;
@@ -330,27 +309,6 @@ namespace vireo {
         return requiredExtensions.empty();
     }
 
-    VKPhysicalDevice::SwapChainSupportDetails VKPhysicalDevice::querySwapChainSupport(const VkPhysicalDevice vkPhysicalDevice) const {
-        // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain#page_Querying-details-of-swap-chain-support
-        SwapChainSupportDetails details;
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vkPhysicalDevice, surface, &details.capabilities);
-        uint32_t formatCount;
-        vkGetPhysicalDeviceSurfaceFormatsKHR(vkPhysicalDevice, surface, &formatCount, nullptr);
-        if (formatCount != 0) {
-            details.formats.resize(formatCount);
-            vkGetPhysicalDeviceSurfaceFormatsKHR(vkPhysicalDevice, surface, &formatCount, details.formats.data());
-        }
-        uint32_t presentModeCount;
-        vkGetPhysicalDeviceSurfacePresentModesKHR(vkPhysicalDevice, surface, &presentModeCount, nullptr);
-        if (presentModeCount != 0) {
-            details.presentModes.resize(presentModeCount);
-            vkGetPhysicalDeviceSurfacePresentModesKHR(vkPhysicalDevice,
-                                                      surface,
-                                                      &presentModeCount,
-                                                      details.presentModes.data());
-        }
-        return details;
-    }
 
     VKDevice::VKDevice(const VKPhysicalDevice& physicalDevice, const vector<const char *>& requestedLayers):
         physicalDevice{physicalDevice} {
@@ -364,17 +322,6 @@ namespace vireo {
             const VkDeviceQueueCreateInfo queueCreateInfo{
                 .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
                 .queueFamilyIndex = graphicsQueueFamilyIndex,
-                .queueCount = 1,
-                .pQueuePriorities = queuePriority.data(),
-            };
-            queueCreateInfos.push_back(queueCreateInfo);
-        }
-        // Use a presentation command queue if different from the graphical queue
-        presentQueueFamilyIndex = indices.presentFamily.value();
-        if (presentQueueFamilyIndex != graphicsQueueFamilyIndex) {
-            const VkDeviceQueueCreateInfo queueCreateInfo{
-                .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-                .queueFamilyIndex = presentQueueFamilyIndex,
                 .queueCount = 1,
                 .pQueuePriorities = queuePriority.data(),
             };

@@ -25,7 +25,6 @@ namespace vireo {
             device->getDevice(),
             type == CommandType::COMPUTE ? device->getComputeQueueFamilyIndex() :
             type == CommandType::TRANSFER ?  device->getTransferQueueFamilyIndex() :
-            type == CommandType::PRESENT ?  device->getPresentQueueFamilyIndex() :
             device->getGraphicsQueueFamilyIndex(),
             0,
             &commandQueue);
@@ -91,7 +90,6 @@ namespace vireo {
             .queueFamilyIndex =
                 type == CommandType::COMPUTE ? device->getComputeQueueFamilyIndex() :
                 type == CommandType::TRANSFER ?  device->getTransferQueueFamilyIndex() :
-                type == CommandType::PRESENT ?  device->getPresentQueueFamilyIndex() :
                 device->getGraphicsQueueFamilyIndex()
         };
         vkCheck(vkCreateCommandPool(device->getDevice(), &poolInfo, nullptr, &commandPool));

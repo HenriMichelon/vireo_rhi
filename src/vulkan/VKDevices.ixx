@@ -42,11 +42,13 @@ export namespace vireo {
             VK_SAMPLE_COUNT_64_BIT,
         };
 
-        VKPhysicalDevice(VkInstance instance, void* windowHandle);
+        VKPhysicalDevice(VkInstance instance);
 
         ~VKPhysicalDevice() override;
 
         auto getPhysicalDevice() const { return physicalDevice; }
+
+        auto getInstance() const { return instance; }
 
         const auto& getDeviceExtensions() const { return deviceExtensions; }
 
@@ -54,13 +56,11 @@ export namespace vireo {
 
         struct QueueFamilyIndices {
             optional<uint32_t> graphicsFamily;
-            optional<uint32_t> presentFamily;
             optional<uint32_t> transferFamily;
             optional<uint32_t> computeFamily;
 
             bool isComplete() const {
                 return graphicsFamily.has_value() &&
-                        presentFamily.has_value() &&
                         transferFamily.has_value() &&
                         computeFamily.has_value();
             }
@@ -77,15 +77,12 @@ export namespace vireo {
 
         uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
 
-        auto getSurface() const { return surface; }
-
         auto getSampleCount() const { return sampleCount; }
 
     private:
         VkInstance                   instance{VK_NULL_HANDLE};
-        VkSurfaceKHR                 surface;
         VkPhysicalDevice             physicalDevice{VK_NULL_HANDLE};
-        vector<const char*>     deviceExtensions;
+        vector<const char*>          deviceExtensions;
         VkPhysicalDeviceFeatures     deviceFeatures {};
         VkPhysicalDeviceProperties2  deviceProperties{
             VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2
@@ -96,7 +93,7 @@ export namespace vireo {
         VkSampleCountFlagBits        sampleCount;
 
         struct SwapChainSupportDetails {
-            VkSurfaceCapabilitiesKHR        capabilities;
+            VkSurfaceCapabilitiesKHR   capabilities;
             vector<VkSurfaceFormatKHR> formats;
             vector<VkPresentModeKHR>   presentModes;
         };
@@ -109,9 +106,6 @@ export namespace vireo {
         static bool checkDeviceExtensionSupport
             (VkPhysicalDevice            vkPhysicalDevice,
             const vector<const char *> &deviceExtensions);
-
-        // Get the swap chain capabilities
-        SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice vkPhysicalDevice) const;
 
         VkSampleCountFlagBits getMaxUsableMSAASampleCount() const;
     };
@@ -126,8 +120,6 @@ export namespace vireo {
         inline const auto& getPhysicalDevice() const { return physicalDevice; }
 
         auto getGraphicsQueueFamilyIndex() const { return graphicsQueueFamilyIndex; }
-
-        auto getPresentQueueFamilyIndex() const { return presentQueueFamilyIndex; }
 
         auto getComputeQueueFamilyIndex() const { return computeQueueFamilyIndex; }
 
@@ -152,7 +144,6 @@ export namespace vireo {
     private:
         const VKPhysicalDevice& physicalDevice;
         VkDevice    device{VK_NULL_HANDLE};
-        uint32_t    presentQueueFamilyIndex;
         uint32_t    graphicsQueueFamilyIndex;
         uint32_t    transferQueueFamilyIndex;
         uint32_t    computeQueueFamilyIndex;

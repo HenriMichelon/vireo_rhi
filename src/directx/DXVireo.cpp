@@ -14,9 +14,8 @@ import vireo.directx.resources;
 
 namespace vireo {
 
-    DXVireo::DXVireo(void* windowHandle):
-        hWnd{static_cast<HWND>(windowHandle)} {
-        instance = make_shared<DXInstance>(hWnd);
+    DXVireo::DXVireo()  {
+        instance = make_shared<DXInstance>();
         physicalDevice = make_shared<DXPhysicalDevice>(getDXInstance()->getFactory());
         device = make_shared<DXDevice>(getDXPhysicalDevice()->getHardwareAdapter());
     }
@@ -24,6 +23,7 @@ namespace vireo {
     shared_ptr<SwapChain> DXVireo::createSwapChain(
         const ImageFormat format,
         const shared_ptr<const SubmitQueue>& submitQueue,
+        void* windowHandle,
         const PresentMode presentMode,
         const uint32_t framesInFlight) const {
         return make_shared<DXSwapChain>(
@@ -31,7 +31,7 @@ namespace vireo {
             getDXDevice(),
             static_pointer_cast<const DXSubmitQueue>(submitQueue)->getCommandQueue(),
             format,
-            hWnd,
+            static_cast<HWND>(windowHandle),
             presentMode,
             framesInFlight);
     }
