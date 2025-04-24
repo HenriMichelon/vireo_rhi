@@ -15,4 +15,5 @@ Key features :
 **Note** this library is not intended to be a full-featured abstraction of the graphics API.
 Functionalities are added when needed.
 
-Samples repo : https://github.com/HenriMichelon/vireo_samples
+[User documentation](https://henrimichelon.github.io/Vireo/)
+[Samples repository](https://github.com/HenriMichelon/vireo_samples)
