@@ -37,7 +37,7 @@ namespace vireo {
         imageAvailableSemaphoreInfo.resize(framesInFlight);
         renderFinishedSemaphoreInfo.resize(framesInFlight);
 
-        constexpr VkSemaphoreCreateInfo semaphoreInfo{
+        constexpr auto semaphoreInfo = VkSemaphoreCreateInfo {
             .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
         };
         for (int i = 0; i < framesInFlight; i++) {
@@ -70,9 +70,9 @@ namespace vireo {
 
     void VKSwapChain::create() {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain
-        const SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice.getPhysicalDevice(), physicalDevice.getSurface());
-        const VkSurfaceFormatKHR surfaceFormat= chooseSwapSurfaceFormat(swapChainSupport.formats);
-        const VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
+        const auto swapChainSupport  = querySwapChainSupport(physicalDevice.getPhysicalDevice(), physicalDevice.getSurface());
+        const auto surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
+        const auto presentMode  = chooseSwapPresentMode(swapChainSupport.presentModes);
         swapChainExtent = chooseSwapExtent(swapChainSupport.capabilities);
 
         if (swapChainSupport.capabilities.maxImageCount > 0 &&
@@ -124,10 +124,11 @@ namespace vireo {
         aspectRatio = static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height);
 
         for (uint32_t i = 0; i < swapChainImages.size(); i++) {
-            swapChainImageViews[i] = device->createImageView(swapChainImages[i],
-                                                     swapChainImageFormat,
-                                                     VK_IMAGE_ASPECT_COLOR_BIT,
-                                                     1);
+            swapChainImageViews[i] = device->createImageView(
+                swapChainImages[i],
+                    swapChainImageFormat,
+                    VK_IMAGE_ASPECT_COLOR_BIT,
+                    1);
 #ifdef _DEBUG
             vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(swapChainImageViews[i]), VK_OBJECT_TYPE_IMAGE_VIEW,
                 "VKSwapChain Image View " + std::to_string(i));
@@ -138,7 +139,7 @@ namespace vireo {
     }
 
     void VKSwapChain::recreate() {
-        const SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice.getPhysicalDevice(), physicalDevice.getSurface());
+        const auto swapChainSupport  = querySwapChainSupport(physicalDevice.getPhysicalDevice(), physicalDevice.getSurface());
         const auto newExtent = chooseSwapExtent(swapChainSupport.capabilities);
         if (newExtent.width != swapChainExtent.width || newExtent.height != swapChainExtent.height) {
             vkDeviceWaitIdle(device->getDevice());
@@ -179,7 +180,7 @@ namespace vireo {
         return details;
     }
 
-    VkSurfaceFormatKHR VKSwapChain::chooseSwapSurfaceFormat(const vector<VkSurfaceFormatKHR> &availableFormats) {
+    VkSurfaceFormatKHR VKSwapChain::chooseSwapSurfaceFormat(const vector<VkSurfaceFormatKHR> &availableFormats) const {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain#page_Choosing-the-right-settings-for-the-swap-chain
         for (const auto &availableFormat : availableFormats) {
             if (availableFormat.format == VKImage::vkFormats[static_cast<int>(format)]) { return availableFormat; }
@@ -204,7 +205,7 @@ namespace vireo {
         if (GetClientRect(hWnd, &windowRect) == 0) {
             throw Exception("Error getting window rect");
         }
-        const VkExtent2D actualExtent{
+        const auto actualExtent = VkExtent2D {
             .width = static_cast<uint32_t>(windowRect.right - windowRect.left),
             .height = static_cast<uint32_t>(windowRect.bottom - windowRect.top)
         };
@@ -224,7 +225,7 @@ namespace vireo {
 
     void VKSwapChain::present() {
         const VkSwapchainKHR   swapChains[] = { swapChain };
-        const VkPresentInfoKHR presentInfo{
+        const auto presentInfo = VkPresentInfoKHR {
             .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
             .waitSemaphoreCount = 1,
             .pWaitSemaphores    = &renderFinishedSemaphore[currentFrameIndex],

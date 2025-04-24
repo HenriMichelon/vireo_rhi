@@ -225,10 +225,13 @@ namespace vireo {
             .attachmentCount= 1,
             .pAttachments   = &colorBlendState,
         };
+        const auto swapChainImageFormat = VKImage::vkFormats[static_cast<int>(configuration.colorRenderFormat)];
         const auto dynamicRenderingCreateInfo = VkPipelineRenderingCreateInfo{
-            .sType                  = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR,
-            .pNext                  = VK_NULL_HANDLE,
-            .depthAttachmentFormat  = VKImage::vkFormats[static_cast<int>(configuration.depthImageFormat)],
+            .sType                   = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR,
+            .pNext                   = VK_NULL_HANDLE,
+            .colorAttachmentCount    = 1,
+            .pColorAttachmentFormats = &swapChainImageFormat,
+            .depthAttachmentFormat   = VKImage::vkFormats[static_cast<int>(configuration.depthImageFormat)],
         };
         const auto IAInfo = VkPipelineInputAssemblyStateCreateInfo{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,

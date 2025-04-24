@@ -241,8 +241,8 @@ export namespace vireo {
 
     struct ColorBlendDesc {
         bool            blendEnable{false};
-        BlendFactor     srcColorBlendFactor{BlendFactor::ONE};
-        BlendFactor     dstColorBlendFactor{BlendFactor::ZERO};
+        BlendFactor     srcColorBlendFactor{BlendFactor::SRC_ALPHA};
+        BlendFactor     dstColorBlendFactor{BlendFactor::ONE_MINUS_SRC_ALPHA};
         BlendOp         colorBlendOp{BlendOp::ADD};
         BlendFactor     srcAlphaBlendFactor{BlendFactor::ONE};
         BlendFactor     dstAlphaBlendFactor{BlendFactor::ZERO};
@@ -679,6 +679,13 @@ export namespace vireo {
             const shared_ptr<const Image>& source,
             const shared_ptr<const SwapChain>& swapChain,
             Filter filter = Filter::NEAREST) const = 0;
+
+        void blit(
+            const shared_ptr<const RenderTarget>& source,
+            const shared_ptr<const SwapChain>& swapChain,
+            Filter filter = Filter::NEAREST) const {
+            blit(source->getImage(), swapChain);
+        }
 
         virtual void beginRendering(const RenderingConfiguration& configuration) = 0;
 
