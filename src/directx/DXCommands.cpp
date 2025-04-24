@@ -130,13 +130,17 @@ namespace vireo {
             heaps[i] = static_pointer_cast<const DXDescriptorSet>(descriptors[i])->getHeap().Get();
         }
         commandList->SetDescriptorHeaps(heaps.size(), heaps.data());
-        if (pipeline->getType() == Pipeline::COMPUTE) {
-            for (int i = 0; i < descriptors.size(); i++) {
-                commandList->SetComputeRootDescriptorTable(i, heaps[i]->GetGPUDescriptorHandleForHeapStart());
-            }
-        } else {
-            for (int i = 0; i < descriptors.size(); i++) {
-                commandList->SetGraphicsRootDescriptorTable(i, heaps[i]->GetGPUDescriptorHandleForHeapStart());
+        D3D12_GPU_DESCRIPTOR_HANDLE handle;
+        for (int i = 0; i < descriptors.size(); i++) {
+#ifdef _MSC_VER
+            handle = heaps[i]->GetGPUDescriptorHandleForHeapStart();
+#else
+            heaps[i]->GetGPUDescriptorHandleForHeapStart(&handle);
+#endif
+            if (pipeline->getType() == Pipeline::COMPUTE) {
+                commandList->SetComputeRootDescriptorTable(i, handle);
+            } else {
+                commandList->SetGraphicsRootDescriptorTable(i, handle);
             }
         }
     }
@@ -192,8 +196,14 @@ namespace vireo {
                 dxSwapChain ? dxSwapChain->getRenderTargets()[dxSwapChain->getCurrentFrameIndex()].Get() :
                 static_pointer_cast<DXImage>(dxColorImage->getImage())->getImage().Get();
         } else if (dxSwapChain) {
+            D3D12_CPU_DESCRIPTOR_HANDLE handle;
+#ifdef _MSC_VER
+            handle = dxSwapChain->getHeap()->GetCPUDescriptorHandleForHeapStart();
+#else
+            dxSwapChain->getHeap()->GetCPUDescriptorHandleForHeapStart(&handle);
+#endif
             rtvHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(
-                dxSwapChain->getHeap()->GetCPUDescriptorHandleForHeapStart(),
+                handle,
                 dxSwapChain->getCurrentFrameIndex(),
                 dxSwapChain->getDescriptorSize());
         } else if (dxColorImage) {

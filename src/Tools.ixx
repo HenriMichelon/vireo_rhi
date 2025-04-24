@@ -16,7 +16,9 @@ export namespace vireo {
         explicit Exception(Args&&... args) {
             ostringstream oss;
             (oss << ... << std::forward<Args>(args));
+#ifdef _MSC_VER
             message = oss.str();
+#endif
 #ifdef _DEBUG
 #ifdef _WIN32
             if (IsDebuggerPresent()) {

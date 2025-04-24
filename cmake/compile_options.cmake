@@ -1,3 +1,9 @@
+#
+# Copyright (c) 2025-present Henri Michelon
+#
+# This software is released under the MIT License.
+# https://opensource.org/licenses/MIT
+#
 function(compile_options TARGET_NAME )
     if(MSVC)
         target_compile_options(${TARGET_NAME} PRIVATE

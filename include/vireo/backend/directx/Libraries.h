@@ -12,6 +12,7 @@
 #include <D3Dcompiler.h>
 #include <DirectXMath.h>
 #include <wrl.h>
+#include <guiddef.h>
 
 using namespace DirectX;
 using namespace Microsoft::WRL;
