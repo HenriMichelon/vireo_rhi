@@ -16,4 +16,5 @@ Key features :
 Functionalities are added when needed.
 
 [User documentation](https://henrimichelon.github.io/Vireo/)
+
 [Samples repository](https://github.com/HenriMichelon/vireo_samples)

@@ -1,10 +1,10 @@
-Building & using Vireo RHI
+Building Vireo RHI
 ===========================================================================
 
 Dependencies
 ---------------------------------------------------------------------------
 Most of the dependencies used by Vireo RHI are automatically configured
-by the `CMakeLists.txt` of the engine except the Vulkan SDK and the build tools.
+by the `CMakeLists.txt` file except for the Vulkan SDK.
 
 **Install the Vulkan SDK**
 - [Vulkan SDK 1.3.x+](https://vulkan.lunarg.com/)
