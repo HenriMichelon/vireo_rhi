@@ -110,7 +110,7 @@ namespace vireo {
     }
 
     void DXCommandList::bindPipeline(const shared_ptr<const Pipeline>& pipeline) {
-        if (pipeline->getType() == Pipeline::COMPUTE) {
+        if (pipeline->getType() == PipelineType::COMPUTE) {
             commandList->SetPipelineState(static_pointer_cast<const DXComputePipeline>(pipeline)->getPipelineState().Get());
             commandList->SetComputeRootSignature(static_pointer_cast<const DXPipelineResources>(pipeline->getResources())->getRootSignature().Get());
         } else {
@@ -137,7 +137,7 @@ namespace vireo {
 #else
             heaps[i]->GetGPUDescriptorHandleForHeapStart(&handle);
 #endif
-            if (pipeline->getType() == Pipeline::COMPUTE) {
+            if (pipeline->getType() == PipelineType::COMPUTE) {
                 commandList->SetComputeRootDescriptorTable(i, handle);
             } else {
                 commandList->SetGraphicsRootDescriptorTable(i, handle);

@@ -227,7 +227,7 @@ namespace vireo {
         return actualExtent;
     }
 
-    void VKSwapChain::nextSwapChain() {
+    void VKSwapChain::nextFrameIndex() {
         currentFrameIndex = (currentFrameIndex + 1) % framesInFlight;
     }
 

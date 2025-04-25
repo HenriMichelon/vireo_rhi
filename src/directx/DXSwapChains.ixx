@@ -32,7 +32,7 @@ export namespace vireo {
 
         auto getHeap() const { return rtvHeap; }
 
-        void nextSwapChain() override;
+        void nextFrameIndex() override;
 
         bool acquire(const shared_ptr<Fence>& fence) override;
 

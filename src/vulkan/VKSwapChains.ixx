@@ -31,7 +31,7 @@ export namespace vireo {
 
         auto getCurrentImageView() const { return swapChainImageViews[imageIndex[currentFrameIndex]]; }
 
-        void nextSwapChain() override;
+        void nextFrameIndex() override;
 
         bool acquire(const shared_ptr<Fence>& fence) override;
 

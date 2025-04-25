@@ -49,15 +49,18 @@ namespace vireo {
     }
 
     void VKBuffer::map() {
+        assert(mappedAddress == nullptr);
         vkMapMemory(device->getDevice(), bufferMemory, 0, bufferSize, 0, &mappedAddress);
     }
 
     void VKBuffer::unmap() {
+        assert(mappedAddress != nullptr);
         vkUnmapMemory(device->getDevice(), bufferMemory);
         mappedAddress = nullptr;
     }
 
     void VKBuffer::write(const void* data, const size_t size, const size_t offset) {
+        assert(mappedAddress != nullptr);
         if (size == WHOLE_SIZE) {
             memcpy(mappedAddress, data, bufferSize);
         } else {

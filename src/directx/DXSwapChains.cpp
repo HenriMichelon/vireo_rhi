@@ -180,7 +180,7 @@ namespace vireo {
         }
     }
 
-    void DXSwapChain::nextSwapChain() {
+    void DXSwapChain::nextFrameIndex() {
         currentFrameIndex = swapChain->GetCurrentBackBufferIndex();
         assert(currentFrameIndex < framesInFlight);
     }

@@ -294,6 +294,10 @@ export namespace vireo {
         ALWAYS,
     };
 
+    /**
+     * Framebuffer blending factors.
+     * https://registry.khronos.org/vulkan/specs/latest/man/html/VkBlendFactor.html
+     */
     enum class BlendFactor {
         ZERO,
         ONE,
@@ -316,6 +320,10 @@ export namespace vireo {
         ONE_MINUS_SRC1_ALPHA
     };
 
+    /**
+     * Framebuffer blending operations.
+     * https://registry.khronos.org/vulkan/specs/latest/man/html/VkBlendOp.html
+     */
     enum class BlendOp {
         ADD,
         SUBTRACT,
@@ -324,6 +332,10 @@ export namespace vireo {
         MAX
     };
 
+    /**
+     * Framebuffer logical operations.
+     * https://registry.khronos.org/vulkan/specs/latest/man/html/VkLogicOp.html
+     */
     enum class LogicOp {
         CLEAR,
         SET,
@@ -343,14 +355,20 @@ export namespace vireo {
         OR_INVERTED
     };
 
+    /*
+     * Bitmask controlling which components are written to the framebuffer
+    */
     enum class ColorWriteMask : uint8_t {
-        RED  = 0x00000001,
-        G    = 0x00000002,
-        B    = 0x00000004,
-        A    = 0x00000008,
-        ALL  = 0x0000000f,
+        RED    = 0x00000001,
+        GREEN  = 0x00000002,
+        BLUE   = 0x00000004,
+        ALPHA  = 0x00000008,
+        ALL    = 0x0000000f,
     };
 
+    /**
+     * Graphic pipeline color blend attachment description
+     */
     struct ColorBlendDesc {
         bool            blendEnable{false};
         BlendFactor     srcColorBlendFactor{BlendFactor::SRC_ALPHA};
@@ -362,25 +380,47 @@ export namespace vireo {
         ColorWriteMask  colorWriteMask{ColorWriteMask::ALL};
     };
 
-    enum class ShaderStage{
+    /**
+     * Pipeline stage
+     */
+    enum class ShaderStage {
+        //! All shader stages supported by the device
         ALL,
+        //! Vertex shader stage
         VERTEX,
+        //! Fragment/pixel stage
         FRAGMENT,
     };
 
+    /**
+     *  State/Layout of images for pipeline barriers
+     */
     enum class ResourceState {
+        //! Unknown/general/common state
         UNDEFINED,
+        //! All types of device access
         GENERAL,
+        //! Used as a color attachment in the graphics pipeline
         RENDER_TARGET_COLOR,
+        //! Used as a depth or stencil attachment in the graphics pipeline
         RENDER_TARGET_DEPTH_STENCIL,
+        //! Used as a read/write image with a compute pipeline
         DISPATCH_TARGET,
+        //! Used for presenting a presentable image for display.
         PRESENT,
+        //! Used as a source image of a transfer/copy/blit command
         COPY_SRC,
+        //! Used as a destination image of a transfer/copy/blit command
         COPY_DST,
+        //! Read-only access as an attachment or in shaders as a sampled image
         SHADER_READ,
+        //! Read-only access in a compute  shader
         COMPUTE_READ,
     };
 
+    /**
+     * Sample counts supported for an image used for storage operations
+     */
     enum class MSAA {
         NONE = 0,
         //! 2x MSAA
@@ -397,66 +437,137 @@ export namespace vireo {
         X64  = 6
     };
 
+    /**
+     * Presentation mode for a surface
+     */
     enum class PresentMode {
+        //! The presentation engine does not wait for a vertical blanking period to update the current image, meaning this mode may result in visible tearing.
         IMMEDIATE = 0,
+        //! The presentation engine waits for the next vertical blanking period to update the current image. Tearing cannot be observed.
         VSYNC     = 1,
     };
 
+    /**
+     * Pipeline type
+     */
+    enum class PipelineType {
+        GRAPHIC,
+        COMPUTE
+    };
+
+    /**
+     * Index type used for binding resources with a descriptor set
+     */
     using DescriptorIndex = uint32_t;
 
+    /**
+     * A two-dimensional extent
+     */
     struct Extent {
+        //! width of the extent
         uint32_t width;
+        //! height of the extent
         uint32_t height;
     };
 
+    /**
+     * A push constant range
+     */
     struct PushConstantsDesc {
+        //! Shader stages that will access a range of push constants
         ShaderStage stage{ShaderStage::ALL};
+        //! Size of push constant data in bytes
         uint32_t    size{0};
+        //! Offset of push constant data in bytes
         uint32_t    offset{0};
     };
 
+    /**
+     * Vertex input attribute description
+     */
     struct VertexAttributeDesc {
+        //! Binding number which this attribute takes its data from
         string          binding;
+        //! Size and type of the vertex attribute data
         AttributeFormat format;
+        //! Byte offset of this attribute relative to the start of an element in the vertex input binding.
         uint32_t        offset;
     };
 
+    /**
+     * A clear depth stencil value
+     */
     struct DepthClearValue {
+        //! Clear value for the depth aspect of the depth/stencil attachment. It is a floating-point value which is automatically converted to the attachment’s forma
         float    depth{1.0f};
+        //! Clear value for the stencil aspect of the depth/stencil attachment. It is a 32-bit integer value which is converted to the attachment’s format by taking the appropriate number of LSBs.
         uint32_t stencil{0};
     };
 
+    /**
+     * Parameters for creating a graphics pipeline
+     */
     struct GraphicPipelineConfiguration {
+        //! Values defining the format of color attachments used in this pipeline.
         vector<ImageFormat>    colorRenderFormats{};
+        //! Blend state for each color attachment
         vector<ColorBlendDesc> colorBlendDesc{};
+        //! The primitive topology
         PrimitiveTopology      primitiveTopology{PrimitiveTopology::TRIANGLE_LIST};
+        //! The number of samples used in rasterization
         MSAA                   msaa{MSAA::NONE};
+        //! The triangle facing direction used for primitive culling
         CullMode               cullMode{CullMode::NONE};
+        //! The triangle rendering mode
         PolygonMode            polygonMode{PolygonMode::FILL};
+        //! The front-facing triangle orientation to be used for culling
         bool                   frontFaceCounterClockwise{true};
+        //! The format of the depth attachment used in this pipeline.
         ImageFormat            depthImageFormat{ImageFormat::D32_SFLOAT};
+        //! Controls whether depth testing is enabled.
         bool                   depthTestEnable{false};
+        //! Controls whether depth writes are enabled when `depthTestEnable` is `true`. Depth writes are always disabled when `depthTestEnable` is `false`.
         bool                   depthWriteEnable{false};
-        bool                   depthBiasEnable{false};
+        //! Value specifying the comparison operator to use in the Depth Comparison step of the depth test.
         CompareOp              depthCompareOp{CompareOp::LESS_OR_EQUAL};
+        //! Controls whether to bias fragment depth values.
+        bool                   depthBiasEnable{false};
+        //! A scalar factor controlling the constant depth value added to each fragment.
         float                  depthBiasConstantFactor{0.0f};
+        //! The maximum (or minimum) depth bias of a fragment.
         float                  depthBiasClamp{0.0f};
+        //! A scalar factor applied to a fragment’s slope in depth bias calculations.
         float                  depthBiasSlopeFactor{0.0f};
+        //! Controls whether to apply Logical Operations.
         bool                   logicOpEnable{false};
+        //! Which logical operation to apply.
         LogicOp                logicOp{LogicOp::NOOP};
+        //! Controls whether a temporary coverage value is generated based on the alpha component of the fragment’s first color output
         bool                   alphaToCoverageEnable{false};
     };
 
+    /**
+     * Structure specifying a clear value
+     */
     typedef union ClearValue {
+        //! The color image clear values to use when clearing a color image or attachment.
         float           color[4]{0.0f, 0.0f, 0.0f, 1.0f};
+        //! The depth and stencil clear values to use when clearing a depth/stencil image or attachment.
         DepthClearValue depthStencil;
     } ClearValue;
 
+    /**
+     * A fence object. Fences are a synchronization primitive that can be used to insert a dependency from a queue to
+     * the host.
+     */
     class Fence {
     public:
         virtual ~Fence() = default;
     };
 
+    /**
+     * Backend instance object
+     */
     class Instance {
     public:
         virtual ~Instance() = default;
@@ -465,6 +576,9 @@ export namespace vireo {
         Instance() = default;
     };
 
+    /**
+     * A physical device object (adapter)
+     */
     class PhysicalDevice {
     public:
         virtual ~PhysicalDevice() = default;
@@ -473,6 +587,9 @@ export namespace vireo {
         PhysicalDevice() = default;
     };
 
+    /**
+     * A logical device object
+     */
     class Device {
     public:
         virtual ~Device() = default;
@@ -481,26 +598,59 @@ export namespace vireo {
         Device() = default;
     };
 
+    /**
+     * A buffer object.
+     * Buffers represent linear arrays of data which are used for various purposes by binding them to a
+     * graphics or compute pipeline via descriptor sets or certain commands,
+     * or by directly specifying them as parameters to certain commands.
+     */
     class Buffer {
     public:
         static constexpr size_t WHOLE_SIZE = ~0ULL;
 
         virtual ~Buffer() = default;
 
+        /**
+         * Returns the total buffer size in bytes
+         */
         auto getSize() const { return bufferSize; }
 
+        /**
+         * Returns the type of the buffer
+         */
         auto getType() const { return type; }
 
+        /**
+         * Returns the size of a data instance, in bytes
+         */
         auto getInstanceSize() const { return instanceSize; }
 
+        /**
+         * Returns the number of data instances
+         */
         auto getInstanceCount() const { return instanceCount; }
 
+        /**
+         * Returns a host virtual memory address. Valid only after a `map()` call.
+         */
         auto getMappedAddress() const { return mappedAddress; }
 
+        /**
+         * Maps the device memory associated with the buffer into a host adress sapce
+         */
         virtual void map() = 0;
 
+        /**
+         *  Unmap a previously mapped buffer
+         */
         virtual void unmap() = 0;
 
+        /**
+         * Writes data into the host mapped memory associated. Buffer must be mapped before.
+         * @param data Source data address in the host address space
+         * @param size Size of the data in bytes
+         * @param offset Destination offset in bytes
+         */
         virtual void write(const void* data, size_t size = WHOLE_SIZE, size_t offset = 0) = 0;
 
     protected:
@@ -515,6 +665,9 @@ export namespace vireo {
         const BufferType type;
     };
 
+    /**
+     * A texture sampler object
+     */
     class Sampler {
     public:
         virtual ~Sampler() = default;
@@ -523,6 +676,9 @@ export namespace vireo {
         Sampler() = default;
     };
 
+    /**
+     * An image object
+     */
     class Image {
     public:
         static constexpr uint8_t pixelSize[] = {
@@ -608,20 +764,44 @@ export namespace vireo {
 
         virtual ~Image() = default;
 
+        /**
+         * Returns the pixel format
+         */
         auto getFormat() const { return format; }
 
+        /**
+         * Returns the width of the first layer in pixels
+         */
         auto getWidth() const { return width; }
 
+        /**
+         * Returns the height of the first layer in pixels
+         */
         auto getHeight() const { return height; }
 
+        /**
+         * Returns the number of mips levels
+         */
         auto getMipLevels() const { return mipLevels; }
 
+        /**
+         * Returns the number of layers
+         */
         auto getArraySize() const { return arraySize; }
 
+        /**
+         * Return the size in bytes of the first layer
+         */
         auto getImageSize() const { return width * height * pixelSize[static_cast<int>(format)]; }
 
+        /**
+         * Returns the size in bytes of a line of the first layer
+         */
         auto getRowPitch() const { return width * pixelSize[static_cast<int>(format)]; }
 
+        /**
+         * Return `true` if the image have read/write access
+         */
         auto isReadWrite() const { return readWrite; }
 
     protected:
@@ -648,31 +828,58 @@ export namespace vireo {
         const bool        readWrite;
     };
 
+    /**
+     * A color or depth render attachment
+     */
     class RenderTarget {
     public:
+        virtual ~RenderTarget() = default;
+
+        /**
+         * Return the associated image
+         */
+        auto getImage() const { return image; }
+
+        /**
+         * Return the type of the attachment
+         */
+        auto getType() const { return type; }
+
         RenderTarget(const RenderTargetType type, const shared_ptr<Image>& image) :
             type{type},
             image{image} {}
-
-        virtual ~RenderTarget() = default;
-
-        auto getImage() const { return image; }
-
-        auto getType() const { return type; }
 
     private:
         const RenderTargetType  type;
         const shared_ptr<Image> image;
     };
 
+    /**
+     * A descriptor set layout object.
+     * Describes resources that shaders can use.
+     * Add resources with `add()` then call `build()` to build the layout.
+     * Note that samplers must be bounds to a specific sampler-only layout.
+     */
     class DescriptorLayout {
     public:
         virtual ~DescriptorLayout() = default;
 
+        /**
+         * Add a resource to the layout
+         * @param index Binding index
+         * @param type Type of resource
+         * @param count Number of instances
+         */
         virtual DescriptorLayout& add(DescriptorIndex index, DescriptorType type, size_t count = 1) = 0;
 
+        /**
+         * Build the layout after adding resource descriptions with `add()`
+         */
         virtual void build() {}
 
+        /**
+         * Returns the total number of resources instances
+         */
         auto getCapacity() const { return capacity; }
 
     protected:
@@ -681,20 +888,54 @@ export namespace vireo {
         DescriptorLayout() = default;
     };
 
+    /**
+     * A descriptor set object.
+     * Contains resources for the shaders.
+     */
     class DescriptorSet {
     public:
         virtual ~DescriptorSet() = default;
 
+        /**
+         * Bind a buffer
+         * @param index Binding index
+         * @param buffer The buffezr
+         */
         virtual void update(DescriptorIndex index, const shared_ptr<const Buffer>& buffer) const = 0;
 
+        /**
+         * Bind a texture
+         * @param index Binding index
+         * @param image The texture
+         */
         virtual void update(DescriptorIndex index, const shared_ptr<const Image>& image) const = 0;
 
+        /**
+         * Bind a sampler
+         * @param index Binding index
+         * @param sampler The sampler
+         */
         virtual void update(DescriptorIndex index, const shared_ptr<const Sampler>& sampler) const = 0;
 
+        /**
+         * Bind an array of textures
+         * @param index Binding index
+         * @param images The images
+         */
         virtual void update(DescriptorIndex index, const vector<shared_ptr<Image>>& images) const = 0;
 
-        virtual void update(DescriptorIndex index, const vector<shared_ptr<Buffer>>& buffer) const = 0;
+        /**
+         * Bind an array of buffers
+         * @param index Binding index
+         * @param buffers The buffers
+         */
+        virtual void update(DescriptorIndex index, const vector<shared_ptr<Buffer>>& buffers) const = 0;
 
+        /**
+         * Bind an array of samplers
+         * @param index Binding index
+         * @param samplers The samplers
+         */
         virtual void update(DescriptorIndex index, const vector<shared_ptr<Sampler>>& samplers) const = 0;
 
     protected:
@@ -703,6 +944,9 @@ export namespace vireo {
         DescriptorSet(const shared_ptr<const DescriptorLayout>& layout) : layout{layout} {}
     };
 
+    /**
+     * An input vertex layout
+     */
     class VertexInputLayout {
     public:
         virtual ~VertexInputLayout() = default;
@@ -711,6 +955,9 @@ export namespace vireo {
         VertexInputLayout() = default;
     };
 
+    /**
+     * A shader module object
+     */
     class ShaderModule {
     public:
         virtual ~ShaderModule() = default;
@@ -719,6 +966,9 @@ export namespace vireo {
         ShaderModule() = default;
     };
 
+    /**
+     * All resources used by the shaders of a pipeline : descriptor layouts & push constants
+     */
     class PipelineResources {
     public:
         virtual ~PipelineResources() = default;
@@ -727,78 +977,126 @@ export namespace vireo {
         PipelineResources() = default;
     };
 
+    /**
+     * Base class for all pipeline types
+     */
     class Pipeline {
     public:
-        enum Type {
-            GRAPHIC,
-            COMPUTE
-        };
-
         virtual ~Pipeline() = default;
 
+        /**
+         * Returns the pipeline resources
+         */
         auto getResources() const { return pipelineResources; }
 
+        /**
+         * Return the type of the pipeline
+         */
         auto getType() const { return type; }
 
     protected:
-        Pipeline(const Type type, const shared_ptr<PipelineResources>& pipelineResources) :
-            pipelineResources{pipelineResources},
-            type{type} {}
+        Pipeline(const PipelineType type, const shared_ptr<PipelineResources>& pipelineResources) :
+            type{type},
+            pipelineResources{pipelineResources} {}
 
     private:
-        const Type type;
+        const PipelineType type;
         shared_ptr<PipelineResources> pipelineResources;
     };
 
+    /**
+     * A compute pipeline
+     */
     class ComputePipeline : public Pipeline {
     protected:
         ComputePipeline(const shared_ptr<PipelineResources>& pipelineResources) :
-            Pipeline{COMPUTE, pipelineResources} {}
+            Pipeline{PipelineType::COMPUTE, pipelineResources} {}
     };
 
+    /**
+     * A graphic pipeline
+     */
     class GraphicPipeline : public Pipeline {
     protected:
         GraphicPipeline(const shared_ptr<PipelineResources>& pipelineResources) :
-            Pipeline{GRAPHIC, pipelineResources} {}
+            Pipeline{PipelineType::GRAPHIC, pipelineResources} {}
     };
 
     class SwapChain;
 
+    /**
+     * Color attachments description
+     */
     struct RenderTargetDesc {
+        //! Use the current swap chain image as a color attachment. Must be `nullptr` if `renderTarget` is set
         shared_ptr<SwapChain>    swapChain{nullptr};
+        //! Color attachment. Must be `nullptr` if `swapChain` is set
         shared_ptr<RenderTarget> renderTarget{nullptr};
+        //! Multisampled color attachment. `nullptr` if MSAA is disabled for the current pipeline.
         shared_ptr<RenderTarget> multisampledRenderTarget{nullptr};
+        //! Clear the color attachment if `true`
         bool                     clearColor{true};
+        //! Color clear value
         ClearValue               clearColorValue{ .color = {0.0f, 0.0f, 0.0f, 0.0f} };
     };
 
+    /**
+     * Color & depth attachments descriptions
+     */
     struct RenderingConfiguration {
+        //! Color attachments. Can be empty
         vector<RenderTargetDesc>  colorRenderTargets{};
+        //! Depth attachment. Can be empty
         shared_ptr<RenderTarget>  depthRenderTarget{nullptr};
+        //! Multisampled depth attachment. `nullptr` if MSAA is disabled for the current pipeline.
         shared_ptr<RenderTarget>  multisampledDepthRenderTarget{nullptr};
+        //! Clear the depth attachment if `true`
         bool                      clearDepth{true};
+        //! Depth & stencil clear value
         ClearValue                depthClearValue{ .depthStencil = {1.0f, 0} };
     };
 
+
+    /**
+     * A command list (buffer) object
+     */
     class CommandList {
     public:
+        /**
+         * Start recording a command list
+         */
         virtual void begin() const = 0;
 
+        /**
+         * Stop recording a command list
+         */
         virtual void end() const = 0;
 
+        /**
+         * Uploads data into a buffer
+         */
         virtual void upload(const shared_ptr<const Buffer>& destination, const void* source) = 0;
 
+        /**
+         * Upload data into an image
+         */
         virtual void upload(
             const shared_ptr<const Image>& destination,
             const void* source,
             uint32_t firstMipLevel = 0) = 0;
 
+        /**
+         * Copy a buffer into an image
+         */
         virtual void copy(
             const shared_ptr<const Buffer>& source,
             const shared_ptr<const Image>& destination,
             uint32_t sourceOffset = 0,
             uint32_t firstMipLevel = 0) = 0;
 
+        /**
+         * Upload images into an image array
+         */
         virtual void uploadArray(
             const shared_ptr<const Image>& destination,
             const vector<void*>& sources,
@@ -901,17 +1199,32 @@ export namespace vireo {
         CommandList() = default;
     };
 
+    /**
+     * a command allocator (pool) object
+     */
     class CommandAllocator {
     public:
-
+        /**
+         * Resets the command allocator and of the associated command lists
+         */
         virtual void reset() const = 0;
 
+        /**
+         * Returns a new graphic command lists
+         * @param pipeline Associate pipeline
+         */
         virtual shared_ptr<CommandList> createCommandList(const shared_ptr<const Pipeline>& pipeline) const  = 0;
 
+        /**
+         * Returns a new command lists
+         */
         virtual shared_ptr<CommandList> createCommandList() const  = 0;
 
         virtual ~CommandAllocator() = default;
 
+        /**
+         * Returns the type of command list created by this allocator
+         */
         auto getCommandListType() const { return commandListType; }
 
     protected:
@@ -921,15 +1234,31 @@ export namespace vireo {
         const CommandType commandListType;
     };
 
+    /**
+     * Command submission queue
+     */
     class SubmitQueue {
     public:
+        /**
+         * Submit graphics commands and synchronize the host & the device with a fence
+         * @param fence Host/device synchronization fence
+         * @param swapChain  Associated swap chain
+         * @param commandLists Commands to execute
+         */
         virtual void submit(
             const shared_ptr<Fence>& fence,
-            const shared_ptr<const SwapChain>& swap,
+            const shared_ptr<const SwapChain>& swapChain,
             const vector<shared_ptr<const CommandList>>& commandLists) const = 0;
 
+        /**
+         * Submit non graphics commands, such as transfer commands
+         * @param commandLists Commands to execute
+         */
         virtual void submit(const vector<shared_ptr<const CommandList>>& commandLists) const = 0;
 
+        /**
+         * Wait for all commands to be executed
+         */
         virtual void waitIdle() const = 0;
 
         virtual ~SubmitQueue() = default;
@@ -938,28 +1267,62 @@ export namespace vireo {
         SubmitQueue() = default;
     };
 
+    /**
+     * A swapchain object
+     */
     class SwapChain {
     public:
         virtual ~SwapChain() = default;
 
+        /**
+         * Returns the swap chain extent
+         */
         const auto& getExtent() const { return extent; }
 
+        /**
+         * Returns the swap chain with/height ratio
+         */
         auto getAspectRatio() const { return aspectRatio; }
 
+        /**
+         * Returns the current frame index. Note that frame indexes are not necessarily incremental
+         */
         auto getCurrentFrameIndex() const { return currentFrameIndex; }
 
+        /**
+         * Returns the number of frame/back buffers in the swap chain
+         */
         auto getFramesInFlight() const { return framesInFlight; }
 
+        /**
+         * Returns the pixel format of the frame buffers
+         */
         auto getFormat() const { return format; }
 
-        virtual void nextSwapChain() = 0;
+        /**
+         * Get the next frame index
+         */
+        virtual void nextFrameIndex() = 0;
 
+        /**
+         * Acquires the next frame buffer.
+         * @return `false` if the operation failed.
+         */
         virtual bool acquire(const shared_ptr<Fence>& fence) = 0;
 
+        /**
+         * Presents the current frame buffer into the surface
+         */
         virtual void present() = 0;
 
+        /**
+         * Recreates the swap chain if the extent changed (in case of a window resizing)
+         */
         virtual void recreate() = 0;
 
+        /**
+         * Waits for the last present operation to end
+         */
         virtual void waitIdle() const = 0;
 
     protected:

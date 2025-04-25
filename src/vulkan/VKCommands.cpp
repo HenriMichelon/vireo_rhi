@@ -165,7 +165,7 @@ namespace vireo {
     }
 
     void VKCommandList::bindPipeline(const shared_ptr<const Pipeline>& pipeline) {
-        if (pipeline->getType() == Pipeline::COMPUTE) {
+        if (pipeline->getType() == PipelineType::COMPUTE) {
             vkCmdBindPipeline(
                 commandBuffer,
                 VK_PIPELINE_BIND_POINT_COMPUTE ,
@@ -189,7 +189,7 @@ namespace vireo {
             descriptorSets[i] = static_pointer_cast<const VKDescriptorSet>(descriptors[i])->getSet();
         }
         vkCmdBindDescriptorSets(commandBuffer,
-                                pipeline->getType() == Pipeline::COMPUTE ?
+                                pipeline->getType() == PipelineType::COMPUTE ?
                                     VK_PIPELINE_BIND_POINT_COMPUTE :
                                     VK_PIPELINE_BIND_POINT_GRAPHICS,
                                 vkLayout,
