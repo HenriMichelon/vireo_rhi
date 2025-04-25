@@ -1,4 +1,4 @@
-{
+    {
     "clang": {
         "clang-compilation-path": "",
         "clang-dialect": "-std=c++23",
@@ -23,7 +23,7 @@
         "enabled-sections": [
             ""
         ],
-        "extract-all": false,
+        "extract-all": true,
         "extract-anon-namespaces": false,
         "extract-local-classes": true,
         "extract-local-methods": false,
@@ -197,6 +197,8 @@
             ""
         ],
         "exclude-files": [
+            "../src/vulkan",
+            "../src/directx",
             "doxygen-awesome-css"
         ],
         "exclude-patterns": [

@@ -12,29 +12,58 @@ export import vireo.tools;
 
 export namespace vireo {
 
-    enum class Backend {
+    /**
+     * Type of supported backends
+     */
+    enum class Backend : uint8_t {
+        //! Not used
         UNDEFINED,
+        //! Direct X 12
         DIRECTX,
+        //! Vulkan 1.3
         VULKAN,
     };
 
+    /**
+     * Possible values of the Vireo::createSampler magFilter and minFilter parameters, specifying filters used for texture lookups
+     */
     enum class Filter {
+        //! Nearest filtering
         NEAREST,
+        //! Linear filtering
         LINEAR,
     };
 
+    /**
+     * Possible values of the Vireo::createSampler addressMode* parameters,
+     * specifying the behavior of sampling with coordinates outside the range [0,1] for the respective u, v, or w
+     * coordinate
+     */
     enum class AddressMode {
+        //! Repeat wrap mode
         REPEAT,
+        //! Mirror repeat wrap mode
         MIRRORED_REPEAT,
+        //! Clamp to edge wrap mode
         CLAMP_TO_EDGE,
+        //! Clamp to border wrap mode
         CLAMP_TO_BORDER,
     };
 
+    /**
+     * Possible values of the Vireo::createSampler mipmapMode parameter, specifying the mipmap mode used for texture
+     * lookups
+     */
     enum class MipMapMode {
+        //! Nearest filtering
         NEAREST,
+        //! Linear filtering
         LINEAR,
     };
 
+    /**
+     * Available image formats. Only the common formats between the supported back ends are available.
+     */
     enum class ImageFormat {
         R8_UNORM,
         R8_SNORM,
@@ -115,79 +144,153 @@ export namespace vireo {
         BC7_UNORM_SRGB,
     };
 
+    /**
+     * VRAM Buffer use type
+     */
     enum class BufferType {
+        //! Used to store vertices (in device local memory)
         VERTEX,
+        //! Used to store indices (in device local memory)
         INDEX,
+        //! Used for shader uniform (in host visible memory)
         UNIFORM,
+        //! Used for copy operations (in host visible memory)
         TRANSFER,
     };
 
+    /**
+     * Index type for vertex indices
+     */
     enum class IndexType {
+        //! Two bytes unsigned int
         UINT16,
+        //! Four bytes unsigned int
         UINT32,
     };
 
+    /**
+     * Type of data for shaders
+     */
     enum class DescriptorType {
+        //! Uniform buffer
         BUFFER,
+        //! Sampled texture (image only, no sampler)
         SAMPLED_IMAGE,
+        //! Sampler for SAMPLED_IMAGE
         SAMPLER,
+        //! Read/Write image for compute shaders
         READWRITE_IMAGE,
     };
 
+    /**
+     * Type of command or submit queue
+     */
     enum class CommandType {
+        //! Command/Queue for a graphic pipeline
         GRAPHIC,
+        //! Command/Queue for copy operations
         TRANSFER,
+        //! Command/Queue for a compute pipeline
         COMPUTE,
-        PRESENT,
     };
 
+    /**
+     * Size and type of a vertex attribute data
+     */
     enum class AttributeFormat {
+        //! One signed float
         R32_FLOAT,
+        //! Two signed floats
         R32G32_FLOAT,
+        //! Three signed floats
         R32G32B32_FLOAT,
+        //! Four signed floats
         R32G32B32A32_FLOAT,
+        //! One signed int
         R32_SINT,
+        //! Two signed ints
         R32G32_SINT,
+        //! Three signed ints
         R32G32B32_SINT,
+        //! Four signed ints
         R32G32B32A32_SINT,
+        //! One unsigned int
         R32_UINT,
+        //! Two unsigned ints
         R32G32_UINT,
+        //! Three unsigned ints
         R32G32B32_UINT,
+        //! Four unsigned ints
         R32G32B32A32_UINT,
     };
 
+    /**
+     * Use of a render target image
+     */
     enum class RenderTargetType {
+        //! Used as a color attachment
         COLOR,
+        //! Used as a depth attachment
         DEPTH,
     };
 
+    /**
+     * Values controlling triangle culling. Triangle orientation is specified in the pipeline configuration.
+     */
     enum class CullMode {
+        //! No triangles are discarded
         NONE,
+        //! Front-facing triangles are discarded
         FRONT,
+        //! Back-facing triangles are discarded
         BACK,
     };
 
+    /**
+     * Supported primitive topologies
+     */
     enum class PrimitiveTopology {
+        //! A series of separate point primitives.
         POINT_LIST,
+        //! A series of separate line primitives.
         LINE_LIST,
+        //! A series of connected line primitives with consecutive lines sharing a vertex.
         LINE_STRIP,
+        //! A series of separate triangle primitives.
         TRIANGLE_LIST,
+        //! A series of connected triangle primitives with consecutive triangles sharing an edge.
         TRIANGLE_STRIP,
     };
 
+    /**
+    * Control polygon rasterization mode
+    */
     enum class PolygonMode {
+        //! Polygon is filled
         FILL,
+        //! Polygon edges are drawn as line segments
         WIREFRAME,
     };
 
+    /**
+     * Comparison operator for depth, stencil, and sampler operations
+     */
     enum class CompareOp {
+        //! Comparison always evaluates false.
         NEVER,
+        //! Comparison evaluates reference < test.
         LESS,
+        //! Comparison evaluates reference = test.
         EQUAL,
+        //! Comparison evaluates reference ≤ test.
         LESS_OR_EQUAL,
+        //! Comparison evaluates reference > test.
         GREATER,
+        //! Comparison evaluates reference ≠ test.
         NOT_EQUAL,
+        //! Comparison evaluates reference ≥ test.
         GREATER_OR_EQUAL,
+        //! Comparison always evaluates true.
         ALWAYS,
     };
 
