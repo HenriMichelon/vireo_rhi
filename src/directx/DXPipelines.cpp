@@ -148,6 +148,7 @@ namespace vireo {
         const wstring& name):
         GraphicPipeline{pipelineResources},
         primitiveTopology{dxPrimitives[static_cast<int>(configuration.primitiveTopology)]} {
+        assert(configuration.colorRenderFormats.size() == configuration.colorBlendDesc.size());
         const auto dxVertexInputLayout = static_pointer_cast<const DXVertexInputLayout>(vertexInputLayout);
         const auto dxPipelineResources = static_pointer_cast<const DXPipelineResources>(pipelineResources);
         const auto dxVertexShader = static_pointer_cast<const DXShaderModule>(vertexShader);
@@ -166,13 +167,12 @@ namespace vireo {
         depthStencil.DepthWriteMask = configuration.depthWriteEnable ? D3D12_DEPTH_WRITE_MASK_ALL  : D3D12_DEPTH_WRITE_MASK_ZERO;
         depthStencil.DepthFunc = dxCompareOp[static_cast<int>(configuration.depthCompareOp)];
 
-        const auto format = DXImage::dxFormats[static_cast<int>(configuration.colorRenderFormat)];
         const auto samples = DXPhysicalDevice::dxSampleCount[static_cast<int>(configuration.msaa)];
 
         UINT quality = 0;
-        if (configuration.msaa != MSAA::NONE) {
+        if (configuration.msaa != MSAA::NONE && configuration.colorRenderFormats.size() > 1) {
             auto qualityLevels = D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS {
-                .Format = format,
+                .Format = DXImage::dxFormats[static_cast<int>(configuration.colorRenderFormats[0])],
                 .SampleCount = samples,
                 .Flags = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE,
             };
@@ -185,20 +185,8 @@ namespace vireo {
             .VS = CD3DX12_SHADER_BYTECODE(dxVertexShader->getShader().Get()),
             .PS = CD3DX12_SHADER_BYTECODE(dxPixelShader->getShader().Get()),
             .BlendState = {
-                .AlphaToCoverageEnable = FALSE,
-                .IndependentBlendEnable = FALSE,
-                .RenderTarget = {{
-                    .BlendEnable           = configuration.colorBlendDesc.blendEnable,
-                    .LogicOpEnable         = configuration.colorBlendDesc.logicOpEnable,
-                    .SrcBlend              = dxBlendFactor[static_cast<size_t>(configuration.colorBlendDesc.srcColorBlendFactor)],
-                    .DestBlend             = dxBlendFactor[static_cast<size_t>(configuration.colorBlendDesc.dstColorBlendFactor)],
-                    .BlendOp               = dxBlendOp[static_cast<size_t>(configuration.colorBlendDesc.colorBlendOp)],
-                    .SrcBlendAlpha         = dxBlendFactor[static_cast<size_t>(configuration.colorBlendDesc.srcAlphaBlendFactor)],
-                    .DestBlendAlpha        = dxBlendFactor[static_cast<size_t>(configuration.colorBlendDesc.dstAlphaBlendFactor)],
-                    .BlendOpAlpha          = dxBlendOp[static_cast<size_t>(configuration.colorBlendDesc.alphaBlendOp)],
-                    .LogicOp               = dxLogicOp[static_cast<size_t>(configuration.colorBlendDesc.logicOp)],
-                    .RenderTargetWriteMask = static_cast<UINT8>(configuration.colorBlendDesc.colorWriteMask),
-                }}
+                .AlphaToCoverageEnable = configuration.alphaToCoverageEnable,
+                .IndependentBlendEnable = FALSE
             },
             .SampleMask = UINT_MAX,
             .RasterizerState = rasterizerState,
@@ -208,16 +196,26 @@ namespace vireo {
                 static_cast<UINT>(dxVertexInputLayout->getInputElementDescs().size())
             },
             .PrimitiveTopologyType = dxPrimitivesTypes[static_cast<int>(configuration.primitiveTopology)],
-            .NumRenderTargets = 1,
-            .RTVFormats = {
-                format
-            },
+            .NumRenderTargets = static_cast<UINT>(configuration.colorRenderFormats.size()),
             .DSVFormat = DXImage::dxFormats[static_cast<int>(configuration.depthImageFormat)],
             .SampleDesc = {
                 .Count = samples,
                 .Quality = quality
             }
         };
+        for (int i = 0; i < configuration.colorRenderFormats.size(); i++) {
+            psoDesc.RTVFormats[i] = DXImage::dxFormats[static_cast<int>(configuration.colorRenderFormats[i])];
+            psoDesc.BlendState.RenderTarget[i].BlendEnable   = configuration.colorBlendDesc[i].blendEnable;
+            psoDesc.BlendState.RenderTarget[i].LogicOpEnable = configuration.logicOpEnable;
+            psoDesc.BlendState.RenderTarget[i].SrcBlend      = dxBlendFactor[static_cast<size_t>(configuration.colorBlendDesc[i].srcColorBlendFactor)];
+            psoDesc.BlendState.RenderTarget[i].DestBlend     = dxBlendFactor[static_cast<size_t>(configuration.colorBlendDesc[i].dstColorBlendFactor)];
+            psoDesc.BlendState.RenderTarget[i].BlendOp       = dxBlendOp[static_cast<size_t>(configuration.colorBlendDesc[i].colorBlendOp)];
+            psoDesc.BlendState.RenderTarget[i].SrcBlendAlpha = dxBlendFactor[static_cast<size_t>(configuration.colorBlendDesc[i].srcAlphaBlendFactor)];
+            psoDesc.BlendState.RenderTarget[i].DestBlendAlpha= dxBlendFactor[static_cast<size_t>(configuration.colorBlendDesc[i].dstAlphaBlendFactor)];
+            psoDesc.BlendState.RenderTarget[i].BlendOpAlpha  = dxBlendOp[static_cast<size_t>(configuration.colorBlendDesc[i].alphaBlendOp)];
+            psoDesc.BlendState.RenderTarget[i].LogicOp       = dxLogicOp[static_cast<size_t>(configuration.logicOp)];
+            psoDesc.BlendState.RenderTarget[i].RenderTargetWriteMask = static_cast<UINT8>(configuration.colorBlendDesc[i].colorWriteMask);
+        }
         psoDesc.BlendState.AlphaToCoverageEnable = configuration.alphaToCoverageEnable;
         dxCheck(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)));
 #ifdef _DEBUG

@@ -145,6 +145,7 @@ namespace vireo {
            const wstring& name):
         GraphicPipeline{pipelineResources},
         device{device} {
+        assert(configuration.colorRenderFormats.size() == configuration.colorBlendDesc.size());
         const auto vertexShaderModule = static_pointer_cast<const VKShaderModule>(vertexShader)->getShaderModule();
         const auto fragmentShaderModule = static_pointer_cast<const VKShaderModule>(fragmentShader)->getShaderModule();
         const auto& vkVertexInputLayout = static_pointer_cast<const VKVertexInputLayout>(vertexInputLayout);
@@ -208,29 +209,34 @@ namespace vireo {
             .alphaToCoverageEnable  = configuration.alphaToCoverageEnable,
             .alphaToOneEnable       = VK_FALSE
         };
-        const auto colorBlendState = VkPipelineColorBlendAttachmentState {
-            .blendEnable         = configuration.colorBlendDesc.blendEnable ? VK_TRUE : VK_FALSE,
-            .srcColorBlendFactor = vkBlendFactor[static_cast<size_t>(configuration.colorBlendDesc.srcColorBlendFactor)],
-            .dstColorBlendFactor = vkBlendFactor[static_cast<size_t>(configuration.colorBlendDesc.dstColorBlendFactor)],
-            .colorBlendOp        = vkBlendOp[static_cast<size_t>(configuration.colorBlendDesc.colorBlendOp)],
-            .srcAlphaBlendFactor = vkBlendFactor[static_cast<size_t>(configuration.colorBlendDesc.srcAlphaBlendFactor)],
-            .dstAlphaBlendFactor = vkBlendFactor[static_cast<size_t>(configuration.colorBlendDesc.dstAlphaBlendFactor)],
-            .alphaBlendOp        = vkBlendOp[static_cast<size_t>(configuration.colorBlendDesc.alphaBlendOp)],
-            .colorWriteMask      = static_cast<VkColorComponentFlags>(configuration.colorBlendDesc.colorWriteMask),
-        };
+        const auto blendStateViews = configuration.colorBlendDesc | views::transform([](const ColorBlendDesc& desc) {
+            return VkPipelineColorBlendAttachmentState {
+            .blendEnable         = desc.blendEnable ? VK_TRUE : VK_FALSE,
+            .srcColorBlendFactor = vkBlendFactor[static_cast<size_t>(desc.srcColorBlendFactor)],
+            .dstColorBlendFactor = vkBlendFactor[static_cast<size_t>(desc.dstColorBlendFactor)],
+            .colorBlendOp        = vkBlendOp[static_cast<size_t>(desc.colorBlendOp)],
+            .srcAlphaBlendFactor = vkBlendFactor[static_cast<size_t>(desc.srcAlphaBlendFactor)],
+            .dstAlphaBlendFactor = vkBlendFactor[static_cast<size_t>(desc.dstAlphaBlendFactor)],
+            .alphaBlendOp        = vkBlendOp[static_cast<size_t>(desc.alphaBlendOp)],
+            .colorWriteMask      = static_cast<VkColorComponentFlags>(desc.colorWriteMask)};
+        });
+        const auto colorBlendStates = vector<VkPipelineColorBlendAttachmentState> {blendStateViews.begin(), blendStateViews.end()};
         const auto colorBlending = VkPipelineColorBlendStateCreateInfo {
             .sType          = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-            .logicOpEnable  = configuration.colorBlendDesc.logicOpEnable ? VK_TRUE : VK_FALSE,
-            .logicOp        = vkLogicOp[static_cast<size_t>(configuration.colorBlendDesc.logicOp)],
-            .attachmentCount= 1,
-            .pAttachments   = &colorBlendState,
+            .logicOpEnable  = configuration.logicOpEnable ? VK_TRUE : VK_FALSE,
+            .logicOp        = vkLogicOp[static_cast<size_t>(configuration.logicOp)],
+            .attachmentCount= static_cast<uint32_t>(colorBlendStates.size()),
+            .pAttachments   = colorBlendStates.data(),
         };
-        const auto swapChainImageFormat = VKImage::vkFormats[static_cast<int>(configuration.colorRenderFormat)];
+        const auto formatsView = configuration.colorRenderFormats | views::transform([](const ImageFormat& format) {
+            return VKImage::vkFormats[static_cast<int>(format)];
+        });
+        const auto formats = vector<VkFormat> {formatsView.begin(), formatsView.end()};
         const auto dynamicRenderingCreateInfo = VkPipelineRenderingCreateInfo{
             .sType                   = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR,
             .pNext                   = VK_NULL_HANDLE,
-            .colorAttachmentCount    = 1,
-            .pColorAttachmentFormats = &swapChainImageFormat,
+            .colorAttachmentCount    = static_cast<uint32_t>(formats.size()),
+            .pColorAttachmentFormats = formats.data(),
             .depthAttachmentFormat   = VKImage::vkFormats[static_cast<int>(configuration.depthImageFormat)],
         };
         const auto IAInfo = VkPipelineInputAssemblyStateCreateInfo{

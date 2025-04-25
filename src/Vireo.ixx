@@ -248,8 +248,6 @@ export namespace vireo {
         BlendFactor     dstAlphaBlendFactor{BlendFactor::ZERO};
         BlendOp         alphaBlendOp{BlendOp::ADD};
         ColorWriteMask  colorWriteMask{ColorWriteMask::ALL};
-        bool            logicOpEnable{false};
-        LogicOp         logicOp{LogicOp::NOOP};
     };
 
     enum class ShaderStage{
@@ -317,22 +315,24 @@ export namespace vireo {
     };
 
     struct GraphicPipelineConfiguration {
-        ImageFormat       colorRenderFormat{ImageFormat::R8G8B8A8_UNORM};
-        PrimitiveTopology primitiveTopology{PrimitiveTopology::TRIANGLE_LIST};
-        MSAA              msaa{MSAA::NONE};
-        CullMode          cullMode{CullMode::NONE};
-        PolygonMode       polygonMode{PolygonMode::FILL};
-        bool              frontFaceCounterClockwise{true};
-        ColorBlendDesc    colorBlendDesc{};
-        ImageFormat       depthImageFormat{ImageFormat::D32_SFLOAT};
-        bool              depthTestEnable{false};
-        bool              depthWriteEnable{false};
-        bool              depthBiasEnable{false};
-        CompareOp         depthCompareOp{CompareOp::LESS_OR_EQUAL};
-        float             depthBiasConstantFactor{0.0f};
-        float             depthBiasClamp{0.0f};
-        float             depthBiasSlopeFactor{0.0f};
-        bool              alphaToCoverageEnable{false};
+        vector<ImageFormat>    colorRenderFormats{};
+        vector<ColorBlendDesc> colorBlendDesc{};
+        PrimitiveTopology      primitiveTopology{PrimitiveTopology::TRIANGLE_LIST};
+        MSAA                   msaa{MSAA::NONE};
+        CullMode               cullMode{CullMode::NONE};
+        PolygonMode            polygonMode{PolygonMode::FILL};
+        bool                   frontFaceCounterClockwise{true};
+        ImageFormat            depthImageFormat{ImageFormat::D32_SFLOAT};
+        bool                   depthTestEnable{false};
+        bool                   depthWriteEnable{false};
+        bool                   depthBiasEnable{false};
+        CompareOp              depthCompareOp{CompareOp::LESS_OR_EQUAL};
+        float                  depthBiasConstantFactor{0.0f};
+        float                  depthBiasClamp{0.0f};
+        float                  depthBiasSlopeFactor{0.0f};
+        bool                   logicOpEnable{false};
+        LogicOp                logicOp{LogicOp::NOOP};
+        bool                   alphaToCoverageEnable{false};
     };
 
     typedef union ClearValue {
