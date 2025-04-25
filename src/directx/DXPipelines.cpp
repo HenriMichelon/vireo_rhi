@@ -148,6 +148,7 @@ namespace vireo {
         const wstring& name):
         GraphicPipeline{pipelineResources},
         primitiveTopology{dxPrimitives[static_cast<int>(configuration.primitiveTopology)]} {
+        assert(vertexShader || fragmentShader);
         assert(configuration.colorRenderFormats.size() == configuration.colorBlendDesc.size());
         const auto dxVertexInputLayout = static_pointer_cast<const DXVertexInputLayout>(vertexInputLayout);
         const auto dxPipelineResources = static_pointer_cast<const DXPipelineResources>(pipelineResources);

@@ -145,6 +145,7 @@ namespace vireo {
            const wstring& name):
         GraphicPipeline{pipelineResources},
         device{device} {
+        assert(vertexShader || fragmentShader);
         assert(configuration.colorRenderFormats.size() == configuration.colorBlendDesc.size());
         const auto vertexShaderModule = static_pointer_cast<const VKShaderModule>(vertexShader)->getShaderModule();
         const auto fragmentShaderModule = static_pointer_cast<const VKShaderModule>(fragmentShader)->getShaderModule();

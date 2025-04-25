@@ -879,7 +879,7 @@ export namespace vireo {
     class Vireo {
     public:
         /**
-         * Creates a new Vireo class using the given backend and store the window handle for the future swap chains
+         * Creates a new Vireo class using the given backend
          */
         static unique_ptr<Vireo> create(Backend backend);
 
@@ -902,31 +902,76 @@ export namespace vireo {
             PresentMode presentMode = PresentMode::VSYNC,
             uint32_t framesInFlight = 2) const = 0;
 
+        /**
+         * Creates a submission queue
+         * @param commandType Type of commands that will be used with this queue.
+         * @param name Objet name for debug
+         */
         virtual shared_ptr<SubmitQueue> createSubmitQueue(
             CommandType commandType,
             const wstring& name = L"SubmitQueue") const = 0;
 
+        /**
+         * Creates a fence for CPU/GPU synchronization
+         * @param name Object name for debug
+         */
         virtual shared_ptr<Fence> createFence(const wstring& name = L"Fence") const = 0;
 
+        /**
+         * Creates a command allocator (command pool) for a given command type
+         * @param type Type of commands that will be used with command lists created from this allocator
+         */
         virtual shared_ptr<CommandAllocator> createCommandAllocator(CommandType type) const = 0;
 
+        /**
+         * Creates an input vertex layout from a description
+         * @param size Size in bytes of a vertex
+         * @param attributesDescriptions Description of all the vertex attributes
+         */
         virtual shared_ptr<VertexInputLayout> createVertexLayout(
             size_t size,
             const vector<VertexAttributeDesc>& attributesDescriptions) const = 0;
 
+        /**
+         * Load a compiled shader and creates a shader module
+         * @param fileName File name without the extension. The file name extension must be `.spv`for Vulkan et `.dxil`
+         * for DirectX
+         */
         virtual shared_ptr<ShaderModule> createShaderModule(
             const string& fileName) const = 0;
 
+        /**
+         * Creates a pipeline resources description. Describe resources that can be accessed by
+         * the shaders associated with the future pipelines.
+         * @param descriptorLayouts Descriptions of the resources (can be empty)
+         * @param pushConstant Description of an optional push constant
+         * @param name Object name for debug
+         */
         virtual shared_ptr<PipelineResources> createPipelineResources(
             const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts,
             const PushConstantsDesc& pushConstant = {},
             const wstring& name = L"PipelineResource") const = 0;
 
+        /**
+         * Creates a compute pipeline
+         * @param pipelineResources Resources for the shader
+         * @param shader The shader
+         * @param name Object name for debug
+         */
         virtual shared_ptr<ComputePipeline> createComputePipeline(
             const shared_ptr<PipelineResources>& pipelineResources,
             const shared_ptr<const ShaderModule>& shader,
             const wstring& name = L"ComputePipeline") const = 0;
 
+        /**
+         * Creates a graphic pipeline. At least one shader must be used.
+         * @param pipelineResources Resources for the shaders
+         * @param vertexInputLayout Description of the input vertices
+         * @param vertexShader Shader for the vertex shader
+         * @param fragmentShader Shader for the fragment/pixel shader
+         * @param configuration Pipeline configuration
+         * @param name Object name for debug
+         */
         virtual shared_ptr<GraphicPipeline> createGraphicPipeline(
             const shared_ptr<PipelineResources>& pipelineResources,
             const shared_ptr<const VertexInputLayout>& vertexInputLayout,
@@ -935,12 +980,30 @@ export namespace vireo {
             const GraphicPipelineConfiguration& configuration,
             const wstring& name = L"GraphicPipeline") const = 0;
 
+        /**
+         * Creates a data buffer in VRAM.
+         * For types UNIFORM & TRANSFER the buffer will be created in host visible memory/upload heap type.
+         * For types VERTEX & INDEX the buffer will be created in device local memory/default heap type
+         * @param type Type of buffer to create.
+         * @param size Size of one element in bytes
+         * @param count Number of elements
+         * @param name Object name for debug
+         */
         virtual shared_ptr<Buffer> createBuffer(
             BufferType type,
             size_t size,
             size_t count = 1,
             const wstring& name = L"Buffer") const = 0;
 
+        /**
+         * Creates a read-only image in VRAM
+         * @param format Pixel format
+         * @param width With in pixels
+         * @param height Height in pixels
+         * @param mipLevels Number of mips levels
+         * @param arraySize Number of layers/array size
+         * @param name Object name for debug
+         */
         virtual shared_ptr<Image> createImage(
             ImageFormat format,
             uint32_t width,
@@ -949,6 +1012,15 @@ export namespace vireo {
             uint32_t arraySize = 1,
             const wstring& name = L"Image") const = 0;
 
+        /**
+         * Creates a read/write image in VRAM
+         * @param format Pixel format
+         * @param width With in pixels
+         * @param height Height in pixels
+         * @param mipLevels Number of mips levels
+         * @param arraySize Number of layers/array size
+         * @param name Object name for debug
+         */
         virtual shared_ptr<Image> createReadWriteImage(
             ImageFormat format,
             uint32_t width,
@@ -957,6 +1029,16 @@ export namespace vireo {
             uint32_t arraySize = 1,
             const wstring& name = L"RWImage") const = 0;
 
+        /**
+         * Creates a read/write image in VRAM for use as a render target
+         * @param format Pixel format
+         * @param width With in pixels
+         * @param height Height in pixels
+         * @param type Type of render target use
+         * @param clearValue A clear value used for optimized clearing. Must be the same as the clear value used when rendering.
+         * @param msaa Number of samples for MSAA. A value of 1 disables MSAA.
+         * @param name Object name for debug
+         */
         virtual shared_ptr<RenderTarget> createRenderTarget(
             ImageFormat format,
             uint32_t width,
@@ -966,22 +1048,46 @@ export namespace vireo {
             MSAA msaa = MSAA::NONE,
             const wstring& name = L"RenderTarget") const = 0;
 
+        /**
+         * Creates a read/write image in VRAM for use as a render target with a similar format as a swap chain.
+         * @param swapChain Swap chain to copy format & size from
+         * @param clearValue A clear value used for optimized clearing. Must be the same as the clear value used when
+         * rendering.
+         * @param msaa Number of samples for MSAA. A value of 1 disables MSAA.
+         * @param name Object name for debug
+         */
         virtual shared_ptr<RenderTarget> createRenderTarget(
             const shared_ptr<const SwapChain>& swapChain,
             ClearValue clearValue = {},
             MSAA msaa = MSAA::NONE,
             const wstring& name = L"RenderTarget") const = 0;
 
+        /**
+         * Creates an empty description layout.
+         * @param name Object name for debug
+         */
         virtual shared_ptr<DescriptorLayout> createDescriptorLayout(
             const wstring& name = L"DescriptorLayout") = 0;
 
+        /**
+         * Creates an empty description layout for Sampler resources types
+         * @param name Object name for debug
+         */
         virtual shared_ptr<DescriptorLayout> createSamplerDescriptorLayout(
             const wstring& name = L"createSamplerDescriptorLayout") = 0;
 
+        /**
+         * Creates an empty descriptor set
+         * @param layout Layout of the set
+         * @param name Object name for debug
+         */
         virtual shared_ptr<DescriptorSet> createDescriptorSet(
             const shared_ptr<const DescriptorLayout>& layout,
             const wstring& name = L"DescriptorSet") = 0;
 
+        /**
+         * Creates a texture sampler.
+         */
         virtual shared_ptr<Sampler> createSampler(
             Filter minFilter,
             Filter magFilter,
