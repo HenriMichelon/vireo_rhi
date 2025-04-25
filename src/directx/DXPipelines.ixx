@@ -15,9 +15,18 @@ export namespace vireo {
     class DXVertexInputLayout : public VertexInputLayout {
     public:
         static constexpr DXGI_FORMAT DXFormat[] {
+            DXGI_FORMAT_R32_FLOAT,
             DXGI_FORMAT_R32G32_FLOAT,
             DXGI_FORMAT_R32G32B32_FLOAT,
-            DXGI_FORMAT_R32G32B32A32_FLOAT
+            DXGI_FORMAT_R32G32B32A32_FLOAT,
+            DXGI_FORMAT_R32_SINT,
+            DXGI_FORMAT_R32G32_SINT,
+            DXGI_FORMAT_R32G32B32_SINT,
+            DXGI_FORMAT_R32G32B32A32_SINT,
+            DXGI_FORMAT_R32_UINT,
+            DXGI_FORMAT_R32G32_UINT,
+            DXGI_FORMAT_R32G32B32_UINT,
+            DXGI_FORMAT_R32G32B32A32_UINT,
         };
 
         DXVertexInputLayout(const vector<VertexAttributeDesc>& attributesDescriptions);

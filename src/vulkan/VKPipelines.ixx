@@ -18,9 +18,18 @@ export namespace vireo {
     class VKVertexInputLayout : public VertexInputLayout {
     public:
         static constexpr VkFormat VKFormat[] {
+            VK_FORMAT_R32_SFLOAT,
             VK_FORMAT_R32G32_SFLOAT,
             VK_FORMAT_R32G32B32_SFLOAT,
-            VK_FORMAT_R32G32B32A32_SFLOAT
+            VK_FORMAT_R32G32B32A32_SFLOAT,
+            VK_FORMAT_R32_SINT,
+            VK_FORMAT_R32G32_SINT,
+            VK_FORMAT_R32G32B32_SINT,
+            VK_FORMAT_R32G32B32A32_SINT,
+            VK_FORMAT_R32_UINT,
+            VK_FORMAT_R32G32_UINT,
+            VK_FORMAT_R32G32B32_UINT,
+            VK_FORMAT_R32G32B32A32_UINT,
         };
 
         VKVertexInputLayout(size_t size, const vector<VertexAttributeDesc>& attributesDescriptions);

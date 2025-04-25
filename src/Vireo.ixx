@@ -142,9 +142,18 @@ export namespace vireo {
     };
 
     enum class AttributeFormat {
+        R32_FLOAT,
         R32G32_FLOAT,
         R32G32B32_FLOAT,
         R32G32B32A32_FLOAT,
+        R32_SINT,
+        R32G32_SINT,
+        R32G32B32_SINT,
+        R32G32B32A32_SINT,
+        R32_UINT,
+        R32G32_UINT,
+        R32G32B32_UINT,
+        R32G32B32A32_UINT,
     };
 
     enum class RenderTargetType {
