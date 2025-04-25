@@ -1102,21 +1102,33 @@ export namespace vireo {
             const vector<void*>& sources,
             uint32_t firstMipLevel = 0) = 0;
 
+        /**
+         * Copy an image into the current swap chain image
+         */
         virtual void copy(
             const shared_ptr<const Image>& source,
             const shared_ptr<const SwapChain>& swapChain) const = 0;
 
+        /**
+         * Copy an image into the current swap chain image
+         */
         inline void copy(
             const shared_ptr<const RenderTarget>& source,
             const shared_ptr<const SwapChain>& swapChain) const {
             copy(source->getImage(), swapChain);
         }
 
+        /**
+         * Blit an image into the current swap chain image
+         */
         virtual void blit(
             const shared_ptr<const Image>& source,
             const shared_ptr<const SwapChain>& swapChain,
             Filter filter = Filter::NEAREST) const = 0;
 
+        /**
+         * Copy an image into the current swap chain image
+         */
         void blit(
             const shared_ptr<const RenderTarget>& source,
             const shared_ptr<const SwapChain>& swapChain,
@@ -1124,37 +1136,88 @@ export namespace vireo {
             blit(source->getImage(), swapChain, filter);
         }
 
+        /**
+         * Begin a render pass
+         */
         virtual void beginRendering(const RenderingConfiguration& configuration) = 0;
 
+        /**
+         * End a render pass
+         */
         virtual void endRendering() {}
 
+        /**
+         * Dispatch compute work items
+         * @param x The number of local workgroups to dispatch in the X dimension.
+         * @param y The number of local workgroups to dispatch in the Y dimension.
+         * @param z The number of local workgroups to dispatch in the Z dimension.
+         */
         virtual void dispatch(uint32_t x, uint32_t y, uint32_t z) const = 0;
 
+        /**
+         * Bind a vertex buffer to a command list
+         * @param buffer A vertex buffer
+         * @param offset Offset in bytes
+         */
         virtual void bindVertexBuffer(
             const shared_ptr<const Buffer>& buffer,
             size_t offset = 0) const = 0;
 
+        /**
+         * Binds vertex buffers to a command list
+         * @param buffers Buffers to bind
+         * @param offsets Offsets for each buffer in bytes
+         */
         virtual void bindVertexBuffers(
             const vector<shared_ptr<const Buffer>>& buffers,
             vector<size_t> offsets = {}) const = 0;
 
+        /**
+         * Binds an index buffer to a command list
+         * @param buffer An index buffer
+         * @param indexType Value specifying the size of the indices
+         * @param offset Offset in bytes
+         */
         virtual void bindIndexBuffer(
             const shared_ptr<const Buffer>& buffer,
             IndexType indexType = IndexType::UINT32,
             size_t offset = 0) const = 0;
 
+        /**
+         * Binds a pipeline object to a command list
+         */
         virtual void bindPipeline(const shared_ptr<const Pipeline>& pipeline) = 0;
 
+        /**
+         * Binds descriptor sets to a command list
+         * @param pipeline The pipeline that will use the descriptors
+         * @param descriptors The descriptors sets to bind
+         */
         virtual void bindDescriptors(
             const shared_ptr<const Pipeline>& pipeline,
             const vector<shared_ptr<const DescriptorSet>>& descriptors) const = 0;
 
+        /**
+         * Draw primitives
+         * @param vertexCountPerInstance The number of vertices per instance to draw
+         * @param instanceCount The number of instances
+         * @param firstVertex The index of the first vertex to draw
+         * @param firstInstance The index of the first instance to draw.
+         */
         virtual void draw(
             uint32_t vertexCountPerInstance,
             uint32_t instanceCount = 1,
             uint32_t firstVertex = 0,
             uint32_t firstInstance = 0) const = 0;
 
+        /**
+         * Draw primitives with indexed vertices
+         * @param indexCountPerInstance The number of vertices per instance to draw
+         * @param instanceCount The number of instances
+         * @param firstIndex The base index within the index buffer.
+         * @param vertexOffset The value added to the vertex index before indexing into the vertex buffer.
+         * @param firstInstance The index of the first instance to draw.
+         */
         virtual void drawIndexed(
             uint32_t indexCountPerInstance,
             uint32_t instanceCount = 1,
@@ -1162,35 +1225,78 @@ export namespace vireo {
             uint32_t vertexOffset = 0,
             uint32_t firstInstance = 0) const = 0;
 
+        /**
+         * Set the viewports for a command list
+         * @param count The number of viewports whose parameters are updated by the command
+         * @param extent An array of `Extent` structures specifying viewport parameters.
+         */
         virtual void setViewports(uint32_t count, const vector<Extent>& extent) const = 0;
 
+        /**
+         * Set the scissors for a command list
+         * @param count The number of scissors whose parameters are updated by the command
+         * @param extent An array of `Extent` structures specifying viewport parameters.
+         */
         virtual void setScissors(uint32_t count, const vector<Extent>& extent) const = 0;
 
+        /**
+         * Insert a memory dependency
+         * @param image The image affected by this barrier.
+         * @param oldState Old state in an image state transition.
+         * @param newState New state in an image state transition.
+         */
         virtual void barrier(
             const shared_ptr<const Image>& image,
             ResourceState oldState,
             ResourceState newState) const = 0;
 
+        /**
+         * Insert a memory dependency
+         * @param renderTarget The image affected by this barrier.
+         * @param oldState Old state in an image state transition.
+         * @param newState New state in an image state transition.
+         */
         virtual void barrier(
             const shared_ptr<const RenderTarget>& renderTarget,
             ResourceState oldState,
             ResourceState newState) const = 0;
 
+        /**
+         * Insert a memory dependency
+         * @param renderTargets The images affected by this barrier.
+         * @param oldState Old state in an image state transition.
+         * @param newState New state in an image state transition.
+         */
         virtual void barrier(
             const vector<shared_ptr<const RenderTarget>>& renderTargets,
             ResourceState oldState,
             ResourceState newState) const = 0;
 
+        /**
+         * Insert a memory dependency
+         * @param swapChain The image affected by this barrier.
+         * @param oldState Old state in an image state transition.
+         * @param newState New state in an image state transition.
+         */
         virtual void barrier(
             const shared_ptr<const SwapChain>& swapChain,
             ResourceState oldState,
             ResourceState newState) const = 0;
 
+        /**
+         * Update the values of push constants
+         * @param pipelineResources The pipeline layout used to program the push constant updates.
+         * @param pushConstants The push constant description
+         * @param data The new push constant values.
+         */
         virtual void pushConstants(
             const shared_ptr<const PipelineResources>& pipelineResources,
             const PushConstantsDesc& pushConstants,
             const void* data) const = 0;
 
+        /**
+         * Cleanup staging buffers used by `upload` functions
+         */
         virtual void cleanup() = 0;
 
         virtual ~CommandList() = default;
