@@ -33,7 +33,9 @@ namespace vireo {
         instanceCount = count;
 
         // GPU Buffer
-        const auto heapProperties = CD3DX12_HEAP_PROPERTIES(type == BufferType::UNIFORM ? D3D12_HEAP_TYPE_UPLOAD : D3D12_HEAP_TYPE_DEFAULT);
+        const auto heapProperties = CD3DX12_HEAP_PROPERTIES(
+            type == BufferType::UNIFORM || type == BufferType::TRANSFER ? D3D12_HEAP_TYPE_UPLOAD : D3D12_HEAP_TYPE_DEFAULT
+        );
         const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(alignmentSize);
         dxCheck(device->CreateCommittedResource(
             &heapProperties,

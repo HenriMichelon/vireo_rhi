@@ -386,12 +386,13 @@ export namespace vireo {
 
         auto getSize() const { return bufferSize; }
 
-
         auto getType() const { return type; }
 
         auto getInstanceSize() const { return instanceSize; }
 
         auto getInstanceCount() const { return instanceCount; }
+
+        auto getMappedAddress() const { return mappedAddress; }
 
         virtual void map() = 0;
 
@@ -687,6 +688,12 @@ export namespace vireo {
         virtual void upload(
             const shared_ptr<const Image>& destination,
             const void* source,
+            uint32_t firstMipLevel = 0) = 0;
+
+        virtual void copy(
+            const shared_ptr<const Buffer>& source,
+            const shared_ptr<const Image>& destination,
+            uint32_t sourceOffset = 0,
             uint32_t firstMipLevel = 0) = 0;
 
         virtual void uploadArray(

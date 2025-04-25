@@ -582,6 +582,53 @@ namespace vireo {
         stagingBuffers.push_back(stagingBuffer);
     }
 
+    void DXCommandList::copy(
+       const shared_ptr<const Buffer>& source,
+       const shared_ptr<const Image>& destination,
+       const uint32_t sourceOffset,
+       const uint32_t firstMipLevel) {
+        const auto image = static_pointer_cast<const DXImage>(destination);
+        const auto buffer = static_pointer_cast<const DXBuffer>(source);
+
+        auto dstLocation = D3D12_TEXTURE_COPY_LOCATION{
+            .pResource = image->getImage().Get(),
+            .Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
+        };
+        dstLocation.SubresourceIndex = D3D12CalcSubresource(
+            firstMipLevel,
+            0,
+            0,
+            image->getMipLevels(),
+            image->getArraySize());
+
+        const auto subresource = dstLocation.SubresourceIndex;
+        const auto texDesc = image->getImage()->GetDesc();
+        auto footprint = D3D12_PLACED_SUBRESOURCE_FOOTPRINT{};
+        UINT64 totalBytes{0};
+        device->GetCopyableFootprints(
+            &texDesc,
+            subresource,
+            1,
+            sourceOffset,
+            &footprint,
+            nullptr,
+            nullptr,
+            &totalBytes);
+
+        const auto srcLocation = D3D12_TEXTURE_COPY_LOCATION{
+            .pResource = buffer->getBuffer().Get(),
+            .Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT,
+            .PlacedFootprint = footprint,
+        };
+
+        commandList->CopyTextureRegion(
+            &dstLocation,
+            0, 0, 0,
+            &srcLocation,
+            nullptr
+        );
+    }
+
     void DXCommandList::uploadArray(
         const shared_ptr<const Image>& destination,
         const vector<void*>& sources,

@@ -730,6 +730,35 @@ namespace vireo {
         stagingBuffers.push_back(stagingBuffer);
     }
 
+    void VKCommandList::copy(
+        const shared_ptr<const Buffer>& source,
+        const shared_ptr<const Image>& destination,
+        const uint32_t sourceOffset,
+        const uint32_t firstMipLevel) {
+        const auto image = static_pointer_cast<const VKImage>(destination);
+        const auto buffer = static_pointer_cast<const VKBuffer>(source);
+        const auto region = VkBufferImageCopy {
+            .bufferOffset = sourceOffset,
+            .bufferRowLength = 0,
+            .bufferImageHeight = 0,
+            .imageSubresource = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .mipLevel = firstMipLevel,
+                .baseArrayLayer = 0,
+                .layerCount = destination->getArraySize(),
+            },
+            .imageOffset = {0, 0, 0},
+            .imageExtent = {image->getWidth(), image->getHeight(), 1},
+        };
+        vkCmdCopyBufferToImage(
+                commandBuffer,
+                buffer->getBuffer(),
+                image->getImage(),
+                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                1,
+                &region);
+    }
+
     void VKCommandList::uploadArray(
         const shared_ptr<const Image>& destination,
         const vector<void*>& sources,
