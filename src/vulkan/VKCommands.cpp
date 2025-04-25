@@ -224,21 +224,12 @@ namespace vireo {
     }
 
     void VKCommandList::beginRendering(const RenderingConfiguration& conf) {
-        const auto vkSwapChain =
-            conf.swapChain ? static_pointer_cast<VKSwapChain>(conf.swapChain) : nullptr;
-        const auto vkColorImage =
-            conf.colorRenderTarget ? static_pointer_cast<VKImage>(conf.colorRenderTarget->getImage()) : nullptr;
+        uint32_t width{0}, height{0};
         const auto vkDepthImage =
             conf.depthRenderTarget ? static_pointer_cast<VKImage>(conf.depthRenderTarget->getImage()) : nullptr;
-
-        const auto colorImageView =
-            vkSwapChain ? vkSwapChain->getCurrentImageView() :
-            vkColorImage ? vkColorImage->getImageView() :
-            VK_NULL_HANDLE;
-        uint32_t width{0}, height{0};
-
         auto depthAttachmentInfo = VkRenderingAttachmentInfo {};
         if (vkDepthImage) {
+            depthAttachmentInfo.imageView   = vkDepthImage->getImageView();
             depthAttachmentInfo.sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
             depthAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
             depthAttachmentInfo.loadOp      = conf.clearDepth ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD,
@@ -251,31 +242,6 @@ namespace vireo {
             };
             width = vkDepthImage->getWidth();
             height = vkDepthImage->getHeight();
-        }
-
-        auto colorAttachmentInfo = VkRenderingAttachmentInfo{};
-        if (colorImageView) {
-            colorAttachmentInfo.sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
-            colorAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-            colorAttachmentInfo.loadOp      = conf.clearColor ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
-            colorAttachmentInfo.storeOp     = VK_ATTACHMENT_STORE_OP_STORE;
-            colorAttachmentInfo.clearValue  = {
-                conf.clearColorValue.color[0],
-                conf.clearColorValue.color[1],
-                conf.clearColorValue.color[2],
-                conf.clearColorValue.color[3]
-            };
-            width = vkSwapChain ? vkSwapChain->getExtent().width : vkColorImage->getWidth();
-            height = vkSwapChain ? vkSwapChain->getExtent().height : vkColorImage->getHeight();
-        }
-
-        if (conf.multisampledColorRenderTarget) {
-            const auto msaaColor = static_pointer_cast<VKImage>(conf.multisampledColorRenderTarget->getImage());
-            barrier(msaaColor->getImage(), ResourceState::UNDEFINED, ResourceState::RENDER_TARGET_COLOR);
-            colorAttachmentInfo.imageView = msaaColor->getImageView(),
-            colorAttachmentInfo.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
-            colorAttachmentInfo.resolveImageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-            colorAttachmentInfo.resolveImageView = colorImageView;
 
             const auto msaaDepth = conf.multisampledDepthRenderTarget ?
                 static_pointer_cast<VKImage>(conf.multisampledDepthRenderTarget->getImage()) :
@@ -286,10 +252,44 @@ namespace vireo {
                 depthAttachmentInfo.resolveImageLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
                 depthAttachmentInfo.resolveImageView = vkDepthImage->getImageView();
             }
-        } else {
-            colorAttachmentInfo.imageView = colorImageView;
-            if (vkDepthImage) {
-                depthAttachmentInfo.imageView = vkDepthImage->getImageView();
+        }
+
+        auto colorAttachmentsInfo = vector<VkRenderingAttachmentInfo>(conf.colorRenderTargets.size());
+        for (int i = 0; i < conf.colorRenderTargets.size(); i++) {
+            const auto vkSwapChain = conf.colorRenderTargets[i].swapChain ?
+                static_pointer_cast<VKSwapChain>(conf.colorRenderTargets[i].swapChain) : nullptr;
+            const auto vkColorImage = conf.colorRenderTargets[i].renderTarget ?
+                static_pointer_cast<VKImage>(conf.colorRenderTargets[i].renderTarget->getImage()) : nullptr;
+            const auto colorImageView =
+                vkSwapChain ? vkSwapChain->getCurrentImageView() :
+                vkColorImage ? vkColorImage->getImageView() :
+                VK_NULL_HANDLE;
+
+            if (colorImageView) {
+                colorAttachmentsInfo[i].sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
+                colorAttachmentsInfo[i].imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+                colorAttachmentsInfo[i].loadOp      = conf.colorRenderTargets[i].clearColor ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
+                colorAttachmentsInfo[i].storeOp     = VK_ATTACHMENT_STORE_OP_STORE;
+                colorAttachmentsInfo[i].clearValue  = {
+                    conf.colorRenderTargets[i].clearColorValue.color[0],
+                    conf.colorRenderTargets[i].clearColorValue.color[1],
+                    conf.colorRenderTargets[i].clearColorValue.color[2],
+                    conf.colorRenderTargets[i].clearColorValue.color[3]
+                };
+                width = vkSwapChain ? vkSwapChain->getExtent().width : vkColorImage->getWidth();
+                height = vkSwapChain ? vkSwapChain->getExtent().height : vkColorImage->getHeight();
+            }
+
+            if (conf.colorRenderTargets[i].multisampledRenderTarget) {
+                const auto msaaColor =
+                    static_pointer_cast<VKImage>(conf.colorRenderTargets[i].multisampledRenderTarget->getImage());
+                barrier(msaaColor->getImage(), ResourceState::UNDEFINED, ResourceState::RENDER_TARGET_COLOR);
+                colorAttachmentsInfo[i].imageView = msaaColor->getImageView(),
+                colorAttachmentsInfo[i].resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
+                colorAttachmentsInfo[i].resolveImageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                colorAttachmentsInfo[i].resolveImageView = colorImageView;
+            } else {
+                colorAttachmentsInfo[i].imageView = colorImageView;
             }
         }
         const auto renderingInfo = VkRenderingInfo {
@@ -300,8 +300,8 @@ namespace vireo {
                 {width, height}
             },
             .layerCount           = 1,
-            .colorAttachmentCount = colorImageView ? 1u : 0u,
-            .pColorAttachments    = &colorAttachmentInfo,
+            .colorAttachmentCount = static_cast<uint32_t>(colorAttachmentsInfo.size()),
+            .pColorAttachments    = colorAttachmentsInfo.empty() ? nullptr : colorAttachmentsInfo.data(),
             .pDepthAttachment     = vkDepthImage ? &depthAttachmentInfo : nullptr,
             .pStencilAttachment   = nullptr
         };

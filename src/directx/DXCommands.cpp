@@ -171,56 +171,15 @@ namespace vireo {
 
 
     void DXCommandList::beginRendering(const RenderingConfiguration& conf) {
-        const auto dxSwapChain =
-            conf.swapChain ? static_pointer_cast<DXSwapChain>(conf.swapChain) : nullptr;
-        const auto dxColorImage =
-            conf.colorRenderTarget ? static_pointer_cast<DXRenderTarget>(conf.colorRenderTarget) : nullptr;
         const auto dxDepthImage =
             conf.depthRenderTarget ? static_pointer_cast<DXRenderTarget>(conf.depthRenderTarget) : nullptr;
-
-        D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle{};
         D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle{};
-
         if (conf.multisampledDepthRenderTarget) {
             const auto dxMsaaTarget = static_pointer_cast<DXRenderTarget>(conf.multisampledDepthRenderTarget);
             dsvHandle = dxMsaaTarget->getHandle();
         } else if (dxDepthImage) {
             dsvHandle = dxDepthImage->getHandle();
         }
-
-        if (conf.multisampledColorRenderTarget) {
-            const auto dxMsaaTarget = static_pointer_cast<DXRenderTarget>(conf.multisampledColorRenderTarget);
-            rtvHandle = dxMsaaTarget->getHandle();
-            resolveSource = dxMsaaTarget->getImage();
-            resolveDestination =
-                dxSwapChain ? dxSwapChain->getRenderTargets()[dxSwapChain->getCurrentFrameIndex()].Get() :
-                static_pointer_cast<DXImage>(dxColorImage->getImage())->getImage().Get();
-        } else if (dxSwapChain) {
-            D3D12_CPU_DESCRIPTOR_HANDLE handle;
-#ifdef _MSC_VER
-            handle = dxSwapChain->getHeap()->GetCPUDescriptorHandleForHeapStart();
-#else
-            dxSwapChain->getHeap()->GetCPUDescriptorHandleForHeapStart(&handle);
-#endif
-            rtvHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(
-                handle,
-                dxSwapChain->getCurrentFrameIndex(),
-                dxSwapChain->getDescriptorSize());
-        } else if (dxColorImage) {
-            rtvHandle = dxColorImage->getHandle();
-        }
-
-        const bool haveColorResource = dxSwapChain || dxColorImage || conf.multisampledColorRenderTarget;
-        if (conf.clearColor && haveColorResource) {
-            const FLOAT clearColor[] = {
-                conf.clearColorValue.color[0],
-                conf.clearColorValue.color[1],
-                conf.clearColorValue.color[2],
-                conf.clearColorValue.color[3]
-            };
-            commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-        }
-
         const bool haveDepthResource = dxDepthImage || conf.multisampledDepthRenderTarget;
         if (conf.clearDepth && haveDepthResource) {
             commandList->ClearDepthStencilView(
@@ -230,16 +189,56 @@ namespace vireo {
                 0, nullptr);
         }
 
+        auto rtvHandles = vector<D3D12_CPU_DESCRIPTOR_HANDLE>(conf.colorRenderTargets.size()) ;
+        for (int i = 0; i < conf.colorRenderTargets.size(); i++) {
+            const auto dxSwapChain = conf.colorRenderTargets[i].swapChain ?
+                static_pointer_cast<DXSwapChain>(conf.colorRenderTargets[i].swapChain) : nullptr;
+            const auto dxColorImage = conf.colorRenderTargets[i].renderTarget ?
+                static_pointer_cast<DXRenderTarget>(conf.colorRenderTargets[i].renderTarget) : nullptr;
+            const auto dxMsaaTarget =
+                static_pointer_cast<DXRenderTarget>(conf.colorRenderTargets[i].multisampledRenderTarget);
+            if (conf.colorRenderTargets[i].multisampledRenderTarget) {
+                rtvHandles[i] = dxMsaaTarget->getHandle();
+                resolveSource.push_back(dxMsaaTarget->getImage());
+                resolveDestination.push_back(
+                    dxSwapChain ? dxSwapChain->getRenderTargets()[dxSwapChain->getCurrentFrameIndex()].Get() :
+                    static_pointer_cast<DXImage>(dxColorImage->getImage())->getImage().Get());
+            } else if (dxSwapChain) {
+                D3D12_CPU_DESCRIPTOR_HANDLE handle;
+#ifdef _MSC_VER
+                handle = dxSwapChain->getHeap()->GetCPUDescriptorHandleForHeapStart();
+#else
+                dxSwapChain->getHeap()->GetCPUDescriptorHandleForHeapStart(&handle);
+#endif
+                rtvHandles[i] = CD3DX12_CPU_DESCRIPTOR_HANDLE(
+                    handle,
+                    dxSwapChain->getCurrentFrameIndex(),
+                    dxSwapChain->getDescriptorSize());
+            } else if (dxColorImage) {
+                rtvHandles[i] = dxColorImage->getHandle();
+            }
+
+            if (conf.colorRenderTargets[i].clearColor && (dxSwapChain || dxColorImage)) {
+                const FLOAT clearColor[] = {
+                    conf.colorRenderTargets[i].clearColorValue.color[0],
+                    conf.colorRenderTargets[i].clearColorValue.color[1],
+                    conf.colorRenderTargets[i].clearColorValue.color[2],
+                    conf.colorRenderTargets[i].clearColorValue.color[3]
+                };
+                commandList->ClearRenderTargetView(rtvHandles[i], clearColor, 0, nullptr);
+            }
+        }
+
         commandList->OMSetRenderTargets(
-            haveColorResource ? 1 : 0,
-            haveColorResource ? &rtvHandle : nullptr,
+            rtvHandles.size(),
+            rtvHandles.empty() ? nullptr : rtvHandles.data(),
             FALSE,
             haveDepthResource ? &dsvHandle : nullptr);
     }
 
     void DXCommandList::endRendering() {
-        if (resolveSource) {
-            const auto source = static_pointer_cast<DXImage>(resolveSource)->getImage().Get();
+        for (int i = 0; i < resolveSource.size(); i++) {
+            const auto source = static_pointer_cast<DXImage>(resolveSource[i])->getImage().Get();
             {
                 const auto barrier1 = CD3DX12_RESOURCE_BARRIER::Transition(
                        source,
@@ -247,17 +246,17 @@ namespace vireo {
                        D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
                 commandList->ResourceBarrier(1, &barrier1);
                 const auto barrier2 = CD3DX12_RESOURCE_BARRIER::Transition(
-                   resolveDestination.Get(),
+                   resolveDestination[i].Get(),
                    D3D12_RESOURCE_STATE_RENDER_TARGET,
                    D3D12_RESOURCE_STATE_RESOLVE_DEST);
                 commandList->ResourceBarrier(1, &barrier2);
             }
             commandList->ResolveSubresource(
-                resolveDestination.Get(),
+                resolveDestination[i].Get(),
                 0,
                 source,
                 0,
-                DXImage::dxFormats[static_cast<int>(resolveSource->getFormat())]);
+                DXImage::dxFormats[static_cast<int>(resolveSource[i]->getFormat())]);
             {
                 const auto barrier1 = CD3DX12_RESOURCE_BARRIER::Transition(
                        source,
@@ -265,14 +264,14 @@ namespace vireo {
                        D3D12_RESOURCE_STATE_RENDER_TARGET);
                 commandList->ResourceBarrier(1, &barrier1);
                 const auto barrier2 = CD3DX12_RESOURCE_BARRIER::Transition(
-                   resolveDestination.Get(),
+                   resolveDestination[i].Get(),
                    D3D12_RESOURCE_STATE_RESOLVE_DEST,
                    D3D12_RESOURCE_STATE_RENDER_TARGET);
                 commandList->ResourceBarrier(1, &barrier2);
             }
-            resolveSource = nullptr;
-            resolveDestination = nullptr;
         }
+        resolveSource.clear();
+        resolveDestination.clear();
     }
 
     void DXCommandList::dispatch(const uint32_t x, const uint32_t y, const uint32_t z) const {

@@ -641,16 +641,20 @@ export namespace vireo {
 
     class SwapChain;
 
-    struct RenderingConfiguration {
+    struct RenderTargetDesc {
         shared_ptr<SwapChain>    swapChain{nullptr};
-        shared_ptr<RenderTarget> colorRenderTarget{nullptr};
-        shared_ptr<RenderTarget> depthRenderTarget{nullptr};
-        shared_ptr<RenderTarget> multisampledColorRenderTarget{nullptr};
-        shared_ptr<RenderTarget> multisampledDepthRenderTarget{nullptr};
-        ClearValue               clearColorValue{ .color = {0.0f, 0.0f, 0.0f, 0.0f} };
-        ClearValue               depthClearValue{ .depthStencil = {1.0f, 0} };
+        shared_ptr<RenderTarget> renderTarget{nullptr};
+        shared_ptr<RenderTarget> multisampledRenderTarget{nullptr};
         bool                     clearColor{true};
-        bool                     clearDepth{true};
+        ClearValue               clearColorValue{ .color = {0.0f, 0.0f, 0.0f, 0.0f} };
+    };
+
+    struct RenderingConfiguration {
+        vector<RenderTargetDesc>  colorRenderTargets{};
+        shared_ptr<RenderTarget>  depthRenderTarget{nullptr};
+        shared_ptr<RenderTarget>  multisampledDepthRenderTarget{nullptr};
+        bool                      clearDepth{true};
+        ClearValue                depthClearValue{ .depthStencil = {1.0f, 0} };
     };
 
     class CommandList {
@@ -684,7 +688,7 @@ export namespace vireo {
             const shared_ptr<const RenderTarget>& source,
             const shared_ptr<const SwapChain>& swapChain,
             Filter filter = Filter::NEAREST) const {
-            blit(source->getImage(), swapChain);
+            blit(source->getImage(), swapChain, filter);
         }
 
         virtual void beginRendering(const RenderingConfiguration& configuration) = 0;

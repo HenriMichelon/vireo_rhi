@@ -155,8 +155,8 @@ export namespace vireo {
         ComPtr<ID3D12GraphicsCommandList> commandList;
         ComPtr<ID3D12CommandAllocator>    commandAllocator;
         vector<ComPtr<ID3D12Resource>>    stagingBuffers{};
-        shared_ptr<Image>                 resolveSource;
-        ComPtr<ID3D12Resource>            resolveDestination;
+        vector<shared_ptr<Image>>         resolveSource;
+        vector<ComPtr<ID3D12Resource>>    resolveDestination;
 
         static void convertState(
             ResourceState oldState,
