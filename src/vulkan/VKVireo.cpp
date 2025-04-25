@@ -107,6 +107,7 @@ namespace vireo {
             const ImageFormat format,
             const uint32_t width,
             const uint32_t height,
+            const uint32_t mipLevels,
             const uint32_t arraySize,
             const wstring& name) const {
         return make_shared<VKImage>(
@@ -114,6 +115,7 @@ namespace vireo {
             format,
             width,
             height,
+            mipLevels,
             arraySize,
             name,
             false,
@@ -126,6 +128,7 @@ namespace vireo {
             const ImageFormat format,
             const uint32_t width,
             const uint32_t height,
+            const uint32_t mipLevels,
             const uint32_t arraySize,
             const wstring& name) const {
         return make_shared<VKImage>(
@@ -133,6 +136,7 @@ namespace vireo {
             format,
             width,
             height,
+            mipLevels,
             arraySize,
             name,
             true,
@@ -157,6 +161,7 @@ namespace vireo {
                 width,
                 height,
                 1,
+                1,
                 name,
                 false,
                 true,
@@ -176,6 +181,7 @@ namespace vireo {
                 swapChain->getFormat(),
                 swapChain->getExtent().width,
                 swapChain->getExtent().height,
+                1,
                 1,
                 name,
                 false,

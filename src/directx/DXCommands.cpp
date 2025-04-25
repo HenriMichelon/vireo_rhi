@@ -535,7 +535,10 @@ namespace vireo {
         stagingBuffers.push_back(stagingBuffer);
     }
 
-    void DXCommandList::upload(const shared_ptr<const Image>& destination, const void* source) {
+    void DXCommandList::upload(
+        const shared_ptr<const Image>& destination,
+        const void* source,
+        const uint32_t firstMipLevel) {
         const auto image = static_pointer_cast<const DXImage>(destination);
         auto stagingBuffer = ComPtr<ID3D12Resource>{nullptr};
         {
@@ -557,25 +560,32 @@ namespace vireo {
 #endif
         }
 
-        {
-            const auto copyData = D3D12_SUBRESOURCE_DATA {
-                .pData = source,
-                .RowPitch = static_cast<LONG_PTR>(image->getRowPitch()),
-                .SlicePitch = static_cast<LONG_PTR>(image->getImageSize()),
-            };
-            UpdateSubresources(
-                commandList.Get(),
-                image->getImage().Get(),
-                stagingBuffer.Get(),
-                0,
-                0,
-                1,
-                &copyData);
-        }
+        const auto resourceIndex = D3D12CalcSubresource(
+            firstMipLevel,
+            0,
+            0,
+            image->getMipLevels(),
+            1);
+        const auto copyData = D3D12_SUBRESOURCE_DATA {
+            .pData = source,
+            .RowPitch = static_cast<LONG_PTR>(image->getRowPitch()),
+            .SlicePitch = static_cast<LONG_PTR>(image->getImageSize()),
+        };
+        UpdateSubresources(
+            commandList.Get(),
+            image->getImage().Get(),
+            stagingBuffer.Get(),
+            0,
+            resourceIndex,
+            1,
+            &copyData);
         stagingBuffers.push_back(stagingBuffer);
     }
 
-    void DXCommandList::upload(const shared_ptr<const Image>& destination, const vector<void*>& sources) {
+    void DXCommandList::uploadArray(
+        const shared_ptr<const Image>& destination,
+        const vector<void*>& sources,
+        const uint32_t firstMipLevel) {
         assert(sources.size() == destination->getArraySize());
         const auto image = static_pointer_cast<const DXImage>(destination);
 
@@ -600,6 +610,12 @@ namespace vireo {
         }
 
         {
+            const auto resourceIndex = D3D12CalcSubresource(
+                   firstMipLevel,
+                   0,
+                   0,
+                   image->getMipLevels(),
+                   image->getArraySize());
             auto copyData = vector<D3D12_SUBRESOURCE_DATA>(sources.size());
             for (int i = 0; i < sources.size(); i++) {
                 copyData[i].pData = sources[i];
@@ -611,7 +627,7 @@ namespace vireo {
                 image->getImage().Get(),
                 stagingBuffer.Get(),
                 0,
-                0,
+                resourceIndex,
                 copyData.size(),
                 copyData.data());
         }

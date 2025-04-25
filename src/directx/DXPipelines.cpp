@@ -20,7 +20,7 @@ namespace vireo {
 
     DXVertexInputLayout::DXVertexInputLayout(const vector<VertexAttributeDesc>& attributesDescriptions) {
         for (const auto& attributesDescription : attributesDescriptions) {
-            inputElementDescs.push_back({
+            inputElementsDesc.push_back({
                 .SemanticName = attributesDescription.binding.c_str(),
                 .SemanticIndex = 0,
                 .Format = DXFormat[static_cast<int>(attributesDescription.format)],
@@ -192,8 +192,8 @@ namespace vireo {
             .RasterizerState = rasterizerState,
             .DepthStencilState = depthStencil,
             .InputLayout = {
-                dxVertexInputLayout->getInputElementDescs().data(),
-                static_cast<UINT>(dxVertexInputLayout->getInputElementDescs().size())
+                dxVertexInputLayout->getInputElementsDesc().data(),
+                static_cast<UINT>(dxVertexInputLayout->getInputElementsDesc().size())
             },
             .PrimitiveTopologyType = dxPrimitivesTypes[static_cast<int>(configuration.primitiveTopology)],
             .NumRenderTargets = static_cast<UINT>(configuration.colorRenderFormats.size()),

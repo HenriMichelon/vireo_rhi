@@ -680,7 +680,10 @@ namespace vireo {
         stagingBuffers.push_back(stagingBuffer);
     }
 
-    void VKCommandList::upload(const shared_ptr<const Image>& destination, const void* source) {
+    void VKCommandList::upload(
+        const shared_ptr<const Image>& destination,
+        const void* source,
+        const uint32_t firstMipLevel) {
         const auto image = static_pointer_cast<const VKImage>(destination);
         const auto stagingBuffer = make_shared<VKBuffer>(
            device,
@@ -708,7 +711,7 @@ namespace vireo {
             .bufferImageHeight = 0,
             .imageSubresource = {
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .mipLevel = 0,
+                .mipLevel = firstMipLevel,
                 .baseArrayLayer = 0,
                 .layerCount = destination->getArraySize(),
             },
@@ -727,7 +730,10 @@ namespace vireo {
         stagingBuffers.push_back(stagingBuffer);
     }
 
-    void VKCommandList::upload(const shared_ptr<const Image>& destination, const vector<void*>& sources) {
+    void VKCommandList::uploadArray(
+        const shared_ptr<const Image>& destination,
+        const vector<void*>& sources,
+        const uint32_t firstMipLevel) {
         assert(sources.size() == destination->getArraySize());
         const auto image = static_pointer_cast<const VKImage>(destination);
         const auto stagingBuffer = make_shared<VKBuffer>(
@@ -751,7 +757,7 @@ namespace vireo {
             .bufferImageHeight = 0,
             .imageSubresource = {
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .mipLevel = 0,
+                .mipLevel = firstMipLevel,
                 .baseArrayLayer = 0,
                 .layerCount = destination->getArraySize(),
             },

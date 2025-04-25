@@ -70,6 +70,7 @@ namespace vireo {
             const ImageFormat format,
             const uint32_t    width,
             const uint32_t    height,
+            const uint32_t    mipLevels,
             const uint32_t    arraySize,
             const wstring&    name,
             const bool        useByComputeShader,
@@ -77,7 +78,7 @@ namespace vireo {
             const bool        isDepthBuffer,
             const ClearValue  clearValue,
             const MSAA        msaa):
-        Image{format, width, height, arraySize, useByComputeShader} {
+        Image{format, width, height, mipLevels, arraySize, useByComputeShader} {
         const auto dxFormat = dxFormats[static_cast<int>(format)];
         const auto samples = DXPhysicalDevice::dxSampleCount[static_cast<int>(msaa)];
         UINT quality = 0;

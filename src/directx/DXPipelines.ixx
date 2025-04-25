@@ -31,10 +31,10 @@ export namespace vireo {
 
         DXVertexInputLayout(const vector<VertexAttributeDesc>& attributesDescriptions);
 
-        const auto& getInputElementDescs() const { return inputElementDescs; }
+        const auto& getInputElementsDesc() const { return inputElementsDesc; }
 
     private:
-        vector<D3D12_INPUT_ELEMENT_DESC> inputElementDescs;
+        vector<D3D12_INPUT_ELEMENT_DESC> inputElementsDesc;
     };
 
     class DXShaderModule: public ShaderModule {

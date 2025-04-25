@@ -135,17 +135,18 @@ namespace vireo {
     }
 
     VKImage::VKImage(
-            const shared_ptr<const VKDevice>& device,
-            const ImageFormat format,
-            const uint32_t    width,
-            const uint32_t    height,
-            const uint32_t    arraySize,
-            const wstring&    name,
-            const bool        useByComputeShader,
-            const bool        isRenderTarget,
-            const bool        isDepthBuffer,
-            const MSAA        msaa):
-        Image{format, width, height, arraySize, useByComputeShader},
+        const shared_ptr<const VKDevice>& device,
+        const ImageFormat format,
+        const uint32_t    width,
+        const uint32_t    height,
+        const uint32_t    mipLevels,
+        const uint32_t    arraySize,
+        const wstring&    name,
+        const bool        useByComputeShader,
+        const bool        isRenderTarget,
+        const bool        isDepthBuffer,
+        const MSAA        msaa):
+        Image{format, width, height, mipLevels, arraySize, useByComputeShader},
         device{device} {
         const VkImageUsageFlags usage =
             isRenderTarget ?
@@ -162,7 +163,7 @@ namespace vireo {
             .imageType =  VK_IMAGE_TYPE_2D,
             .format = vkFormats[static_cast<int>(format)],
             .extent = {width, height, 1},
-            .mipLevels = 1,
+            .mipLevels = mipLevels,
             .arrayLayers = arraySize,
             .samples = VKPhysicalDevice::vkSampleCountFlag[static_cast<int>(msaa)],
             .tiling = VK_IMAGE_TILING_OPTIMAL,
@@ -203,7 +204,7 @@ namespace vireo {
             .subresourceRange = {
                 .aspectMask = static_cast<uint32_t>(aspect),
                 .baseMipLevel = 0,
-                .levelCount = 1,
+                .levelCount = mipLevels,
                 .baseArrayLayer = 0,
                 .layerCount = VK_REMAINING_ARRAY_LAYERS
             }

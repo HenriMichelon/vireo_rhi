@@ -510,6 +510,8 @@ export namespace vireo {
 
         auto getHeight() const { return height; }
 
+        auto getMipLevels() const { return mipLevels; }
+
         auto getArraySize() const { return arraySize; }
 
         auto getImageSize() const { return width * height * pixelSize[static_cast<int>(format)]; }
@@ -519,10 +521,17 @@ export namespace vireo {
         auto isReadWrite() const { return readWrite; }
 
     protected:
-        Image(const ImageFormat format, const uint32_t width, const uint32_t height, const uint32_t arraySize, const bool isReadWrite) :
+        Image(
+            const ImageFormat format,
+            const uint32_t width,
+            const uint32_t height,
+            const uint32_t mipLevels,
+            const uint32_t arraySize,
+            const bool isReadWrite) :
             format{format},
             width{width},
             height{height},
+            mipLevels{mipLevels},
             arraySize{arraySize},
             readWrite{isReadWrite} {}
 
@@ -530,6 +539,7 @@ export namespace vireo {
         const ImageFormat format;
         const uint32_t    width;
         const uint32_t    height;
+        const uint32_t    mipLevels;
         const uint32_t    arraySize;
         const bool        readWrite;
     };
@@ -674,9 +684,15 @@ export namespace vireo {
 
         virtual void upload(const shared_ptr<const Buffer>& destination, const void* source) = 0;
 
-        virtual void upload(const shared_ptr<const Image>& destination, const void* source) = 0;
+        virtual void upload(
+            const shared_ptr<const Image>& destination,
+            const void* source,
+            uint32_t firstMipLevel = 0) = 0;
 
-        virtual void upload(const shared_ptr<const Image>& destination, const vector<void*>& sources) = 0;
+        virtual void uploadArray(
+            const shared_ptr<const Image>& destination,
+            const vector<void*>& sources,
+            uint32_t firstMipLevel = 0) = 0;
 
         virtual void copy(
             const shared_ptr<const Image>& source,
@@ -922,6 +938,7 @@ export namespace vireo {
             ImageFormat format,
             uint32_t width,
             uint32_t height,
+            uint32_t mipLevels = 1,
             uint32_t arraySize = 1,
             const wstring& name = L"Image") const = 0;
 
@@ -929,6 +946,7 @@ export namespace vireo {
             ImageFormat format,
             uint32_t width,
             uint32_t height,
+            uint32_t mipLevels = 1,
             uint32_t arraySize = 1,
             const wstring& name = L"RWImage") const = 0;
 

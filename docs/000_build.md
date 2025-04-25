@@ -18,7 +18,7 @@ For Microsoft Windows :
 Standalone build
 ---------------------------------------------------------------------------
 
-- Clone the [ZeroZero repository](https://github.com/HenriMichelon/zero_zero)
+- Clone the [Vireo RHI repository](https://github.com/HenriMichelon/vireo_rhi)
 - `cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=Release` (adapt for your build tool)
 - `cmake --build build`
 
