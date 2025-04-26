@@ -109,6 +109,10 @@ namespace vireo {
         dxCheck(commandList->Close());
     }
 
+    DXCommandList::~DXCommandList() {
+        cleanup();
+    }
+
     void DXCommandList::bindPipeline(const shared_ptr<const Pipeline>& pipeline) {
         if (pipeline->getType() == PipelineType::COMPUTE) {
             commandList->SetPipelineState(static_pointer_cast<const DXComputePipeline>(pipeline)->getPipelineState().Get());

@@ -122,6 +122,10 @@ namespace vireo {
         vkCheck(vkAllocateCommandBuffers(device->getDevice(), &allocInfo, &commandBuffer));
     }
 
+    VKCommandList::~VKCommandList() {
+        cleanup();
+    }
+
     void VKCommandList::bindVertexBuffers(const vector<shared_ptr<const Buffer>>& buffers, const vector<size_t> offsets) const {
         vector<VkBuffer> vkBuffers(buffers.size());
         vector<VkDeviceSize> vkOffsets(buffers.size());

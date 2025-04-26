@@ -63,6 +63,8 @@ export namespace vireo {
             const ComPtr<ID3D12CommandAllocator>& commandAllocator,
             const ComPtr<ID3D12PipelineState>& pipelineState = nullptr);
 
+        ~DXCommandList() override;
+
         void begin() const override;
 
         void end() const override;
@@ -163,8 +165,6 @@ export namespace vireo {
         void cleanup() override;
 
         auto getCommandList() const  { return commandList; }
-
-        ~DXCommandList() override = default;
 
     private:
         ComPtr<ID3D12Device>              device;

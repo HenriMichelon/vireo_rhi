@@ -61,6 +61,8 @@ export namespace vireo {
 
         VKCommandList(const shared_ptr<const VKDevice>& device, VkCommandPool commandPool);
 
+        ~VKCommandList() override;
+
         void begin() const override;
 
         void end() const override;
