@@ -15,14 +15,16 @@ Key features :
     Graphic and compute pipelines support
     Support of graphics API validation/debug layers for easy debugging
 
-Note this library is not intended to be a full-featured abstraction of the graphics API. Functionalities are added when needed.
+**Note** : this library is not intended to be a full-featured abstraction of the graphics API. Functionalities are added when needed.
 
 Released under the [MIT license](https://raw.githubusercontent.com/HenriMichelon/zero_zero/main/LICENSE.txt).
 
 [GitHub project page](https://github.com/HenriMichelon/vireo_rhi)
 
-Examples
+Tutorials & examples
 ---------------------------------------------------------------------------
+
+- Tutorial ["Hello triangle"](https://henrimichelon.github.io/Vireo/md_001_tutorial_triangle.html)
 - [Samples repository](https://github.com/HenriMichelon/vireo_samples)
 
 Contact

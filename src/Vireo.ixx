@@ -1227,13 +1227,13 @@ export namespace vireo {
 
         /**
          * Set the viewports for a command list
-         * @param extent An array of `Extent` structures specifying viewport parameters.
+         * @param extents An array of `Extent` structures specifying viewport parameters.
          */
         virtual void setViewports(const vector<Extent>& extents) const = 0;
 
         /**
          * Set the scissors for a command list
-         * @param extent An array of `Extent` structures specifying viewport parameters.
+         * @param extents An array of `Extent` structures specifying viewport parameters.
          */
         virtual void setScissors(const vector<Extent>& extents) const = 0;
 
