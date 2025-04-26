@@ -1227,17 +1227,27 @@ export namespace vireo {
 
         /**
          * Set the viewports for a command list
-         * @param count The number of viewports whose parameters are updated by the command
          * @param extent An array of `Extent` structures specifying viewport parameters.
          */
-        virtual void setViewports(uint32_t count, const vector<Extent>& extent) const = 0;
+        virtual void setViewports(const vector<Extent>& extents) const = 0;
 
         /**
          * Set the scissors for a command list
-         * @param count The number of scissors whose parameters are updated by the command
          * @param extent An array of `Extent` structures specifying viewport parameters.
          */
-        virtual void setScissors(uint32_t count, const vector<Extent>& extent) const = 0;
+        virtual void setScissors(const vector<Extent>& extents) const = 0;
+
+        /**
+        * Set the viewport for a command list
+        * @param extent An array of `Extent` structures specifying viewport parameters.
+        */
+        virtual void setViewport(const Extent& extent) const = 0;
+
+        /**
+         * Set the scissors for a command list
+         * @param extent An array of `Extent` structures specifying viewport parameters.
+         */
+        virtual void setScissors(const Extent& extent) const = 0;
 
         /**
          * Insert a memory dependency

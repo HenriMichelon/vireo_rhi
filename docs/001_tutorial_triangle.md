@@ -13,6 +13,8 @@ This tutorial assumes that the reader already knows the basic concepts of the
 modern graphics API like Vulkan or DirectX 12, like pipelines, descriptors,
 resources, buffers, barriers, ...
 
+Sources of the tutorial are available at https://github.com/HenriMichelon/vireo_tutorial_1
+
 ## Development environment
 
 Since Vireo currently only supports Microsoft Windows this tutorial assumes that
@@ -382,4 +384,4 @@ pass :
     // commands will be recorded and submitted here
     ...
 
-
+## 

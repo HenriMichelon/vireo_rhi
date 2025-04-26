@@ -127,9 +127,13 @@ export namespace vireo {
             uint32_t vertexOffset = 0,
             uint32_t firstInstance = 0) const override;
 
-        void setViewports(uint32_t count, const vector<Extent>& extent) const override;
+        void setViewports(const vector<Extent>& extents) const override;
 
-        void setScissors(uint32_t count, const vector<Extent>& extent) const override;
+        void setScissors(const vector<Extent>& extents) const override;
+
+        void setViewport(const Extent& extent) const override;
+
+        void setScissors(const Extent& extent) const override;
 
         void barrier(
             const shared_ptr<const Image>& image,

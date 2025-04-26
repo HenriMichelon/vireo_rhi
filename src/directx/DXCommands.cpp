@@ -145,30 +145,52 @@ namespace vireo {
         }
     }
 
-    void DXCommandList::setViewports(const uint32_t count, const vector<Extent>& extent) const {
-        vector<CD3DX12_VIEWPORT> viewports(count);
-        for (int i = 0; i < count; i++) {
+    void DXCommandList::setViewports(const vector<Extent>& extents) const {
+        vector<CD3DX12_VIEWPORT> viewports(extents.size());
+        for (int i = 0; i < viewports.size(); i++) {
             viewports[i].TopLeftX = 0.0f;
             viewports[i].TopLeftY = 0.0f;
-            viewports[i].Width = static_cast<FLOAT>(extent[i].width);
-            viewports[i].Height = static_cast<FLOAT>(extent[i].height);
+            viewports[i].Width = static_cast<FLOAT>(extents[i].width);
+            viewports[i].Height = static_cast<FLOAT>(extents[i].height);
             viewports[i].MinDepth = 0.0f;
             viewports[i].MaxDepth = 1.0f;
         }
-        commandList->RSSetViewports(count, viewports.data());
+        commandList->RSSetViewports(viewports.size(), viewports.data());
     }
 
-    void DXCommandList::setScissors(const uint32_t count, const vector<Extent>& extent) const {
-        vector<CD3DX12_RECT> scissors(count);
-        for (int i = 0; i < count; i++) {
+    void DXCommandList::setScissors(const vector<Extent>& extents) const {
+        vector<CD3DX12_RECT> scissors(extents.size());
+        for (int i = 0; i < scissors.size(); i++) {
             scissors[i].left = 0;
             scissors[i].top = 0;
-            scissors[i].right = extent[i].width;
-            scissors[i].bottom = extent[i].height;
+            scissors[i].right = extents[i].width;
+            scissors[i].bottom = extents[i].height;
         }
-        commandList->RSSetScissorRects(1, scissors.data());
+        commandList->RSSetScissorRects(scissors.size(), scissors.data());
     }
 
+
+    void DXCommandList::setViewport(const Extent& extent) const {
+        const auto viewport = D3D12_VIEWPORT{
+            .TopLeftX = 0.0f,
+            .TopLeftY = 0.0f,
+            .Width = static_cast<FLOAT>(extent.width),
+            .Height = static_cast<FLOAT>(extent.height),
+            .MinDepth = 0.0f,
+            .MaxDepth = 1.0f,
+        };
+        commandList->RSSetViewports(1, &viewport);
+    }
+
+    void DXCommandList::setScissors(const Extent& extent) const {
+        const auto scissor = D3D12_RECT{
+            .left = 0,
+            .top = 0,
+            .right = static_cast<LONG>(extent.width),
+            .bottom = static_cast<LONG>(extent.height),
+        };
+        commandList->RSSetScissorRects(1, &scissor);
+    }
 
     void DXCommandList::beginRendering(const RenderingConfiguration& conf) {
         const auto dxDepthImage =

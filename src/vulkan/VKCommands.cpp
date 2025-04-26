@@ -200,29 +200,48 @@ namespace vireo {
                                 nullptr);
     }
 
-    void VKCommandList::setViewports(const uint32_t count, const vector<Extent>& extent) const {
-        vector<VkViewport> viewports(count);
-        for (int i = 0; i < count; i++) {
+    void VKCommandList::setViewports(const vector<Extent>& extents) const {
+        vector<VkViewport> viewports(extents.size());
+        for (int i = 0; i < viewports.size(); i++) {
             viewports[i].x = 0.0f;
-            viewports[i].y = static_cast<float>(extent[i].height),
-            viewports[i].width = static_cast<float>(extent[i].width);
-            viewports[i].height = -static_cast<float>(extent[i].height);
+            viewports[i].y = static_cast<float>(extents[i].height),
+            viewports[i].width = static_cast<float>(extents[i].width);
+            viewports[i].height = -static_cast<float>(extents[i].height);
             viewports[i].minDepth = 0.0f;
             viewports[i].maxDepth = 1.0f;
         }
-        vkCmdSetViewportWithCount(commandBuffer, count, viewports.data());
+        vkCmdSetViewportWithCount(commandBuffer, viewports.size(), viewports.data());
     }
 
-    void VKCommandList::setScissors(const uint32_t count, const vector<Extent>& extent) const {
-        vector<VkRect2D> scissors(count);
-        for (int i = 0; i < count; i++) {
+    void VKCommandList::setScissors(const vector<Extent>& extents) const {
+        vector<VkRect2D> scissors(extents.size());
+        for (int i = 0; i < scissors.size(); i++) {
             scissors[i].offset = {0, 0};
-            scissors[i].extent.width = extent[i].width;
-            scissors[i].extent.height = extent[i].height;
+            scissors[i].extent.width = extents[i].width;
+            scissors[i].extent.height = extents[i].height;
         }
-        vkCmdSetScissorWithCount(commandBuffer, count, scissors.data());
+        vkCmdSetScissorWithCount(commandBuffer, scissors.size(), scissors.data());
     }
 
+    void VKCommandList::setViewport(const Extent& extent) const {
+        const auto viewport = VkViewport {
+            .x = 0.0f,
+            .y = static_cast<float>(extent.height),
+            .width = static_cast<float>(extent.width),
+            .height = -static_cast<float>(extent.height),
+            .minDepth = 0.0f,
+            .maxDepth = 1.0f,
+        };
+        vkCmdSetViewportWithCount(commandBuffer, 1, &viewport);
+    }
+
+    void VKCommandList::setScissors(const Extent& extent) const {
+        const auto scissor = VkRect2D{
+            .offset = {0, 0},
+            .extent = { extent.width, extent.height },
+        };
+        vkCmdSetScissorWithCount(commandBuffer, 1, &scissor);
+    }
     void VKCommandList::beginRendering(const RenderingConfiguration& conf) {
         uint32_t width{0}, height{0};
         const auto vkDepthImage =
