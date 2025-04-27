@@ -255,8 +255,12 @@ namespace vireo {
             depthAttachmentInfo.imageView   = vkDepthImage->getImageView();
             depthAttachmentInfo.sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
             depthAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-            depthAttachmentInfo.loadOp      = conf.clearDepth ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD,
-            depthAttachmentInfo.storeOp     = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            depthAttachmentInfo.loadOp      = conf.clearDepth ?
+                VK_ATTACHMENT_LOAD_OP_CLEAR :
+                VK_ATTACHMENT_LOAD_OP_LOAD,
+            depthAttachmentInfo.storeOp     = conf.discardDepthAfterRender ?
+                VK_ATTACHMENT_STORE_OP_DONT_CARE :
+                VK_ATTACHMENT_STORE_OP_STORE,
             depthAttachmentInfo.clearValue  = {
                 .depthStencil = {
                     .depth = conf.depthClearValue.depthStencil.depth,
@@ -291,8 +295,12 @@ namespace vireo {
             if (colorImageView) {
                 colorAttachmentsInfo[i].sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
                 colorAttachmentsInfo[i].imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-                colorAttachmentsInfo[i].loadOp      = conf.colorRenderTargets[i].clearColor ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
-                colorAttachmentsInfo[i].storeOp     = VK_ATTACHMENT_STORE_OP_STORE;
+                colorAttachmentsInfo[i].loadOp      = conf.colorRenderTargets[i].clearColor ?
+                    VK_ATTACHMENT_LOAD_OP_CLEAR :
+                    VK_ATTACHMENT_LOAD_OP_LOAD;
+                colorAttachmentsInfo[i].storeOp     = conf.colorRenderTargets[i].discardAfterRender ?
+                    VK_ATTACHMENT_STORE_OP_DONT_CARE :
+                    VK_ATTACHMENT_STORE_OP_STORE;
                 colorAttachmentsInfo[i].clearValue  = {
                     conf.colorRenderTargets[i].clearColorValue.color[0],
                     conf.colorRenderTargets[i].clearColorValue.color[1],
@@ -452,6 +460,14 @@ namespace vireo {
             srcLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             dstLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
             aspectFlag = VK_IMAGE_ASPECT_DEPTH_BIT;
+        } else if (oldState == ResourceState::RENDER_TARGET_DEPTH_STENCIL && newState == ResourceState::RENDER_TARGET_DEPTH_STENCIL_READ) {
+            srcStage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+            srcAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+            dstAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+            aspectFlag = VK_IMAGE_ASPECT_DEPTH_BIT;
         } else if (oldState == ResourceState::RENDER_TARGET_COLOR && newState == ResourceState::COPY_SRC) {
             srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
             dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
@@ -577,6 +593,14 @@ namespace vireo {
             srcAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
             dstAccess = 0;
             srcLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_GENERAL;
+            aspectFlag = VK_IMAGE_ASPECT_DEPTH_BIT;
+        } else if (oldState == ResourceState::RENDER_TARGET_DEPTH_STENCIL_READ && newState == ResourceState::UNDEFINED) {
+            srcStage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+            srcAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+            dstAccess = 0;
+            srcLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_GENERAL;
             aspectFlag = VK_IMAGE_ASPECT_DEPTH_BIT;
         } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::DISPATCH_TARGET) {

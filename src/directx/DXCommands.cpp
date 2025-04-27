@@ -213,6 +213,9 @@ namespace vireo {
                 D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
                 conf.depthClearValue.depthStencil.depth, conf.depthClearValue.depthStencil.stencil,
                 0, nullptr);
+            if (conf.discardDepthAfterRender) {
+                depthTargetToDiscard = static_pointer_cast<DXImage>(dxDepthImage->getImage())->getImage();
+            }
         }
 
         auto rtvHandles = vector<D3D12_CPU_DESCRIPTOR_HANDLE>(conf.colorRenderTargets.size()) ;
@@ -252,6 +255,9 @@ namespace vireo {
                     conf.colorRenderTargets[i].clearColorValue.color[3]
                 };
                 commandList->ClearRenderTargetView(rtvHandles[i], clearColor, 0, nullptr);
+            }
+            if (conf.colorRenderTargets[i].discardAfterRender) {
+                colorTargetsToDiscard.push_back(static_pointer_cast<DXImage>(dxColorImage->getImage())->getImage());
             }
         }
 
@@ -298,6 +304,15 @@ namespace vireo {
         }
         resolveSource.clear();
         resolveDestination.clear();
+
+        if (depthTargetToDiscard) {
+            commandList->DiscardResource(depthTargetToDiscard.Get(), nullptr);
+            depthTargetToDiscard = nullptr;
+        }
+        for (auto& colorTarget : colorTargetsToDiscard) {
+            commandList->DiscardResource(colorTarget.Get(), nullptr);
+        }
+        colorTargetsToDiscard.clear();
     }
 
     void DXCommandList::dispatch(const uint32_t x, const uint32_t y, const uint32_t z) const {
@@ -362,6 +377,9 @@ namespace vireo {
         } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::RENDER_TARGET_DEPTH_STENCIL) {
             srcState = D3D12_RESOURCE_STATE_COMMON;
             dstState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+        } else if (oldState == ResourceState::RENDER_TARGET_DEPTH_STENCIL && newState == ResourceState::RENDER_TARGET_DEPTH_STENCIL_READ) {
+            srcState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+            dstState = D3D12_RESOURCE_STATE_DEPTH_READ;
         } else if (oldState == ResourceState::COMPUTE_READ && newState == ResourceState::UNDEFINED) {
             srcState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
             dstState = D3D12_RESOURCE_STATE_COMMON;
@@ -403,6 +421,9 @@ namespace vireo {
             dstState = D3D12_RESOURCE_STATE_COMMON;
         } else if (oldState == ResourceState::RENDER_TARGET_DEPTH_STENCIL && newState == ResourceState::UNDEFINED) {
             srcState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+            dstState = D3D12_RESOURCE_STATE_COMMON;
+        } else if (oldState == ResourceState::RENDER_TARGET_DEPTH_STENCIL_READ && newState == ResourceState::UNDEFINED) {
+            srcState = D3D12_RESOURCE_STATE_DEPTH_READ;
             dstState = D3D12_RESOURCE_STATE_COMMON;
         } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::DISPATCH_TARGET) {
             srcState = D3D12_RESOURCE_STATE_COPY_SOURCE;

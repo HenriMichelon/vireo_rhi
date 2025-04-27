@@ -173,6 +173,8 @@ export namespace vireo {
         vector<ComPtr<ID3D12Resource>>    stagingBuffers{};
         vector<shared_ptr<Image>>         resolveSource;
         vector<ComPtr<ID3D12Resource>>    resolveDestination;
+        ComPtr<ID3D12Resource>            depthTargetToDiscard;
+        vector<ComPtr<ID3D12Resource>>    colorTargetsToDiscard;
 
         static void convertState(
             ResourceState oldState,

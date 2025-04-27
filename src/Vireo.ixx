@@ -404,6 +404,8 @@ export namespace vireo {
         RENDER_TARGET_COLOR,
         //! Used as a depth or stencil attachment in the graphics pipeline
         RENDER_TARGET_DEPTH_STENCIL,
+        //! Used as a depth or stencil attachment in the graphics pipeline
+        RENDER_TARGET_DEPTH_STENCIL_READ,
         //! Used as a read/write image with a compute pipeline
         DISPATCH_TARGET,
         //! Used for presenting a presentable image for display.
@@ -1035,9 +1037,11 @@ export namespace vireo {
         //! Multisampled color attachment. `nullptr` if MSAA is disabled for the current pipeline.
         shared_ptr<RenderTarget> multisampledRenderTarget{nullptr};
         //! Clear the color attachment if `true`
-        bool                     clearColor{true};
+        bool                     clearColor{false};
         //! Color clear value
         ClearValue               clearColorValue{ .color = {0.0f, 0.0f, 0.0f, 0.0f} };
+        //! Discard the content after rendering
+        bool                     discardAfterRender{false};
     };
 
     /**
@@ -1051,9 +1055,11 @@ export namespace vireo {
         //! Multisampled depth attachment. `nullptr` if MSAA is disabled for the current pipeline.
         shared_ptr<RenderTarget>  multisampledDepthRenderTarget{nullptr};
         //! Clear the depth attachment if `true`
-        bool                      clearDepth{true};
+        bool                      clearDepth{false};
         //! Depth & stencil clear value
         ClearValue                depthClearValue{ .depthStencil = {1.0f, 0} };
+        //! Discard the content of the depth attachment after rendering
+        bool                      discardDepthAfterRender{false};
     };
 
 
@@ -1393,7 +1399,7 @@ export namespace vireo {
         /**
          * Returns the swap chain extent
          */
-        const auto& getExtent() const { return extent; }
+        const Extent& getExtent() const { return extent; }
 
         /**
          * Returns the swap chain with/height ratio
