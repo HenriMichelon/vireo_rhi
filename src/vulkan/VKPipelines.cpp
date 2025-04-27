@@ -147,25 +147,26 @@ namespace vireo {
         device{device} {
         assert(vertexShader || fragmentShader);
         assert(configuration.colorRenderFormats.size() == configuration.colorBlendDesc.size());
-        const auto vertexShaderModule = static_pointer_cast<const VKShaderModule>(vertexShader)->getShaderModule();
-        const auto fragmentShaderModule = static_pointer_cast<const VKShaderModule>(fragmentShader)->getShaderModule();
         const auto& vkVertexInputLayout = static_pointer_cast<const VKVertexInputLayout>(vertexInputLayout);
         const auto& vkPipelineLayout = static_pointer_cast<const VKPipelineResources>(pipelineResources);
 
-        const auto shaderStages = vector<VkPipelineShaderStageCreateInfo> {
-            {
+        auto shaderStages = vector<VkPipelineShaderStageCreateInfo>{};
+        if (vertexShader) {
+            shaderStages.push_back({
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .stage = VK_SHADER_STAGE_VERTEX_BIT,
-                .module = vertexShaderModule,
+                .module = static_pointer_cast<const VKShaderModule>(vertexShader)->getShaderModule(),
                 .pName = "main",
-            },
-            {
+            });
+        }
+        if (fragmentShader) {
+            shaderStages.push_back({
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
-                .module = fragmentShaderModule,
+                .module = static_pointer_cast<const VKShaderModule>(fragmentShader)->getShaderModule(),
                 .pName = "main"
-            }
-        };
+            });
+        }
         const auto vertexInputInfo = VkPipelineVertexInputStateCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
             .vertexBindingDescriptionCount = 1,

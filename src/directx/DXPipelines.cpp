@@ -152,8 +152,6 @@ namespace vireo {
         assert(configuration.colorRenderFormats.size() == configuration.colorBlendDesc.size());
         const auto dxVertexInputLayout = static_pointer_cast<const DXVertexInputLayout>(vertexInputLayout);
         const auto dxPipelineResources = static_pointer_cast<const DXPipelineResources>(pipelineResources);
-        const auto dxVertexShader = static_pointer_cast<const DXShaderModule>(vertexShader);
-        const auto dxPixelShader = static_pointer_cast<const DXShaderModule>(fragmentShader);
 
         auto rasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
         rasterizerState.FillMode = configuration.polygonMode == PolygonMode::FILL ? D3D12_FILL_MODE_SOLID  : D3D12_FILL_MODE_WIREFRAME;
@@ -183,8 +181,6 @@ namespace vireo {
 
         auto psoDesc = D3D12_GRAPHICS_PIPELINE_STATE_DESC {
             .pRootSignature = dxPipelineResources->getRootSignature().Get(),
-            .VS = CD3DX12_SHADER_BYTECODE(dxVertexShader->getShader().Get()),
-            .PS = CD3DX12_SHADER_BYTECODE(dxPixelShader->getShader().Get()),
             .BlendState = {
                 .AlphaToCoverageEnable = configuration.alphaToCoverageEnable,
                 .IndependentBlendEnable = FALSE
@@ -204,6 +200,12 @@ namespace vireo {
                 .Quality = quality
             }
         };
+        if (vertexShader) {
+            psoDesc.VS = CD3DX12_SHADER_BYTECODE(static_pointer_cast<const DXShaderModule>(vertexShader)->getShader().Get());
+        }
+        if (fragmentShader) {
+            psoDesc.PS = CD3DX12_SHADER_BYTECODE(static_pointer_cast<const DXShaderModule>(fragmentShader)->getShader().Get());
+        }
         for (int i = 0; i < configuration.colorRenderFormats.size(); i++) {
             psoDesc.RTVFormats[i] = DXImage::dxFormats[static_cast<int>(configuration.colorRenderFormats[i])];
             psoDesc.BlendState.RenderTarget[i].BlendEnable   = configuration.colorBlendDesc[i].blendEnable;
