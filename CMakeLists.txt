@@ -9,6 +9,7 @@ cmake_minimum_required(VERSION 3.29)
 #######################################################
 project(vireo_rhi)
 set(VIREO_TARGET ${PROJECT_NAME})
+set(DIRECTX_BACKEND OFF)
 
 #######################################################
 set(CMAKE_CXX_STANDARD 23)
@@ -25,6 +26,9 @@ add_compile_definitions(VK_NO_PROTOTYPES)
 if(WIN32)
     add_compile_definitions(VK_USE_PLATFORM_WIN32_KHR WIN32_LEAN_AND_MEAN UNICODE _UNICODE)
 endif ()
+if (DIRECTX_BACKEND)
+    add_compile_definitions(DIRECTX_BACKEND)
+endif ()
 
 #######################################################
 include(FetchContent)
@@ -37,8 +41,8 @@ set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 #######################################################
-add_library(${VIREO_TARGET} STATIC
-        ${SRC_DIR}/Vireo.cpp
+if (${DIRECTX_BACKEND})
+set(DIRECTX_SOURCES
         ${SRC_DIR}/directx/DXCommands.cpp
         ${SRC_DIR}/directx/DXDescriptors.cpp
         ${SRC_DIR}/directx/DXDevices.cpp
@@ -46,6 +50,11 @@ add_library(${VIREO_TARGET} STATIC
         ${SRC_DIR}/directx/DXResources.cpp
         ${SRC_DIR}/directx/DXSwapChains.cpp
         ${SRC_DIR}/directx/DXVireo.cpp
+)
+endif ()
+add_library(${VIREO_TARGET} STATIC
+        ${SRC_DIR}/Vireo.cpp
+        ${DIRECTX_SOURCES}
         ${SRC_DIR}/vulkan/VKCommands.cpp
         ${SRC_DIR}/vulkan/VKDevices.cpp
         ${SRC_DIR}/vulkan/VKDescriptors.cpp
@@ -56,12 +65,8 @@ add_library(${VIREO_TARGET} STATIC
         ${SRC_DIR}/vulkan/Vulkan.cpp
 )
 
-target_sources(${VIREO_TARGET}
-    PUBLIC
-    FILE_SET CXX_MODULES
-    FILES
-        ${SRC_DIR}/Tools.ixx
-        ${SRC_DIR}/Vireo.ixx
+if (${DIRECTX_BACKEND})
+set(DIRECTX_MODULES
         ${SRC_DIR}/directx/DXCommands.ixx
         ${SRC_DIR}/directx/DXDescriptors.ixx
         ${SRC_DIR}/directx/DXDevices.ixx
@@ -70,6 +75,15 @@ target_sources(${VIREO_TARGET}
         ${SRC_DIR}/directx/DXSwapChains.ixx
         ${SRC_DIR}/directx/DXTools.ixx
         ${SRC_DIR}/directx/DXVireo.ixx
+)
+endif ()
+target_sources(${VIREO_TARGET}
+    PUBLIC
+    FILE_SET CXX_MODULES
+    FILES
+        ${SRC_DIR}/Tools.ixx
+        ${SRC_DIR}/Vireo.ixx
+        ${DIRECTX_MODULES}
         ${SRC_DIR}/vulkan/VKCommands.ixx
         ${SRC_DIR}/vulkan/VKDevices.ixx
         ${SRC_DIR}/vulkan/VKDescriptors.ixx
@@ -81,7 +95,10 @@ target_sources(${VIREO_TARGET}
 )
 
 compile_options(${VIREO_TARGET})
-target_include_directories(${VIREO_TARGET} PRIVATE ${INCLUDE_DIR} ${Vulkan_INCLUDE_DIRS} ${DirectXH_DIR}/include/directx)
+target_include_directories(${VIREO_TARGET} PRIVATE ${INCLUDE_DIR} ${Vulkan_INCLUDE_DIRS})
+if(DIRECTX_BACKEND)
+target_include_directories(${VIREO_TARGET} PRIVATE ${DirectXH_DIR}/include/directx)
+endif ()
 target_link_libraries(${VIREO_TARGET} std-cxx-modules)
 if(MSVC)
 target_precompile_headers(${VIREO_TARGET} PRIVATE
@@ -93,6 +110,11 @@ if(WIN32)
     target_precompile_headers(${VIREO_TARGET} PRIVATE
             "<windows.h>"
             "<cstdint>"
+    )
+    set_target_properties(${VIREO_TARGET} PROPERTIES WIN32_EXECUTABLE TRUE)
+endif ()
+if (DIRECTX_BACKEND)
+    target_precompile_headers(${VIREO_TARGET} PRIVATE
             "<d3d12.h>"
             "<d3dx12.h>"
             "<dxgi1_6.h>"
@@ -101,5 +123,4 @@ if(WIN32)
             "<wrl.h>"
     )
     target_link_libraries(${VIREO_TARGET} DirectX-Headers dxgi d3d12)
-    set_target_properties(${VIREO_TARGET} PROPERTIES WIN32_EXECUTABLE TRUE)
 endif()

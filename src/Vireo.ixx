@@ -1676,16 +1676,17 @@ export namespace vireo {
         /**
          * Creates a texture sampler.
          */
-        virtual shared_ptr<Sampler> createSampler(
-            Filter minFilter,
-            Filter magFilter,
-            AddressMode addressModeU,
-            AddressMode addressModeV,
-            AddressMode addressModeW,
-            float minLod = 0.0f,
-            float maxLod = 1.0f,
-            bool anisotropyEnable = true,
-            MipMapMode mipMapMode = MipMapMode::LINEAR) const = 0;
+        virtual shared_ptr<Sampler> createSampler(Filter minFilter,
+                                                  Filter magFilter,
+                                                  AddressMode addressModeU,
+                                                  AddressMode addressModeV,
+                                                  AddressMode addressModeW,
+                                                  float minLod = 0.0f,
+                                                  float maxLod = 1.0f,
+                                                  bool anisotropyEnable = true,
+                                                  MipMapMode mipMapMode = MipMapMode::LINEAR) const = 0;
+
+        static bool isBackendSupported(Backend backend);
 
     protected:
         shared_ptr<Instance>        instance;

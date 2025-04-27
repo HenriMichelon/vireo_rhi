@@ -45,6 +45,7 @@ function(compile_options TARGET_NAME )
         )
         target_link_libraries(${TARGET_NAME} -static)
         if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+            add_compile_definitions(_DEBUG)
             target_compile_options(${TARGET_NAME} PRIVATE
                     -O0
             )

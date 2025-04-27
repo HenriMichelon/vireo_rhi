@@ -10,7 +10,7 @@ module vireo;
 
 import vireo.tools;
 
-#ifdef _WIN32
+#ifdef DIRECTX_BACKEND
 import vireo.directx;
 #endif
 import vireo.vulkan;
@@ -21,10 +21,16 @@ namespace vireo {
         if (backend == Backend::VULKAN) {
             return make_unique<VKVireo>();
         }
-#ifdef _WIN32
+#ifdef DIRECTX_BACKEND
         return make_unique<DXVireo>();
 #endif
         throw Exception("Unsupported backend");
     }
 
+    bool Vireo::isBackendSupported(const Backend backend) {
+#ifdef DIRECTX_BACKEND
+        if (backend == Backend::DIRECTX) { return true; }
+#endif
+        return backend == Backend::VULKAN;
+    }
 }

@@ -49,10 +49,6 @@ export namespace vireo {
 export namespace std {
 
 #ifdef _WIN32
-
-#include <string>
-#include <windows.h>
-
     inline std::string to_string(const std::wstring& wstr) {
         if (wstr.empty())
             return {};
@@ -70,7 +66,6 @@ export namespace std {
         MultiByteToWideChar(CP_UTF8, 0, str.data(), static_cast<int>(str.size()), result.data(), size_needed);
         return result;
     }
-
 #else
 
     inline string to_string(const wstring &wstr) {
