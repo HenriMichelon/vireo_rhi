@@ -9,7 +9,7 @@ cmake_minimum_required(VERSION 3.29)
 #######################################################
 project(vireo_rhi)
 set(VIREO_TARGET ${PROJECT_NAME})
-set(DIRECTX_BACKEND OFF)
+set(DIRECTX_BACKEND ON)
 
 #######################################################
 set(CMAKE_CXX_STANDARD 23)
