@@ -463,6 +463,20 @@ export namespace vireo {
     using DescriptorIndex = uint32_t;
 
     /**
+     * Description of a video adapter
+     */
+    struct PhysicalDeviceDesc {
+        //! Adapter name
+        wstring name{L"Unknown"};
+        //! The number of bytes of dedicated video memory that are not shared with the CPU.
+        size_t  dedicatedVideoMemory{0};
+        //! The number of bytes of dedicated system memory that are not shared with the CPU
+        size_t  dedicatedSystemMemory{0};
+        //! The number of bytes of shared system memory
+        size_t  sharedSystemMemory{0};
+    };
+
+    /**
      * A two-dimensional extent
      */
     struct Extent {
@@ -584,6 +598,8 @@ export namespace vireo {
     class PhysicalDevice {
     public:
         virtual ~PhysicalDevice() = default;
+
+        virtual const PhysicalDeviceDesc getDescription() const = 0;
 
     protected:
         PhysicalDevice() = default;
@@ -1687,6 +1703,12 @@ export namespace vireo {
                                                   MipMapMode mipMapMode = MipMapMode::LINEAR) const = 0;
 
         static bool isBackendSupported(Backend backend);
+
+        auto getPhysicalDevice() const { return physicalDevice; }
+
+        auto getDevice() const { return device; }
+
+        auto getInstance() const { return instance; }
 
     protected:
         shared_ptr<Instance>        instance;

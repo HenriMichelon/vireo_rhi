@@ -309,6 +309,30 @@ namespace vireo {
         return requiredExtensions.empty();
     }
 
+    // https://dev.to/reg__/there-is-a-way-to-query-gpu-memory-usage-in-vulkan---use-dxgi-1f0d
+    const PhysicalDeviceDesc VKPhysicalDevice::getDescription() const {
+        PhysicalDeviceDesc result;
+        IDXGIFactory4 *dxgiFactory{nullptr};
+        if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory)))) { return result; }
+        IDXGIAdapter1 *tmpDxgiAdapter{nullptr};
+        UINT           adapterIndex{0};
+        IDXGIAdapter3 *dxgiAdapter{nullptr};
+        while (dxgiFactory->EnumAdapters1(adapterIndex, &tmpDxgiAdapter) != DXGI_ERROR_NOT_FOUND) {
+            DXGI_ADAPTER_DESC1 desc;
+            if (FAILED(tmpDxgiAdapter->GetDesc1(&desc))) { return result; }
+            if (memcmp(&desc.AdapterLuid, physDeviceIDProps.deviceLUID, VK_LUID_SIZE) == 0) {
+                if (FAILED(tmpDxgiAdapter->QueryInterface(IID_PPV_ARGS(&dxgiAdapter)))) { return result; }
+                result.name = desc.Description;
+                result.dedicatedVideoMemory = desc.DedicatedVideoMemory;
+                result.dedicatedSystemMemory = desc.DedicatedSystemMemory;
+                result.sharedSystemMemory = desc.SharedSystemMemory;
+            }
+            tmpDxgiAdapter->Release();
+            ++adapterIndex;
+        }
+        dxgiFactory->Release();
+        return result;
+    }
 
     VKDevice::VKDevice(const VKPhysicalDevice& physicalDevice, const vector<const char *>& requestedLayers):
         physicalDevice{physicalDevice} {

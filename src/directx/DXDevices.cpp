@@ -45,14 +45,17 @@ namespace vireo {
                 dxCheck(hardwareAdapter.As(&hardwareAdapter4));
             }
         }
+    }
+
+    const PhysicalDeviceDesc DXPhysicalDevice::getDescription() const {
         DXGI_ADAPTER_DESC3 desc;
-        const HRESULT hr = hardwareAdapter4->GetDesc3(&desc);
-        if (SUCCEEDED(hr)) {
-            wstring adapterName = desc.Description;
-            wcout << L"Display Adapter Name: " << adapterName << endl;
-        } else {
-            cerr << "Failed to get adapter description." << endl;
-        }
+        dxCheck(hardwareAdapter4->GetDesc3(&desc));
+        return {
+            desc.Description,
+            desc.DedicatedVideoMemory,
+            desc.DedicatedSystemMemory,
+            desc.SharedSystemMemory,
+        };
     }
 
     DXDevice::DXDevice(const ComPtr<IDXGIAdapter4>& hardwareAdapter4) {

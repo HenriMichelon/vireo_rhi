@@ -79,6 +79,8 @@ export namespace vireo {
 
         auto getSampleCount() const { return sampleCount; }
 
+        const PhysicalDeviceDesc getDescription() const override;
+
     private:
         VkInstance                   instance{VK_NULL_HANDLE};
         VkPhysicalDevice             physicalDevice{VK_NULL_HANDLE};
