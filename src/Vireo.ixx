@@ -1497,7 +1497,7 @@ export namespace vireo {
         /**
          * Creates a new Vireo class using the given backend
          */
-        static std::unique_ptr<Vireo> create(Backend backend);
+        static std::shared_ptr<Vireo> create(Backend backend);
 
         virtual ~Vireo() = default;
 

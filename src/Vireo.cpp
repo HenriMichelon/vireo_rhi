@@ -15,12 +15,12 @@ import vireo.directx;
 
 namespace vireo {
 
-    std::unique_ptr<Vireo> Vireo::create(const Backend backend) {
+    std::shared_ptr<Vireo> Vireo::create(const Backend backend) {
         if (backend == Backend::VULKAN) {
-            return std::make_unique<VKVireo>();
+            return std::make_shared<VKVireo>();
         }
 #ifdef DIRECTX_BACKEND
-        return std::make_unique<DXVireo>();
+        return std::make_shared<DXVireo>();
 #endif
         throw Exception("Unsupported backend");
     }
