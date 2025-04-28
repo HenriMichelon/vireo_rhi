@@ -550,7 +550,7 @@ For rendering in a color attachment you need :
 
 Add a basic configuration in your application with only one color attachment :
 
-    const vireo::GraphicPipelineConfiguration pipelineConfig {
+    vireo::GraphicPipelineConfiguration pipelineConfig {
        .colorRenderFormats = {vireo::ImageFormat::R8G8B8A8_SRGB},
        .colorBlendDesc = {{}}
     };
@@ -561,12 +561,11 @@ Then add the pipeline field :
 
 and the pipeline creation just after the shader modules creation in `onInit()`:
 
-    pipeline = vireo->createGraphicPipeline(
-        vireo->createPipelineResources({}, {}),
-        vertexLayout,
-        vertexShader,
-        fragmentShader,
-        pipelineConfig);
+    pipelineConfig.resources = vireo->createPipelineResources();
+    pipelineConfig.vertexInputLayout = vertexLayout;
+    pipelineConfig.vertexShader = vertexShader;
+    pipelineConfig.fragmentShader = fragmentShader;
+    defaultPipeline = vireo->createGraphicPipeline(pipelineConfig);
 
 We use an empty pipeline resource object since our shader only uses the vertex 
 input described by the vertex layout.
