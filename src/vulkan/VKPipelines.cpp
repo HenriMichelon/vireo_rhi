@@ -137,43 +137,42 @@ namespace vireo {
 
     VKGraphicPipeline::VKGraphicPipeline(
            const shared_ptr<VKDevice>& device,
-           const shared_ptr<PipelineResources>& pipelineResources,
-           const shared_ptr<const VertexInputLayout>& vertexInputLayout,
-           const shared_ptr<const ShaderModule>& vertexShader,
-           const shared_ptr<const ShaderModule>& fragmentShader,
            const GraphicPipelineConfiguration& configuration,
            const wstring& name):
-        GraphicPipeline{pipelineResources},
+        GraphicPipeline{configuration.resources},
         device{device} {
-        assert(vertexShader || fragmentShader);
+        assert(configuration.vertexShader || configuration.fragmentShader);
         assert(configuration.colorRenderFormats.size() == configuration.colorBlendDesc.size());
-        const auto& vkVertexInputLayout = static_pointer_cast<const VKVertexInputLayout>(vertexInputLayout);
-        const auto& vkPipelineLayout = static_pointer_cast<const VKPipelineResources>(pipelineResources);
+        const auto& vkPipelineLayout = static_pointer_cast<const VKPipelineResources>(configuration.resources);
 
         auto shaderStages = vector<VkPipelineShaderStageCreateInfo>{};
-        if (vertexShader) {
+        if (configuration.vertexShader) {
             shaderStages.push_back({
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .stage = VK_SHADER_STAGE_VERTEX_BIT,
-                .module = static_pointer_cast<const VKShaderModule>(vertexShader)->getShaderModule(),
+                .module = static_pointer_cast<const VKShaderModule>(configuration.vertexShader)->getShaderModule(),
                 .pName = "main",
             });
         }
-        if (fragmentShader) {
+        if (configuration.fragmentShader) {
             shaderStages.push_back({
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
-                .module = static_pointer_cast<const VKShaderModule>(fragmentShader)->getShaderModule(),
+                .module = static_pointer_cast<const VKShaderModule>(configuration.fragmentShader)->getShaderModule(),
                 .pName = "main"
             });
         }
-        const auto vertexInputInfo = VkPipelineVertexInputStateCreateInfo {
+        auto vertexInputInfo = VkPipelineVertexInputStateCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-            .vertexBindingDescriptionCount = 1,
-            .pVertexBindingDescriptions = &vkVertexInputLayout->getVertexBindingDescription(),
-            .vertexAttributeDescriptionCount = static_cast<uint32_t>(vkVertexInputLayout->getVertexAttributeDescription().size()),
-            .pVertexAttributeDescriptions = vkVertexInputLayout->getVertexAttributeDescription().data()
         };
+        if (configuration.vertexInputLayout) {
+            const auto& vkVertexInputLayout = static_pointer_cast<const VKVertexInputLayout>(configuration.vertexInputLayout);
+            vertexInputInfo.vertexBindingDescriptionCount = 1;
+            vertexInputInfo.pVertexBindingDescriptions = &vkVertexInputLayout->getVertexBindingDescription();
+            vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(vkVertexInputLayout->getVertexAttributeDescription().size());
+            vertexInputInfo.pVertexAttributeDescriptions = vkVertexInputLayout->getVertexAttributeDescription().data();
+        }
+
         const vector dynamicStates = {
             VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT,
             VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT,

@@ -521,48 +521,6 @@ export namespace vireo {
     };
 
     /**
-     * Parameters for creating a graphics pipeline
-     */
-    struct GraphicPipelineConfiguration {
-        //! Values defining the format of color attachments used in this pipeline.
-        vector<ImageFormat>    colorRenderFormats{};
-        //! Blend state for each color attachment
-        vector<ColorBlendDesc> colorBlendDesc{};
-        //! The primitive topology
-        PrimitiveTopology      primitiveTopology{PrimitiveTopology::TRIANGLE_LIST};
-        //! The number of samples used in rasterization
-        MSAA                   msaa{MSAA::NONE};
-        //! The triangle facing direction used for primitive culling
-        CullMode               cullMode{CullMode::NONE};
-        //! The triangle rendering mode
-        PolygonMode            polygonMode{PolygonMode::FILL};
-        //! The front-facing triangle orientation to be used for culling
-        bool                   frontFaceCounterClockwise{true};
-        //! The format of the depth attachment used in this pipeline.
-        ImageFormat            depthImageFormat{ImageFormat::D32_SFLOAT};
-        //! Controls whether depth testing is enabled.
-        bool                   depthTestEnable{false};
-        //! Controls whether depth writes are enabled when `depthTestEnable` is `true`. Depth writes are always disabled when `depthTestEnable` is `false`.
-        bool                   depthWriteEnable{false};
-        //! Value specifying the comparison operator to use in the Depth Comparison step of the depth test.
-        CompareOp              depthCompareOp{CompareOp::LESS_OR_EQUAL};
-        //! Controls whether to bias fragment depth values.
-        bool                   depthBiasEnable{false};
-        //! A scalar factor controlling the constant depth value added to each fragment.
-        float                  depthBiasConstantFactor{0.0f};
-        //! The maximum (or minimum) depth bias of a fragment.
-        float                  depthBiasClamp{0.0f};
-        //! A scalar factor applied to a fragment’s slope in depth bias calculations.
-        float                  depthBiasSlopeFactor{0.0f};
-        //! Controls whether to apply Logical Operations.
-        bool                   logicOpEnable{false};
-        //! Which logical operation to apply.
-        LogicOp                logicOp{LogicOp::NOOP};
-        //! Controls whether a temporary coverage value is generated based on the alpha component of the fragment’s first color output
-        bool                   alphaToCoverageEnable{false};
-    };
-
-    /**
      * Structure specifying a clear value
      */
     typedef union ClearValue {
@@ -1480,6 +1438,59 @@ export namespace vireo {
             framesInFlight{framesInFlight} {}
     };
 
+
+    /**
+     * Parameters for creating a graphics pipeline
+     */
+    struct GraphicPipelineConfiguration {
+        //! Description of descriptor sets and push constants
+        shared_ptr<PipelineResources> resources;
+        //! Values defining the format of color attachments used in this pipeline.
+        vector<ImageFormat>           colorRenderFormats{};
+        //! Blend state for each color attachment
+        vector<ColorBlendDesc>        colorBlendDesc{};
+        //! Description of the input vertices formats and order
+        shared_ptr<VertexInputLayout> vertexInputLayout{nullptr};
+        //! Vertex shader
+        shared_ptr<ShaderModule>      vertexShader{nullptr};
+        //! Fragment/Pixel shader
+        shared_ptr<ShaderModule>      fragmentShader{nullptr};
+
+        //! The primitive topology
+        PrimitiveTopology primitiveTopology{PrimitiveTopology::TRIANGLE_LIST};
+        //! The number of samples used in rasterization
+        MSAA              msaa{MSAA::NONE};
+        //! The triangle facing direction used for primitive culling
+        CullMode          cullMode{CullMode::NONE};
+        //! The triangle rendering mode
+        PolygonMode       polygonMode{PolygonMode::FILL};
+        //! The front-facing triangle orientation to be used for culling
+        bool              frontFaceCounterClockwise{true};
+        //! The format of the depth attachment used in this pipeline.
+        ImageFormat       depthImageFormat{ImageFormat::D32_SFLOAT};
+        //! Controls whether depth testing is enabled.
+        bool              depthTestEnable{false};
+        //! Controls whether depth writes are enabled when `depthTestEnable` is `true`. Depth writes are always disabled when `depthTestEnable` is `false`.
+        bool              depthWriteEnable{false};
+        //! Value specifying the comparison operator to use in the Depth Comparison step of the depth test.
+        CompareOp         depthCompareOp{CompareOp::LESS_OR_EQUAL};
+        //! Controls whether to bias fragment depth values.
+        bool              depthBiasEnable{false};
+        //! A scalar factor controlling the constant depth value added to each fragment.
+        float             depthBiasConstantFactor{0.0f};
+        //! The maximum (or minimum) depth bias of a fragment.
+        float             depthBiasClamp{0.0f};
+        //! A scalar factor applied to a fragment’s slope in depth bias calculations.
+        float             depthBiasSlopeFactor{0.0f};
+        //! Controls whether to apply Logical Operations.
+        bool              logicOpEnable{false};
+        //! Which logical operation to apply.
+        LogicOp           logicOp{LogicOp::NOOP};
+        //! Controls whether a temporary coverage value is generated based on the alpha component of the fragment’s first color output
+        bool              alphaToCoverageEnable{false};
+    };
+
+
     /**
      * Main Vireo abstraction class
      */
@@ -1555,7 +1566,7 @@ export namespace vireo {
          * @param name Object name for debug
          */
         virtual shared_ptr<PipelineResources> createPipelineResources(
-            const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts,
+            const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts = {},
             const PushConstantsDesc& pushConstant = {},
             const wstring& name = L"PipelineResource") const = 0;
 
@@ -1572,18 +1583,10 @@ export namespace vireo {
 
         /**
          * Creates a graphic pipeline. At least one shader must be used.
-         * @param pipelineResources Resources for the shaders
-         * @param vertexInputLayout Description of the input vertices
-         * @param vertexShader Shader for the vertex shader
-         * @param fragmentShader Shader for the fragment/pixel shader
          * @param configuration Pipeline configuration
          * @param name Object name for debug
          */
         virtual shared_ptr<GraphicPipeline> createGraphicPipeline(
-            const shared_ptr<PipelineResources>& pipelineResources,
-            const shared_ptr<const VertexInputLayout>& vertexInputLayout,
-            const shared_ptr<const ShaderModule>& vertexShader,
-            const shared_ptr<const ShaderModule>& fragmentShader,
             const GraphicPipelineConfiguration& configuration,
             const wstring& name = L"GraphicPipeline") const = 0;
 

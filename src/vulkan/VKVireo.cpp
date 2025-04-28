@@ -75,18 +75,10 @@ namespace vireo {
     }
 
     shared_ptr<GraphicPipeline> VKVireo::createGraphicPipeline(
-        const shared_ptr<PipelineResources>& pipelineResources,
-        const shared_ptr<const VertexInputLayout>& vertexInputLayout,
-        const shared_ptr<const ShaderModule>& vertexShader,
-        const shared_ptr<const ShaderModule>& fragmentShader,
         const GraphicPipelineConfiguration& configuration,
         const wstring& name) const {
         return make_shared<VKGraphicPipeline>(
             getVKDevice(),
-            pipelineResources,
-            vertexInputLayout,
-            vertexShader,
-            fragmentShader,
             configuration,
             name
         );

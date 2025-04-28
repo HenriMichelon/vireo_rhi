@@ -140,18 +140,13 @@ namespace vireo {
 
     DXGraphicPipeline::DXGraphicPipeline(
         const ComPtr<ID3D12Device>& device,
-        const shared_ptr<PipelineResources>& pipelineResources,
-        const shared_ptr<const VertexInputLayout>& vertexInputLayout,
-        const shared_ptr<const ShaderModule>& vertexShader,
-        const shared_ptr<const ShaderModule>& fragmentShader,
         const GraphicPipelineConfiguration& configuration,
         const wstring& name):
-        GraphicPipeline{pipelineResources},
+        GraphicPipeline{configuration.resources},
         primitiveTopology{dxPrimitives[static_cast<int>(configuration.primitiveTopology)]} {
-        assert(vertexShader || fragmentShader);
+        assert(configuration.vertexShader || configuration.fragmentShader);
         assert(configuration.colorRenderFormats.size() == configuration.colorBlendDesc.size());
-        const auto dxVertexInputLayout = static_pointer_cast<const DXVertexInputLayout>(vertexInputLayout);
-        const auto dxPipelineResources = static_pointer_cast<const DXPipelineResources>(pipelineResources);
+        const auto dxPipelineResources = static_pointer_cast<const DXPipelineResources>(configuration.resources);
 
         auto rasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
         rasterizerState.FillMode = configuration.polygonMode == PolygonMode::FILL ? D3D12_FILL_MODE_SOLID  : D3D12_FILL_MODE_WIREFRAME;
@@ -188,10 +183,6 @@ namespace vireo {
             .SampleMask = UINT_MAX,
             .RasterizerState = rasterizerState,
             .DepthStencilState = depthStencil,
-            .InputLayout = {
-                dxVertexInputLayout->getInputElementsDesc().data(),
-                static_cast<UINT>(dxVertexInputLayout->getInputElementsDesc().size())
-            },
             .PrimitiveTopologyType = dxPrimitivesTypes[static_cast<int>(configuration.primitiveTopology)],
             .NumRenderTargets = static_cast<UINT>(configuration.colorRenderFormats.size()),
             .DSVFormat = DXImage::dxFormats[static_cast<int>(configuration.depthImageFormat)],
@@ -200,11 +191,17 @@ namespace vireo {
                 .Quality = quality
             }
         };
-        if (vertexShader) {
-            psoDesc.VS = CD3DX12_SHADER_BYTECODE(static_pointer_cast<const DXShaderModule>(vertexShader)->getShader().Get());
+        if (configuration.vertexInputLayout) {
+            const auto dxVertexInputLayout = static_pointer_cast<const DXVertexInputLayout>(configuration.vertexInputLayout);
+            psoDesc.InputLayout.NumElements = dxVertexInputLayout->getInputElementsDesc().size();
+            psoDesc.InputLayout.pInputElementDescs = dxVertexInputLayout->getInputElementsDesc().data();
         }
-        if (fragmentShader) {
-            psoDesc.PS = CD3DX12_SHADER_BYTECODE(static_pointer_cast<const DXShaderModule>(fragmentShader)->getShader().Get());
+
+        if (configuration.vertexShader) {
+            psoDesc.VS = CD3DX12_SHADER_BYTECODE(static_pointer_cast<const DXShaderModule>(configuration.vertexShader)->getShader().Get());
+        }
+        if (configuration.fragmentShader) {
+            psoDesc.PS = CD3DX12_SHADER_BYTECODE(static_pointer_cast<const DXShaderModule>(configuration.fragmentShader)->getShader().Get());
         }
         for (int i = 0; i < configuration.colorRenderFormats.size(); i++) {
             psoDesc.RTVFormats[i] = DXImage::dxFormats[static_cast<int>(configuration.colorRenderFormats[i])];
