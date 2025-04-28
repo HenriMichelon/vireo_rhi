@@ -125,6 +125,7 @@ namespace vireo {
         const shared_ptr<const ShaderModule>& shader,
         const wstring& name):
         ComputePipeline{pipelineResources} {
+        assert(shader);
         const auto dxPipelineResources = static_pointer_cast<const DXPipelineResources>(pipelineResources);
         const auto dxShader = static_pointer_cast<const DXShaderModule>(shader);
         const auto psoDesc = D3D12_COMPUTE_PIPELINE_STATE_DESC{

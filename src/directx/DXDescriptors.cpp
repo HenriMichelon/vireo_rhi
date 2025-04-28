@@ -59,6 +59,7 @@ namespace vireo {
     }
 
     void DXDescriptorSet::update(const DescriptorIndex index, const shared_ptr<const Buffer>& buffer) const {
+        assert(buffer != nullptr);
         const auto dxBuffer = static_pointer_cast<const DXBuffer>(buffer);
         const auto bufferViewDesc = D3D12_CONSTANT_BUFFER_VIEW_DESC{
             .BufferLocation = dxBuffer->getBuffer()->GetGPUVirtualAddress(),
@@ -69,6 +70,7 @@ namespace vireo {
     }
 
     void DXDescriptorSet::update(const DescriptorIndex index, const shared_ptr<const Image>& image) const {
+        assert(image != nullptr);
         const auto dxImage = static_pointer_cast<const DXImage>(image);
         const auto cpuHandle= D3D12_CPU_DESCRIPTOR_HANDLE{ cpuBase.ptr + index * descriptorSize };
         if (image->isReadWrite()) {
@@ -101,6 +103,7 @@ namespace vireo {
     }
 
     void DXDescriptorSet::update(const DescriptorIndex index, const shared_ptr<const Sampler>& sampler) const {
+        assert(sampler != nullptr);
         const auto dxSampler = static_pointer_cast<const DXSampler>(sampler);
         const auto samplerDesc = dxSampler->getSamplerDesc();
         const auto cpuHandle= D3D12_CPU_DESCRIPTOR_HANDLE{ cpuBase.ptr + index * descriptorSize };

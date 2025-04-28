@@ -251,6 +251,7 @@ namespace vireo {
     }
 
     bool VKSwapChain::acquire(const shared_ptr<Fence>& fence) {
+        assert(fence != nullptr);
         const auto vkFence = static_pointer_cast<VKFence>(fence);
         // wait until the GPU has finished rendering the frame.
         if (vkWaitForFences(device->getDevice(), 1, &vkFence->getFence(), VK_TRUE, UINT64_MAX) == VK_TIMEOUT) {

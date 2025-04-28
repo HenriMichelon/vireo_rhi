@@ -50,19 +50,23 @@ namespace vireo {
     }
 
     void DXBuffer::map() {
+        assert(mappedAddress == nullptr);
         const CD3DX12_RANGE readRange(0, 0); // We do not intend to read from this resource on the CPU.
         dxCheck(buffer->Map(0, &readRange, &mappedAddress));
     }
 
     void DXBuffer::unmap() {
+        assert(mappedAddress != nullptr);
         buffer->Unmap(0, nullptr);
         mappedAddress = nullptr;
     }
 
     void DXBuffer::write(const void* data, const size_t size, const size_t offset) {
+        assert(mappedAddress != nullptr);
         if (size == WHOLE_SIZE) {
             memcpy(mappedAddress, data, bufferSize);
         } else {
+            assert((offset + size) <= bufferSize);
             memcpy(static_cast<unsigned char*>(mappedAddress) + offset, data, size);
         }
     }
