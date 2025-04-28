@@ -22,89 +22,89 @@ export namespace vireo {
 
         void waitIdle() override;
 
-        shared_ptr<SwapChain> createSwapChain(
+        std::shared_ptr<SwapChain> createSwapChain(
             ImageFormat format,
-            const shared_ptr<const SubmitQueue>& submitQueue,
+            const std::shared_ptr<const SubmitQueue>& submitQueue,
             void* windowHandle,
             PresentMode presentMode,
             uint32_t framesInFlight) const override;
 
-        shared_ptr<SubmitQueue> createSubmitQueue(
+        std::shared_ptr<SubmitQueue> createSubmitQueue(
             CommandType commandType,
-            const wstring& name) const override;
+            const std::wstring& name) const override;
 
-        shared_ptr<Fence> createFence(const wstring& name) const override;
+        std::shared_ptr<Fence> createFence(const std::wstring& name) const override;
 
-        shared_ptr<CommandAllocator> createCommandAllocator(CommandType type) const override;
+        std::shared_ptr<CommandAllocator> createCommandAllocator(CommandType type) const override;
 
-        shared_ptr<VertexInputLayout> createVertexLayout(
+        std::shared_ptr<VertexInputLayout> createVertexLayout(
             size_t size,
-            const vector<VertexAttributeDesc>& attributesDescriptions) const override;
+            const std::vector<VertexAttributeDesc>& attributesDescriptions) const override;
 
-        shared_ptr<ShaderModule> createShaderModule(const string& fileName) const override;
+        std::shared_ptr<ShaderModule> createShaderModule(const std::string& fileName) const override;
 
-        shared_ptr<PipelineResources> createPipelineResources(
-            const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts,
+        std::shared_ptr<PipelineResources> createPipelineResources(
+            const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
             const PushConstantsDesc& pushConstant,
-            const wstring& name) const override;
+            const std::wstring& name) const override;
 
-        shared_ptr<ComputePipeline> createComputePipeline(
-            const shared_ptr<PipelineResources>& pipelineResources,
-            const shared_ptr<const ShaderModule>& shader,
-            const wstring& name) const override;
+        std::shared_ptr<ComputePipeline> createComputePipeline(
+            const std::shared_ptr<PipelineResources>& pipelineResources,
+            const std::shared_ptr<const ShaderModule>& shader,
+            const std::wstring& name) const override;
 
-        shared_ptr<GraphicPipeline> createGraphicPipeline(
+        std::shared_ptr<GraphicPipeline> createGraphicPipeline(
             const GraphicPipelineConfiguration& configuration,
-            const wstring& name) const override;
+            const std::wstring& name) const override;
 
-        shared_ptr<Buffer> createBuffer(
+        std::shared_ptr<Buffer> createBuffer(
             BufferType type,
             size_t size,
             size_t count,
-            const wstring& name) const override;
+            const std::wstring& name) const override;
 
-        shared_ptr<Image> createImage(
+        std::shared_ptr<Image> createImage(
             ImageFormat format,
             uint32_t width,
             uint32_t height,
             uint32_t mipLevels,
             uint32_t arraySize,
-            const wstring& name) const override;
+            const std::wstring& name) const override;
 
-        shared_ptr<Image> createReadWriteImage(
+        std::shared_ptr<Image> createReadWriteImage(
             ImageFormat format,
             uint32_t width,
             uint32_t height,
             uint32_t mipLevels,
             uint32_t arraySize,
-            const wstring& name) const override;
+            const std::wstring& name) const override;
 
-        shared_ptr<RenderTarget> createRenderTarget(
+        std::shared_ptr<RenderTarget> createRenderTarget(
             ImageFormat format,
             uint32_t width,
             uint32_t height,
             RenderTargetType type,
             ClearValue clearValue,
             MSAA msaa,
-            const wstring& name) const override;
+            const std::wstring& name) const override;
 
-        shared_ptr<RenderTarget> createRenderTarget(
-            const shared_ptr<const SwapChain>& swapChain,
+        std::shared_ptr<RenderTarget> createRenderTarget(
+            const std::shared_ptr<const SwapChain>& swapChain,
             ClearValue clearValue,
             MSAA msaa,
-            const wstring& name) const override;
+            const std::wstring& name) const override;
 
-        shared_ptr<DescriptorLayout> createDescriptorLayout(
-            const wstring& name) override;
+        std::shared_ptr<DescriptorLayout> createDescriptorLayout(
+            const std::wstring& name) override;
 
-        shared_ptr<DescriptorLayout> createSamplerDescriptorLayout(
-            const wstring& name) override;
+        std::shared_ptr<DescriptorLayout> createSamplerDescriptorLayout(
+            const std::wstring& name) override;
 
-        shared_ptr<DescriptorSet> createDescriptorSet(
-            const shared_ptr<const DescriptorLayout>& layout,
-            const wstring& name) override;
+        std::shared_ptr<DescriptorSet> createDescriptorSet(
+            const std::shared_ptr<const DescriptorLayout>& layout,
+            const std::wstring& name) override;
 
-        shared_ptr<Sampler> createSampler(
+        std::shared_ptr<Sampler> createSampler(
            Filter minFilter,
            Filter magFilter,
            AddressMode addressModeU,

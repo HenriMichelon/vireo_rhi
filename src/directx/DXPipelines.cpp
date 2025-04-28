@@ -8,8 +8,8 @@ module;
 #include "vireo/backend/directx/Libraries.h"
 module vireo.directx.pipelines;
 
+import std;
 import vireo.tools;
-
 import vireo.directx.descriptors;
 import vireo.directx.devices;
 import vireo.directx.resources;
@@ -18,7 +18,7 @@ import vireo.directx.tools;
 
 namespace vireo {
 
-    DXVertexInputLayout::DXVertexInputLayout(const vector<VertexAttributeDesc>& attributesDescriptions) {
+    DXVertexInputLayout::DXVertexInputLayout(const std::vector<VertexAttributeDesc>& attributesDescriptions) {
         for (const auto& attributesDescription : attributesDescriptions) {
             inputElementsDesc.push_back({
                 .SemanticName = attributesDescription.binding.c_str(),
@@ -32,22 +32,22 @@ namespace vireo {
         }
     }
 
-    DXShaderModule::DXShaderModule(const string& fileName) {
-        ifstream shaderFile(fileName + ".dxil", ios::binary | ios::ate);
+    DXShaderModule::DXShaderModule(const std::string& fileName) {
+        std::ifstream shaderFile(fileName + ".dxil", std::ios::binary | std::ios::ate);
         if (!shaderFile) {
             throw Exception("Error loading shader ", fileName);
         }
-        const streamsize size = shaderFile.tellg();
-        shaderFile.seekg(0, ios::beg);
+        const std::streamsize size = shaderFile.tellg();
+        shaderFile.seekg(0, std::ios::beg);
         dxCheck(D3DCreateBlob(size, &shader), "Error creating blob for  shader ");
         shaderFile.read(static_cast<char*>(shader->GetBufferPointer()), size);
     }
 
     DXPipelineResources::DXPipelineResources(
         const ComPtr<ID3D12Device>& device,
-        const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts,
+        const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
         const PushConstantsDesc& pushConstants,
-        const wstring& name) {
+        const std::wstring& name) {
 
         constexpr D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
                D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
@@ -61,7 +61,7 @@ namespace vireo {
             featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
         }
 
-        vector<CD3DX12_ROOT_PARAMETER1> rootParameters(descriptorLayouts.size());
+        std::vector<CD3DX12_ROOT_PARAMETER1> rootParameters(descriptorLayouts.size());
         for (int i = 0; i < descriptorLayouts.size(); i++) {
             const auto layout = static_pointer_cast<DXDescriptorLayout>(descriptorLayouts[i]);
             for (auto& range : layout->getRanges()) {
@@ -121,9 +121,9 @@ namespace vireo {
 
     DXComputePipeline::DXComputePipeline(
         const ComPtr<ID3D12Device>& device,
-        const shared_ptr<PipelineResources>& pipelineResources,
-        const shared_ptr<const ShaderModule>& shader,
-        const wstring& name):
+        const std::shared_ptr<PipelineResources>& pipelineResources,
+        const std::shared_ptr<const ShaderModule>& shader,
+        const std::wstring& name):
         ComputePipeline{pipelineResources} {
         assert(shader);
         const auto dxPipelineResources = static_pointer_cast<const DXPipelineResources>(pipelineResources);
@@ -142,7 +142,7 @@ namespace vireo {
     DXGraphicPipeline::DXGraphicPipeline(
         const ComPtr<ID3D12Device>& device,
         const GraphicPipelineConfiguration& configuration,
-        const wstring& name):
+        const std::wstring& name):
         GraphicPipeline{configuration.resources},
         primitiveTopology{dxPrimitives[static_cast<int>(configuration.primitiveTopology)]} {
         assert(configuration.vertexShader || configuration.fragmentShader);

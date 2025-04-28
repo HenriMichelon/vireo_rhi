@@ -25,7 +25,7 @@ export namespace vireo {
             BufferType type,
             size_t size,
             size_t count,
-            const wstring& name);
+            const std::wstring& name);
 
         void map() override;
 
@@ -163,7 +163,7 @@ export namespace vireo {
             uint32_t    height,
             uint32_t    mipLevels,
             uint32_t    arraySize,
-            const wstring& name,
+            const std::wstring& name,
             bool        useByComputeShader,
             bool        isRenderTarget,
             bool        isDepthBuffer,
@@ -181,7 +181,7 @@ export namespace vireo {
     public:
         DXRenderTarget(
             const ComPtr<ID3D12Device> &device,
-            const shared_ptr<DXImage>& image,
+            const std::shared_ptr<DXImage>& image,
             RenderTargetType type);
 
         auto& getHandle() const { return handle; }

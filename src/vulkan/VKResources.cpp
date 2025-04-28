@@ -15,11 +15,11 @@ import vireo.vulkan.tools;
 namespace vireo {
 
     VKBuffer::VKBuffer(
-            const shared_ptr<const VKDevice>& device,
+            const std::shared_ptr<const VKDevice>& device,
             const BufferType type,
             const size_t size,
             const size_t count,
-            const wstring& name) : Buffer{type},device{device} {
+            const std::wstring& name) : Buffer{type},device{device} {
         auto minOffsetAlignment = 0;
         if (type == BufferType::UNIFORM) {
             minOffsetAlignment = device->getPhysicalDevice().getDeviceProperties().limits.minUniformBufferOffsetAlignment;
@@ -71,7 +71,7 @@ namespace vireo {
     }
 
     void VKBuffer::createBuffer(
-            const shared_ptr<const VKDevice>& device,
+            const std::shared_ptr<const VKDevice>& device,
             const VkDeviceSize size,
             const VkBufferUsageFlags usage,
             const VkMemoryPropertyFlags memoryTypeIndex,
@@ -101,7 +101,7 @@ namespace vireo {
     }
 
     VKSampler::VKSampler(
-        const shared_ptr<const VKDevice>& device,
+        const std::shared_ptr<const VKDevice>& device,
         const Filter minFilter,
         const Filter magFilter,
         const AddressMode addressModeU,
@@ -140,13 +140,13 @@ namespace vireo {
     }
 
     VKImage::VKImage(
-        const shared_ptr<const VKDevice>& device,
+        const std::shared_ptr<const VKDevice>& device,
         const ImageFormat format,
         const uint32_t    width,
         const uint32_t    height,
         const uint32_t    mipLevels,
         const uint32_t    arraySize,
-        const wstring&    name,
+        const std::wstring&    name,
         const bool        useByComputeShader,
         const bool        isRenderTarget,
         const bool        isDepthBuffer,

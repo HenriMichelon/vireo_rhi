@@ -4,25 +4,23 @@
 * This software is released under the MIT License.
 * https://opensource.org/licenses/MIT
 */
-module;
-#include "vireo/Libraries.h"
 module vireo;
 
+import std;
 import vireo.tools;
-
+import vireo.vulkan;
 #ifdef DIRECTX_BACKEND
 import vireo.directx;
 #endif
-import vireo.vulkan;
 
 namespace vireo {
 
-    unique_ptr<Vireo> Vireo::create(const Backend backend) {
+    std::unique_ptr<Vireo> Vireo::create(const Backend backend) {
         if (backend == Backend::VULKAN) {
-            return make_unique<VKVireo>();
+            return std::make_unique<VKVireo>();
         }
 #ifdef DIRECTX_BACKEND
-        return make_unique<DXVireo>();
+        return std::make_unique<DXVireo>();
 #endif
         throw Exception("Unsupported backend");
     }

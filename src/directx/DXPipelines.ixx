@@ -29,17 +29,17 @@ export namespace vireo {
             DXGI_FORMAT_R32G32B32A32_UINT,
         };
 
-        DXVertexInputLayout(const vector<VertexAttributeDesc>& attributesDescriptions);
+        DXVertexInputLayout(const std::vector<VertexAttributeDesc>& attributesDescriptions);
 
         const auto& getInputElementsDesc() const { return inputElementsDesc; }
 
     private:
-        vector<D3D12_INPUT_ELEMENT_DESC> inputElementsDesc;
+        std::vector<D3D12_INPUT_ELEMENT_DESC> inputElementsDesc;
     };
 
     class DXShaderModule: public ShaderModule {
     public:
-        DXShaderModule(const string& fileName);
+        DXShaderModule(const std::string& fileName);
 
         auto getShader() const { return shader; }
 
@@ -52,9 +52,9 @@ export namespace vireo {
         // static constexpr auto PUSH_CONSTANTS_SHADER_REGISTER{20};
         DXPipelineResources(
             const ComPtr<ID3D12Device>& device,
-            const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts,
+            const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
             const PushConstantsDesc& pushConstant,
-            const wstring& name);
+            const std::wstring& name);
 
         auto getRootSignature() const { return rootSignature; }
 
@@ -69,9 +69,9 @@ export namespace vireo {
     public:
         DXComputePipeline(
             const ComPtr<ID3D12Device>& device,
-            const shared_ptr<PipelineResources>& pipelineResources,
-            const shared_ptr<const ShaderModule>& shader,
-            const wstring& name);
+            const std::shared_ptr<PipelineResources>& pipelineResources,
+            const std::shared_ptr<const ShaderModule>& shader,
+            const std::wstring& name);
 
         auto getPipelineState() const { return pipelineState; }
 
@@ -160,7 +160,7 @@ export namespace vireo {
         DXGraphicPipeline(
             const ComPtr<ID3D12Device>& device,
             const GraphicPipelineConfiguration& configuration,
-            const wstring& name);
+            const std::wstring& name);
 
         auto getPipelineState() const { return pipelineState; }
 

@@ -32,7 +32,7 @@ export namespace vireo {
             VK_FORMAT_R32G32B32A32_UINT,
         };
 
-        VKVertexInputLayout(size_t size, const vector<VertexAttributeDesc>& attributesDescriptions);
+        VKVertexInputLayout(size_t size, const std::vector<VertexAttributeDesc>& attributesDescriptions);
 
         const auto& getVertexBindingDescription() const { return vertexBindingDescription; }
 
@@ -40,12 +40,12 @@ export namespace vireo {
 
     private:
         VkVertexInputBindingDescription           vertexBindingDescription;
-        vector<VkVertexInputAttributeDescription> vertexAttributeDescriptions;
+        std::vector<VkVertexInputAttributeDescription> vertexAttributeDescriptions;
     };
 
     class VKShaderModule: public ShaderModule {
     public:
-        VKShaderModule(VkDevice device, const string& fileName);
+        VKShaderModule(VkDevice device, const std::string& fileName);
 
         ~VKShaderModule() override;
 
@@ -60,9 +60,9 @@ export namespace vireo {
     public:
         VKPipelineResources(
             VkDevice device,
-            const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts,
+            const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
             const PushConstantsDesc& pushConstant,
-            const wstring& name);
+            const std::wstring& name);
 
         ~VKPipelineResources() override;
 
@@ -73,16 +73,16 @@ export namespace vireo {
     private:
         VkDevice device;
         VkPipelineLayout pipelineLayout;
-        vector<VkDescriptorSetLayout> setLayouts;
+        std::vector<VkDescriptorSetLayout> setLayouts;
     };
 
     class VKComputePipeline : public ComputePipeline {
     public:
         VKComputePipeline(
            VkDevice device,
-           const shared_ptr<PipelineResources>& pipelineResources,
-           const shared_ptr<const ShaderModule>& shader,
-           const wstring& name);
+           const std::shared_ptr<PipelineResources>& pipelineResources,
+           const std::shared_ptr<const ShaderModule>& shader,
+           const std::wstring& name);
 
         auto getPipeline() const { return pipeline; }
 
@@ -165,16 +165,16 @@ export namespace vireo {
         };
 
         VKGraphicPipeline(
-           const shared_ptr<VKDevice>& device,
+           const std::shared_ptr<VKDevice>& device,
            const GraphicPipelineConfiguration& configuration,
-           const wstring& name);
+           const std::wstring& name);
 
         auto getPipeline() const { return pipeline; }
 
         ~VKGraphicPipeline() override;
 
     private:
-        const shared_ptr<VKDevice> device;
+        const std::shared_ptr<VKDevice> device;
         VkPipeline   pipeline;
     };
 

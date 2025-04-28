@@ -18,8 +18,8 @@ namespace vireo {
                                                        VkDebugUtilsMessageTypeFlagsEXT,
                                                        const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
                                                        void *) {
-        const string message("validation layer: " + string(pCallbackData->pMessage));
-        cerr << message << endl;
+        const std::string message("validation layer: " + std::string(pCallbackData->pMessage));
+        std::cerr << message << std::endl;
 #ifdef _WIN32
         if (IsDebuggerPresent()) {
             OutputDebugStringA(message.c_str());
@@ -53,14 +53,14 @@ namespace vireo {
 
     VKInstance::VKInstance() {
         vulkanInitialize();
-        vector<const char *>requestedLayers{};
+        std::vector<const char *>requestedLayers{};
 #ifdef _DEBUG
         const char* validationLayerName = "VK_LAYER_KHRONOS_validation";
         requestedLayers.push_back(validationLayerName);
 #endif
         uint32_t layerCount;
         vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-        vector<VkLayerProperties> availableLayers(layerCount);
+        std::vector<VkLayerProperties> availableLayers(layerCount);
         vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
         for (const char *layerName : requestedLayers) {
             bool layerFound = false;
@@ -73,7 +73,7 @@ namespace vireo {
             if (!layerFound) { throw Exception("A requested Vulkan layer is not supported"); }
         }
 
-        vector<const char *> instanceExtensions{};
+        std::vector<const char *> instanceExtensions{};
         instanceExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
         instanceExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
         instanceExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
@@ -147,13 +147,13 @@ namespace vireo {
 
         // Use the better Vulkan physical device found
         // https://vulkan-tutorial.com/Drawing_a_triangle/Setup/Physical_devices_and_queue_families#page_Base-device-suitability-checks
-        vector<VkPhysicalDevice> devices(deviceCount);
+        std::vector<VkPhysicalDevice> devices(deviceCount);
         vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
         // Use an ordered map to automatically sort candidates by increasing score
-        multimap<uint32_t, VkPhysicalDevice> candidates;
+        std::multimap<uint32_t, VkPhysicalDevice> candidates;
         for (const auto &dev : devices) {
             uint32_t score = rateDeviceSuitability(dev, deviceExtensions);
-            candidates.insert(make_pair(score, dev));
+            candidates.insert(std::make_pair(score, dev));
         }
         // Check if the best candidate is suitable at all
         if (candidates.rbegin()->first > 0) {
@@ -174,7 +174,7 @@ namespace vireo {
         QueueFamilyIndices indices;
         uint32_t           queueFamilyCount = 0;
         vkGetPhysicalDeviceQueueFamilyProperties(vkPhysicalDevice, &queueFamilyCount, nullptr);
-        vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+        std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
         vkGetPhysicalDeviceQueueFamilyProperties(vkPhysicalDevice, &queueFamilyCount, queueFamilies.data());
         int i = 0;
         for (const auto &queueFamily : queueFamilies) {
@@ -199,7 +199,7 @@ namespace vireo {
     uint32_t VKPhysicalDevice::findTransferQueueFamily() const {
         uint32_t           queueFamilyCount = 0;
         vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
-        vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+        std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
         vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies.data());
         uint32_t i = 0;
         for (const auto &queueFamily : queueFamilies) {
@@ -216,7 +216,7 @@ namespace vireo {
     uint32_t VKPhysicalDevice::findComputeQueueFamily() const {
         uint32_t           queueFamilyCount = 0;
         vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
-        vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+        std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
         vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies.data());
         uint32_t i = 0;
         for (const auto &queueFamily : queueFamilies) {
@@ -261,7 +261,7 @@ namespace vireo {
 
     uint32_t VKPhysicalDevice::rateDeviceSuitability(
         const VkPhysicalDevice      vkPhysicalDevice,
-        const vector<const char *> &deviceExtensions) {
+        const std::vector<const char *> &deviceExtensions) {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Setup/Physical_devices_and_queue_families#page_Base-device-suitability-checks
         VkPhysicalDeviceProperties _deviceProperties;
         vkGetPhysicalDeviceProperties(vkPhysicalDevice, &_deviceProperties);
@@ -296,15 +296,15 @@ namespace vireo {
 
     bool VKPhysicalDevice::checkDeviceExtensionSupport(
         const VkPhysicalDevice            vkPhysicalDevice,
-        const vector<const char *> &deviceExtensions) {
+        const std::vector<const char *> &deviceExtensions) {
         uint32_t extensionCount;
         vkEnumerateDeviceExtensionProperties(vkPhysicalDevice, nullptr, &extensionCount, nullptr);
-        vector<VkExtensionProperties> availableExtensions(extensionCount);
+        std::vector<VkExtensionProperties> availableExtensions(extensionCount);
         vkEnumerateDeviceExtensionProperties(vkPhysicalDevice,
                                              nullptr,
                                              &extensionCount,
                                              availableExtensions.data());
-        set<string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
+        std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
         for (const auto &extension : availableExtensions) { requiredExtensions.erase(extension.extensionName); }
         return requiredExtensions.empty();
     }
@@ -334,11 +334,11 @@ namespace vireo {
         return result;
     }
 
-    VKDevice::VKDevice(const VKPhysicalDevice& physicalDevice, const vector<const char *>& requestedLayers):
+    VKDevice::VKDevice(const VKPhysicalDevice& physicalDevice, const std::vector<const char *>& requestedLayers):
         physicalDevice{physicalDevice} {
          /// Select command queues
-        vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-        constexpr auto queuePriority = array{1.0f};
+        std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+        constexpr auto queuePriority = std::array{1.0f};
         const auto indices = physicalDevice.findQueueFamilies(physicalDevice.getPhysicalDevice());
         // Use a graphical command queue
         graphicsQueueFamilyIndex = indices.graphicsFamily.value();
@@ -450,7 +450,7 @@ namespace vireo {
         vkDestroyDevice(device, nullptr);
     }
 
-    VKFence::VKFence(const shared_ptr<const VKDevice>& device, const wstring& name):
+    VKFence::VKFence(const std::shared_ptr<const VKDevice>& device, const std::wstring& name):
         device{device->getDevice()} {
         constexpr VkFenceCreateInfo fenceInfo{
             .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,

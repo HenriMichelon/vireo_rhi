@@ -6,4 +6,3 @@
 */
 #pragma once
 #include "vireo/backend/vulkan/Vulkan.h"
-#include "vireo/Libraries.h"

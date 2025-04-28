@@ -8,6 +8,7 @@ module;
 #include "vireo/backend/directx/Libraries.h"
 module vireo.directx.descriptors;
 
+import std;
 import vireo.directx.resources;
 import vireo.directx.tools;
 
@@ -30,7 +31,7 @@ namespace vireo {
         return *this;
     }
 
-    DXDescriptorSet::DXDescriptorSet(const shared_ptr<const DescriptorLayout>& layout, const ComPtr<ID3D12Device>& device, const wstring& name):
+    DXDescriptorSet::DXDescriptorSet(const std::shared_ptr<const DescriptorLayout>& layout, const ComPtr<ID3D12Device>& device, const std::wstring& name):
         DescriptorSet{layout},
         device{device} {
         const auto dxLayout = static_pointer_cast<const DXDescriptorLayout>(layout);
@@ -58,7 +59,7 @@ namespace vireo {
         // heap->Release();
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const shared_ptr<const Buffer>& buffer) const {
+    void DXDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer) const {
         assert(buffer != nullptr);
         const auto dxBuffer = static_pointer_cast<const DXBuffer>(buffer);
         const auto bufferViewDesc = D3D12_CONSTANT_BUFFER_VIEW_DESC{
@@ -69,7 +70,7 @@ namespace vireo {
         device->CreateConstantBufferView(&bufferViewDesc, cpuHandle);
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const shared_ptr<const Image>& image) const {
+    void DXDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<const Image>& image) const {
         assert(image != nullptr);
         const auto dxImage = static_pointer_cast<const DXImage>(image);
         const auto cpuHandle= D3D12_CPU_DESCRIPTOR_HANDLE{ cpuBase.ptr + index * descriptorSize };
@@ -102,7 +103,7 @@ namespace vireo {
         }
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const shared_ptr<const Sampler>& sampler) const {
+    void DXDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<const Sampler>& sampler) const {
         assert(sampler != nullptr);
         const auto dxSampler = static_pointer_cast<const DXSampler>(sampler);
         const auto samplerDesc = dxSampler->getSamplerDesc();
@@ -110,19 +111,19 @@ namespace vireo {
         device->CreateSampler(&samplerDesc, cpuHandle);
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<Buffer>>& buffers) const {
+    void DXDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Buffer>>& buffers) const {
         for (int i = 0; i < buffers.size(); ++i) {
             update(index + i, buffers[i]);
         }
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<Image>>& images) const {
+    void DXDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Image>>& images) const {
         for (int i = 0; i < images.size(); ++i) {
             update(index + i, images[i]);
         }
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<Sampler>>& samplers) const {
+    void DXDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& samplers) const {
         for (int i = 0; i < samplers.size(); ++i) {
             update(index + i, samplers[i]);
         }

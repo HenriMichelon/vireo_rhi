@@ -17,7 +17,7 @@ export namespace vireo {
     public:
         DXSwapChain(
             const ComPtr<IDXGIFactory4>& factory,
-            const shared_ptr<DXDevice>& device,
+            const std::shared_ptr<DXDevice>& device,
             const ComPtr<ID3D12CommandQueue>& commandQueue,
             ImageFormat format,
             HWND hWnd, PresentMode vSyncMode, uint32_t framesInFlight);
@@ -34,7 +34,7 @@ export namespace vireo {
 
         void nextFrameIndex() override;
 
-        bool acquire(const shared_ptr<Fence>& fence) override;
+        bool acquire(const std::shared_ptr<Fence>& fence) override;
 
         void present() override;
 
@@ -45,18 +45,18 @@ export namespace vireo {
         void waitIdle() const override { waitForLastPresentedFrame(); }
 
     private:
-        const shared_ptr<DXDevice>     device;
+        const std::shared_ptr<DXDevice>     device;
         const ComPtr<IDXGIFactory4>    factory;
         ComPtr<IDXGISwapChain3>        swapChain;
         ComPtr<ID3D12CommandQueue>     presentCommandQueue;
-        vector<ComPtr<ID3D12Resource>> renderTargets;
+        std::vector<ComPtr<ID3D12Resource>> renderTargets;
         ComPtr<ID3D12DescriptorHeap>   rtvHeap;
         UINT                           rtvDescriptorSize{0};
         HWND                           hWnd;
         const UINT                     syncInterval;
         const UINT                     presentFlags;
         HANDLE                         fenceEvent;
-        shared_ptr<DXFence>            lastFence;
+        std::shared_ptr<DXFence>            lastFence;
 
         void create();
     };

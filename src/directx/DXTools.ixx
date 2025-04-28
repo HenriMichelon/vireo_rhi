@@ -6,7 +6,6 @@
 */
 module;
 #include "vireo/backend/directx/Libraries.h"
-#include "vireo/Libraries.h"
 export module vireo.directx.tools;
 
 import vireo.tools;

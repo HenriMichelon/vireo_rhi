@@ -18,9 +18,9 @@ export namespace vireo {
 
         auto getCommandQueue() const { return commandQueue; }
 
-        void submit(const shared_ptr<Fence>& fence, const shared_ptr<const SwapChain>& swapChain, const vector<shared_ptr<const CommandList>>& commandLists) const override;
+        void submit(const std::shared_ptr<Fence>& fence, const std::shared_ptr<const SwapChain>& swapChain, const std::vector<std::shared_ptr<const CommandList>>& commandLists) const override;
 
-        void submit(const vector<shared_ptr<const CommandList>>& commandLists) const override;
+        void submit(const std::vector<std::shared_ptr<const CommandList>>& commandLists) const override;
 
         void waitIdle() const override;
 
@@ -35,9 +35,9 @@ export namespace vireo {
 
         void reset() const override;
 
-        shared_ptr<CommandList> createCommandList(const shared_ptr<const Pipeline>& pipeline) const override;
+        std::shared_ptr<CommandList> createCommandList(const std::shared_ptr<const Pipeline>& pipeline) const override;
 
-        shared_ptr<CommandList> createCommandList() const override;
+        std::shared_ptr<CommandList> createCommandList() const override;
 
     private:
         ComPtr<ID3D12Device>           device;
@@ -69,31 +69,31 @@ export namespace vireo {
 
         void end() const override;
 
-        void upload(const shared_ptr<const Buffer>& destination, const void* source) override;
+        void upload(const std::shared_ptr<const Buffer>& destination, const void* source) override;
 
         void upload(
-            const shared_ptr<const Image>& destination,
+            const std::shared_ptr<const Image>& destination,
             const void* source,
             uint32_t firstMipLevel) override;
 
         void copy(
-            const shared_ptr<const Buffer>& source,
-            const shared_ptr<const Image>& destination,
+            const std::shared_ptr<const Buffer>& source,
+            const std::shared_ptr<const Image>& destination,
             uint32_t sourceOffset,
             uint32_t firstMipLevel) override;
 
         void uploadArray(
-            const shared_ptr<const Image>& destination,
-            const vector<void*>& sources,
+            const std::shared_ptr<const Image>& destination,
+            const std::vector<void*>& sources,
             uint32_t firstMipLevel) override;
 
         void copy(
-            const shared_ptr<const Image>& source,
-            const shared_ptr<const SwapChain>& swapChain) const override;
+            const std::shared_ptr<const Image>& source,
+            const std::shared_ptr<const SwapChain>& swapChain) const override;
 
         void blit(
-            const shared_ptr<const Image>& source,
-            const shared_ptr<const SwapChain>& swapChain,
+            const std::shared_ptr<const Image>& source,
+            const std::shared_ptr<const SwapChain>& swapChain,
             Filter filter) const override;
 
         void beginRendering(const RenderingConfiguration& conf) override;
@@ -103,18 +103,18 @@ export namespace vireo {
         void dispatch(uint32_t x, uint32_t y, uint32_t z) const override;
 
         void bindVertexBuffers(
-            const vector<shared_ptr<const Buffer>>& buffers,
-            vector<size_t> offsets = {}) const override;
+            const std::vector<std::shared_ptr<const Buffer>>& buffers,
+            std::vector<size_t> offsets = {}) const override;
 
-        void bindVertexBuffer(const shared_ptr<const Buffer>& buffer, size_t offset) const override;
+        void bindVertexBuffer(const std::shared_ptr<const Buffer>& buffer, size_t offset) const override;
 
-        void bindIndexBuffer(const shared_ptr<const Buffer>& buffer, IndexType indexType, size_t offset) const override;
+        void bindIndexBuffer(const std::shared_ptr<const Buffer>& buffer, IndexType indexType, size_t offset) const override;
 
-        void bindPipeline(const shared_ptr<const Pipeline>& pipeline) override;
+        void bindPipeline(const std::shared_ptr<const Pipeline>& pipeline) override;
 
         void bindDescriptors(
-            const shared_ptr<const Pipeline>& pipeline,
-            const vector<shared_ptr<const DescriptorSet>>& descriptors) const override;
+            const std::shared_ptr<const Pipeline>& pipeline,
+            const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors) const override;
 
         void draw(
             uint32_t vertexCountPerInstance,
@@ -129,36 +129,36 @@ export namespace vireo {
             uint32_t vertexOffset = 0,
             uint32_t firstInstance = 0) const override;
 
-        void setViewports(const vector<Extent>& extents) const override;
+        void setViewports(const std::vector<Extent>& extents) const override;
 
-        void setScissors(const vector<Extent>& extents) const override;
+        void setScissors(const std::vector<Extent>& extents) const override;
 
         void setViewport(const Extent& extent) const override;
 
         void setScissors(const Extent& extent) const override;
 
         void barrier(
-            const shared_ptr<const Image>& image,
+            const std::shared_ptr<const Image>& image,
             ResourceState oldState,
             ResourceState newState) const override;
 
         void barrier(
-            const shared_ptr<const RenderTarget>& renderTarget,
+            const std::shared_ptr<const RenderTarget>& renderTarget,
             ResourceState oldState,
             ResourceState newState) const override;
 
         void barrier(
-            const shared_ptr<const SwapChain>& swapChain,
+            const std::shared_ptr<const SwapChain>& swapChain,
             ResourceState oldState,
             ResourceState newState) const override;
 
         void barrier(
-            const vector<shared_ptr<const RenderTarget>>& renderTargets,
+            const std::vector<std::shared_ptr<const RenderTarget>>& renderTargets,
             ResourceState oldState,
             ResourceState newState) const override;
 
         void pushConstants(
-            const shared_ptr<const PipelineResources>& pipelineResources,
+            const std::shared_ptr<const PipelineResources>& pipelineResources,
             const PushConstantsDesc& pushConstants,
             const void* data) const override;
 
@@ -170,11 +170,11 @@ export namespace vireo {
         ComPtr<ID3D12Device>              device;
         ComPtr<ID3D12GraphicsCommandList> commandList;
         ComPtr<ID3D12CommandAllocator>    commandAllocator;
-        vector<ComPtr<ID3D12Resource>>    stagingBuffers{};
-        vector<shared_ptr<Image>>         resolveSource;
-        vector<ComPtr<ID3D12Resource>>    resolveDestination;
+        std::vector<ComPtr<ID3D12Resource>>    stagingBuffers{};
+        std::vector<std::shared_ptr<Image>>         resolveSource;
+        std::vector<ComPtr<ID3D12Resource>>    resolveDestination;
         ComPtr<ID3D12Resource>            depthTargetToDiscard;
-        vector<ComPtr<ID3D12Resource>>    colorTargetsToDiscard;
+        std::vector<ComPtr<ID3D12Resource>>    colorTargetsToDiscard;
 
         static void convertState(
             ResourceState oldState,
@@ -188,7 +188,7 @@ export namespace vireo {
            ResourceState newState) const;
 
         void barrier(
-           const vector<ID3D12Resource*>& resources,
+           const std::vector<ID3D12Resource*>& resources,
            ResourceState oldState,
            ResourceState newState) const;
         };

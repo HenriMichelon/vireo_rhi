@@ -4,17 +4,17 @@
  * This software is released under the MIT License.
  * https://opensource.org/licenses/MIT
 */
-module;
-#include "vireo/Libraries.h"
 export module vireo.tools;
+
+import std;
 
 export namespace vireo {
 
-    class Exception : public exception {
+    class Exception : public std::exception {
     public:
         template <typename... Args>
         explicit Exception(Args&&... args) {
-            ostringstream oss;
+            std::ostringstream oss;
             (oss << ... << std::forward<Args>(args));
 #ifdef _MSC_VER
             message = oss.str();
@@ -41,7 +41,7 @@ export namespace vireo {
         }
 
     private:
-        string message;
+        std::string message;
     };
 
 }
@@ -68,12 +68,12 @@ export namespace std {
     }
 #else
 
-    inline string to_string(const wstring &wstr) {
+    inline string to_string(const std::wstring &wstr) {
         wstring_convert<codecvt_utf8_utf16<wchar_t>> conv;
         return conv.to_bytes(wstr);
     }
 
-    inline wstring to_wstring(const string &str) {
+    inline wstring to_wstring(const std::string &str) {
         wstring_convert<codecvt_utf8_utf16<wchar_t>> conv;
         return conv.from_bytes(str);
     }

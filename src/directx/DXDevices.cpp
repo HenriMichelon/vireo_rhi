@@ -8,6 +8,7 @@ module;
 #include "vireo/backend/directx/Libraries.h"
 module vireo.directx.devices;
 
+import std;
 import vireo.directx.tools;
 
 namespace vireo {

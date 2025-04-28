@@ -17,11 +17,11 @@ export namespace vireo {
     class VKBuffer : public Buffer {
     public:
         VKBuffer(
-            const shared_ptr<const VKDevice>& device,
+            const std::shared_ptr<const VKDevice>& device,
             BufferType type,
             size_t size,
             size_t count,
-            const wstring& name = L"");
+            const std::wstring& name = L"");
 
         ~VKBuffer() override;
 
@@ -36,13 +36,13 @@ export namespace vireo {
         auto getAlignmentSize() const { return alignmentSize; }
 
     private:
-        const shared_ptr<const VKDevice> device;
+        const std::shared_ptr<const VKDevice> device;
         VkBuffer        buffer{VK_NULL_HANDLE};
         VkDeviceMemory  bufferMemory{VK_NULL_HANDLE};
         size_t alignmentSize{0};
 
         static void createBuffer(
-            const shared_ptr<const VKDevice>& device,
+            const std::shared_ptr<const VKDevice>& device,
             VkDeviceSize size,
             VkBufferUsageFlags usage,
             uint32_t memoryTypeIndex,
@@ -53,7 +53,7 @@ export namespace vireo {
     class VKSampler : public Sampler {
     public:
         VKSampler(
-            const shared_ptr<const VKDevice>& device,
+            const std::shared_ptr<const VKDevice>& device,
             Filter minFilter,
             Filter magFilter,
             AddressMode addressModeU,
@@ -157,13 +157,13 @@ export namespace vireo {
 
 
         VKImage(
-            const shared_ptr<const VKDevice>& device,
+            const std::shared_ptr<const VKDevice>& device,
             ImageFormat format,
             uint32_t    width,
             uint32_t    height,
             uint32_t    mipLevels,
             uint32_t    arraySize,
-            const wstring& name,
+            const std::wstring& name,
             bool useByComputeShader,
             bool isRenderTarget,
             bool isDepthBuffer,
@@ -176,7 +176,7 @@ export namespace vireo {
         auto getImageView() const { return imageView; }
 
     private:
-        const shared_ptr<const VKDevice> device;
+        const std::shared_ptr<const VKDevice> device;
         VkImage         image{VK_NULL_HANDLE};
         VkDeviceMemory  imageMemory{VK_NULL_HANDLE};
         VkImageView     imageView{VK_NULL_HANDLE};

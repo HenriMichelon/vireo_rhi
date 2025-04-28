@@ -15,7 +15,7 @@ import vireo.vulkan.tools;
 
 namespace vireo {
 
-    VKDescriptorLayout::VKDescriptorLayout(const VkDevice device, const wstring& name):
+    VKDescriptorLayout::VKDescriptorLayout(const VkDevice device, const std::wstring& name):
         device{device}, name{name} {
     }
 
@@ -33,7 +33,7 @@ namespace vireo {
     }
 
     void VKDescriptorLayout::build() {
-        vector<VkDescriptorSetLayoutBinding> bindings;
+        std::vector<VkDescriptorSetLayoutBinding> bindings;
         for (const auto& poolSize : poolSizes) {
             auto binding = VkDescriptorSetLayoutBinding{
                 .binding = poolSize.first,
@@ -61,14 +61,14 @@ namespace vireo {
     }
 
     VKDescriptorSet::VKDescriptorSet(
-        const shared_ptr<const DescriptorLayout>& layout,
-        const wstring& name):
+        const std::shared_ptr<const DescriptorLayout>& layout,
+        const std::wstring& name):
         DescriptorSet {layout} {
         const auto vkLayout = static_pointer_cast<const VKDescriptorLayout>(layout);
         const auto setLayout = vkLayout->getSetLayout();
         device = vkLayout->getDevice();
 
-        vector<VkDescriptorPoolSize> poolSizes;
+        std::vector<VkDescriptorPoolSize> poolSizes;
         for (const auto &poolSize : vkLayout->getPoolSizes()) {
             poolSizes.push_back(poolSize.second);
         }
@@ -101,7 +101,7 @@ namespace vireo {
         // vkFreeDescriptorSets(static_cast<const VKDescriptorLayout&>(layout).getDevice(), set, nullptr);
     }
 
-    void VKDescriptorSet::update(const DescriptorIndex index, const shared_ptr<const Buffer>& buffer) const {
+    void VKDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer) const {
         assert(buffer != nullptr);
         const auto vkBuffer = static_pointer_cast<const VKBuffer>(buffer);
         const auto bufferInfo = VkDescriptorBufferInfo {
@@ -120,7 +120,7 @@ namespace vireo {
         vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
     }
 
-    void VKDescriptorSet::update(const DescriptorIndex index, const shared_ptr<const Image>& image) const {
+    void VKDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<const Image>& image) const {
         assert(image != nullptr);
         const auto vkImage = static_pointer_cast<const VKImage>(image);
         const auto imageInfo = VkDescriptorImageInfo {
@@ -140,7 +140,7 @@ namespace vireo {
         vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
     }
 
-    void VKDescriptorSet::update(const DescriptorIndex index, const shared_ptr<const Sampler>& sampler) const {
+    void VKDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<const Sampler>& sampler) const {
         assert(sampler != nullptr);
         const auto vkSampler = static_pointer_cast<const VKSampler>(sampler);
         const auto imageInfo = VkDescriptorImageInfo {
@@ -160,9 +160,9 @@ namespace vireo {
         vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
     }
 
-    void VKDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<Buffer>>& buffers) const {
+    void VKDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Buffer>>& buffers) const {
         assert(buffers.size() > 0);
-        auto buffersInfo = vector<VkDescriptorBufferInfo>(buffers.size());
+        auto buffersInfo = std::vector<VkDescriptorBufferInfo>(buffers.size());
         for (int i = 0; i < buffers.size(); i++) {
             const auto& vkBuffer = static_pointer_cast<const VKBuffer>(buffers[i]);
             buffersInfo[i].buffer = vkBuffer->getBuffer();
@@ -180,9 +180,9 @@ namespace vireo {
         vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
     }
 
-    void VKDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<Image>>& images) const {
+    void VKDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Image>>& images) const {
         assert(images.size() > 0);
-        auto imagesInfo = vector<VkDescriptorImageInfo>(images.size());
+        auto imagesInfo = std::vector<VkDescriptorImageInfo>(images.size());
         bool isStorage = false;
         for (int i = 0; i < images.size(); i++) {
             imagesInfo[i].sampler = VK_NULL_HANDLE;
@@ -202,9 +202,9 @@ namespace vireo {
         vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
     }
 
-    void VKDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<Sampler>>&samplers) const {
+    void VKDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>&samplers) const {
         assert(samplers.size() > 0);
-        auto imagesInfo = vector<VkDescriptorImageInfo>(samplers.size());
+        auto imagesInfo = std::vector<VkDescriptorImageInfo>(samplers.size());
         for (int i = 0; i < samplers.size(); i++) {
             imagesInfo[i].sampler = static_pointer_cast<const VKSampler>(samplers[i])->getSampler();
             imagesInfo[i].imageView = VK_NULL_HANDLE;

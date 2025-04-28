@@ -8,6 +8,7 @@ module;
 #include "vireo/backend/vulkan/Libraries.h"
 export module vireo.vulkan.devices;
 
+import std;
 import vireo;
 
 export namespace vireo {
@@ -27,7 +28,7 @@ export namespace vireo {
         // Used to redirect validation layers to the logging system
         VkDebugUtilsMessengerEXT debugMessenger;
         // All the vulkan layers used
-        vector<const char *>requestedLayers{};
+        std::vector<const char *>requestedLayers{};
     };
 
     class VKPhysicalDevice : public PhysicalDevice {
@@ -55,9 +56,9 @@ export namespace vireo {
         const auto& getDeviceProperties() const { return deviceProperties.properties; }
 
         struct QueueFamilyIndices {
-            optional<uint32_t> graphicsFamily;
-            optional<uint32_t> transferFamily;
-            optional<uint32_t> computeFamily;
+            std::optional<uint32_t> graphicsFamily;
+            std::optional<uint32_t> transferFamily;
+            std::optional<uint32_t> computeFamily;
 
             bool isComplete() const {
                 return graphicsFamily.has_value() &&
@@ -84,7 +85,7 @@ export namespace vireo {
     private:
         VkInstance                   instance{VK_NULL_HANDLE};
         VkPhysicalDevice             physicalDevice{VK_NULL_HANDLE};
-        vector<const char*>          deviceExtensions;
+        std::vector<const char*>          deviceExtensions;
         VkPhysicalDeviceFeatures     deviceFeatures {};
         VkPhysicalDeviceProperties2  deviceProperties{
             VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2
@@ -96,25 +97,25 @@ export namespace vireo {
 
         struct SwapChainSupportDetails {
             VkSurfaceCapabilitiesKHR   capabilities;
-            vector<VkSurfaceFormatKHR> formats;
-            vector<VkPresentModeKHR>   presentModes;
+            std::vector<VkSurfaceFormatKHR> formats;
+            std::vector<VkPresentModeKHR>   presentModes;
         };
 
         // Rate physical device by properties to find the best suitable GPU
         static uint32_t rateDeviceSuitability(
             VkPhysicalDevice            vkPhysicalDevice,
-            const vector<const char *> &deviceExtensions);
+            const std::vector<const char *> &deviceExtensions);
 
         static bool checkDeviceExtensionSupport
             (VkPhysicalDevice            vkPhysicalDevice,
-            const vector<const char *> &deviceExtensions);
+            const std::vector<const char *> &deviceExtensions);
 
         VkSampleCountFlagBits getMaxUsableMSAASampleCount() const;
     };
 
     class VKDevice : public Device {
     public:
-        VKDevice(const VKPhysicalDevice& physicalDevice, const vector<const char *>& requestedLayers);
+        VKDevice(const VKPhysicalDevice& physicalDevice, const std::vector<const char *>& requestedLayers);
         ~VKDevice() override;
 
         inline auto getDevice() const { return device; }
@@ -146,7 +147,7 @@ export namespace vireo {
 
     class VKFence : public Fence {
     public:
-        VKFence(const shared_ptr<const VKDevice>& device, const wstring& name);
+        VKFence(const std::shared_ptr<const VKDevice>& device, const std::wstring& name);
 
         ~VKFence() override;
 

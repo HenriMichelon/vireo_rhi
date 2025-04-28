@@ -8,8 +8,8 @@ module;
 #include "vireo/backend/directx/Libraries.h"
 module vireo.directx.commands;
 
+import std;
 import vireo.tools;
-
 import vireo.directx.descriptors;
 import vireo.directx.devices;
 import vireo.directx.pipelines;
@@ -29,18 +29,18 @@ namespace vireo {
     }
 
     void DXSubmitQueue::submit(
-        const shared_ptr<Fence>& fence,
-        const shared_ptr<const SwapChain>&,
-        const vector<shared_ptr<const CommandList>>& commandLists) const {
+        const std::shared_ptr<Fence>& fence,
+        const std::shared_ptr<const SwapChain>&,
+        const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
         assert(fence);
         submit(commandLists);
         const auto dxFence = static_pointer_cast<DXFence>(fence);
         dxCheck(commandQueue->Signal(dxFence->getFence().Get(), dxFence->getValue()));
     }
 
-    void DXSubmitQueue::submit(const vector<shared_ptr<const CommandList>>& commandLists) const {
+    void DXSubmitQueue::submit(const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
         assert(commandLists.size() > 0);
-        auto dxCommandLists = vector<ID3D12CommandList*>(commandLists.size());
+        auto dxCommandLists = std::vector<ID3D12CommandList*>(commandLists.size());
         for (int i = 0; i < commandLists.size(); i++) {
             dxCommandLists[i] = static_pointer_cast<const DXCommandList>(commandLists[i])->getCommandList().Get();
         }
@@ -79,17 +79,17 @@ namespace vireo {
         dxCheck(commandAllocator->Reset());
     }
 
-    shared_ptr<CommandList> DXCommandAllocator::createCommandList(const shared_ptr<const Pipeline>& pipeline) const {
+    std::shared_ptr<CommandList> DXCommandAllocator::createCommandList(const std::shared_ptr<const Pipeline>& pipeline) const {
         assert(pipeline != nullptr);
-        return make_shared<DXCommandList>(
+        return std::make_shared<DXCommandList>(
             getCommandListType(),
             device,
             commandAllocator,
             static_pointer_cast<const DXGraphicPipeline>(pipeline)->getPipelineState());
     }
 
-    shared_ptr<CommandList> DXCommandAllocator::createCommandList() const {
-        return make_shared<DXCommandList>(
+    std::shared_ptr<CommandList> DXCommandAllocator::createCommandList() const {
+        return std::make_shared<DXCommandList>(
             getCommandListType(),
             device,
             commandAllocator,
@@ -116,7 +116,7 @@ namespace vireo {
         cleanup();
     }
 
-    void DXCommandList::bindPipeline(const shared_ptr<const Pipeline>& pipeline) {
+    void DXCommandList::bindPipeline(const std::shared_ptr<const Pipeline>& pipeline) {
         assert(pipeline != nullptr);
         if (pipeline->getType() == PipelineType::COMPUTE) {
             commandList->SetPipelineState(static_pointer_cast<const DXComputePipeline>(pipeline)->getPipelineState().Get());
@@ -130,12 +130,12 @@ namespace vireo {
     }
 
     void DXCommandList::bindDescriptors(
-        const shared_ptr<const Pipeline>&pipeline,
-        const vector<shared_ptr<const DescriptorSet>>& descriptors) const {
+        const std::shared_ptr<const Pipeline>&pipeline,
+        const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors) const {
         assert(pipeline != nullptr);
         assert(descriptors.size() > 0);
         if (descriptors.empty()) { return; }
-        vector<ID3D12DescriptorHeap*> heaps(descriptors.size());
+        std::vector<ID3D12DescriptorHeap*> heaps(descriptors.size());
         for (int i = 0; i < descriptors.size(); i++) {
             heaps[i] = static_pointer_cast<const DXDescriptorSet>(descriptors[i])->getHeap().Get();
         }
@@ -155,8 +155,8 @@ namespace vireo {
         }
     }
 
-    void DXCommandList::setViewports(const vector<Extent>& extents) const {
-        vector<CD3DX12_VIEWPORT> viewports(extents.size());
+    void DXCommandList::setViewports(const std::vector<Extent>& extents) const {
+        std::vector<CD3DX12_VIEWPORT> viewports(extents.size());
         for (int i = 0; i < viewports.size(); i++) {
             viewports[i].TopLeftX = 0.0f;
             viewports[i].TopLeftY = 0.0f;
@@ -168,8 +168,8 @@ namespace vireo {
         commandList->RSSetViewports(viewports.size(), viewports.data());
     }
 
-    void DXCommandList::setScissors(const vector<Extent>& extents) const {
-        vector<CD3DX12_RECT> scissors(extents.size());
+    void DXCommandList::setScissors(const std::vector<Extent>& extents) const {
+        std::vector<CD3DX12_RECT> scissors(extents.size());
         for (int i = 0; i < scissors.size(); i++) {
             scissors[i].left = 0;
             scissors[i].top = 0;
@@ -224,7 +224,7 @@ namespace vireo {
             }
         }
 
-        auto rtvHandles = vector<D3D12_CPU_DESCRIPTOR_HANDLE>(conf.colorRenderTargets.size()) ;
+        auto rtvHandles = std::vector<D3D12_CPU_DESCRIPTOR_HANDLE>(conf.colorRenderTargets.size()) ;
         for (int i = 0; i < conf.colorRenderTargets.size(); i++) {
             const auto dxSwapChain = conf.colorRenderTargets[i].swapChain ?
                 static_pointer_cast<DXSwapChain>(conf.colorRenderTargets[i].swapChain) : nullptr;
@@ -326,7 +326,7 @@ namespace vireo {
     }
 
     void DXCommandList::barrier(
-        const shared_ptr<const Image>& image,
+        const std::shared_ptr<const Image>& image,
         const ResourceState oldState,
         const ResourceState newState) const {
         assert(image != nullptr);
@@ -334,7 +334,7 @@ namespace vireo {
     }
 
     void DXCommandList::barrier(
-        const shared_ptr<const SwapChain>& swapChain,
+        const std::shared_ptr<const SwapChain>& swapChain,
         const ResourceState oldState,
         const ResourceState newState) const {
         assert(swapChain != nullptr);
@@ -343,7 +343,7 @@ namespace vireo {
     }
 
     void DXCommandList::barrier(
-       const shared_ptr<const RenderTarget>& renderTarget,
+       const std::shared_ptr<const RenderTarget>& renderTarget,
        const ResourceState oldState,
        const ResourceState newState) const {
         assert(renderTarget != nullptr);
@@ -351,14 +351,14 @@ namespace vireo {
     }
 
     void DXCommandList::barrier(
-        const vector<shared_ptr<const RenderTarget>>& renderTargets,
+        const std::vector<std::shared_ptr<const RenderTarget>>& renderTargets,
         const ResourceState oldState,
         const ResourceState newState) const {
         assert(renderTargets.size() > 0);
-        const auto r = views::transform(renderTargets, [](const shared_ptr<const RenderTarget>& renderTarget) {
+        const auto r = std::views::transform(renderTargets, [](const std::shared_ptr<const RenderTarget>& renderTarget) {
             return static_pointer_cast<const DXImage>(renderTarget->getImage())->getImage().Get();
         });
-        barrier(vector<ID3D12Resource*>{r.begin(), r.end()}, oldState, newState);
+        barrier(std::vector<ID3D12Resource*>{r.begin(), r.end()}, oldState, newState);
     }
 
     void DXCommandList::convertState(
@@ -458,12 +458,12 @@ namespace vireo {
     }
 
     void DXCommandList::barrier(
-       const vector<ID3D12Resource*>& resources,
+       const std::vector<ID3D12Resource*>& resources,
        const ResourceState oldState,
        const ResourceState newState) const {
         D3D12_RESOURCE_STATES srcState, dstState;
         convertState(oldState, newState, srcState, dstState);
-        vector<D3D12_RESOURCE_BARRIER> barriers(resources.size());
+        std::vector<D3D12_RESOURCE_BARRIER> barriers(resources.size());
         for (int i = 0; i < resources.size(); i++) {
             barriers[i] = CD3DX12_RESOURCE_BARRIER::Transition(resources[i], srcState, dstState);
         }
@@ -471,7 +471,7 @@ namespace vireo {
     }
 
     void DXCommandList::pushConstants(
-        const shared_ptr<const PipelineResources>& pipelineResources,
+        const std::shared_ptr<const PipelineResources>& pipelineResources,
         const PushConstantsDesc& pushConstants,
         const void* data) const {
         assert(pipelineResources != nullptr);
@@ -496,10 +496,10 @@ namespace vireo {
         stagingBuffers.clear();
     }
 
-    void DXCommandList::bindVertexBuffers(const vector<shared_ptr<const Buffer>>& buffers, const vector<size_t> offsets) const {
+    void DXCommandList::bindVertexBuffers(const std::vector<std::shared_ptr<const Buffer>>& buffers, const std::vector<size_t> offsets) const {
         assert(buffers.size() > 0);
         assert(buffers.size() == offsets.size());
-        vector<D3D12_VERTEX_BUFFER_VIEW> bufferViews(buffers.size());
+        std::vector<D3D12_VERTEX_BUFFER_VIEW> bufferViews(buffers.size());
         for (int i = 0; i < buffers.size(); i++) {
             const auto& vertexBuffer = static_pointer_cast<const DXBuffer>(buffers[i]);
             const auto offset = offsets.empty() ? 0 : offsets[i];
@@ -512,7 +512,7 @@ namespace vireo {
         commandList->IASetVertexBuffers(0, static_cast<UINT>(buffers.size()), bufferViews.data());
     }
 
-    void DXCommandList::bindVertexBuffer(const shared_ptr<const Buffer>& buffer, const size_t offset) const {
+    void DXCommandList::bindVertexBuffer(const std::shared_ptr<const Buffer>& buffer, const size_t offset) const {
         assert(buffer != nullptr);
         const auto& vertexBuffer = static_pointer_cast<const DXBuffer>(buffer);
         const auto bufferView = D3D12_VERTEX_BUFFER_VIEW {
@@ -523,7 +523,7 @@ namespace vireo {
         commandList->IASetVertexBuffers(0, 1, &bufferView);
     }
 
-    void DXCommandList::bindIndexBuffer(const shared_ptr<const Buffer>& buffer, IndexType indexType, const size_t offset) const {
+    void DXCommandList::bindIndexBuffer(const std::shared_ptr<const Buffer>& buffer, IndexType indexType, const size_t offset) const {
         assert(buffer != nullptr);
         const auto& indexBuffer = static_pointer_cast<const DXBuffer>(buffer);
         const auto bufferView = D3D12_INDEX_BUFFER_VIEW {
@@ -551,7 +551,7 @@ namespace vireo {
         commandList->DrawIndexedInstanced(indexCountPerInstance, instanceCount, firstIndex, vertexOffset, firstInstance);
     }
 
-    void DXCommandList::upload(const shared_ptr<const Buffer>& destination, const void* source) {
+    void DXCommandList::upload(const std::shared_ptr<const Buffer>& destination, const void* source) {
         assert(destination != nullptr);
         assert(source != nullptr);
         const auto buffer = static_pointer_cast<const DXBuffer>(destination);
@@ -601,7 +601,7 @@ namespace vireo {
     }
 
     void DXCommandList::upload(
-        const shared_ptr<const Image>& destination,
+        const std::shared_ptr<const Image>& destination,
         const void* source,
         const uint32_t firstMipLevel) {
         assert(destination != nullptr);
@@ -650,8 +650,8 @@ namespace vireo {
     }
 
     void DXCommandList::copy(
-       const shared_ptr<const Buffer>& source,
-       const shared_ptr<const Image>& destination,
+       const std::shared_ptr<const Buffer>& source,
+       const std::shared_ptr<const Image>& destination,
        const uint32_t sourceOffset,
        const uint32_t firstMipLevel) {
         assert(source != nullptr);
@@ -699,8 +699,8 @@ namespace vireo {
     }
 
     void DXCommandList::uploadArray(
-        const shared_ptr<const Image>& destination,
-        const vector<void*>& sources,
+        const std::shared_ptr<const Image>& destination,
+        const std::vector<void*>& sources,
         const uint32_t firstMipLevel) {
         assert(destination != nullptr);
         assert(sources.size() == destination->getArraySize());
@@ -733,7 +733,7 @@ namespace vireo {
                    0,
                    image->getMipLevels(),
                    image->getArraySize());
-            auto copyData = vector<D3D12_SUBRESOURCE_DATA>(sources.size());
+            auto copyData = std::vector<D3D12_SUBRESOURCE_DATA>(sources.size());
             for (int i = 0; i < sources.size(); i++) {
                 copyData[i].pData = sources[i];
                 copyData[i].RowPitch = static_cast<LONG_PTR>(image->getRowPitch());
@@ -752,8 +752,8 @@ namespace vireo {
     }
 
     void DXCommandList::copy(
-        const shared_ptr<const Image>& source,
-        const shared_ptr<const SwapChain>& swapChain) const {
+        const std::shared_ptr<const Image>& source,
+        const std::shared_ptr<const SwapChain>& swapChain) const {
         assert(source != nullptr);
         assert(swapChain != nullptr);
         const auto dxSource = static_pointer_cast<const DXImage>(source);
@@ -774,8 +774,8 @@ namespace vireo {
     }
 
     void DXCommandList::blit(
-       const shared_ptr<const Image>& source,
-       const shared_ptr<const SwapChain>& swapChain,
+       const std::shared_ptr<const Image>& source,
+       const std::shared_ptr<const SwapChain>& swapChain,
        Filter filter) const {
        copy(source, swapChain);
     }

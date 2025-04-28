@@ -8,15 +8,15 @@ module;
 #include "vireo/backend/vulkan/Libraries.h"
 module vireo.vulkan.pipelines;
 
+import std;
 import vireo.tools;
-
 import vireo.vulkan.devices;
 import vireo.vulkan.resources;
 import vireo.vulkan.tools;
 
 namespace vireo {
 
-    VKVertexInputLayout::VKVertexInputLayout(const size_t size, const vector<VertexAttributeDesc>& attributesDescriptions) {
+    VKVertexInputLayout::VKVertexInputLayout(const size_t size, const std::vector<VertexAttributeDesc>& attributesDescriptions) {
         vertexBindingDescription.binding = 0;
         vertexBindingDescription.stride = size;
         vertexBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
@@ -30,16 +30,16 @@ namespace vireo {
         }
     }
 
-    VKShaderModule::VKShaderModule(const VkDevice device, const string& fileName):
+    VKShaderModule::VKShaderModule(const VkDevice device, const std::string& fileName):
         device{device} {
         assert(device != VK_NULL_HANDLE);
         assert(!fileName.empty());
-        ifstream file(fileName + ".spv", ios::ate | ios::binary);
+        std::ifstream file(fileName + ".spv", std::ios::ate | std::ios::binary);
         if (!file.is_open()) {
             throw Exception("failed to open shader file ", fileName);
         }
         const auto fileSize = static_cast<size_t>(file.tellg());
-        vector<char> buffer(fileSize);
+        std::vector<char> buffer(fileSize);
         file.seekg(0);
         file.read(buffer.data(), fileSize);
         file.close();
@@ -61,9 +61,9 @@ namespace vireo {
 
     VKPipelineResources::VKPipelineResources(
         const VkDevice device,
-        const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts,
+        const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
         const PushConstantsDesc& pushConstants,
-        const wstring& name):
+        const std::wstring& name):
         device{device} {
         assert(device != VK_NULL_HANDLE);
         for (const auto& descriptorLayout : descriptorLayouts) {
@@ -105,9 +105,9 @@ namespace vireo {
 
     VKComputePipeline::VKComputePipeline(
           const VkDevice device,
-          const shared_ptr<PipelineResources>& pipelineResources,
-          const shared_ptr<const ShaderModule>& shader,
-          const wstring& name) :
+          const std::shared_ptr<PipelineResources>& pipelineResources,
+          const std::shared_ptr<const ShaderModule>& shader,
+          const std::wstring& name) :
         ComputePipeline{pipelineResources},
         device{device} {
         assert(device != VK_NULL_HANDLE);
@@ -141,9 +141,9 @@ namespace vireo {
     }
 
     VKGraphicPipeline::VKGraphicPipeline(
-           const shared_ptr<VKDevice>& device,
+           const std::shared_ptr<VKDevice>& device,
            const GraphicPipelineConfiguration& configuration,
-           const wstring& name):
+           const std::wstring& name):
         GraphicPipeline{configuration.resources},
         device{device} {
         assert(configuration.resources);
@@ -151,7 +151,7 @@ namespace vireo {
         assert(configuration.colorRenderFormats.size() == configuration.colorBlendDesc.size());
         const auto& vkPipelineLayout = static_pointer_cast<const VKPipelineResources>(configuration.resources);
 
-        auto shaderStages = vector<VkPipelineShaderStageCreateInfo>{};
+        auto shaderStages = std::vector<VkPipelineShaderStageCreateInfo>{};
         if (configuration.vertexShader) {
             shaderStages.push_back({
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -179,7 +179,7 @@ namespace vireo {
             vertexInputInfo.pVertexAttributeDescriptions = vkVertexInputLayout->getVertexAttributeDescription().data();
         }
 
-        const vector dynamicStates = {
+        const std::vector dynamicStates = {
             VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT,
             VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT,
         };
@@ -216,7 +216,7 @@ namespace vireo {
             .alphaToCoverageEnable  = configuration.alphaToCoverageEnable,
             .alphaToOneEnable       = VK_FALSE
         };
-        const auto blendStateViews = configuration.colorBlendDesc | views::transform([](const ColorBlendDesc& desc) {
+        const auto blendStateViews = configuration.colorBlendDesc | std::views::transform([](const ColorBlendDesc& desc) {
             return VkPipelineColorBlendAttachmentState {
             .blendEnable         = desc.blendEnable ? VK_TRUE : VK_FALSE,
             .srcColorBlendFactor = vkBlendFactor[static_cast<size_t>(desc.srcColorBlendFactor)],
@@ -227,7 +227,7 @@ namespace vireo {
             .alphaBlendOp        = vkBlendOp[static_cast<size_t>(desc.alphaBlendOp)],
             .colorWriteMask      = static_cast<VkColorComponentFlags>(desc.colorWriteMask)};
         });
-        const auto colorBlendStates = vector<VkPipelineColorBlendAttachmentState> {blendStateViews.begin(), blendStateViews.end()};
+        const auto colorBlendStates = std::vector<VkPipelineColorBlendAttachmentState> {blendStateViews.begin(), blendStateViews.end()};
         const auto colorBlending = VkPipelineColorBlendStateCreateInfo {
             .sType          = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
             .logicOpEnable  = configuration.logicOpEnable ? VK_TRUE : VK_FALSE,
@@ -235,10 +235,10 @@ namespace vireo {
             .attachmentCount= static_cast<uint32_t>(colorBlendStates.size()),
             .pAttachments   = colorBlendStates.data(),
         };
-        const auto formatsView = configuration.colorRenderFormats | views::transform([](const ImageFormat& format) {
+        const auto formatsView = configuration.colorRenderFormats | std::views::transform([](const ImageFormat& format) {
             return VKImage::vkFormats[static_cast<int>(format)];
         });
-        const auto formats = vector<VkFormat> {formatsView.begin(), formatsView.end()};
+        const auto formats = std::vector<VkFormat> {formatsView.begin(), formatsView.end()};
         const auto dynamicRenderingCreateInfo = VkPipelineRenderingCreateInfo{
             .sType                   = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR,
             .pNext                   = VK_NULL_HANDLE,

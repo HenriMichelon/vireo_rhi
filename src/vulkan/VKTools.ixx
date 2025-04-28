@@ -20,7 +20,7 @@ export namespace vireo {
     }
 
 #ifdef _DEBUG
-    inline void vkSetObjectName(const VkDevice device, const uint64_t objectHandle, const VkObjectType objectType, const string& name) {
+    inline void vkSetObjectName(const VkDevice device, const uint64_t objectHandle, const VkObjectType objectType, const std::string& name) {
         const auto func = reinterpret_cast<PFN_vkSetDebugUtilsObjectNameEXT>(vkGetDeviceProcAddr(device, "vkSetDebugUtilsObjectNameEXT"));
         if (func) {
             const auto nameInfo = VkDebugUtilsObjectNameInfoEXT{

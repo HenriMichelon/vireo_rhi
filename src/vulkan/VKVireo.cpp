@@ -17,18 +17,18 @@ import vireo.vulkan.tools;
 namespace vireo {
 
     VKVireo::VKVireo() {
-        instance = make_shared<VKInstance>();
-        physicalDevice = make_shared<VKPhysicalDevice>(getVKInstance()->getInstance());
-        device = make_shared<VKDevice>(*getVKPhysicalDevice(), getVKInstance()->getRequestedLayers());
+        instance = std::make_shared<VKInstance>();
+        physicalDevice = std::make_shared<VKPhysicalDevice>(getVKInstance()->getInstance());
+        device = std::make_shared<VKDevice>(*getVKPhysicalDevice(), getVKInstance()->getRequestedLayers());
     }
 
-    shared_ptr<SwapChain> VKVireo::createSwapChain(
+    std::shared_ptr<SwapChain> VKVireo::createSwapChain(
         const ImageFormat format,
-        const shared_ptr<const SubmitQueue>& submitQueue,
+        const std::shared_ptr<const SubmitQueue>& submitQueue,
         void* windowHandle,
         const PresentMode presentMode,
         const uint32_t framesInFlight) const {
-        return make_shared<VKSwapChain>(getVKDevice(),
+        return std::make_shared<VKSwapChain>(getVKDevice(),
             static_pointer_cast<const VKSubmitQueue>(submitQueue)->getCommandQueue(),
             windowHandle,
             format,
@@ -36,73 +36,73 @@ namespace vireo {
             framesInFlight);
     }
 
-    shared_ptr<SubmitQueue> VKVireo::createSubmitQueue(
+    std::shared_ptr<SubmitQueue> VKVireo::createSubmitQueue(
             CommandType commandType,
-            const wstring& name) const {
-        return make_shared<VKSubmitQueue>(getVKDevice(), commandType, name);
+            const std::wstring& name) const {
+        return std::make_shared<VKSubmitQueue>(getVKDevice(), commandType, name);
     }
 
-    shared_ptr<VertexInputLayout> VKVireo::createVertexLayout(
+    std::shared_ptr<VertexInputLayout> VKVireo::createVertexLayout(
            size_t size,
-           const vector<VertexAttributeDesc>& attributesDescriptions) const {
-        return make_shared<VKVertexInputLayout>(size, attributesDescriptions);
+           const std::vector<VertexAttributeDesc>& attributesDescriptions) const {
+        return std::make_shared<VKVertexInputLayout>(size, attributesDescriptions);
     }
 
-    shared_ptr<Fence> VKVireo::createFence(const wstring& name) const {
-        return make_shared<VKFence>(getVKDevice(), name);
+    std::shared_ptr<Fence> VKVireo::createFence(const std::wstring& name) const {
+        return std::make_shared<VKFence>(getVKDevice(), name);
     }
 
-    shared_ptr<CommandAllocator> VKVireo::createCommandAllocator(CommandType type) const {
-        return make_shared<VKCommandAllocator>(getVKDevice(), type);
+    std::shared_ptr<CommandAllocator> VKVireo::createCommandAllocator(CommandType type) const {
+        return std::make_shared<VKCommandAllocator>(getVKDevice(), type);
     }
 
-    shared_ptr<ShaderModule> VKVireo::createShaderModule(const string& fileName) const {
-        return make_shared<VKShaderModule>(getVKDevice()->getDevice(), fileName);
+    std::shared_ptr<ShaderModule> VKVireo::createShaderModule(const std::string& fileName) const {
+        return std::make_shared<VKShaderModule>(getVKDevice()->getDevice(), fileName);
     }
 
-    shared_ptr<PipelineResources> VKVireo::createPipelineResources(
-        const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts,
+    std::shared_ptr<PipelineResources> VKVireo::createPipelineResources(
+        const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
         const PushConstantsDesc& pushConstant,
-        const wstring& name) const {
-        return make_shared<VKPipelineResources>(getVKDevice()->getDevice(), descriptorLayouts, pushConstant, name);
+        const std::wstring& name) const {
+        return std::make_shared<VKPipelineResources>(getVKDevice()->getDevice(), descriptorLayouts, pushConstant, name);
     }
 
-    shared_ptr<ComputePipeline> VKVireo::createComputePipeline(
-        const shared_ptr<PipelineResources>& pipelineResources,
-        const shared_ptr<const ShaderModule>& shader,
-        const wstring& name) const {
-        return make_shared<VKComputePipeline>(getVKDevice()->getDevice(), pipelineResources, shader, name);
+    std::shared_ptr<ComputePipeline> VKVireo::createComputePipeline(
+        const std::shared_ptr<PipelineResources>& pipelineResources,
+        const std::shared_ptr<const ShaderModule>& shader,
+        const std::wstring& name) const {
+        return std::make_shared<VKComputePipeline>(getVKDevice()->getDevice(), pipelineResources, shader, name);
     }
 
-    shared_ptr<GraphicPipeline> VKVireo::createGraphicPipeline(
+    std::shared_ptr<GraphicPipeline> VKVireo::createGraphicPipeline(
         const GraphicPipelineConfiguration& configuration,
-        const wstring& name) const {
-        return make_shared<VKGraphicPipeline>(
+        const std::wstring& name) const {
+        return std::make_shared<VKGraphicPipeline>(
             getVKDevice(),
             configuration,
             name
         );
     }
 
-    shared_ptr<Buffer> VKVireo::createBuffer(
+    std::shared_ptr<Buffer> VKVireo::createBuffer(
         const BufferType type,
         const size_t size,
         const size_t count,
-        const wstring& name) const  {
-        return make_shared<VKBuffer>(
+        const std::wstring& name) const  {
+        return std::make_shared<VKBuffer>(
            getVKDevice(), type,
            size, count,
            name);
     }
 
-    shared_ptr<Image> VKVireo::createImage(
+    std::shared_ptr<Image> VKVireo::createImage(
             const ImageFormat format,
             const uint32_t width,
             const uint32_t height,
             const uint32_t mipLevels,
             const uint32_t arraySize,
-            const wstring& name) const {
-        return make_shared<VKImage>(
+            const std::wstring& name) const {
+        return std::make_shared<VKImage>(
             getVKDevice(),
             format,
             width,
@@ -116,14 +116,14 @@ namespace vireo {
             MSAA::NONE);
     }
 
-    shared_ptr<Image> VKVireo::createReadWriteImage(
+    std::shared_ptr<Image> VKVireo::createReadWriteImage(
             const ImageFormat format,
             const uint32_t width,
             const uint32_t height,
             const uint32_t mipLevels,
             const uint32_t arraySize,
-            const wstring& name) const {
-        return make_shared<VKImage>(
+            const std::wstring& name) const {
+        return std::make_shared<VKImage>(
             getVKDevice(),
             format,
             width,
@@ -137,17 +137,17 @@ namespace vireo {
             MSAA::NONE);
     }
 
-    shared_ptr<RenderTarget> VKVireo::createRenderTarget(
+    std::shared_ptr<RenderTarget> VKVireo::createRenderTarget(
             const ImageFormat format,
             const uint32_t width,
             const uint32_t height,
             const RenderTargetType type,
             const ClearValue clearValue,
             const MSAA msaa,
-            const wstring& name) const {
-        return make_shared<RenderTarget>(
+            const std::wstring& name) const {
+        return std::make_shared<RenderTarget>(
             type,
-            make_shared<VKImage>(
+            std::make_shared<VKImage>(
                 getVKDevice(),
                 format,
                 width,
@@ -161,14 +161,14 @@ namespace vireo {
                 msaa));
     }
 
-    shared_ptr<RenderTarget> VKVireo::createRenderTarget(
-        const shared_ptr<const SwapChain>& swapChain,
+    std::shared_ptr<RenderTarget> VKVireo::createRenderTarget(
+        const std::shared_ptr<const SwapChain>& swapChain,
         const ClearValue clearValue,
         MSAA msaa,
-        const wstring& name) const {
-        return make_shared<RenderTarget>(
+        const std::wstring& name) const {
+        return std::make_shared<RenderTarget>(
             RenderTargetType::COLOR,
-            make_shared<VKImage>(
+            std::make_shared<VKImage>(
                 getVKDevice(),
                 swapChain->getFormat(),
                 swapChain->getExtent().width,
@@ -186,23 +186,23 @@ namespace vireo {
         vkDeviceWaitIdle(getVKDevice()->getDevice());
     }
 
-    shared_ptr<DescriptorLayout> VKVireo::createDescriptorLayout(
-        const wstring& name) {
-        return make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), name);
+    std::shared_ptr<DescriptorLayout> VKVireo::createDescriptorLayout(
+        const std::wstring& name) {
+        return std::make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), name);
     }
 
-    shared_ptr<DescriptorLayout> VKVireo::createSamplerDescriptorLayout(
-        const wstring& name) {
-        return make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), name);
+    std::shared_ptr<DescriptorLayout> VKVireo::createSamplerDescriptorLayout(
+        const std::wstring& name) {
+        return std::make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), name);
     }
 
-    shared_ptr<DescriptorSet> VKVireo::createDescriptorSet(
-            const shared_ptr<const DescriptorLayout>& layout,
-            const wstring& name) {
-        return make_shared<VKDescriptorSet>(layout, name);
+    std::shared_ptr<DescriptorSet> VKVireo::createDescriptorSet(
+            const std::shared_ptr<const DescriptorLayout>& layout,
+            const std::wstring& name) {
+        return std::make_shared<VKDescriptorSet>(layout, name);
     }
 
-    shared_ptr<Sampler> VKVireo::createSampler(
+    std::shared_ptr<Sampler> VKVireo::createSampler(
            Filter minFilter,
            Filter magFilter,
            AddressMode addressModeU,
@@ -212,7 +212,7 @@ namespace vireo {
            float maxLod,
            bool anisotropyEnable,
            MipMapMode mipMapMode) const {
-        return make_shared<VKSampler>(
+        return std::make_shared<VKSampler>(
             getVKDevice(),
             minFilter, magFilter, addressModeU, addressModeV, addressModeW,
             minLod, maxLod, anisotropyEnable, mipMapMode);

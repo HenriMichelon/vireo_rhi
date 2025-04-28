@@ -4,8 +4,6 @@
 * This software is released under the MIT License.
 * https://opensource.org/licenses/MIT
 */
-module;
-#include "vireo/Libraries.h"
 export module vireo;
 
 export import vireo.tools;
@@ -467,7 +465,7 @@ export namespace vireo {
      */
     struct PhysicalDeviceDesc {
         //! Adapter name
-        wstring name{L"Unknown"};
+        std::wstring name{L"Unknown"};
         //! The number of bytes of dedicated video memory that are not shared with the CPU.
         size_t  dedicatedVideoMemory{0};
         //! The number of bytes of dedicated system memory that are not shared with the CPU
@@ -503,7 +501,7 @@ export namespace vireo {
      */
     struct VertexAttributeDesc {
         //! Binding name which this attribute takes its data from.
-        string          binding;
+        std::string          binding;
         //! Size and type of the vertex attribute data
         AttributeFormat format;
         //! Byte offset of this attribute relative to the start of an element in the vertex input binding.
@@ -824,13 +822,13 @@ export namespace vireo {
          */
         auto getType() const { return type; }
 
-        RenderTarget(const RenderTargetType type, const shared_ptr<Image>& image) :
+        RenderTarget(const RenderTargetType type, const std::shared_ptr<Image>& image) :
             type{type},
             image{image} {}
 
     private:
         const RenderTargetType  type;
-        const shared_ptr<Image> image;
+        const std::shared_ptr<Image> image;
     };
 
     /**
@@ -880,47 +878,47 @@ export namespace vireo {
          * @param index Binding index
          * @param buffer The buffezr
          */
-        virtual void update(DescriptorIndex index, const shared_ptr<const Buffer>& buffer) const = 0;
+        virtual void update(DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer) const = 0;
 
         /**
          * Bind a texture
          * @param index Binding index
          * @param image The texture
          */
-        virtual void update(DescriptorIndex index, const shared_ptr<const Image>& image) const = 0;
+        virtual void update(DescriptorIndex index, const std::shared_ptr<const Image>& image) const = 0;
 
         /**
          * Bind a sampler
          * @param index Binding index
          * @param sampler The sampler
          */
-        virtual void update(DescriptorIndex index, const shared_ptr<const Sampler>& sampler) const = 0;
+        virtual void update(DescriptorIndex index, const std::shared_ptr<const Sampler>& sampler) const = 0;
 
         /**
          * Bind an array of textures
          * @param index Binding index
          * @param images The images
          */
-        virtual void update(DescriptorIndex index, const vector<shared_ptr<Image>>& images) const = 0;
+        virtual void update(DescriptorIndex index, const std::vector<std::shared_ptr<Image>>& images) const = 0;
 
         /**
          * Bind an array of buffers
          * @param index Binding index
          * @param buffers The buffers
          */
-        virtual void update(DescriptorIndex index, const vector<shared_ptr<Buffer>>& buffers) const = 0;
+        virtual void update(DescriptorIndex index, const std::vector<std::shared_ptr<Buffer>>& buffers) const = 0;
 
         /**
          * Bind an array of samplers
          * @param index Binding index
          * @param samplers The samplers
          */
-        virtual void update(DescriptorIndex index, const vector<shared_ptr<Sampler>>& samplers) const = 0;
+        virtual void update(DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& samplers) const = 0;
 
     protected:
-        const shared_ptr<const DescriptorLayout> layout;
+        const std::shared_ptr<const DescriptorLayout> layout;
 
-        DescriptorSet(const shared_ptr<const DescriptorLayout>& layout) : layout{layout} {}
+        DescriptorSet(const std::shared_ptr<const DescriptorLayout>& layout) : layout{layout} {}
     };
 
     /**
@@ -974,13 +972,13 @@ export namespace vireo {
         auto getType() const { return type; }
 
     protected:
-        Pipeline(const PipelineType type, const shared_ptr<PipelineResources>& pipelineResources) :
+        Pipeline(const PipelineType type, const std::shared_ptr<PipelineResources>& pipelineResources) :
             type{type},
             pipelineResources{pipelineResources} {}
 
     private:
         const PipelineType type;
-        shared_ptr<PipelineResources> pipelineResources;
+        std::shared_ptr<PipelineResources> pipelineResources;
     };
 
     /**
@@ -988,7 +986,7 @@ export namespace vireo {
      */
     class ComputePipeline : public Pipeline {
     protected:
-        ComputePipeline(const shared_ptr<PipelineResources>& pipelineResources) :
+        ComputePipeline(const std::shared_ptr<PipelineResources>& pipelineResources) :
             Pipeline{PipelineType::COMPUTE, pipelineResources} {}
     };
 
@@ -997,7 +995,7 @@ export namespace vireo {
      */
     class GraphicPipeline : public Pipeline {
     protected:
-        GraphicPipeline(const shared_ptr<PipelineResources>& pipelineResources) :
+        GraphicPipeline(const std::shared_ptr<PipelineResources>& pipelineResources) :
             Pipeline{PipelineType::GRAPHIC, pipelineResources} {}
     };
 
@@ -1008,11 +1006,11 @@ export namespace vireo {
      */
     struct RenderTargetDesc {
         //! Use the current swap chain image as a color attachment. Must be `nullptr` if `renderTarget` is set
-        shared_ptr<SwapChain>    swapChain{nullptr};
+        std::shared_ptr<SwapChain>    swapChain{nullptr};
         //! Color attachment. Must be `nullptr` if `swapChain` is set
-        shared_ptr<RenderTarget> renderTarget{nullptr};
+        std::shared_ptr<RenderTarget> renderTarget{nullptr};
         //! Multisampled color attachment. `nullptr` if MSAA is disabled for the current pipeline.
-        shared_ptr<RenderTarget> multisampledRenderTarget{nullptr};
+        std::shared_ptr<RenderTarget> multisampledRenderTarget{nullptr};
         //! Clear the color attachment if `true`
         bool                     clear{false};
         //! Color clear value
@@ -1026,11 +1024,11 @@ export namespace vireo {
      */
     struct RenderingConfiguration {
         //! Color attachments. Can be empty
-        vector<RenderTargetDesc>  colorRenderTargets{};
+        std::vector<RenderTargetDesc>  colorRenderTargets{};
         //! Depth attachment. Can be empty
-        shared_ptr<RenderTarget>  depthRenderTarget{nullptr};
+        std::shared_ptr<RenderTarget>  depthRenderTarget{nullptr};
         //! Multisampled depth attachment. `nullptr` if MSAA is disabled for the current pipeline.
-        shared_ptr<RenderTarget>  multisampledDepthRenderTarget{nullptr};
+        std::shared_ptr<RenderTarget>  multisampledDepthRenderTarget{nullptr};
         //! Clear the depth attachment if `true`
         bool                      clearDepth{false};
         //! Depth & stencil clear value
@@ -1058,13 +1056,13 @@ export namespace vireo {
         /**
          * Uploads data into a buffer
          */
-        virtual void upload(const shared_ptr<const Buffer>& destination, const void* source) = 0;
+        virtual void upload(const std::shared_ptr<const Buffer>& destination, const void* source) = 0;
 
         /**
          * Upload data into an image
          */
         virtual void upload(
-            const shared_ptr<const Image>& destination,
+            const std::shared_ptr<const Image>& destination,
             const void* source,
             uint32_t firstMipLevel = 0) = 0;
 
@@ -1072,8 +1070,8 @@ export namespace vireo {
          * Copy a buffer into an image
          */
         virtual void copy(
-            const shared_ptr<const Buffer>& source,
-            const shared_ptr<const Image>& destination,
+            const std::shared_ptr<const Buffer>& source,
+            const std::shared_ptr<const Image>& destination,
             uint32_t sourceOffset = 0,
             uint32_t firstMipLevel = 0) = 0;
 
@@ -1081,23 +1079,23 @@ export namespace vireo {
          * Upload images into an image array
          */
         virtual void uploadArray(
-            const shared_ptr<const Image>& destination,
-            const vector<void*>& sources,
+            const std::shared_ptr<const Image>& destination,
+            const std::vector<void*>& sources,
             uint32_t firstMipLevel = 0) = 0;
 
         /**
          * Copy an image into the current swap chain image
          */
         virtual void copy(
-            const shared_ptr<const Image>& source,
-            const shared_ptr<const SwapChain>& swapChain) const = 0;
+            const std::shared_ptr<const Image>& source,
+            const std::shared_ptr<const SwapChain>& swapChain) const = 0;
 
         /**
          * Copy an image into the current swap chain image
          */
         inline void copy(
-            const shared_ptr<const RenderTarget>& source,
-            const shared_ptr<const SwapChain>& swapChain) const {
+            const std::shared_ptr<const RenderTarget>& source,
+            const std::shared_ptr<const SwapChain>& swapChain) const {
             copy(source->getImage(), swapChain);
         }
 
@@ -1105,16 +1103,16 @@ export namespace vireo {
          * Blit an image into the current swap chain image
          */
         virtual void blit(
-            const shared_ptr<const Image>& source,
-            const shared_ptr<const SwapChain>& swapChain,
+            const std::shared_ptr<const Image>& source,
+            const std::shared_ptr<const SwapChain>& swapChain,
             Filter filter = Filter::NEAREST) const = 0;
 
         /**
          * Copy an image into the current swap chain image
          */
         void blit(
-            const shared_ptr<const RenderTarget>& source,
-            const shared_ptr<const SwapChain>& swapChain,
+            const std::shared_ptr<const RenderTarget>& source,
+            const std::shared_ptr<const SwapChain>& swapChain,
             Filter filter = Filter::NEAREST) const {
             blit(source->getImage(), swapChain, filter);
         }
@@ -1143,7 +1141,7 @@ export namespace vireo {
          * @param offset Offset in bytes
          */
         virtual void bindVertexBuffer(
-            const shared_ptr<const Buffer>& buffer,
+            const std::shared_ptr<const Buffer>& buffer,
             size_t offset = 0) const = 0;
 
         /**
@@ -1152,8 +1150,8 @@ export namespace vireo {
          * @param offsets Offsets for each buffer in bytes
          */
         virtual void bindVertexBuffers(
-            const vector<shared_ptr<const Buffer>>& buffers,
-            vector<size_t> offsets = {}) const = 0;
+            const std::vector<std::shared_ptr<const Buffer>>& buffers,
+            std::vector<size_t> offsets = {}) const = 0;
 
         /**
          * Binds an index buffer to a command list
@@ -1162,14 +1160,14 @@ export namespace vireo {
          * @param offset Offset in bytes
          */
         virtual void bindIndexBuffer(
-            const shared_ptr<const Buffer>& buffer,
+            const std::shared_ptr<const Buffer>& buffer,
             IndexType indexType = IndexType::UINT32,
             size_t offset = 0) const = 0;
 
         /**
          * Binds a pipeline object to a command list
          */
-        virtual void bindPipeline(const shared_ptr<const Pipeline>& pipeline) = 0;
+        virtual void bindPipeline(const std::shared_ptr<const Pipeline>& pipeline) = 0;
 
         /**
          * Binds descriptor sets to a command list
@@ -1177,8 +1175,8 @@ export namespace vireo {
          * @param descriptors The descriptors sets to bind
          */
         virtual void bindDescriptors(
-            const shared_ptr<const Pipeline>& pipeline,
-            const vector<shared_ptr<const DescriptorSet>>& descriptors) const = 0;
+            const std::shared_ptr<const Pipeline>& pipeline,
+            const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors) const = 0;
 
         /**
          * Draw primitives
@@ -1212,13 +1210,13 @@ export namespace vireo {
          * Set the viewports for a command list
          * @param extents An array of `Extent` structures specifying viewport parameters.
          */
-        virtual void setViewports(const vector<Extent>& extents) const = 0;
+        virtual void setViewports(const std::vector<Extent>& extents) const = 0;
 
         /**
          * Set the scissors for a command list
          * @param extents An array of `Extent` structures specifying viewport parameters.
          */
-        virtual void setScissors(const vector<Extent>& extents) const = 0;
+        virtual void setScissors(const std::vector<Extent>& extents) const = 0;
 
         /**
         * Set the viewport for a command list
@@ -1239,7 +1237,7 @@ export namespace vireo {
          * @param newState New state in an image state transition.
          */
         virtual void barrier(
-            const shared_ptr<const Image>& image,
+            const std::shared_ptr<const Image>& image,
             ResourceState oldState,
             ResourceState newState) const = 0;
 
@@ -1250,7 +1248,7 @@ export namespace vireo {
          * @param newState New state in an image state transition.
          */
         virtual void barrier(
-            const shared_ptr<const RenderTarget>& renderTarget,
+            const std::shared_ptr<const RenderTarget>& renderTarget,
             ResourceState oldState,
             ResourceState newState) const = 0;
 
@@ -1261,7 +1259,7 @@ export namespace vireo {
          * @param newState New state in an image state transition.
          */
         virtual void barrier(
-            const vector<shared_ptr<const RenderTarget>>& renderTargets,
+            const std::vector<std::shared_ptr<const RenderTarget>>& renderTargets,
             ResourceState oldState,
             ResourceState newState) const = 0;
 
@@ -1272,7 +1270,7 @@ export namespace vireo {
          * @param newState New state in an image state transition.
          */
         virtual void barrier(
-            const shared_ptr<const SwapChain>& swapChain,
+            const std::shared_ptr<const SwapChain>& swapChain,
             ResourceState oldState,
             ResourceState newState) const = 0;
 
@@ -1283,7 +1281,7 @@ export namespace vireo {
          * @param data The new push constant values.
          */
         virtual void pushConstants(
-            const shared_ptr<const PipelineResources>& pipelineResources,
+            const std::shared_ptr<const PipelineResources>& pipelineResources,
             const PushConstantsDesc& pushConstants,
             const void* data) const = 0;
 
@@ -1312,12 +1310,12 @@ export namespace vireo {
          * Returns a new graphic command lists
          * @param pipeline Associate pipeline
          */
-        virtual shared_ptr<CommandList> createCommandList(const shared_ptr<const Pipeline>& pipeline) const  = 0;
+        virtual std::shared_ptr<CommandList> createCommandList(const std::shared_ptr<const Pipeline>& pipeline) const  = 0;
 
         /**
          * Returns a new command lists
          */
-        virtual shared_ptr<CommandList> createCommandList() const  = 0;
+        virtual std::shared_ptr<CommandList> createCommandList() const  = 0;
 
         virtual ~CommandAllocator() = default;
 
@@ -1345,15 +1343,15 @@ export namespace vireo {
          * @param commandLists Commands to execute
          */
         virtual void submit(
-            const shared_ptr<Fence>& fence,
-            const shared_ptr<const SwapChain>& swapChain,
-            const vector<shared_ptr<const CommandList>>& commandLists) const = 0;
+            const std::shared_ptr<Fence>& fence,
+            const std::shared_ptr<const SwapChain>& swapChain,
+            const std::vector<std::shared_ptr<const CommandList>>& commandLists) const = 0;
 
         /**
          * Submit non graphics commands, such as transfer commands
          * @param commandLists Commands to execute
          */
-        virtual void submit(const vector<shared_ptr<const CommandList>>& commandLists) const = 0;
+        virtual void submit(const std::vector<std::shared_ptr<const CommandList>>& commandLists) const = 0;
 
         /**
          * Wait for all commands to be executed
@@ -1407,7 +1405,7 @@ export namespace vireo {
          * Acquires the next frame buffer.
          * @return `false` if the operation failed.
          */
-        virtual bool acquire(const shared_ptr<Fence>& fence) = 0;
+        virtual bool acquire(const std::shared_ptr<Fence>& fence) = 0;
 
         /**
          * Presents the current frame buffer into the surface
@@ -1444,17 +1442,17 @@ export namespace vireo {
      */
     struct GraphicPipelineConfiguration {
         //! Description of descriptor sets and push constants
-        shared_ptr<PipelineResources> resources;
+        std::shared_ptr<PipelineResources> resources;
         //! Values defining the format of color attachments used in this pipeline.
-        vector<ImageFormat>           colorRenderFormats{};
+        std::vector<ImageFormat>           colorRenderFormats{};
         //! Blend state for each color attachment
-        vector<ColorBlendDesc>        colorBlendDesc{};
+        std::vector<ColorBlendDesc>        colorBlendDesc{};
         //! Description of the input vertices formats and order
-        shared_ptr<VertexInputLayout> vertexInputLayout{nullptr};
+        std::shared_ptr<VertexInputLayout> vertexInputLayout{nullptr};
         //! Vertex shader
-        shared_ptr<ShaderModule>      vertexShader{nullptr};
+        std::shared_ptr<ShaderModule>      vertexShader{nullptr};
         //! Fragment/Pixel shader
-        shared_ptr<ShaderModule>      fragmentShader{nullptr};
+        std::shared_ptr<ShaderModule>      fragmentShader{nullptr};
 
         //! The primitive topology
         PrimitiveTopology primitiveTopology{PrimitiveTopology::TRIANGLE_LIST};
@@ -1499,7 +1497,7 @@ export namespace vireo {
         /**
          * Creates a new Vireo class using the given backend
          */
-        static unique_ptr<Vireo> create(Backend backend);
+        static std::unique_ptr<Vireo> create(Backend backend);
 
         virtual ~Vireo() = default;
 
@@ -1513,9 +1511,9 @@ export namespace vireo {
          * @param windowHandle      Opaque window handle to present the swap chain images
          * @param framesInFlight    Number of concurrent swap chain images
          */
-        virtual shared_ptr<SwapChain> createSwapChain(
+        virtual std::shared_ptr<SwapChain> createSwapChain(
             ImageFormat format,
-            const shared_ptr<const SubmitQueue>& presentQueue,
+            const std::shared_ptr<const SubmitQueue>& presentQueue,
             void* windowHandle,
             PresentMode presentMode = PresentMode::VSYNC,
             uint32_t framesInFlight = 2) const = 0;
@@ -1525,38 +1523,38 @@ export namespace vireo {
          * @param commandType Type of commands that will be used with this queue.
          * @param name Objet name for debug
          */
-        virtual shared_ptr<SubmitQueue> createSubmitQueue(
+        virtual std::shared_ptr<SubmitQueue> createSubmitQueue(
             CommandType commandType,
-            const wstring& name = L"SubmitQueue") const = 0;
+            const std::wstring& name = L"SubmitQueue") const = 0;
 
         /**
          * Creates a fence for CPU/GPU synchronization
          * @param name Object name for debug
          */
-        virtual shared_ptr<Fence> createFence(const wstring& name = L"Fence") const = 0;
+        virtual std::shared_ptr<Fence> createFence(const std::wstring& name = L"Fence") const = 0;
 
         /**
          * Creates a command allocator (command pool) for a given command type
          * @param type Type of commands that will be used with command lists created from this allocator
          */
-        virtual shared_ptr<CommandAllocator> createCommandAllocator(CommandType type) const = 0;
+        virtual std::shared_ptr<CommandAllocator> createCommandAllocator(CommandType type) const = 0;
 
         /**
          * Creates an input vertex layout from a description
          * @param size Size in bytes of a vertex
          * @param attributesDescriptions Description of all the vertex attributes
          */
-        virtual shared_ptr<VertexInputLayout> createVertexLayout(
+        virtual std::shared_ptr<VertexInputLayout> createVertexLayout(
             size_t size,
-            const vector<VertexAttributeDesc>& attributesDescriptions) const = 0;
+            const std::vector<VertexAttributeDesc>& attributesDescriptions) const = 0;
 
         /**
          * Load a compiled shader and creates a shader module
          * @param fileName File name without the extension. The file name extension must be `.spv`for Vulkan et `.dxil`
          * for DirectX
          */
-        virtual shared_ptr<ShaderModule> createShaderModule(
-            const string& fileName) const = 0;
+        virtual std::shared_ptr<ShaderModule> createShaderModule(
+            const std::string& fileName) const = 0;
 
         /**
          * Creates a pipeline resources description. Describe resources that can be accessed by
@@ -1565,10 +1563,10 @@ export namespace vireo {
          * @param pushConstant Description of an optional push constant
          * @param name Object name for debug
          */
-        virtual shared_ptr<PipelineResources> createPipelineResources(
-            const vector<shared_ptr<DescriptorLayout>>& descriptorLayouts = {},
+        virtual std::shared_ptr<PipelineResources> createPipelineResources(
+            const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts = {},
             const PushConstantsDesc& pushConstant = {},
-            const wstring& name = L"PipelineResource") const = 0;
+            const std::wstring& name = L"PipelineResource") const = 0;
 
         /**
          * Creates a compute pipeline
@@ -1576,19 +1574,19 @@ export namespace vireo {
          * @param shader The shader
          * @param name Object name for debug
          */
-        virtual shared_ptr<ComputePipeline> createComputePipeline(
-            const shared_ptr<PipelineResources>& pipelineResources,
-            const shared_ptr<const ShaderModule>& shader,
-            const wstring& name = L"ComputePipeline") const = 0;
+        virtual std::shared_ptr<ComputePipeline> createComputePipeline(
+            const std::shared_ptr<PipelineResources>& pipelineResources,
+            const std::shared_ptr<const ShaderModule>& shader,
+            const std::wstring& name = L"ComputePipeline") const = 0;
 
         /**
          * Creates a graphic pipeline. At least one shader must be used.
          * @param configuration Pipeline configuration
          * @param name Object name for debug
          */
-        virtual shared_ptr<GraphicPipeline> createGraphicPipeline(
+        virtual std::shared_ptr<GraphicPipeline> createGraphicPipeline(
             const GraphicPipelineConfiguration& configuration,
-            const wstring& name = L"GraphicPipeline") const = 0;
+            const std::wstring& name = L"GraphicPipeline") const = 0;
 
         /**
          * Creates a data buffer in VRAM.
@@ -1599,11 +1597,11 @@ export namespace vireo {
          * @param count Number of elements
          * @param name Object name for debug
          */
-        virtual shared_ptr<Buffer> createBuffer(
+        virtual std::shared_ptr<Buffer> createBuffer(
             BufferType type,
             size_t size,
             size_t count = 1,
-            const wstring& name = L"Buffer") const = 0;
+            const std::wstring& name = L"Buffer") const = 0;
 
         /**
          * Creates a read-only image in VRAM
@@ -1614,13 +1612,13 @@ export namespace vireo {
          * @param arraySize Number of layers/array size
          * @param name Object name for debug
          */
-        virtual shared_ptr<Image> createImage(
+        virtual std::shared_ptr<Image> createImage(
             ImageFormat format,
             uint32_t width,
             uint32_t height,
             uint32_t mipLevels = 1,
             uint32_t arraySize = 1,
-            const wstring& name = L"Image") const = 0;
+            const std::wstring& name = L"Image") const = 0;
 
         /**
          * Creates a read/write image in VRAM
@@ -1631,13 +1629,13 @@ export namespace vireo {
          * @param arraySize Number of layers/array size
          * @param name Object name for debug
          */
-        virtual shared_ptr<Image> createReadWriteImage(
+        virtual std::shared_ptr<Image> createReadWriteImage(
             ImageFormat format,
             uint32_t width,
             uint32_t height,
             uint32_t mipLevels = 1,
             uint32_t arraySize = 1,
-            const wstring& name = L"RWImage") const = 0;
+            const std::wstring& name = L"RWImage") const = 0;
 
         /**
          * Creates a read/write image in VRAM for use as a render target
@@ -1649,14 +1647,14 @@ export namespace vireo {
          * @param msaa Number of samples for MSAA. A value of 1 disables MSAA.
          * @param name Object name for debug
          */
-        virtual shared_ptr<RenderTarget> createRenderTarget(
+        virtual std::shared_ptr<RenderTarget> createRenderTarget(
             ImageFormat format,
             uint32_t width,
             uint32_t height,
             RenderTargetType type = RenderTargetType::COLOR,
             ClearValue clearValue = {},
             MSAA msaa = MSAA::NONE,
-            const wstring& name = L"RenderTarget") const = 0;
+            const std::wstring& name = L"RenderTarget") const = 0;
 
         /**
          * Creates a read/write image in VRAM for use as a render target with a similar format as a swap chain.
@@ -1666,39 +1664,39 @@ export namespace vireo {
          * @param msaa Number of samples for MSAA. A value of 1 disables MSAA.
          * @param name Object name for debug
          */
-        virtual shared_ptr<RenderTarget> createRenderTarget(
-            const shared_ptr<const SwapChain>& swapChain,
+        virtual std::shared_ptr<RenderTarget> createRenderTarget(
+            const std::shared_ptr<const SwapChain>& swapChain,
             ClearValue clearValue = {},
             MSAA msaa = MSAA::NONE,
-            const wstring& name = L"RenderTarget") const = 0;
+            const std::wstring& name = L"RenderTarget") const = 0;
 
         /**
          * Creates an empty description layout.
          * @param name Object name for debug
          */
-        virtual shared_ptr<DescriptorLayout> createDescriptorLayout(
-            const wstring& name = L"DescriptorLayout") = 0;
+        virtual std::shared_ptr<DescriptorLayout> createDescriptorLayout(
+            const std::wstring& name = L"DescriptorLayout") = 0;
 
         /**
          * Creates an empty description layout for Sampler resources types
          * @param name Object name for debug
          */
-        virtual shared_ptr<DescriptorLayout> createSamplerDescriptorLayout(
-            const wstring& name = L"createSamplerDescriptorLayout") = 0;
+        virtual std::shared_ptr<DescriptorLayout> createSamplerDescriptorLayout(
+            const std::wstring& name = L"createSamplerDescriptorLayout") = 0;
 
         /**
          * Creates an empty descriptor set
          * @param layout Layout of the set
          * @param name Object name for debug
          */
-        virtual shared_ptr<DescriptorSet> createDescriptorSet(
-            const shared_ptr<const DescriptorLayout>& layout,
-            const wstring& name = L"DescriptorSet") = 0;
+        virtual std::shared_ptr<DescriptorSet> createDescriptorSet(
+            const std::shared_ptr<const DescriptorLayout>& layout,
+            const std::wstring& name = L"DescriptorSet") = 0;
 
         /**
          * Creates a texture sampler.
          */
-        virtual shared_ptr<Sampler> createSampler(Filter minFilter,
+        virtual std::shared_ptr<Sampler> createSampler(Filter minFilter,
                                                   Filter magFilter,
                                                   AddressMode addressModeU,
                                                   AddressMode addressModeV,
@@ -1717,9 +1715,9 @@ export namespace vireo {
         auto getInstance() const { return instance; }
 
     protected:
-        shared_ptr<Instance>        instance;
-        shared_ptr<PhysicalDevice>  physicalDevice;
-        shared_ptr<Device>          device;
+        std::shared_ptr<Instance>        instance;
+        std::shared_ptr<PhysicalDevice>  physicalDevice;
+        std::shared_ptr<Device>          device;
     };
 
 }

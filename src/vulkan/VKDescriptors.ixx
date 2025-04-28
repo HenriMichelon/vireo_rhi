@@ -8,13 +8,14 @@ module;
 #include "vireo/backend/vulkan/Libraries.h"
 export module vireo.vulkan.descriptors;
 
+import std;
 import vireo;
 
 export namespace vireo {
 
     class VKDescriptorLayout : public DescriptorLayout {
     public:
-        VKDescriptorLayout(VkDevice device, const wstring& name);
+        VKDescriptorLayout(VkDevice device, const std::wstring& name);
 
         ~VKDescriptorLayout() override;
 
@@ -31,27 +32,27 @@ export namespace vireo {
     private:
         VkDevice device;
         VkDescriptorSetLayout setLayout{nullptr};
-        const wstring name;
-        map<DescriptorIndex, VkDescriptorPoolSize> poolSizes;
+        const std::wstring name;
+        std::map<DescriptorIndex, VkDescriptorPoolSize> poolSizes;
     };
 
     class VKDescriptorSet : public DescriptorSet {
     public:
-        VKDescriptorSet(const shared_ptr<const DescriptorLayout>& layout, const wstring& name);
+        VKDescriptorSet(const std::shared_ptr<const DescriptorLayout>& layout, const std::wstring& name);
 
         ~VKDescriptorSet() override;
 
-        void update(DescriptorIndex index, const shared_ptr<const Buffer>& buffer) const override;
+        void update(DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer) const override;
 
-        void update(DescriptorIndex index, const shared_ptr<const Image>& image) const override;
+        void update(DescriptorIndex index, const std::shared_ptr<const Image>& image) const override;
 
-        void update(DescriptorIndex index, const shared_ptr<const Sampler>& sampler) const override;
+        void update(DescriptorIndex index, const std::shared_ptr<const Sampler>& sampler) const override;
 
-        void update(DescriptorIndex index, const vector<shared_ptr<Buffer>>& buffers) const override;
+        void update(DescriptorIndex index, const std::vector<std::shared_ptr<Buffer>>& buffers) const override;
 
-        void update(DescriptorIndex index, const vector<shared_ptr<Image>>& images) const override;
+        void update(DescriptorIndex index, const std::vector<std::shared_ptr<Image>>& images) const override;
 
-        void update(DescriptorIndex index, const vector<shared_ptr<Sampler>>& samplers) const override;
+        void update(DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& samplers) const override;
 
         auto getSet() const { return set; }
 

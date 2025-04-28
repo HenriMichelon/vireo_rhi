@@ -16,7 +16,7 @@ export namespace vireo {
     class VKSwapChain : public SwapChain {
     public:
         VKSwapChain(
-            const shared_ptr<const VKDevice>& device,
+            const std::shared_ptr<const VKDevice>& device,
             VkQueue presentQueue,
             void* windowHandle,
             ImageFormat format,
@@ -33,7 +33,7 @@ export namespace vireo {
 
         void nextFrameIndex() override;
 
-        bool acquire(const shared_ptr<Fence>& fence) override;
+        bool acquire(const std::shared_ptr<Fence>& fence) override;
 
         void present() override;
 
@@ -53,23 +53,23 @@ export namespace vireo {
         // For Device::querySwapChainSupport()
         struct SwapChainSupportDetails {
             VkSurfaceCapabilitiesKHR   capabilities;
-            vector<VkSurfaceFormatKHR> formats;
-            vector<VkPresentModeKHR>   presentModes;
+            std::vector<VkSurfaceFormatKHR> formats;
+            std::vector<VkPresentModeKHR>   presentModes;
         };
 
-        const shared_ptr<const VKDevice> device;
+        const std::shared_ptr<const VKDevice> device;
         VkSurfaceKHR            surface;
         VkSwapchainKHR          swapChain{VK_NULL_HANDLE};
-        vector<VkImage>         swapChainImages;
+        std::vector<VkImage>         swapChainImages;
         VkFormat                swapChainImageFormat;
         VkExtent2D              swapChainExtent;
-        vector<VkImageView>     swapChainImageViews;
+        std::vector<VkImageView>     swapChainImageViews;
         VkQueue                 presentQueue;
-        vector<uint32_t>        imageIndex;
-        vector<VkSemaphore>     imageAvailableSemaphore;
-        vector<VkSemaphore>     renderFinishedSemaphore;
-        vector<VkSemaphoreSubmitInfo> imageAvailableSemaphoreInfo;
-        vector<VkSemaphoreSubmitInfo> renderFinishedSemaphoreInfo;
+        std::vector<uint32_t>        imageIndex;
+        std::vector<VkSemaphore>     imageAvailableSemaphore;
+        std::vector<VkSemaphore>     renderFinishedSemaphore;
+        std::vector<VkSemaphoreSubmitInfo> imageAvailableSemaphoreInfo;
+        std::vector<VkSemaphoreSubmitInfo> renderFinishedSemaphoreInfo;
 
 #ifdef _WIN32
         HWND hWnd;
@@ -83,10 +83,10 @@ export namespace vireo {
         static SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice vkPhysicalDevice, VkSurfaceKHR surface);
 
         // Get the swap chain format
-        VkSurfaceFormatKHR chooseSwapSurfaceFormat(const vector<VkSurfaceFormatKHR> &availableFormats) const;
+        VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats) const;
 
         // Get the swap chain present mode
-        VkPresentModeKHR chooseSwapPresentMode(const vector<VkPresentModeKHR> &availablePresentModes) const;
+        VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes) const;
 
         // Get the swap chain images sizes
         VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities) const;

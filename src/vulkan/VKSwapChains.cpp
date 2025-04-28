@@ -17,7 +17,7 @@ import vireo.vulkan.tools;
 namespace vireo {
 
     VKSwapChain::VKSwapChain(
-        const shared_ptr<const VKDevice>& device,
+        const std::shared_ptr<const VKDevice>& device,
         const VkQueue presentQueue,
         void* windowHandle,
         const ImageFormat format,
@@ -73,9 +73,9 @@ namespace vireo {
             };
 #ifdef _DEBUG
             vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(imageAvailableSemaphore[i]), VK_OBJECT_TYPE_SEMAPHORE,
-                "VKFrameData image Semaphore : " + to_string(i));
+                "VKFrameData image Semaphore : " + std::to_string(i));
             vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(renderFinishedSemaphore[i]), VK_OBJECT_TYPE_SEMAPHORE,
-        "VKFrameData render Semaphore : " + to_string(i));
+        "VKFrameData render Semaphore : " + std::to_string(i));
 #endif
         }
         create();
@@ -188,7 +188,7 @@ namespace vireo {
         return details;
     }
 
-    VkSurfaceFormatKHR VKSwapChain::chooseSwapSurfaceFormat(const vector<VkSurfaceFormatKHR> &availableFormats) const {
+    VkSurfaceFormatKHR VKSwapChain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats) const {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain#page_Choosing-the-right-settings-for-the-swap-chain
         for (const auto &availableFormat : availableFormats) {
             if (availableFormat.format == VKImage::vkFormats[static_cast<int>(format)]) { return availableFormat; }
@@ -196,7 +196,7 @@ namespace vireo {
         return availableFormats[0];
     }
 
-    VkPresentModeKHR VKSwapChain::chooseSwapPresentMode(const vector<VkPresentModeKHR> &availablePresentModes) const {
+    VkPresentModeKHR VKSwapChain::chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes) const {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain#page_Presentation-mode
         for (const auto &availablePresentMode : availablePresentModes) {
             if (availablePresentMode == vkPresentModes[static_cast<int>(presentMode)]) {
@@ -250,7 +250,7 @@ namespace vireo {
         }
     }
 
-    bool VKSwapChain::acquire(const shared_ptr<Fence>& fence) {
+    bool VKSwapChain::acquire(const std::shared_ptr<Fence>& fence) {
         assert(fence != nullptr);
         const auto vkFence = static_pointer_cast<VKFence>(fence);
         // wait until the GPU has finished rendering the frame.
@@ -269,7 +269,7 @@ namespace vireo {
             return false;
         }
         if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-            throw Exception("failed to acquire swap chain image :", to_string(result));
+            throw Exception("failed to acquire swap chain image :", std::to_string(result));
         }
         vkResetFences(device->getDevice(), 1, &vkFence->getFence());
         return true;

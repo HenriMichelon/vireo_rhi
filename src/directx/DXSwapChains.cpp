@@ -8,8 +8,8 @@ module;
 #include "vireo/backend/directx/Libraries.h"
 module vireo.directx.swapchains;
 
+import std;
 import vireo.tools;
-
 import vireo.directx.commands;
 import vireo.directx.resources;
 import vireo.directx.tools;
@@ -18,7 +18,7 @@ namespace vireo {
 
     DXSwapChain::DXSwapChain(
         const ComPtr<IDXGIFactory4>& factory,
-        const shared_ptr<DXDevice>& dxdevice,
+        const std::shared_ptr<DXDevice>& dxdevice,
         const ComPtr<ID3D12CommandQueue>& commandQueue,
         const ImageFormat format,
         const HWND hWnd,
@@ -185,7 +185,7 @@ namespace vireo {
         assert(currentFrameIndex < framesInFlight);
     }
 
-    bool DXSwapChain::acquire(const shared_ptr<Fence>& fence) {
+    bool DXSwapChain::acquire(const std::shared_ptr<Fence>& fence) {
         assert(fence != nullptr);
         const auto dxFence = static_pointer_cast<DXFence>(fence);
         // If the next frame is not ready to be rendered yet, wait until it is ready.

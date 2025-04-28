@@ -8,6 +8,7 @@ module;
 #include "vireo/backend/directx/Libraries.h"
 module vireo.directx.resources;
 
+import std;
 import vireo.directx.devices;
 import vireo.directx.tools;
 
@@ -18,7 +19,7 @@ namespace vireo {
         const BufferType type,
         const size_t size,
         const size_t count,
-        const wstring& name):
+        const std::wstring& name):
         Buffer{type},
         size{size} {
         auto minOffsetAlignment = 0;
@@ -78,7 +79,7 @@ namespace vireo {
             const uint32_t    height,
             const uint32_t    mipLevels,
             const uint32_t    arraySize,
-            const wstring&    name,
+            const std::wstring&    name,
             const bool        useByComputeShader,
             const bool        isRenderTarget,
             const bool        isDepthBuffer,
@@ -182,7 +183,7 @@ namespace vireo {
 
     DXRenderTarget::DXRenderTarget(
         const ComPtr<ID3D12Device> &device,
-        const shared_ptr<DXImage>& image,
+        const std::shared_ptr<DXImage>& image,
         const RenderTargetType type) :
         RenderTarget{type, image} {
         const auto heapDesc = D3D12_DESCRIPTOR_HEAP_DESC{
