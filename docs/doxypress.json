@@ -415,7 +415,7 @@
         "skip-function-macros": true
     },
     "project": {
-        "project-brief": "Vireo Rendering Hardware Interface",
+        "project-brief": "Vireo 3D Rendering Hardware Interface",
         "project-logo": "",
         "project-name": "Vireo RHI",
         "project-version": "v0.0"

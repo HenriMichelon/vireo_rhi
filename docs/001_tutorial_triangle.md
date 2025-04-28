@@ -181,21 +181,21 @@ Add a `FrameData` `struct` and a `vector` of `FrameData` to your application:
     };
     std::vector<FrameData> framesData{FRAMES_IN_FLIGHT};
 
-Create the fences after the queue creation :
+Create the fences after the queue creation in the `onInit()` method :
 
     for (auto& frameData : framesData) {
         frameData.inFlightFence = vireo->createFence();
     }
 
 
-It's time to create the swap chain. Add a [SwapChain](https://henrimichelon.github.io/Vireo/classvireo_1_1SwapChain.html) field :
+It's time to create the swap chain. Add a [SwapChain](https://henrimichelon.github.io/Vireo/classvireo_1_1SwapChain.html) field to your application interface:
 
     std::shared_ptr<vireo::SwapChain> swapChain;
 
 We need the window handle to create the swap chain.  The window is created by the `Win32Application` and the os-specific handle
 is stored in the `windowHandle` field of the base `Application` class.
 We can use this field to create the swap chain, just after the `graphicQueue`
-creation:
+creation, in the `onInit()` method :
 
     swapChain = vireo->createSwapChain(
         vireo::ImageFormat::R8G8B8A8_SRGB,
@@ -395,7 +395,7 @@ your class interface:
         glm::vec3 color;
     };
 
-Add the triangle data with some nice RGB gradients:
+Add the triangle data with a different color for each vertex, after the `Vertex` struct:
 
     std::vector<Vertex> triangleVertices{
         { { 0.0f, 0.25f, 0.0f }, { 1.0f, 0.0f, 0.0f} },
@@ -405,7 +405,8 @@ Add the triangle data with some nice RGB gradients:
 
 The next step is to tell the graphic API how to pass this data format to the 
 vertex shader once it's been uploaded into GPU memory. We have to describe
-each field of the `Vertex` struct :
+each field of the `Vertex` struct using [VertexAttributeDesc](https://henrimichelon.github.io/Vireo/structvireo_1_1VertexAttributeDesc.html),
+after the triangle data:
 
     const std::vector<vireo::VertexAttributeDesc> vertexAttributes{
         {"POSITION", vireo::AttributeFormat::R32G32B32_FLOAT, offsetof(Vertex, pos)},
@@ -461,7 +462,7 @@ before terminating the `onInit()` method. Add the following code at the end of t
     transferQueue->waitIdle();
     uploadCommandList->cleanup();
 
-By adding this line at the end of the method, the upload operation will be executed
+By adding the `waitIdle()` at the end of the method, the upload operation will be executed
 while we continue to create our pipeline. 
 
 Note that we call the `cleanup()` method to clear the temporary (staging) 
@@ -478,7 +479,7 @@ You can learn more about graphics pipelines in the [Vulkan tutorial](https://vul
 To create a graphic pipeline, we need :
 - The vertex layout
 - The shader(s) module(s)
-- The list of resources (buffers, images, sampler, ...) used by the shaders
+- The list of resources (uniform buffers, images, samplers, ...) used by the shaders
 - The configuration of the pipeline
 
 ### Shader modules
@@ -489,7 +490,7 @@ The `CMakeLists.txt` file supports the compilation of the shaders in the
 SPIR-V and DXIL intermediates formats.
 
 Add a new `shaders` directory under the `src` directory, then add a new 
-`triangle_color.slang` file into the `shaders` directory with the following content :
+`triangle_color.slang` file into the `src/shaders` directory with the following content :
     
     struct VertexInput {
        float3 position : POSITION;
@@ -517,7 +518,8 @@ fields of the `vertexAttributes` array. Since Vulkan does not use textual attrib
 names but binding indices the fields must be in the same order in the struct and in
 the array.
 
-The fragment shader uses the RGB vertex color to produce a nice gradient.
+The fragment shader uses the vertex color to produce a nice RGB gradient (the GPU 
+calculates the color interpolation for each fragment/pixel from the vertices colors).
 
 Reload the CMake project to add the new shader code to the list of shaders to compile then
 build the `shaders` target.
@@ -589,3 +591,8 @@ With Vulkan :
 With DirectX :
 
 ![triangle_color_dx.png](images/triangle_color_dx.png)
+
+## What's next ?
+Explore the [Vireo RHI Samples repository](https://github.com/HenriMichelon/vireo_samples)
+for other examples (uniforms, push constants, compute pipeline, MSAA, 
+depth pre-pass, post-processing effects, ...)

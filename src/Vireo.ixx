@@ -502,7 +502,7 @@ export namespace vireo {
      * Vertex input attribute description
      */
     struct VertexAttributeDesc {
-        //! Binding number which this attribute takes its data from
+        //! Binding name which this attribute takes its data from.
         string          binding;
         //! Size and type of the vertex attribute data
         AttributeFormat format;
@@ -599,6 +599,9 @@ export namespace vireo {
     public:
         virtual ~PhysicalDevice() = default;
 
+        /**
+         * Returns the graphic adapter description
+         */
         virtual const PhysicalDeviceDesc getDescription() const = 0;
 
     protected:
