@@ -247,12 +247,12 @@ namespace vireo {
                 rtvHandles[i] = dxColorImage->getHandle();
             }
 
-            if (conf.colorRenderTargets[i].clearColor && (dxSwapChain || dxColorImage)) {
+            if (conf.colorRenderTargets[i].clear && (dxSwapChain || dxColorImage)) {
                 const FLOAT clearColor[] = {
-                    conf.colorRenderTargets[i].clearColorValue.color[0],
-                    conf.colorRenderTargets[i].clearColorValue.color[1],
-                    conf.colorRenderTargets[i].clearColorValue.color[2],
-                    conf.colorRenderTargets[i].clearColorValue.color[3]
+                    conf.colorRenderTargets[i].clearValue.color[0],
+                    conf.colorRenderTargets[i].clearValue.color[1],
+                    conf.colorRenderTargets[i].clearValue.color[2],
+                    conf.colorRenderTargets[i].clearValue.color[3]
                 };
                 commandList->ClearRenderTargetView(rtvHandles[i], clearColor, 0, nullptr);
             }

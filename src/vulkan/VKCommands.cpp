@@ -295,17 +295,17 @@ namespace vireo {
             if (colorImageView) {
                 colorAttachmentsInfo[i].sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
                 colorAttachmentsInfo[i].imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-                colorAttachmentsInfo[i].loadOp      = conf.colorRenderTargets[i].clearColor ?
+                colorAttachmentsInfo[i].loadOp      = conf.colorRenderTargets[i].clear ?
                     VK_ATTACHMENT_LOAD_OP_CLEAR :
                     VK_ATTACHMENT_LOAD_OP_LOAD;
                 colorAttachmentsInfo[i].storeOp     = conf.colorRenderTargets[i].discardAfterRender ?
                     VK_ATTACHMENT_STORE_OP_DONT_CARE :
                     VK_ATTACHMENT_STORE_OP_STORE;
                 colorAttachmentsInfo[i].clearValue  = {
-                    conf.colorRenderTargets[i].clearColorValue.color[0],
-                    conf.colorRenderTargets[i].clearColorValue.color[1],
-                    conf.colorRenderTargets[i].clearColorValue.color[2],
-                    conf.colorRenderTargets[i].clearColorValue.color[3]
+                    conf.colorRenderTargets[i].clearValue.color[0],
+                    conf.colorRenderTargets[i].clearValue.color[1],
+                    conf.colorRenderTargets[i].clearValue.color[2],
+                    conf.colorRenderTargets[i].clearValue.color[3]
                 };
                 width = vkSwapChain ? vkSwapChain->getExtent().width : vkColorImage->getWidth();
                 height = vkSwapChain ? vkSwapChain->getExtent().height : vkColorImage->getHeight();

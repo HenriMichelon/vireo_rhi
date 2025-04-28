@@ -1053,9 +1053,9 @@ export namespace vireo {
         //! Multisampled color attachment. `nullptr` if MSAA is disabled for the current pipeline.
         shared_ptr<RenderTarget> multisampledRenderTarget{nullptr};
         //! Clear the color attachment if `true`
-        bool                     clearColor{false};
+        bool                     clear{false};
         //! Color clear value
-        ClearValue               clearColorValue{ .color = {0.0f, 0.0f, 0.0f, 0.0f} };
+        ClearValue               clearValue{ .color = {0.0f, 0.0f, 0.0f, 0.0f} };
         //! Discard the content after rendering
         bool                     discardAfterRender{false};
     };
