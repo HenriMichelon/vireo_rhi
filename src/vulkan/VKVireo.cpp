@@ -48,8 +48,8 @@ namespace vireo {
         return std::make_shared<VKVertexInputLayout>(size, attributesDescriptions);
     }
 
-    std::shared_ptr<Fence> VKVireo::createFence(const std::wstring& name) const {
-        return std::make_shared<VKFence>(getVKDevice(), name);
+    std::shared_ptr<Fence> VKVireo::createFence(bool createSignaled, const std::wstring& name) const {
+        return std::make_shared<VKFence>(createSignaled, getVKDevice(), name);
     }
 
     std::shared_ptr<CommandAllocator> VKVireo::createCommandAllocator(CommandType type) const {

@@ -81,6 +81,19 @@ namespace vireo {
             0,
             D3D12_FENCE_FLAG_NONE,
             IID_PPV_ARGS(&fence)));
+        fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
     }
+
+    void DXFence::wait() const {
+        if (fence->GetCompletedValue() < fenceValue) {
+            dxCheck(fence->SetEventOnCompletion(fenceValue, fenceEvent));
+            dxCheck(WaitForSingleObject(fenceEvent, INFINITE));
+        }
+    }
+
+     DXFence::~DXFence() {
+        CloseHandle(fenceEvent);
+    }
+
 
 }

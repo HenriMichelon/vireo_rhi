@@ -534,6 +534,10 @@ export namespace vireo {
      */
     class Fence {
     public:
+        virtual void wait() const = 0;
+
+        virtual void reset() = 0;
+
         virtual ~Fence() = default;
     };
 
@@ -1307,7 +1311,7 @@ export namespace vireo {
         virtual void reset() const = 0;
 
         /**
-         * Returns a new graphic command lists
+         * Returns a new graphic command list
          * @param pipeline Associate pipeline
          */
         virtual std::shared_ptr<CommandList> createCommandList(const std::shared_ptr<const Pipeline>& pipeline) const  = 0;
@@ -1348,10 +1352,19 @@ export namespace vireo {
             const std::vector<std::shared_ptr<const CommandList>>& commandLists) const = 0;
 
         /**
-         * Submit non graphics commands, such as transfer commands
+         * Submit commands without synchronization
          * @param commandLists Commands to execute
          */
         virtual void submit(const std::vector<std::shared_ptr<const CommandList>>& commandLists) const = 0;
+
+        /**
+         * Submit commands with synchronization
+         * @param fence Host/device synchronization fence
+         * @param commandLists Commands to execute
+         */
+        virtual void submit(
+            const std::shared_ptr<Fence>& fence,
+            const std::vector<std::shared_ptr<const CommandList>>& commandLists) const = 0;
 
         /**
          * Wait for all commands to be executed
@@ -1420,7 +1433,7 @@ export namespace vireo {
         /**
          * Waits for the last present operation to end
          */
-        virtual void waitIdle() const = 0;
+        virtual void waitIdle() = 0;
 
     protected:
         const PresentMode presentMode;
@@ -1529,9 +1542,12 @@ export namespace vireo {
 
         /**
          * Creates a fence for CPU/GPU synchronization
+         * @param createSignaled Create the fence in signaled state
          * @param name Object name for debug
          */
-        virtual std::shared_ptr<Fence> createFence(const std::wstring& name = L"Fence") const = 0;
+        virtual std::shared_ptr<Fence> createFence(
+            bool createSignaled = false,
+            const std::wstring& name = L"Fence") const = 0;
 
         /**
          * Creates a command allocator (command pool) for a given command type

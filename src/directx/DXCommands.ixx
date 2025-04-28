@@ -22,6 +22,10 @@ export namespace vireo {
 
         void submit(const std::vector<std::shared_ptr<const CommandList>>& commandLists) const override;
 
+        void submit(
+            const std::shared_ptr<Fence>& fence,
+            const std::vector<std::shared_ptr<const CommandList>>& commandLists) const override;
+
         void waitIdle() const override;
 
     private:

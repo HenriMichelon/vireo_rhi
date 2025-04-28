@@ -204,7 +204,7 @@ namespace vireo {
             minLod, maxLod, anisotropyEnable, mipMapMode);
     }
 
-    std::shared_ptr<Fence> DXVireo::createFence(const std::wstring& name) const {
+    std::shared_ptr<Fence> DXVireo::createFence(const bool, const std::wstring& name) const {
         return std::make_shared<DXFence>(getDXDevice()->getDevice());
     }
 

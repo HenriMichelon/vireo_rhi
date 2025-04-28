@@ -43,7 +43,7 @@ export namespace vireo {
 
         const auto& getCurrentRenderFinishedSemaphoreInfo() const { return renderFinishedSemaphoreInfo[currentFrameIndex]; }
 
-        void waitIdle() const override { vkDeviceWaitIdle(device->getDevice()); }
+        void waitIdle() override { vkDeviceWaitIdle(device->getDevice()); }
 
     private:
         static constexpr VkPresentModeKHR vkPresentModes[] {

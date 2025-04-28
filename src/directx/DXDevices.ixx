@@ -60,12 +60,17 @@ export namespace vireo {
 
         auto getValue() const { return fenceValue; }
 
-        void increment() { fenceValue++; }
+        void wait() const override;
+
+        void reset() override { fenceValue++; }
 
         auto getFence() const { return fence; }
+
+        ~DXFence() override;
 
     private:
         ComPtr<ID3D12Fence>  fence;
         UINT64               fenceValue{0};
+        HANDLE               fenceEvent{nullptr};
     };
 }

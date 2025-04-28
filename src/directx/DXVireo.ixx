@@ -30,7 +30,9 @@ export namespace vireo {
         CommandType commandType,
         const std::wstring& name) const override;
 
-        std::shared_ptr<Fence> createFence(const std::wstring& name) const override;
+        std::shared_ptr<Fence> createFence(
+            bool createSignaled,
+            const std::wstring& name) const override;
 
         std::shared_ptr<CommandAllocator> createCommandAllocator(CommandType type) const override;
 

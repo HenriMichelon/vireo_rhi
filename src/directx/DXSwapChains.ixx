@@ -40,9 +40,7 @@ export namespace vireo {
 
         void recreate() override;
 
-        void waitForLastPresentedFrame() const;
-
-        void waitIdle() const override { waitForLastPresentedFrame(); }
+        void waitIdle() override;
 
     private:
         const std::shared_ptr<DXDevice>     device;
@@ -55,8 +53,7 @@ export namespace vireo {
         HWND                           hWnd;
         const UINT                     syncInterval;
         const UINT                     presentFlags;
-        HANDLE                         fenceEvent;
-        std::shared_ptr<DXFence>            lastFence;
+        std::shared_ptr<DXFence>       lastFence;
 
         void create();
     };

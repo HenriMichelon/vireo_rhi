@@ -34,10 +34,6 @@ namespace vireo {
         dxCheck(factory->MakeWindowAssociation(hWnd, 0));
         renderTargets.resize(framesInFlight);
         create();
-        fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-        if (fenceEvent == nullptr) {
-            dxCheck(HRESULT_FROM_WIN32(GetLastError()));
-        }
     }
 
     void DXSwapChain::create() {
@@ -109,13 +105,12 @@ namespace vireo {
     }
 
     DXSwapChain::~DXSwapChain() {
-        waitForLastPresentedFrame();
+        DXSwapChain::waitIdle();
         for (auto &renderTarget : renderTargets) {
             renderTarget.Reset();
         }
         rtvHeap.Reset();
         swapChain.Reset();
-        CloseHandle(fenceEvent);
     }
 
     void DXSwapChain::recreate() {
@@ -126,7 +121,7 @@ namespace vireo {
         const auto width = windowRect.right - windowRect.left;
         const auto height = windowRect.bottom - windowRect.top;
         if (width != extent.width || height != extent.height) {
-            waitForLastPresentedFrame();
+            waitIdle();
             extent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
             aspectRatio = static_cast<float>(extent.width) / static_cast<float>(extent.height);
 
@@ -169,14 +164,11 @@ namespace vireo {
         }
     }
 
-    void DXSwapChain::waitForLastPresentedFrame() const {
-        dxCheck(presentCommandQueue->Signal(lastFence->getFence().Get(), lastFence->getValue()));
-        if (lastFence->getFence()->GetCompletedValue() < lastFence->getValue()) {
-            dxCheck(lastFence->getFence()->SetEventOnCompletion(
-                lastFence->getValue(),
-                fenceEvent
-            ));
-            WaitForSingleObjectEx(fenceEvent, INFINITE, FALSE);
+    void DXSwapChain::waitIdle() {
+        if (lastFence) {
+            dxCheck(presentCommandQueue->Signal(lastFence->getFence().Get(), lastFence->getValue()));
+            lastFence->wait();
+            lastFence = nullptr;
         }
     }
 
@@ -187,17 +179,8 @@ namespace vireo {
 
     bool DXSwapChain::acquire(const std::shared_ptr<Fence>& fence) {
         assert(fence != nullptr);
-        const auto dxFence = static_pointer_cast<DXFence>(fence);
-        // If the next frame is not ready to be rendered yet, wait until it is ready.
-        if (dxFence->getFence()->GetCompletedValue() < dxFence->getValue()) {
-            dxCheck(dxFence->getFence()->SetEventOnCompletion(
-                dxFence->getValue(),
-                fenceEvent
-            ));
-            WaitForSingleObjectEx(fenceEvent, INFINITE, FALSE);
-            lastFence = dxFence;
-        }
-        dxFence->increment();
+        fence->wait();
+        fence->reset();
         return true;
     }
 

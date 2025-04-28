@@ -32,6 +32,12 @@ namespace vireo {
         const std::shared_ptr<Fence>& fence,
         const std::shared_ptr<const SwapChain>&,
         const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
+        submit(fence, commandLists);
+    }
+
+    void DXSubmitQueue::submit(
+        const std::shared_ptr<Fence>& fence,
+        const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
         assert(fence);
         submit(commandLists);
         const auto dxFence = static_pointer_cast<DXFence>(fence);
