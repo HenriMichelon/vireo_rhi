@@ -67,7 +67,7 @@ export namespace vireo {
         };
 
         // Get the supported queues families for a particular GPU
-        QueueFamilyIndices findQueueFamilies(VkPhysicalDevice vkPhysicalDevice) const;
+        static QueueFamilyIndices findQueueFamilies(VkPhysicalDevice vkPhysicalDevice);
 
         // Find a dedicated transfer queue
         uint32_t findTransferQueueFamily() const;
@@ -101,9 +101,9 @@ export namespace vireo {
         };
 
         // Rate physical device by properties to find the best suitable GPU
-        uint32_t rateDeviceSuitability(
+        static uint32_t rateDeviceSuitability(
             VkPhysicalDevice            vkPhysicalDevice,
-            const vector<const char *> &deviceExtensions) const;
+            const vector<const char *> &deviceExtensions);
 
         static bool checkDeviceExtensionSupport
             (VkPhysicalDevice            vkPhysicalDevice,
@@ -135,13 +135,6 @@ export namespace vireo {
                                     uint32_t           baseArrayLayer = 0,
                                     uint32_t           layers = 1,
                                     uint32_t           baseMipLevel = 0) const;
-
-        static VkImageMemoryBarrier imageMemoryBarrier(
-          VkImage image,
-          VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask,
-          VkImageLayout oldLayout, VkImageLayout newLayout,
-          uint32_t baseMipLevel = 0,
-          uint32_t levelCount = VK_REMAINING_MIP_LEVELS);
 
     private:
         const VKPhysicalDevice& physicalDevice;

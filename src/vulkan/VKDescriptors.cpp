@@ -102,6 +102,7 @@ namespace vireo {
     }
 
     void VKDescriptorSet::update(const DescriptorIndex index, const shared_ptr<const Buffer>& buffer) const {
+        assert(buffer != nullptr);
         const auto vkBuffer = static_pointer_cast<const VKBuffer>(buffer);
         const auto bufferInfo = VkDescriptorBufferInfo {
             .buffer = vkBuffer->getBuffer(),
@@ -120,6 +121,7 @@ namespace vireo {
     }
 
     void VKDescriptorSet::update(const DescriptorIndex index, const shared_ptr<const Image>& image) const {
+        assert(image != nullptr);
         const auto vkImage = static_pointer_cast<const VKImage>(image);
         const auto imageInfo = VkDescriptorImageInfo {
             .sampler = VK_NULL_HANDLE,
@@ -139,6 +141,7 @@ namespace vireo {
     }
 
     void VKDescriptorSet::update(const DescriptorIndex index, const shared_ptr<const Sampler>& sampler) const {
+        assert(sampler != nullptr);
         const auto vkSampler = static_pointer_cast<const VKSampler>(sampler);
         const auto imageInfo = VkDescriptorImageInfo {
             .sampler = vkSampler->getSampler(),
@@ -158,6 +161,7 @@ namespace vireo {
     }
 
     void VKDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<Buffer>>& buffers) const {
+        assert(buffers.size() > 0);
         auto buffersInfo = vector<VkDescriptorBufferInfo>(buffers.size());
         for (int i = 0; i < buffers.size(); i++) {
             const auto& vkBuffer = static_pointer_cast<const VKBuffer>(buffers[i]);
@@ -177,6 +181,7 @@ namespace vireo {
     }
 
     void VKDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<Image>>& images) const {
+        assert(images.size() > 0);
         auto imagesInfo = vector<VkDescriptorImageInfo>(images.size());
         bool isStorage = false;
         for (int i = 0; i < images.size(); i++) {
@@ -198,6 +203,7 @@ namespace vireo {
     }
 
     void VKDescriptorSet::update(const DescriptorIndex index, const vector<shared_ptr<Sampler>>&samplers) const {
+        assert(samplers.size() > 0);
         auto imagesInfo = vector<VkDescriptorImageInfo>(samplers.size());
         for (int i = 0; i < samplers.size(); i++) {
             imagesInfo[i].sampler = static_pointer_cast<const VKSampler>(samplers[i])->getSampler();

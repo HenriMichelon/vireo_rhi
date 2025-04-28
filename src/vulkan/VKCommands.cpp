@@ -42,6 +42,9 @@ namespace vireo {
         const shared_ptr<Fence>& fence,
         const shared_ptr<const SwapChain>& swapChain,
         const vector<shared_ptr<const CommandList>>& commandLists) const {
+        assert(fence != nullptr);
+        assert(swapChain != nullptr);
+        assert(!commandLists.empty());
         const auto vkSwapChain = static_pointer_cast<const VKSwapChain>(swapChain);
         const auto vkFence = static_pointer_cast<const VKFence>(fence);
         auto submitInfos = vector<VkCommandBufferSubmitInfo>(commandLists.size());
@@ -64,6 +67,7 @@ namespace vireo {
     }
 
     void VKSubmitQueue::submit(const vector<shared_ptr<const CommandList>>& commandLists) const {
+        assert(!commandLists.empty());
         auto submitInfos = vector<VkCommandBufferSubmitInfo>(commandLists.size());
         for (int i = 0; i < commandLists.size(); i++) {
             submitInfos[i] = {
@@ -127,6 +131,8 @@ namespace vireo {
     }
 
     void VKCommandList::bindVertexBuffers(const vector<shared_ptr<const Buffer>>& buffers, const vector<size_t> offsets) const {
+        assert(!buffers.empty());
+        assert(buffers.size() == offsets.size());
         vector<VkBuffer> vkBuffers(buffers.size());
         vector<VkDeviceSize> vkOffsets(buffers.size());
         for (int i = 0; i < buffers.size(); i++) {
@@ -137,6 +143,7 @@ namespace vireo {
     }
 
     void VKCommandList::bindVertexBuffer(const shared_ptr<const Buffer>& buffer, const size_t offset) const {
+        assert(buffer != nullptr);
         const auto vkBuffer = static_pointer_cast<const VKBuffer>(buffer);
         const VkBuffer     buffers[] = {vkBuffer->getBuffer()};
         const VkDeviceSize offsets[] = {offset};
@@ -144,6 +151,7 @@ namespace vireo {
     }
 
     void VKCommandList::bindIndexBuffer(const shared_ptr<const Buffer>& buffer, IndexType indexType, const size_t offset) const {
+        assert(buffer != nullptr);
         const auto vkBuffer = static_pointer_cast<const VKBuffer>(buffer);
         vkCmdBindIndexBuffer(commandBuffer,
             vkBuffer->getBuffer(),
@@ -169,6 +177,7 @@ namespace vireo {
     }
 
     void VKCommandList::bindPipeline(const shared_ptr<const Pipeline>& pipeline) {
+        assert(pipeline != nullptr);
         if (pipeline->getType() == PipelineType::COMPUTE) {
             vkCmdBindPipeline(
                 commandBuffer,
@@ -185,6 +194,8 @@ namespace vireo {
     void VKCommandList::bindDescriptors(
         const shared_ptr<const Pipeline>& pipeline,
         const vector<shared_ptr<const DescriptorSet>>& descriptors) const {
+        assert(pipeline != nullptr);
+        assert(!descriptors.empty());
         if (descriptors.empty()) { return; }
         const auto vkLayout = static_pointer_cast<const VKPipelineResources>(pipeline->getResources())->getPipelineLayout();
 
@@ -389,6 +400,7 @@ namespace vireo {
         const vector<VkImage>& images,
         const ResourceState oldState,
         const ResourceState newState) const {
+        assert(!images.empty());
         VkPipelineStageFlags srcStage, dstStage;
         VkAccessFlags srcAccess, dstAccess;
         VkImageLayout srcLayout, dstLayout;
@@ -626,6 +638,7 @@ namespace vireo {
         const shared_ptr<const Image>& image,
         const ResourceState oldState,
         const ResourceState newState) const {
+        assert(image != nullptr);
         barrier(static_pointer_cast<const VKImage>(image)->getImage(), oldState, newState);
     }
 
@@ -633,6 +646,7 @@ namespace vireo {
         const shared_ptr<const RenderTarget>& renderTarget,
         const ResourceState oldState,
         const ResourceState newState) const {
+        assert(renderTarget != nullptr);
         barrier(static_pointer_cast<const VKImage>(renderTarget->getImage())->getImage(), oldState, newState);
     }
 
@@ -640,13 +654,15 @@ namespace vireo {
         const shared_ptr<const SwapChain>& swapChain,
         const ResourceState oldState,
         const ResourceState newState) const {
+        assert(swapChain != nullptr);
         barrier(static_pointer_cast<const VKSwapChain>(swapChain)->getCurrentImage(), oldState, newState);
     }
 
     void VKCommandList::barrier(
-            const vector<shared_ptr<const RenderTarget>>& renderTargets,
-            ResourceState oldState,
-            ResourceState newState) const {
+        const vector<shared_ptr<const RenderTarget>>& renderTargets,
+        const ResourceState oldState,
+        const ResourceState newState) const {
+        assert(!renderTargets.empty());
         const auto r = views::transform(renderTargets, [](const shared_ptr<const RenderTarget>& renderTarget) {
             return static_pointer_cast<const VKImage>(renderTarget->getImage())->getImage();
         });
@@ -657,6 +673,8 @@ namespace vireo {
         const shared_ptr<const PipelineResources>& pipelineResources,
         const PushConstantsDesc& pushConstants,
         const void* data) const {
+        assert(pipelineResources != nullptr);
+        assert(data != nullptr);
         const auto vkResources = static_pointer_cast<const VKPipelineResources>(pipelineResources);
         VkShaderStageFlags stageFlags;
         if (pushConstants.stage == ShaderStage::VERTEX) {
@@ -692,6 +710,8 @@ namespace vireo {
     }
 
     void VKCommandList::upload(const shared_ptr<const Buffer>& destination, const void* source) {
+        assert(destination != nullptr);
+        assert(source != nullptr);
         const auto buffer = static_pointer_cast<const VKBuffer>(destination);
         const auto stagingBuffer = make_shared<VKBuffer>(
             device,
@@ -731,6 +751,9 @@ namespace vireo {
         const shared_ptr<const Image>& destination,
         const void* source,
         const uint32_t firstMipLevel) {
+        assert(destination != nullptr);
+        assert(source != nullptr);
+        assert(firstMipLevel < destination->getMipLevels());
         const auto image = static_pointer_cast<const VKImage>(destination);
         const auto stagingBuffer = make_shared<VKBuffer>(
            device,
@@ -782,6 +805,9 @@ namespace vireo {
         const shared_ptr<const Image>& destination,
         const uint32_t sourceOffset,
         const uint32_t firstMipLevel) {
+        assert(source != nullptr);
+        assert(destination != nullptr);
+        assert(firstMipLevel < destination->getMipLevels());
         const auto image = static_pointer_cast<const VKImage>(destination);
         const auto buffer = static_pointer_cast<const VKBuffer>(source);
         const auto region = VkBufferImageCopy {
@@ -810,7 +836,9 @@ namespace vireo {
         const shared_ptr<const Image>& destination,
         const vector<void*>& sources,
         const uint32_t firstMipLevel) {
+        assert(destination != nullptr);
         assert(sources.size() == destination->getArraySize());
+        assert(firstMipLevel < destination->getMipLevels());
         const auto image = static_pointer_cast<const VKImage>(destination);
         const auto stagingBuffer = make_shared<VKBuffer>(
            device,
@@ -853,6 +881,8 @@ namespace vireo {
     void VKCommandList::copy(
         const shared_ptr<const Image>& source,
         const shared_ptr<const SwapChain>& swapChain) const {
+        assert(source != nullptr);
+        assert(swapChain != nullptr);
         const auto vkSource = static_pointer_cast<const VKImage>(source);
         const auto vkSwapChain = static_pointer_cast<const VKSwapChain>(swapChain);
         auto copyRegion = VkImageCopy {
@@ -878,6 +908,8 @@ namespace vireo {
         const shared_ptr<const Image>& source,
         const shared_ptr<const SwapChain>& swapChain,
         const Filter filter) const {
+        assert(source != nullptr);
+        assert(swapChain != nullptr);
         const auto vkSource = static_pointer_cast<const VKImage>(source);
         const auto vkSwapChain = static_pointer_cast<const VKSwapChain>(swapChain);
         auto blitRegion = VkImageBlit {

@@ -169,7 +169,7 @@ namespace vireo {
         }
     }
 
-     VKPhysicalDevice::QueueFamilyIndices VKPhysicalDevice::findQueueFamilies(const VkPhysicalDevice vkPhysicalDevice) const {
+     VKPhysicalDevice::QueueFamilyIndices VKPhysicalDevice::findQueueFamilies(const VkPhysicalDevice vkPhysicalDevice) {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Setup/Physical_devices_and_queue_families#page_Queue-families
         QueueFamilyIndices indices;
         uint32_t           queueFamilyCount = 0;
@@ -260,8 +260,8 @@ namespace vireo {
     }
 
     uint32_t VKPhysicalDevice::rateDeviceSuitability(
-        VkPhysicalDevice            vkPhysicalDevice,
-        const vector<const char *> &deviceExtensions) const {
+        const VkPhysicalDevice      vkPhysicalDevice,
+        const vector<const char *> &deviceExtensions) {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Setup/Physical_devices_and_queue_families#page_Base-device-suitability-checks
         VkPhysicalDeviceProperties _deviceProperties;
         vkGetPhysicalDeviceProperties(vkPhysicalDevice, &_deviceProperties);
@@ -280,13 +280,13 @@ namespace vireo {
             return 0;
         }
 
-        bool extensionsSupported = checkDeviceExtensionSupport(vkPhysicalDevice, deviceExtensions);
+        const bool extensionsSupported = checkDeviceExtensionSupport(vkPhysicalDevice, deviceExtensions);
         // bool swapChainAdequate   = false;
         // if (extensionsSupported) {
             // SwapChainSupportDetails swapChainSupport = querySwapChainSupport(vkPhysicalDevice);
             // swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
         // }
-        QueueFamilyIndices indices = findQueueFamilies(vkPhysicalDevice);
+        const QueueFamilyIndices indices = findQueueFamilies(vkPhysicalDevice);
         // if ((!extensionsSupported) || (!indices.isComplete()) || (!swapChainAdequate)) {
         if ((!extensionsSupported) || (!indices.isComplete())) {
             return 0;
@@ -444,34 +444,6 @@ namespace vireo {
         VkImageView imageView;
         vkCheck(vkCreateImageView(device, &viewInfo, nullptr, &imageView));
         return imageView;
-    }
-
-    VkImageMemoryBarrier VKDevice::imageMemoryBarrier(
-          const VkImage image,
-          const VkAccessFlags srcAccessMask,
-          const VkAccessFlags dstAccessMask,
-          const VkImageLayout oldLayout,
-          const VkImageLayout newLayout,
-          const uint32_t baseMipLevel,
-          const uint32_t levelCount
-      ) {
-        return VkImageMemoryBarrier {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .srcAccessMask =  srcAccessMask,
-            .dstAccessMask = dstAccessMask,
-            .oldLayout = oldLayout,
-            .newLayout = newLayout,
-            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .image = image,
-            .subresourceRange = {
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .baseMipLevel = baseMipLevel,
-                .levelCount = levelCount,
-                .baseArrayLayer = 0,
-                .layerCount = VK_REMAINING_ARRAY_LAYERS,
-            }
-        };
     }
 
     VKDevice::~VKDevice() {

@@ -32,6 +32,8 @@ namespace vireo {
 
     VKShaderModule::VKShaderModule(const VkDevice device, const string& fileName):
         device{device} {
+        assert(device != VK_NULL_HANDLE);
+        assert(!fileName.empty());
         ifstream file(fileName + ".spv", ios::ate | ios::binary);
         if (!file.is_open()) {
             throw Exception("failed to open shader file ", fileName);
@@ -63,6 +65,7 @@ namespace vireo {
         const PushConstantsDesc& pushConstants,
         const wstring& name):
         device{device} {
+        assert(device != VK_NULL_HANDLE);
         for (const auto& descriptorLayout : descriptorLayouts) {
             const auto layout = static_pointer_cast<const VKDescriptorLayout>(descriptorLayout);
             setLayouts.push_back(layout->getSetLayout());
@@ -106,7 +109,9 @@ namespace vireo {
           const shared_ptr<const ShaderModule>& shader,
           const wstring& name) :
         ComputePipeline{pipelineResources},
-        device{device}{
+        device{device} {
+        assert(device != VK_NULL_HANDLE);
+        assert(shader != nullptr);
         const auto shaderModule = static_pointer_cast<const VKShaderModule>(shader)->getShaderModule();
         const auto& pipelineLayout = static_pointer_cast<const VKPipelineResources>(pipelineResources)->getPipelineLayout();
 
@@ -141,6 +146,7 @@ namespace vireo {
            const wstring& name):
         GraphicPipeline{configuration.resources},
         device{device} {
+        assert(configuration.resources);
         assert(configuration.vertexShader || configuration.fragmentShader);
         assert(configuration.colorRenderFormats.size() == configuration.colorBlendDesc.size());
         const auto& vkPipelineLayout = static_pointer_cast<const VKPipelineResources>(configuration.resources);

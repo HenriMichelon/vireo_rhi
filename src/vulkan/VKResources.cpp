@@ -61,9 +61,11 @@ namespace vireo {
 
     void VKBuffer::write(const void* data, const size_t size, const size_t offset) {
         assert(mappedAddress != nullptr);
+        assert(data != nullptr);
         if (size == WHOLE_SIZE) {
             memcpy(mappedAddress, data, bufferSize);
         } else {
+            assert((offset + size) <= bufferSize);
             memcpy(static_cast<unsigned char*>(mappedAddress) + offset, data, size);
         }
     }
@@ -72,7 +74,7 @@ namespace vireo {
             const shared_ptr<const VKDevice>& device,
             const VkDeviceSize size,
             const VkBufferUsageFlags usage,
-            const VkMemoryPropertyFlags memoryType,
+            const VkMemoryPropertyFlags memoryTypeIndex,
             VkBuffer& buffer,
             VkDeviceMemory& memory) {
         const auto bufferInfo = VkBufferCreateInfo {
@@ -87,7 +89,7 @@ namespace vireo {
         const auto allocInfo = VkMemoryAllocateInfo {
             .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
             .allocationSize = memRequirements.size,
-            .memoryTypeIndex = device->getPhysicalDevice().findMemoryType(memRequirements.memoryTypeBits, memoryType)
+            .memoryTypeIndex = device->getPhysicalDevice().findMemoryType(memRequirements.memoryTypeBits, memoryTypeIndex)
         };
         vkCheck(vkAllocateMemory(device->getDevice(), &allocInfo, nullptr, &memory));
         vkBindBufferMemory(device->getDevice(), buffer, memory, 0);
