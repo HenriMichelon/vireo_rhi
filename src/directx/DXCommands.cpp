@@ -71,9 +71,7 @@ namespace vireo {
         }
         submit(commandLists);
         if (dxSignalSemaphore) {
-            if (dxSignalSemaphore->getType() == SemaphoreType::TIMELINE) {
-                dxSignalSemaphore->incrementValue();
-            }
+            dxSignalSemaphore->incrementValue();
             dxCheck(commandQueue->Signal(dxSignalSemaphore->getFence().Get(), dxSignalSemaphore->getValue()));
         }
     }
@@ -156,7 +154,7 @@ namespace vireo {
     }
 
     DXCommandList::~DXCommandList() {
-        cleanup();
+        DXCommandList::cleanup();
     }
 
     void DXCommandList::bindPipeline(const std::shared_ptr<const Pipeline>& pipeline) {
