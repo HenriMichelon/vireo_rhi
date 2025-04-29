@@ -184,7 +184,7 @@ Add a `FrameData` `struct` and a `vector` of `FrameData` to your application:
 Create the fences after the queue creation in the `onInit()` method :
 
     for (auto& frameData : framesData) {
-        frameData.inFlightFence = vireo->createFence();
+        frameData.inFlightFence = vireo->createFence(true);
     }
 
 
