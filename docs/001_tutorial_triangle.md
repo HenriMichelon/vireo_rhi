@@ -265,7 +265,7 @@ Add the creation code after the fence creation :
 
     ...
     for (auto& frameData : framesData) {
-        frameData.inFlightFence = vireo->createFence();
+        frameData.inFlightFence = vireo->createFence(true);
         frameData.commandAllocator = vireo->createCommandAllocator(vireo::CommandType::GRAPHIC);
         frameData.commandList = frameData.commandAllocator->createCommandList();
     }
@@ -398,9 +398,9 @@ your class interface:
 Add the triangle data with a different color for each vertex, after the `Vertex` struct:
 
     std::vector<Vertex> triangleVertices{
-        { { 0.0f, 0.25f, 0.0f }, { 1.0f, 0.0f, 0.0f} },
-        { { 0.25f, -0.25f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
-        { { -0.25f, -0.25f, 0.0f }, { 0.0f, 0.0f, 1.0f } }
+        { {  0.0f,  0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
+        { {  0.5f, -0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
+        { { -0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f } }
     };
 
 The next step is to tell the graphic API how to pass this data format to the 
@@ -591,7 +591,7 @@ With DirectX :
 
 ![triangle_color_dx.png](images/triangle_color_dx.png)
 
-## What's next ?
+## What's next?
 Explore the [Vireo RHI Samples repository](https://github.com/HenriMichelon/vireo_samples)
 for other examples (uniforms, push constants, compute pipeline, MSAA, 
 depth pre-pass, post-processing effects, ...)
