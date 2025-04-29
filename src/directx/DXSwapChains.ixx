@@ -33,6 +33,10 @@ export namespace vireo {
 
         auto getHeap() const { return rtvHeap; }
 
+        auto getFence() const { return fence; }
+
+        auto getFenceValue() const { return fenceValue; }
+
         void nextFrameIndex() override;
 
         bool acquire(const std::shared_ptr<Fence>& fence) override;
@@ -44,7 +48,7 @@ export namespace vireo {
         void waitIdle() override;
 
     private:
-        const std::shared_ptr<DXDevice>     device;
+        const std::shared_ptr<DXDevice>device;
         const ComPtr<IDXGIFactory4>    factory;
         ComPtr<IDXGISwapChain3>        swapChain;
         ComPtr<ID3D12CommandQueue>     presentCommandQueue;
@@ -54,7 +58,9 @@ export namespace vireo {
         HWND                           hWnd;
         const UINT                     syncInterval;
         const UINT                     presentFlags;
-        std::shared_ptr<DXFence>       lastFence;
+        ComPtr<ID3D12Fence>            fence;
+        HANDLE                         fenceEvent;
+        UINT64                         fenceValue{0};
 
         void create();
     };

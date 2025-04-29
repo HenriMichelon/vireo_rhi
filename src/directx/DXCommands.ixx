@@ -18,6 +18,8 @@ export namespace vireo {
 
         auto getValue() const { return fenceValue; }
 
+        void setValue(const UINT64 value) { fenceValue = value; }
+
         void wait() const override;
 
         void reset() override { fenceValue++; }

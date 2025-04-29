@@ -33,6 +33,8 @@ namespace vireo {
         presentFlags{static_cast<UINT>(presentMode == PresentMode::IMMEDIATE ? DXGI_PRESENT_ALLOW_TEARING : 0)} {
         dxCheck(factory->MakeWindowAssociation(hWnd, 0));
         renderTargets.resize(framesInFlight);
+        dxCheck(device->getDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)));
+        fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
         create();
     }
 
@@ -40,7 +42,6 @@ namespace vireo {
         RECT windowRect{};
         if (GetClientRect(hWnd, &windowRect) == 0) {
             throw Exception("Error getting window rect");
-            return;
         }
         const auto width = windowRect.right - windowRect.left;
         const auto height = windowRect.bottom - windowRect.top;
@@ -165,27 +166,33 @@ namespace vireo {
     }
 
     void DXSwapChain::waitIdle() {
-        if (lastFence) {
-            dxCheck(presentCommandQueue->Signal(lastFence->getFence().Get(), lastFence->getValue()));
-            lastFence->wait();
-            lastFence = nullptr;
+        if (fence->GetCompletedValue() < fenceValue) {
+            dxCheck(fence->SetEventOnCompletion(fenceValue, fenceEvent));
+            dxCheck(WaitForSingleObject(fenceEvent, INFINITE));
         }
     }
 
     void DXSwapChain::nextFrameIndex() {
-        currentFrameIndex = swapChain->GetCurrentBackBufferIndex();
-        assert(currentFrameIndex < framesInFlight);
+        currentFrameIndex = (currentFrameIndex + 1) % framesInFlight;
+        // currentFrameIndex = swapChain->GetCurrentBackBufferIndex();
+        // assert(currentFrameIndex < framesInFlight);
     }
 
     bool DXSwapChain::acquire(const std::shared_ptr<Fence>& fence) {
         assert(fence != nullptr);
-        fence->wait();
-        fence->reset();
+        const auto dxFence = static_pointer_cast<DXFence>(fence);
+        if (this->fence->GetCompletedValue() < dxFence->getValue()) {
+            dxCheck(this->fence->SetEventOnCompletion(dxFence->getValue(), fenceEvent));
+            dxCheck(WaitForSingleObject(fenceEvent, INFINITE));
+        }
+        fenceValue += 1;
         return true;
     }
 
     void DXSwapChain::present() {
         dxCheck(swapChain->Present(syncInterval, presentFlags));
+        dxCheck(presentCommandQueue->Signal(fence.Get(), fenceValue));
+
     }
 
 }

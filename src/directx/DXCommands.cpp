@@ -30,15 +30,20 @@ namespace vireo {
 
     void DXSubmitQueue::submit(
         const std::shared_ptr<Fence>& fence,
-        const std::shared_ptr<const SwapChain>&,
+        const std::shared_ptr<const SwapChain>&swapChain,
         const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
-        submit(fence, commandLists);
+        assert(fence != nullptr);
+        assert(swapChain != nullptr);
+        submit(commandLists);
+        const auto dxFence = static_pointer_cast<DXFence>(fence);
+        const auto dxSwapChain = static_pointer_cast<const DXSwapChain>(swapChain);
+        dxFence->setValue(dxSwapChain->getFenceValue());
     }
 
     void DXSubmitQueue::submit(
         const std::shared_ptr<Fence>& fence,
         const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
-        assert(fence);
+        assert(fence != nullptr);
         submit(commandLists);
         const auto dxFence = static_pointer_cast<DXFence>(fence);
         dxCheck(commandQueue->Signal(dxFence->getFence().Get(), dxFence->getValue()));
@@ -77,11 +82,12 @@ namespace vireo {
         const std::shared_ptr<Semaphore>& waitSemaphore,
         const WaitStage waitStage,
         const std::shared_ptr<Fence>& fence,
-        const std::shared_ptr<const SwapChain>&,
+        const std::shared_ptr<const SwapChain>&swapChain,
         const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
         submit(waitSemaphore, waitStage, nullptr, commandLists);
         const auto dxFence = static_pointer_cast<DXFence>(fence);
-        dxCheck(commandQueue->Signal(dxFence->getFence().Get(), dxFence->getValue()));
+        const auto dxSwapChain = static_pointer_cast<const DXSwapChain>(swapChain);
+        dxFence->setValue(dxSwapChain->getFenceValue());
     }
 
     void DXSubmitQueue::waitIdle() const {
@@ -426,6 +432,9 @@ namespace vireo {
             dstState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
         } else if (oldState == ResourceState::RENDER_TARGET_DEPTH_STENCIL && newState == ResourceState::RENDER_TARGET_DEPTH_STENCIL_READ) {
             srcState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+            dstState = D3D12_RESOURCE_STATE_DEPTH_READ;
+        } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::RENDER_TARGET_DEPTH_STENCIL_READ) {
+            srcState = D3D12_RESOURCE_STATE_COMMON;
             dstState = D3D12_RESOURCE_STATE_DEPTH_READ;
         } else if (oldState == ResourceState::COMPUTE_READ && newState == ResourceState::UNDEFINED) {
             srcState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
