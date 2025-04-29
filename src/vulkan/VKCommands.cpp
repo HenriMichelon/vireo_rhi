@@ -110,7 +110,8 @@ namespace vireo {
 
     void VKSubmitQueue::submit(
            const std::shared_ptr<Semaphore>& waitSemaphore,
-           WaitStage waitStage,
+           const WaitStage waitStage,
+           const WaitStage signalStage,
            const std::shared_ptr<Semaphore>& signalSemaphore,
            const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
         assert(waitSemaphore != nullptr || signalSemaphore != nullptr);
@@ -140,6 +141,8 @@ namespace vireo {
                 vkSignalSemaphore->incrementValue();
             }
             signalSemaphoreSubmitInfo.semaphore = vkSignalSemaphore->getSemaphore();
+            signalSemaphoreSubmitInfo
+            .stageMask = static_cast<VkPipelineStageFlags2>(signalStage);
             signalSemaphoreSubmitInfo.value = vkSignalSemaphore->getValue();
         }
         const auto submitInfo = VkSubmitInfo2 {
@@ -587,7 +590,7 @@ namespace vireo {
             dstLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
             aspectFlag = VK_IMAGE_ASPECT_DEPTH_BIT;
         } else if (oldState == ResourceState::RENDER_TARGET_DEPTH_STENCIL && newState == ResourceState::RENDER_TARGET_DEPTH_STENCIL_READ) {
-            srcStage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            srcStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
             dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
             srcAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
             dstAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
@@ -1109,6 +1112,5 @@ namespace vireo {
     VKSemaphore::~VKSemaphore() {
         vkDestroySemaphore(device, semaphore, nullptr);
     }
-
 
 }

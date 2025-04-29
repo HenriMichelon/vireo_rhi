@@ -92,6 +92,7 @@ export namespace vireo {
         void submit(
             const std::shared_ptr<Semaphore>& waitSemaphore,
             WaitStage waitStage,
+            WaitStage signalStage,
             const std::shared_ptr<Semaphore>& signalSemaphore,
             const std::vector<std::shared_ptr<const CommandList>>& commandLists) const override;
 

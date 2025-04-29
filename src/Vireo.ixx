@@ -1444,12 +1444,14 @@ export namespace vireo {
          * Submit commands with GPU/GPU synchronization
          * @param waitSemaphore GPU semaphore to wait
          * @param waitStage Stage to wait (Vulkan only)
+         * @param signalStage Stage to wait for signal (Vulkan only)
          * @param signalSemaphore GPU semaphore to signal
          * @param commandLists Commands to execute
          */
         virtual void submit(
             const std::shared_ptr<Semaphore>& waitSemaphore,
             WaitStage waitStage,
+            WaitStage signalStage,
             const std::shared_ptr<Semaphore>& signalSemaphore,
             const std::vector<std::shared_ptr<const CommandList>>& commandLists) const = 0;
 
@@ -1461,20 +1463,22 @@ export namespace vireo {
          */
         virtual void submit(
             const std::shared_ptr<Semaphore>& waitSemaphore,
-            WaitStage waitStage,
+            const WaitStage waitStage,
             const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
-            submit(waitSemaphore, waitStage, nullptr, commandLists);
+            submit(waitSemaphore, waitStage, WaitStage::NONE, nullptr, commandLists);
         }
 
         /**
          * Submit commands with GPU/GPU synchronization
          * @param signalSemaphore GPU semaphore to signal
+         * @param signalStage Stage to wait for signal (Vulkan only)
          * @param commandLists Commands to execute
          */
         virtual void submit(
+            const WaitStage signalStage,
             const std::shared_ptr<Semaphore>& signalSemaphore,
             const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
-            submit(nullptr, WaitStage::NONE, signalSemaphore, commandLists);
+            submit(nullptr, WaitStage::NONE, signalStage, signalSemaphore, commandLists);
         }
 
         /**
