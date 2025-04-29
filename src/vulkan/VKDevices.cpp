@@ -450,29 +450,5 @@ namespace vireo {
         vkDestroyDevice(device, nullptr);
     }
 
-    VKFence::VKFence(const bool createSignaled, const std::shared_ptr<const VKDevice>& device, const std::wstring& name):
-        device{device->getDevice()} {
-        const auto fenceInfo = VkFenceCreateInfo {
-            .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
-            .flags = createSignaled ? VK_FENCE_CREATE_SIGNALED_BIT : 0u,
-        };
-        vkCheck(vkCreateFence(device->getDevice(), &fenceInfo, nullptr, &fence));
-#ifdef _DEBUG
-        vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(fence), VK_OBJECT_TYPE_FENCE,
-    "VKFence : " + to_string(name));
-#endif
-    }
-
-    void VKFence::wait() const {
-        vkWaitForFences(device, 1, &fence, VK_TRUE, UINT64_MAX);
-    }
-
-    void VKFence::reset() {
-        vkResetFences(device, 1, &fence);
-    }
-
-     VKFence::~VKFence() {
-        vkDestroyFence(device, fence, nullptr);
-    }
 
 }

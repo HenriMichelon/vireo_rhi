@@ -108,6 +108,97 @@ namespace vireo {
         vkCheck(vkQueueSubmit2(commandQueue, 1, &submitInfo, vkFence->getFence()));
     }
 
+    void VKSubmitQueue::submit(
+           const std::shared_ptr<Semaphore>& waitSemaphore,
+           WaitStage waitStage,
+           const std::shared_ptr<Semaphore>& signalSemaphore,
+           const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
+        assert(waitSemaphore != nullptr || signalSemaphore != nullptr);
+        assert(!commandLists.empty());
+        const auto vkWaitSemaphore = static_pointer_cast<VKSemaphore>(waitSemaphore);
+        const auto vkSignalSemaphore = static_pointer_cast<VKSemaphore>(signalSemaphore);
+        auto submitInfos = std::vector<VkCommandBufferSubmitInfo>(commandLists.size());
+        for (int i = 0; i < commandLists.size(); i++) {
+            submitInfos[i] = {
+                .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
+                .commandBuffer = static_pointer_cast<const VKCommandList>(commandLists[i])->getCommandBuffer(),
+            };
+        }
+        auto waitSemaphoreSubmitInfo = VkSemaphoreSubmitInfo{
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO
+        };
+        if (vkWaitSemaphore) {
+            waitSemaphoreSubmitInfo.semaphore = vkWaitSemaphore->getSemaphore();
+            waitSemaphoreSubmitInfo.stageMask = static_cast<VkPipelineStageFlags2>(waitStage);
+            waitSemaphoreSubmitInfo.value = vkWaitSemaphore->getValue();
+        }
+        auto signalSemaphoreSubmitInfo = VkSemaphoreSubmitInfo{
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO
+        };
+        if (vkSignalSemaphore) {
+            if (vkSignalSemaphore->getType() == SemaphoreType::TIMELINE) {
+                vkSignalSemaphore->incrementValue();
+            }
+            signalSemaphoreSubmitInfo.semaphore = vkSignalSemaphore->getSemaphore();
+            signalSemaphoreSubmitInfo.value = vkSignalSemaphore->getValue();
+        }
+        const auto submitInfo = VkSubmitInfo2 {
+            .sType                    = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+            .waitSemaphoreInfoCount   = waitSemaphore ? 1u : 0u,
+            .pWaitSemaphoreInfos      = waitSemaphore ? &waitSemaphoreSubmitInfo : VK_NULL_HANDLE,
+            .commandBufferInfoCount   = static_cast<uint32_t>(submitInfos.size()),
+            .pCommandBufferInfos      = submitInfos.data(),
+            .signalSemaphoreInfoCount = signalSemaphore ? 1u : 0u,
+            .pSignalSemaphoreInfos    = signalSemaphore ? &signalSemaphoreSubmitInfo : VK_NULL_HANDLE,
+        };
+        vkCheck(vkQueueSubmit2(commandQueue, 1, &submitInfo, VK_NULL_HANDLE));
+    }
+
+    void VKSubmitQueue::submit(
+           const std::shared_ptr<Semaphore>& waitSemaphore,
+           WaitStage waitStage,
+           const std::shared_ptr<Fence>& fence,
+           const std::shared_ptr<const SwapChain>& swapChain,
+           const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
+        assert(waitSemaphore != nullptr);
+        assert(fence != nullptr);
+        assert(swapChain != nullptr);
+        assert(!commandLists.empty());
+        const auto vkSwapChain = static_pointer_cast<const VKSwapChain>(swapChain);
+        const auto vkFence = static_pointer_cast<const VKFence>(fence);
+        const auto vkWaitSemaphore = static_pointer_cast<VKSemaphore>(waitSemaphore);
+        auto submitInfos = std::vector<VkCommandBufferSubmitInfo>(commandLists.size());
+        for (int i = 0; i < commandLists.size(); i++) {
+            submitInfos[i] = {
+                .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
+                .commandBuffer = static_pointer_cast<const VKCommandList>(commandLists[i])->getCommandBuffer(),
+            };
+        }
+
+        auto waitSubmitInfos = std::vector {
+            vkSwapChain->getCurrentImageAvailableSemaphoreInfo()
+        };
+        if (vkWaitSemaphore) {
+            waitSubmitInfos.push_back(VkSemaphoreSubmitInfo{
+                .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+                .semaphore = vkWaitSemaphore->getSemaphore(),
+                .value = vkWaitSemaphore->getValue(),
+                .stageMask = static_cast<VkPipelineStageFlags2>(waitStage),
+            });
+        }
+
+        const auto submitInfo = VkSubmitInfo2 {
+            .sType                    = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+            .waitSemaphoreInfoCount   = static_cast<uint32_t>(waitSubmitInfos.size()),
+            .pWaitSemaphoreInfos      = waitSubmitInfos.data(),
+            .commandBufferInfoCount   = static_cast<uint32_t>(submitInfos.size()),
+            .pCommandBufferInfos      = submitInfos.data(),
+            .signalSemaphoreInfoCount = 1,
+            .pSignalSemaphoreInfos    = &vkSwapChain->getCurrentRenderFinishedSemaphoreInfo(),
+        };
+        vkCheck(vkQueueSubmit2(commandQueue, 1, &submitInfo, vkFence->getFence()));
+    }
+
     VKCommandAllocator::VKCommandAllocator(const std::shared_ptr<const VKDevice>& device, const CommandType type):
         CommandAllocator{type},
         device{device} {
@@ -960,6 +1051,56 @@ namespace vireo {
                        filter == Filter::LINEAR ? VK_FILTER_LINEAR  : VK_FILTER_NEAREST);
     }
 
+
+    VKFence::VKFence(const bool createSignaled, const std::shared_ptr<const VKDevice>& device, const std::wstring& name):
+        device{device->getDevice()} {
+        const auto fenceInfo = VkFenceCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+            .flags = createSignaled ? VK_FENCE_CREATE_SIGNALED_BIT : 0u,
+        };
+        vkCheck(vkCreateFence(device->getDevice(), &fenceInfo, nullptr, &fence));
+#ifdef _DEBUG
+        vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(fence), VK_OBJECT_TYPE_FENCE,
+    "VKFence : " + to_string(name));
+#endif
+    }
+
+    void VKFence::wait() const {
+        vkWaitForFences(device, 1, &fence, VK_TRUE, UINT64_MAX);
+    }
+
+    void VKFence::reset() {
+        vkResetFences(device, 1, &fence);
+    }
+
+    VKFence::~VKFence() {
+        vkDestroyFence(device, fence, nullptr);
+    }
+
+     VKSemaphore::VKSemaphore(const std::shared_ptr<const VKDevice>& device,
+                             const SemaphoreType type,
+                             const std::wstring& name):
+        Semaphore{type},
+        device{device->getDevice()} {
+        const auto createInfo = VkSemaphoreTypeCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO,
+            .semaphoreType = type == SemaphoreType::TIMELINE ? VK_SEMAPHORE_TYPE_TIMELINE : VK_SEMAPHORE_TYPE_BINARY,
+            .initialValue = value,
+        };
+        const auto semaphoreInfo = VkSemaphoreCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+            .pNext = &createInfo
+        };
+        vkCreateSemaphore(this->device, &semaphoreInfo, nullptr, &semaphore);
+#ifdef _DEBUG
+        vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(semaphore), VK_OBJECT_TYPE_SEMAPHORE,
+    "VKSemaphore : " + to_string(name));
+#endif
+    }
+
+    VKSemaphore::~VKSemaphore() {
+        vkDestroySemaphore(device, semaphore, nullptr);
+    }
 
 
 }

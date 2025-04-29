@@ -208,6 +208,12 @@ namespace vireo {
         return std::make_shared<DXFence>(getDXDevice()->getDevice());
     }
 
+    std::shared_ptr<Semaphore> DXVireo::createSemaphore(
+        SemaphoreType type,
+        const std::wstring& name) const {
+        return std::make_shared<DXSemaphore>(getDXDevice()->getDevice(), type);
+    }
+
     std::shared_ptr<CommandAllocator> DXVireo::createCommandAllocator(const CommandType type) const {
         return std::make_shared<DXCommandAllocator>(getDXDevice()->getDevice(), type);
     }

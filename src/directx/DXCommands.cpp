@@ -53,6 +53,37 @@ namespace vireo {
         commandQueue->ExecuteCommandLists(dxCommandLists.size(), dxCommandLists.data());
     }
 
+    void DXSubmitQueue::submit(
+        const std::shared_ptr<Semaphore>& waitSemaphore,
+        const WaitStage waitStage,
+        const std::shared_ptr<Semaphore>& signalSemaphore,
+        const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
+        assert(waitSemaphore != nullptr || signalSemaphore != nullptr);
+        const auto dxWaitSemaphore = static_pointer_cast<DXSemaphore>(waitSemaphore);
+        const auto dxSignalSemaphore = static_pointer_cast<DXSemaphore>(signalSemaphore);
+        if (dxWaitSemaphore) {
+            dxCheck(commandQueue->Wait(dxWaitSemaphore->getFence().Get(), dxWaitSemaphore->getValue()));
+        }
+        submit(commandLists);
+        if (dxSignalSemaphore) {
+            if (dxSignalSemaphore->getType() == SemaphoreType::TIMELINE) {
+                dxSignalSemaphore->incrementValue();
+            }
+            dxCheck(commandQueue->Signal(dxSignalSemaphore->getFence().Get(), dxSignalSemaphore->getValue()));
+        }
+    }
+
+    void DXSubmitQueue::submit(
+        const std::shared_ptr<Semaphore>& waitSemaphore,
+        const WaitStage waitStage,
+        const std::shared_ptr<Fence>& fence,
+        const std::shared_ptr<const SwapChain>&,
+        const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
+        submit(waitSemaphore, waitStage, nullptr, commandLists);
+        const auto dxFence = static_pointer_cast<DXFence>(fence);
+        dxCheck(commandQueue->Signal(dxFence->getFence().Get(), dxFence->getValue()));
+    }
+
     void DXSubmitQueue::waitIdle() const {
         ComPtr<ID3D12Fence> inFlightFence;
         dxCheck(device->CreateFence(
@@ -784,6 +815,33 @@ namespace vireo {
        const std::shared_ptr<const SwapChain>& swapChain,
        Filter filter) const {
        copy(source, swapChain);
+    }
+
+    DXFence::DXFence(const ComPtr<ID3D12Device>& device) {
+        dxCheck(device->CreateFence(
+            0,
+            D3D12_FENCE_FLAG_NONE,
+            IID_PPV_ARGS(&fence)));
+        fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+    }
+
+    void DXFence::wait() const {
+        if (fence->GetCompletedValue() < fenceValue) {
+            dxCheck(fence->SetEventOnCompletion(fenceValue, fenceEvent));
+            dxCheck(WaitForSingleObject(fenceEvent, INFINITE));
+        }
+    }
+
+    DXFence::~DXFence() {
+        CloseHandle(fenceEvent);
+    }
+
+    DXSemaphore::DXSemaphore(const ComPtr<ID3D12Device>& device, SemaphoreType type):
+        Semaphore{type} {
+        dxCheck(device->CreateFence(value, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)));
+        if (type == SemaphoreType::BINARY) {
+            incrementValue();
+        }
     }
 
 }

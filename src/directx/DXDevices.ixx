@@ -54,23 +54,4 @@ export namespace vireo {
         ComPtr<ID3D12Device> device;
     };
 
-    class DXFence : public Fence {
-    public:
-        DXFence(const ComPtr<ID3D12Device>& device);
-
-        auto getValue() const { return fenceValue; }
-
-        void wait() const override;
-
-        void reset() override { fenceValue++; }
-
-        auto getFence() const { return fence; }
-
-        ~DXFence() override;
-
-    private:
-        ComPtr<ID3D12Fence>  fence;
-        UINT64               fenceValue{0};
-        HANDLE               fenceEvent{nullptr};
-    };
 }

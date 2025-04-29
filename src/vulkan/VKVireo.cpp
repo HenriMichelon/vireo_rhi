@@ -52,6 +52,11 @@ namespace vireo {
         return std::make_shared<VKFence>(createSignaled, getVKDevice(), name);
     }
 
+    std::shared_ptr<Semaphore> VKVireo::createSemaphore(
+        SemaphoreType type,
+        const std::wstring& name) const {
+        return std::make_shared<VKSemaphore>(getVKDevice(), type, name);
+    }
     std::shared_ptr<CommandAllocator> VKVireo::createCommandAllocator(CommandType type) const {
         return std::make_shared<VKCommandAllocator>(getVKDevice(), type);
     }

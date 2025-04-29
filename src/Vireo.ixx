@@ -388,6 +388,31 @@ export namespace vireo {
         VERTEX,
         //! Fragment/pixel stage
         FRAGMENT,
+        //! Compute stage
+        COMPUTE,
+    };
+
+    /**
+     * Semaphores wait stages
+     */
+    enum class WaitStage {
+        NONE,
+        PIPELINE_TOP,
+        VERTEX_INPUT,
+        VERTEX_SHADER,
+        DEPTH_STENCIL_TEST_BEFORE_FRAGMENT_SHADER,
+        FRAGMENT_SHADER,
+        DEPTH_STENCIL_TEST_AFTER_FRAGMENT_SHADER,
+        COLOR_OUTPUT,
+        COMPUTE_SHADER,
+        TRANSFER,
+        PIPELINE_BOTTOM,
+        ALL_GRAPHICS,
+        ALL_COMMANDS,
+        COPY,
+        RESOLV,
+        BLIT,
+        CLEAR,
     };
 
     /**
@@ -453,6 +478,16 @@ export namespace vireo {
     enum class PipelineType {
         GRAPHIC,
         COMPUTE
+    };
+
+    /**
+     * Semaphores types.
+     */
+    enum class SemaphoreType {
+        //! Binary semaphores have two states - signaled and unsignaled.
+        BINARY,
+        //! Timeline semaphores have a strictly increasing 64-bit unsigned integer payload and are signaled with respect to a particular reference value.
+        TIMELINE,
     };
 
     /**
@@ -530,7 +565,7 @@ export namespace vireo {
 
     /**
      * A fence object. Fences are a synchronization primitive that can be used to insert a dependency from a queue to
-     * the host.
+     * the host (CPU/GPU synchronization).
      */
     class Fence {
     public:
@@ -539,6 +574,29 @@ export namespace vireo {
         virtual void reset() = 0;
 
         virtual ~Fence() = default;
+    };
+
+
+    /**
+     * A Semaphore object.
+     * Semaphores are a synchronization primitive that can be used to insert a dependency between queue operations
+     * (GPU/GPU synchronization)
+     */
+    class Semaphore {
+    public:
+        Semaphore(const SemaphoreType type) : type{type} {}
+
+        auto getType() const { return type; }
+
+        auto getValue() const { return value; }
+
+        void incrementValue() { value++; }
+
+        virtual ~Semaphore() = default;
+
+    protected:
+        const SemaphoreType type;
+        uint64_t value{0};
     };
 
     /**
@@ -1351,6 +1409,13 @@ export namespace vireo {
             const std::shared_ptr<const SwapChain>& swapChain,
             const std::vector<std::shared_ptr<const CommandList>>& commandLists) const = 0;
 
+        virtual void submit(
+            const std::shared_ptr<Semaphore>& waitSemaphore,
+            WaitStage waitStage,
+            const std::shared_ptr<Fence>& fence,
+            const std::shared_ptr<const SwapChain>& swapChain,
+            const std::vector<std::shared_ptr<const CommandList>>& commandLists) const = 0;
+
         /**
          * Submit commands without synchronization
          * @param commandLists Commands to execute
@@ -1364,6 +1429,12 @@ export namespace vireo {
          */
         virtual void submit(
             const std::shared_ptr<Fence>& fence,
+            const std::vector<std::shared_ptr<const CommandList>>& commandLists) const = 0;
+
+        virtual void submit(
+            const std::shared_ptr<Semaphore>& waitSemaphore,
+            WaitStage waitStage,
+            const std::shared_ptr<Semaphore>& signalSemaphore,
             const std::vector<std::shared_ptr<const CommandList>>& commandLists) const = 0;
 
         /**
@@ -1548,6 +1619,15 @@ export namespace vireo {
         virtual std::shared_ptr<Fence> createFence(
             bool createSignaled = false,
             const std::wstring& name = L"Fence") const = 0;
+
+        /**
+         * Creates a semaphore for GPU/GPU synchronization
+         * @param type Semaphore type
+         * @param name Object name for debug
+         */
+        virtual std::shared_ptr<Semaphore> createSemaphore(
+            SemaphoreType type,
+            const std::wstring& name = L"Semaphore") const = 0;
 
         /**
          * Creates a command allocator (command pool) for a given command type

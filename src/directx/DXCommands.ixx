@@ -12,15 +12,61 @@ import vireo;
 
 export namespace vireo {
 
+    class DXFence : public Fence {
+    public:
+        DXFence(const ComPtr<ID3D12Device>& device);
+
+        auto getValue() const { return fenceValue; }
+
+        void wait() const override;
+
+        void reset() override { fenceValue++; }
+
+        auto getFence() const { return fence; }
+
+        ~DXFence() override;
+
+    private:
+        ComPtr<ID3D12Fence>  fence;
+        UINT64               fenceValue{0};
+        HANDLE               fenceEvent{nullptr};
+    };
+
+    class DXSemaphore : public Semaphore {
+    public:
+        DXSemaphore(const ComPtr<ID3D12Device>& device, SemaphoreType type);
+
+        auto getFence() const { return fence; }
+
+    private:
+        ComPtr<ID3D12Fence>  fence;
+    };
+
     class DXSubmitQueue : public SubmitQueue{
     public:
         DXSubmitQueue(const ComPtr<ID3D12Device>& device, CommandType type);
 
         auto getCommandQueue() const { return commandQueue; }
 
-        void submit(const std::shared_ptr<Fence>& fence, const std::shared_ptr<const SwapChain>& swapChain, const std::vector<std::shared_ptr<const CommandList>>& commandLists) const override;
+        void submit(
+            const std::shared_ptr<Fence>& fence,
+            const std::shared_ptr<const SwapChain>& swapChain,
+            const std::vector<std::shared_ptr<const CommandList>>& commandLists) const override;
+
+        void submit(
+            const std::shared_ptr<Semaphore>& waitSemaphore,
+            WaitStage waitStage,
+            const std::shared_ptr<Fence>& fence,
+            const std::shared_ptr<const SwapChain>& swapChain,
+            const std::vector<std::shared_ptr<const CommandList>>& commandLists) const override;
 
         void submit(const std::vector<std::shared_ptr<const CommandList>>& commandLists) const override;
+
+        void submit(
+            const std::shared_ptr<Semaphore>& waitSemaphore,
+            WaitStage waitStage,
+            const std::shared_ptr<Semaphore>& signalSemaphore,
+            const std::vector<std::shared_ptr<const CommandList>>& commandLists) const override;
 
         void submit(
             const std::shared_ptr<Fence>& fence,

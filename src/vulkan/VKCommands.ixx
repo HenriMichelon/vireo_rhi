@@ -16,6 +16,55 @@ import vireo.vulkan.resources;
 
 export namespace vireo {
 
+    class VKFence : public Fence {
+    public:
+        VKFence(bool createSignaled, const std::shared_ptr<const VKDevice>& device, const std::wstring& name);
+
+        void wait() const override;
+
+        void reset() override;
+
+        ~VKFence() override;
+
+        auto& getFence() const { return fence; }
+
+    private:
+        const VkDevice device;
+        VkFence        fence;
+    };
+
+    class VKSemaphore : public Semaphore {
+    public:
+        static constexpr VkPipelineStageFlagBits2 vkWaitStageFlags[] {
+            0,
+            VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT,
+            VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT,
+            VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT,
+            VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT ,
+            VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT ,
+            VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT ,
+            VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT ,
+            VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT ,
+            VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT ,
+            VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT ,
+            VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT ,
+            VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,
+            VK_PIPELINE_STAGE_2_COPY_BIT ,
+            VK_PIPELINE_STAGE_2_RESOLVE_BIT ,
+            VK_PIPELINE_STAGE_2_BLIT_BIT ,
+            VK_PIPELINE_STAGE_2_CLEAR_BIT ,
+        };
+        VKSemaphore(const std::shared_ptr<const VKDevice>& device, SemaphoreType type, const std::wstring& name);
+
+        auto getSemaphore() const { return semaphore; }
+
+        ~VKSemaphore() override;
+
+    private:
+        const VkDevice device;
+        VkSemaphore semaphore;
+    };
+
     class VKSubmitQueue : public SubmitQueue {
     public:
         VKSubmitQueue(const std::shared_ptr<const VKDevice>& device, CommandType type, const std::wstring& name);
@@ -27,16 +76,30 @@ export namespace vireo {
             const std::shared_ptr<const SwapChain>& swapChain,
             const std::vector<std::shared_ptr<const CommandList>>& commandLists) const override;
 
+        void submit(
+            const std::shared_ptr<Semaphore>& waitSemaphore,
+            WaitStage waitStage,
+            const std::shared_ptr<Fence>& fence,
+            const std::shared_ptr<const SwapChain>& swapChain,
+            const std::vector<std::shared_ptr<const CommandList>>& commandLists) const override;
+
         void submit(const std::vector<std::shared_ptr<const CommandList>>& commandLists) const override;
 
         void submit(
             const std::shared_ptr<Fence>& fence,
             const std::vector<std::shared_ptr<const CommandList>>& commandLists) const override;
 
+        void submit(
+            const std::shared_ptr<Semaphore>& waitSemaphore,
+            WaitStage waitStage,
+            const std::shared_ptr<Semaphore>& signalSemaphore,
+            const std::vector<std::shared_ptr<const CommandList>>& commandLists) const override;
+
         void waitIdle() const override;
 
     private:
         VkQueue commandQueue;
+
     };
 
     class VKCommandAllocator : public CommandAllocator {

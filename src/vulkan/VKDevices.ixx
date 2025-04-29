@@ -145,21 +145,4 @@ export namespace vireo {
         uint32_t    computeQueueFamilyIndex;
     };
 
-    class VKFence : public Fence {
-    public:
-        VKFence(bool createSignaled, const std::shared_ptr<const VKDevice>& device, const std::wstring& name);
-
-        void wait() const override;
-
-        void reset() override;
-
-        ~VKFence() override;
-
-        auto& getFence() const { return fence; }
-
-    private:
-        const VkDevice device;
-        VkFence        fence;
-    };
-
 }
