@@ -442,7 +442,7 @@ namespace vireo {
             if (conf.colorRenderTargets[i].multisampledRenderTarget) {
                 const auto msaaColor =
                     static_pointer_cast<VKImage>(conf.colorRenderTargets[i].multisampledRenderTarget->getImage());
-                barrier(msaaColor->getImage(), ResourceState::UNDEFINED, ResourceState::RENDER_TARGET_COLOR);
+                barrier(msaaColor->getImage(), ResourceState::UNDEFINED, ResourceState::RENDER_TARGET_COLOR, 1, 1);
                 colorAttachmentsInfo[i].imageView = msaaColor->getImageView(),
                 colorAttachmentsInfo[i].resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
                 colorAttachmentsInfo[i].resolveImageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
@@ -478,7 +478,9 @@ namespace vireo {
     void VKCommandList::barrier(
         const VkImage image,
         const ResourceState oldState,
-        const ResourceState newState) const {
+        const ResourceState newState,
+        const uint32_t firstMipLevel,
+        const uint32_t levelCount) const {
         VkPipelineStageFlags srcStage, dstStage;
         VkAccessFlags srcAccess, dstAccess;
         VkImageLayout srcLayout, dstLayout;
@@ -495,8 +497,8 @@ namespace vireo {
             .image = image,
             .subresourceRange = {
                 .aspectMask = static_cast<uint32_t>(aspectFlag),
-                .baseMipLevel = 0,
-                .levelCount = VK_REMAINING_MIP_LEVELS,
+                .baseMipLevel = firstMipLevel,
+                .levelCount = levelCount,
                 .baseArrayLayer = 0,
                 .layerCount = VK_REMAINING_ARRAY_LAYERS,
             }
@@ -682,12 +684,26 @@ namespace vireo {
             dstAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
             srcLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             dstLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::SHADER_READ) {
+            srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            srcAccess = 0;
+            dstAccess = VK_ACCESS_SHADER_READ_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::SHADER_READ) {
             srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
             srcAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
             dstAccess = VK_ACCESS_SHADER_READ_BIT;
             srcLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::SHADER_READ) {
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            srcAccess = VK_ACCESS_TRANSFER_READ_BIT;
+            dstAccess = VK_ACCESS_SHADER_READ_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         } else if (oldState == ResourceState::DISPATCH_TARGET && newState == ResourceState::COPY_SRC) {
             srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
@@ -754,6 +770,27 @@ namespace vireo {
             dstAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
             srcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::COPY_DST) {
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            srcAccess = VK_ACCESS_TRANSFER_READ_BIT;
+            dstAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::COPY_SRC) {
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            srcAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
+            dstAccess = VK_ACCESS_TRANSFER_READ_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::UNDEFINED) {
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            srcAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
+            dstAccess = 0;
+            srcLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_GENERAL;
         } else {
             throw Exception("Not implemented");
         }
@@ -762,9 +799,11 @@ namespace vireo {
     void VKCommandList::barrier(
         const std::shared_ptr<const Image>& image,
         const ResourceState oldState,
-        const ResourceState newState) const {
+        const ResourceState newState,
+        const uint32_t firstMipLevel,
+        const uint32_t levelCount) const {
         assert(image != nullptr);
-        barrier(static_pointer_cast<const VKImage>(image)->getImage(), oldState, newState);
+        barrier(static_pointer_cast<const VKImage>(image)->getImage(), oldState, newState, firstMipLevel, levelCount);
     }
 
     void VKCommandList::barrier(
@@ -946,7 +985,7 @@ namespace vireo {
                 .layerCount = destination->getArraySize(),
             },
             .imageOffset = {0, 0, 0},
-            .imageExtent = {image->getWidth(), image->getHeight(), 1},
+            .imageExtent = {image->getWidth() >> firstMipLevel, image->getHeight() >> firstMipLevel, 1},
         };
         vkCmdCopyBufferToImage(
                 commandBuffer,
@@ -992,7 +1031,7 @@ namespace vireo {
                 .layerCount = destination->getArraySize(),
             },
             .imageOffset = {0, 0, 0},
-            .imageExtent = {image->getWidth(), image->getHeight(), 1},
+            .imageExtent = {image->getWidth() >> firstMipLevel, image->getHeight() >> firstMipLevel, 1},
         };
         vkCmdCopyBufferToImage(
                 commandBuffer,
@@ -1029,40 +1068,6 @@ namespace vireo {
                        vkSwapChain->getCurrentImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                        1, &copyRegion);
     }
-
-    void VKCommandList::blit(
-        const std::shared_ptr<const Image>& source,
-        const std::shared_ptr<const SwapChain>& swapChain,
-        const Filter filter) const {
-        assert(source != nullptr);
-        assert(swapChain != nullptr);
-        const auto vkSource = static_pointer_cast<const VKImage>(source);
-        const auto vkSwapChain = static_pointer_cast<const VKSwapChain>(swapChain);
-        auto blitRegion = VkImageBlit {
-            .srcSubresource = {
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .mipLevel = 0,
-                .baseArrayLayer = 0,
-                .layerCount = 1,
-            },
-        };
-        blitRegion.dstSubresource = blitRegion.srcSubresource;
-        blitRegion.srcOffsets[1] = {
-            static_cast<int32_t>(source->getWidth()),
-            static_cast<int32_t>(source->getHeight()),
-            1},
-        blitRegion.dstOffsets[1] = {
-            static_cast<int32_t>(vkSwapChain->getExtent().width),
-            static_cast<int32_t>(vkSwapChain->getExtent().height),
-            1},
-
-        vkCmdBlitImage(commandBuffer,
-                       vkSource->getImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                       vkSwapChain->getCurrentImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                       1, &blitRegion,
-                       filter == Filter::LINEAR ? VK_FILTER_LINEAR  : VK_FILTER_NEAREST);
-    }
-
 
     VKFence::VKFence(const bool createSignaled, const std::shared_ptr<const VKDevice>& device, const std::wstring& name):
         device{device->getDevice()} {

@@ -144,11 +144,6 @@ export namespace vireo {
             const std::shared_ptr<const Image>& source,
             const std::shared_ptr<const SwapChain>& swapChain) const override;
 
-        void blit(
-            const std::shared_ptr<const Image>& source,
-            const std::shared_ptr<const SwapChain>& swapChain,
-            Filter filter) const override;
-
         void beginRendering(const RenderingConfiguration& conf) override;
 
         void endRendering() override;
@@ -193,7 +188,9 @@ export namespace vireo {
         void barrier(
             const std::shared_ptr<const Image>& image,
             ResourceState oldState,
-            ResourceState newState) const override;
+            ResourceState newState,
+            uint32_t firstMipLevel,
+            uint32_t levelCount) const override;
 
         void barrier(
             const std::shared_ptr<const RenderTarget>& renderTarget,
@@ -236,14 +233,17 @@ export namespace vireo {
             D3D12_RESOURCE_STATES& dstState);
 
         void barrier(
-           const ComPtr<ID3D12Resource>& resource,
-           ResourceState oldState,
-           ResourceState newState) const;
+            const ComPtr<ID3D12Resource>& resource,
+            ResourceState oldState,
+            ResourceState newState,
+            uint32_t firstMipLevel = 0,
+            uint32_t levelCount = 1,
+            uint32_t arraySize = 1) const;
 
         void barrier(
-           const std::vector<ID3D12Resource*>& resources,
-           ResourceState oldState,
-           ResourceState newState) const;
+            const std::vector<ID3D12Resource*>& resources,
+            ResourceState oldState,
+            ResourceState newState) const;
         };
 
 }

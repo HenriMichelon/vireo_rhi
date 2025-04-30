@@ -27,6 +27,8 @@ export namespace vireo {
             size_t count,
             const std::wstring& name);
 
+        ~DXBuffer() override;
+
         void map() override;
 
         void unmap() override;

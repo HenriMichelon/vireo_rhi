@@ -96,6 +96,9 @@ namespace vireo {
     }
 
     VKBuffer::~VKBuffer() {
+        if (mappedAddress) {
+            VKBuffer::unmap();
+        }
         vkDestroyBuffer(device->getDevice(), buffer, nullptr);
         vkFreeMemory(device->getDevice(), bufferMemory, nullptr);
     }
@@ -160,7 +163,7 @@ namespace vireo {
                            VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT
                     : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT:
             useByComputeShader ? VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT:
-            VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+            VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
         const VkImageCreateFlags flags = arraySize == 6 ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0;
         const auto imageInfo = VkImageCreateInfo {
             .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,

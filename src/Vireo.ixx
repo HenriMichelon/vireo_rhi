@@ -1167,24 +1167,6 @@ export namespace vireo {
         }
 
         /**
-         * Blit an image into the current swap chain image
-         */
-        virtual void blit(
-            const std::shared_ptr<const Image>& source,
-            const std::shared_ptr<const SwapChain>& swapChain,
-            Filter filter = Filter::NEAREST) const = 0;
-
-        /**
-         * Copy an image into the current swap chain image
-         */
-        void blit(
-            const std::shared_ptr<const RenderTarget>& source,
-            const std::shared_ptr<const SwapChain>& swapChain,
-            Filter filter = Filter::NEAREST) const {
-            blit(source->getImage(), swapChain, filter);
-        }
-
-        /**
          * Begin a render pass
          */
         virtual void beginRendering(const RenderingConfiguration& configuration) = 0;
@@ -1306,7 +1288,9 @@ export namespace vireo {
         virtual void barrier(
             const std::shared_ptr<const Image>& image,
             ResourceState oldState,
-            ResourceState newState) const = 0;
+            ResourceState newState,
+            uint32_t firstMipLevel = 0,
+            uint32_t levelCount = 1) const = 0;
 
         /**
          * Insert a memory dependency

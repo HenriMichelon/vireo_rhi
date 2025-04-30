@@ -370,9 +370,15 @@ namespace vireo {
     void DXCommandList::barrier(
         const std::shared_ptr<const Image>& image,
         const ResourceState oldState,
-        const ResourceState newState) const {
+        const ResourceState newState,
+        const uint32_t firstMipLevel,
+        const uint32_t levelCount) const {
         assert(image != nullptr);
-        barrier(static_pointer_cast<const DXImage>(image)->getImage(), oldState, newState);
+        barrier(
+            static_pointer_cast<const DXImage>(image)->getImage(),
+            oldState, newState,
+            firstMipLevel, levelCount,
+            image->getArraySize());
     }
 
     void DXCommandList::barrier(
@@ -420,6 +426,9 @@ namespace vireo {
         } else if (oldState == ResourceState::RENDER_TARGET_COLOR && newState == ResourceState::COMPUTE_READ) {
             srcState = D3D12_RESOURCE_STATE_RENDER_TARGET;
             dstState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+        } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::SHADER_READ) {
+            srcState = D3D12_RESOURCE_STATE_COMMON;
+            dstState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
         } else if (oldState == ResourceState::RENDER_TARGET_COLOR && newState == ResourceState::SHADER_READ) {
             srcState = D3D12_RESOURCE_STATE_RENDER_TARGET;
             dstState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
@@ -453,6 +462,9 @@ namespace vireo {
         } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::COPY_DST) {
             srcState = D3D12_RESOURCE_STATE_COMMON;
             dstState = D3D12_RESOURCE_STATE_COPY_DEST;
+        } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::SHADER_READ) {
+            srcState = D3D12_RESOURCE_STATE_COPY_SOURCE;
+            dstState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
         } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::SHADER_READ) {
             srcState = D3D12_RESOURCE_STATE_COPY_DEST;
             dstState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
@@ -483,6 +495,15 @@ namespace vireo {
         } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::DISPATCH_TARGET) {
             srcState = D3D12_RESOURCE_STATE_COPY_SOURCE;
             dstState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+        } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::COPY_DST) {
+            srcState = D3D12_RESOURCE_STATE_COPY_SOURCE;
+            dstState = D3D12_RESOURCE_STATE_COPY_DEST;
+        } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::COPY_SRC) {
+            srcState = D3D12_RESOURCE_STATE_COPY_DEST;
+            dstState = D3D12_RESOURCE_STATE_COPY_SOURCE;
+        } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::UNDEFINED) {
+            srcState = D3D12_RESOURCE_STATE_COPY_DEST;
+            dstState = D3D12_RESOURCE_STATE_COMMON;
         } else {
             throw Exception("Not implemented");
             return;
@@ -490,16 +511,45 @@ namespace vireo {
     }
 
     void DXCommandList::barrier(
-       const ComPtr<ID3D12Resource>& resource,
-       const ResourceState oldState,
-       const ResourceState newState) const {
+        const ComPtr<ID3D12Resource>& resource,
+        const ResourceState oldState,
+        const ResourceState newState,
+        const uint32_t firstMipLevel,
+        const uint32_t levelCount,
+        const uint32_t arraySize) const {
         D3D12_RESOURCE_STATES srcState, dstState;
         convertState(oldState, newState, srcState, dstState);
-        const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            resource.Get(),
-            srcState,
-            dstState);
-        commandList->ResourceBarrier(1, &barrier);
+        if (arraySize > 1) {
+            std::vector<D3D12_RESOURCE_BARRIER> barriers(arraySize);
+            for (UINT slice = 0; slice < arraySize; ++slice) {
+                const UINT subresourceIndex = D3D12CalcSubresource(
+                    firstMipLevel,
+                    slice,
+                    0,
+                    levelCount,
+                    arraySize);
+                barriers[slice] = CD3DX12_RESOURCE_BARRIER::Transition(
+                    resource.Get(),
+                    srcState,
+                    dstState,
+                    subresourceIndex);
+            }
+            commandList->ResourceBarrier(barriers.size(), barriers.data());
+
+        } else {
+            const UINT subresourceIndex = D3D12CalcSubresource(
+                firstMipLevel,
+                0,
+                0,
+                levelCount,
+                arraySize);
+            const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+                resource.Get(),
+                srcState,
+                dstState,
+                subresourceIndex);
+            commandList->ResourceBarrier(1, &barrier);
+        }
     }
 
     void DXCommandList::barrier(
@@ -818,13 +868,6 @@ namespace vireo {
         };
 
         commandList->CopyTextureRegion(&dstLocation, 0, 0, 0, &srcLocation, nullptr);
-    }
-
-    void DXCommandList::blit(
-       const std::shared_ptr<const Image>& source,
-       const std::shared_ptr<const SwapChain>& swapChain,
-       Filter filter) const {
-       copy(source, swapChain);
     }
 
     DXFence::DXFence(const ComPtr<ID3D12Device>& device) {

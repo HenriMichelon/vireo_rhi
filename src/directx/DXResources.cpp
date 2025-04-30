@@ -50,6 +50,12 @@ namespace vireo {
 #endif
     }
 
+     DXBuffer::~DXBuffer() {
+        if (mappedAddress) {
+            DXBuffer::unmap();
+        }
+    }
+
     void DXBuffer::map() {
         assert(mappedAddress == nullptr);
         const CD3DX12_RANGE readRange(0, 0); // We do not intend to read from this resource on the CPU.
@@ -104,7 +110,7 @@ namespace vireo {
             .Width = width,
             .Height = height,
             .DepthOrArraySize = static_cast<UINT16>(arraySize),
-            .MipLevels = 1,
+            .MipLevels = static_cast<UINT16>(mipLevels),
             .Format = dxFormat,
             .SampleDesc = {
                 samples,
@@ -173,7 +179,7 @@ namespace vireo {
             .AddressV = addressModes[static_cast<int>(addressModeV)],
             .AddressW = addressModes[static_cast<int>(addressModeW)],
             .MipLODBias = 0,
-            .MaxAnisotropy = 0,
+            .MaxAnisotropy = D3D12_REQ_MAXANISOTROPY ,
             .ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER,
             .BorderColor = {0.0f, 0.0f, 0.0f, 0.0f},
             .MinLOD = minLod,
