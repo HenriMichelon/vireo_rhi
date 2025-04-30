@@ -96,7 +96,7 @@ namespace vireo {
                     D3D12_SRV_DIMENSION_TEXTURE2D,
                 .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
                 .Texture2D= {
-                    .MipLevels = 1
+                    .MipLevels = image->getMipLevels()
                 },
             };
             device->CreateShaderResourceView(dxImage->getImage().Get(), &viewDesc, cpuHandle);

@@ -519,37 +519,24 @@ namespace vireo {
         const uint32_t arraySize) const {
         D3D12_RESOURCE_STATES srcState, dstState;
         convertState(oldState, newState, srcState, dstState);
-        if (arraySize > 1) {
-            std::vector<D3D12_RESOURCE_BARRIER> barriers(arraySize);
-            for (UINT slice = 0; slice < arraySize; ++slice) {
-                const UINT subresourceIndex = D3D12CalcSubresource(
-                    firstMipLevel,
+        std::vector<D3D12_RESOURCE_BARRIER> barriers;
+        barriers.reserve(arraySize);
+        for (int slice = 0; slice < arraySize; ++slice) {
+            for (int mip = firstMipLevel; mip < levelCount; ++mip) {
+                const auto subresourceIndex = D3D12CalcSubresource(
+                    mip,
                     slice,
                     0,
                     levelCount,
                     arraySize);
-                barriers[slice] = CD3DX12_RESOURCE_BARRIER::Transition(
+                barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(
                     resource.Get(),
                     srcState,
                     dstState,
-                    subresourceIndex);
+                    subresourceIndex));
             }
-            commandList->ResourceBarrier(barriers.size(), barriers.data());
-
-        } else {
-            const UINT subresourceIndex = D3D12CalcSubresource(
-                firstMipLevel,
-                0,
-                0,
-                levelCount,
-                arraySize);
-            const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-                resource.Get(),
-                srcState,
-                dstState,
-                subresourceIndex);
-            commandList->ResourceBarrier(1, &barrier);
         }
+        commandList->ResourceBarrier(barriers.size(), barriers.data());
     }
 
     void DXCommandList::barrier(

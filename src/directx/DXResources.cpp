@@ -23,13 +23,13 @@ namespace vireo {
         Buffer{type},
         size{size} {
         auto minOffsetAlignment = 0;
-        if (type == BufferType::UNIFORM) {
+        if (type == BufferType::UNIFORM || type == BufferType::TRANSFER) {
             minOffsetAlignment = 256;
         }
-        bufferSize = size * count;
         alignmentSize = minOffsetAlignment > 0
-            ? (bufferSize + minOffsetAlignment - 1) & ~(minOffsetAlignment - 1)
-            : bufferSize;
+               ? (size + minOffsetAlignment - 1) & ~(minOffsetAlignment - 1)
+               : size;
+        bufferSize = alignmentSize * count;
         instanceSize = size;
         instanceCount = count;
 
@@ -37,7 +37,7 @@ namespace vireo {
         const auto heapProperties = CD3DX12_HEAP_PROPERTIES(
             type == BufferType::UNIFORM || type == BufferType::TRANSFER ? D3D12_HEAP_TYPE_UPLOAD : D3D12_HEAP_TYPE_DEFAULT
         );
-        const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(alignmentSize);
+        const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
         dxCheck(device->CreateCommittedResource(
             &heapProperties,
             D3D12_HEAP_FLAG_NONE,
@@ -70,11 +70,20 @@ namespace vireo {
 
     void DXBuffer::write(const void* data, const size_t size, const size_t offset) {
         assert(mappedAddress != nullptr);
+        assert(data != nullptr);
         if (size == WHOLE_SIZE) {
-            memcpy(mappedAddress, data, bufferSize);
+            for (int y = 0; y < instanceCount; y++) {
+                auto *pScan = static_cast<UINT8*>(mappedAddress) + y * alignmentSize;
+                auto *pSource = static_cast<const UINT8*>(data) + y * instanceSize;
+                memcpy(pScan, pSource, instanceSize);
+            }
         } else {
             assert((offset + size) <= bufferSize);
-            memcpy(static_cast<unsigned char*>(mappedAddress) + offset, data, size);
+            for (int y = 0; y < instanceCount; y++) {
+                auto *pScan = static_cast<UINT8*>(mappedAddress) + offset + y * alignmentSize;
+                auto *pSource = static_cast<const UINT8*>(data) + y * instanceSize;
+                memcpy(pScan, pSource, instanceSize);
+            }
         }
     }
 
