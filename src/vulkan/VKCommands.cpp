@@ -926,7 +926,7 @@ namespace vireo {
     }
 
     void VKCommandList::copy(
-        const std::shared_ptr<const Buffer>& source,
+        const std::shared_ptr<Buffer>& source,
         const std::shared_ptr<const Image>& destination,
         const uint32_t sourceOffset,
         const uint32_t firstMipLevel) {
@@ -934,7 +934,7 @@ namespace vireo {
         assert(destination != nullptr);
         assert(firstMipLevel < destination->getMipLevels());
         const auto image = static_pointer_cast<const VKImage>(destination);
-        const auto buffer = static_pointer_cast<const VKBuffer>(source);
+        const auto buffer = static_pointer_cast<VKBuffer>(source);
         const auto region = VkBufferImageCopy {
             .bufferOffset = sourceOffset,
             .bufferRowLength = 0,
@@ -955,6 +955,7 @@ namespace vireo {
                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                 1,
                 &region);
+        stagingBuffers.push_back(buffer);
     }
 
     void VKCommandList::uploadArray(

@@ -145,7 +145,7 @@ export namespace vireo {
             uint32_t firstMipLevel) override;
 
         void copy(
-            const std::shared_ptr<const Buffer>& source,
+            const std::shared_ptr<Buffer>& source,
             const std::shared_ptr<const Image>& destination,
             uint32_t sourceOffset,
             uint32_t firstMipLevel) override;
@@ -233,9 +233,9 @@ export namespace vireo {
         auto getCommandBuffer() const { return commandBuffer; }
 
     private:
-        const std::shared_ptr<const VKDevice> device;
-        VkCommandBuffer                  commandBuffer;
-        std::vector<std::shared_ptr<VKBuffer>>     stagingBuffers{};
+        const std::shared_ptr<const VKDevice>   device;
+        VkCommandBuffer                         commandBuffer;
+        std::vector<std::shared_ptr<VKBuffer>>  stagingBuffers{};
 
         static void convertState(
             ResourceState oldState,

@@ -843,6 +843,11 @@ export namespace vireo {
          */
         auto isReadWrite() const { return readWrite; }
 
+        /**
+         * Returns the number of bytes for one pixel
+         */
+        static auto getPixelSize(const ImageFormat format) { return pixelSize[static_cast<int>(format)]; }
+
     protected:
         Image(
             const ImageFormat format,
@@ -1132,7 +1137,7 @@ export namespace vireo {
          * Copy a buffer into an image
          */
         virtual void copy(
-            const std::shared_ptr<const Buffer>& source,
+            const std::shared_ptr<Buffer>& source,
             const std::shared_ptr<const Image>& destination,
             uint32_t sourceOffset = 0,
             uint32_t firstMipLevel = 0) = 0;

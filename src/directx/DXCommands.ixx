@@ -130,7 +130,7 @@ export namespace vireo {
             uint32_t firstMipLevel) override;
 
         void copy(
-            const std::shared_ptr<const Buffer>& source,
+            const std::shared_ptr<Buffer>& source,
             const std::shared_ptr<const Image>& destination,
             uint32_t sourceOffset,
             uint32_t firstMipLevel) override;

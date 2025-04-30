@@ -695,14 +695,14 @@ namespace vireo {
     }
 
     void DXCommandList::copy(
-       const std::shared_ptr<const Buffer>& source,
+       const std::shared_ptr<Buffer>& source,
        const std::shared_ptr<const Image>& destination,
        const uint32_t sourceOffset,
        const uint32_t firstMipLevel) {
         assert(source != nullptr);
         assert(destination != nullptr);
         const auto image = static_pointer_cast<const DXImage>(destination);
-        const auto buffer = static_pointer_cast<const DXBuffer>(source);
+        const auto buffer = static_pointer_cast<DXBuffer>(source);
 
         auto dstLocation = D3D12_TEXTURE_COPY_LOCATION{
             .pResource = image->getImage().Get(),
@@ -741,6 +741,8 @@ namespace vireo {
             &srcLocation,
             nullptr
         );
+
+        stagingBuffers.push_back(buffer->getBuffer());
     }
 
     void DXCommandList::uploadArray(
