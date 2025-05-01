@@ -501,6 +501,9 @@ namespace vireo {
         } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::COPY_SRC) {
             srcState = D3D12_RESOURCE_STATE_COPY_DEST;
             dstState = D3D12_RESOURCE_STATE_COPY_SOURCE;
+        } else if (oldState == ResourceState::SHADER_READ && newState == ResourceState::COPY_SRC) {
+            srcState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+            dstState = D3D12_RESOURCE_STATE_COPY_SOURCE;
         } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::UNDEFINED) {
             srcState = D3D12_RESOURCE_STATE_COPY_DEST;
             dstState = D3D12_RESOURCE_STATE_COMMON;
