@@ -36,6 +36,7 @@ PFN_vkCmdDrawIndexed vkCmdDrawIndexed;
 PFN_vkCmdEndRendering vkCmdEndRendering;
 PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier;
 PFN_vkCmdSetDepthBias vkCmdSetDepthBias;
+PFN_vkCmdSetStencilReference vkCmdSetStencilReference;
 PFN_vkCmdSetRasterizerDiscardEnable vkCmdSetRasterizerDiscardEnable;
 PFN_vkCmdSetScissorWithCount vkCmdSetScissorWithCount;
 PFN_vkCmdSetViewportWithCount vkCmdSetViewportWithCount;
@@ -196,6 +197,7 @@ void vulkanInitializeDevice(VkDevice device) {
 	vkCmdPipelineBarrier = (PFN_vkCmdPipelineBarrier)vkGetDeviceProcAddr(device, "vkCmdPipelineBarrier");
 	vkCmdPushConstants = (PFN_vkCmdPushConstants)vkGetDeviceProcAddr(device, "vkCmdPushConstants");
 	vkCmdSetDepthBias = (PFN_vkCmdSetDepthBias)vkGetDeviceProcAddr(device, "vkCmdSetDepthBias");
+	vkCmdSetStencilReference = (PFN_vkCmdSetStencilReference)vkGetDeviceProcAddr(device, "vkCmdSetStencilReference");
 	vkCmdSetLineWidth = (PFN_vkCmdSetLineWidth)vkGetDeviceProcAddr(device, "vkCmdSetLineWidth");
 	vkCreateBuffer = (PFN_vkCreateBuffer)vkGetDeviceProcAddr(device, "vkCreateBuffer");
 	vkCreateCommandPool = (PFN_vkCreateCommandPool)vkGetDeviceProcAddr(device, "vkCreateCommandPool");

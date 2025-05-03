@@ -156,6 +156,16 @@ export namespace vireo {
             D3D12_LOGIC_OP_OR_REVERSE,     // OR_REVERSE
             D3D12_LOGIC_OP_OR_INVERTED     // OR_INVERTED
         };
+        static constexpr D3D12_STENCIL_OP dxStencilOp[] = {
+            D3D12_STENCIL_OP_KEEP,
+            D3D12_STENCIL_OP_ZERO,
+            D3D12_STENCIL_OP_REPLACE,
+            D3D12_STENCIL_OP_INCR_SAT,
+            D3D12_STENCIL_OP_DECR_SAT,
+            D3D12_STENCIL_OP_INVERT,
+            D3D12_STENCIL_OP_INCR,
+            D3D12_STENCIL_OP_DECR
+        };
 
         DXGraphicPipeline(
             const ComPtr<ID3D12Device>& device,

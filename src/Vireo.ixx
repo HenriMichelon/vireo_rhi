@@ -294,6 +294,20 @@ export namespace vireo {
         ALWAYS,
     };
 
+    /*
+     * Stencil comparison function
+     */
+    enum class StencilOp {
+        KEEP = 0,
+        ZERO = 1,
+        REPLACE = 2,
+        INCREMENT_AND_CLAMP = 3,
+        DECREMENT_AND_CLAMP = 4,
+        INVERT = 5,
+        INCREMENT_AND_WRAP = 6,
+        DECREMENT_AND_WRAP = 7,
+    };
+
     /**
      * Framebuffer blending factors.
      * https://registry.khronos.org/vulkan/specs/latest/man/html/VkBlendFactor.html
@@ -378,6 +392,18 @@ export namespace vireo {
         BlendFactor     dstAlphaBlendFactor{BlendFactor::ZERO};
         BlendOp         alphaBlendOp{BlendOp::ADD};
         ColorWriteMask  colorWriteMask{ColorWriteMask::ALL};
+    };
+
+    /**
+     * Structure specifying stencil operation state
+     */
+    struct StencilOpState {
+        StencilOp failOp{StencilOp::KEEP};
+        StencilOp passOp{StencilOp::KEEP};
+        StencilOp depthFailOp{StencilOp::KEEP};
+        CompareOp compareOp{CompareOp::ALWAYS};
+        uint32_t  compareMask{0xFFFFFFFF};
+        uint32_t  writeMask{0xFFFFFFFF};
     };
 
     /**
@@ -1102,14 +1128,13 @@ export namespace vireo {
         std::shared_ptr<RenderTarget>  depthRenderTarget{nullptr};
         //! Multisampled depth attachment. `nullptr` if MSAA is disabled for the current pipeline.
         std::shared_ptr<RenderTarget>  multisampledDepthRenderTarget{nullptr};
-        //! Clear the depth attachment if `true`
-        bool                      clearDepth{false};
+        //! Clear the depth & stencil attachment if `true`
+        bool                           clearDepth{false};
         //! Depth & stencil clear value
-        ClearValue                depthClearValue{ .depthStencil = {1.0f, 0} };
-        //! Discard the content of the depth attachment after rendering
-        bool                      discardDepthAfterRender{false};
+        ClearValue                     depthClearValue{ .depthStencil = {1.0f, 0} };
+        //! Discard the content of the depth & stencil attachment after rendering
+        bool                           discardDepthAfterRender{false};
     };
-
 
     /**
      * A command list (buffer) object
@@ -1284,6 +1309,8 @@ export namespace vireo {
          * @param extent An array of `Extent` structures specifying viewport parameters.
          */
         virtual void setScissors(const Extent& extent) const = 0;
+
+        virtual void setStencilReference(uint32_t reference) const = 0;
 
         /**
          * Insert a memory dependency
@@ -1587,6 +1614,7 @@ export namespace vireo {
         PolygonMode       polygonMode{PolygonMode::FILL};
         //! The front-facing triangle orientation to be used for culling
         bool              frontFaceCounterClockwise{true};
+
         //! The format of the depth attachment used in this pipeline.
         ImageFormat       depthImageFormat{ImageFormat::D32_SFLOAT};
         //! Controls whether depth testing is enabled.
@@ -1603,10 +1631,19 @@ export namespace vireo {
         float             depthBiasClamp{0.0f};
         //! A scalar factor applied to a fragment’s slope in depth bias calculations.
         float             depthBiasSlopeFactor{0.0f};
+
+        //! Controls whether stencil testing is enabled
+        bool              stencilTestEnable{false};
+        //! value controlling the corresponding parameters of the stencil test.
+        StencilOpState    frontStencilOpState{};
+        //! value controlling the corresponding parameters of the stencil test.
+        StencilOpState    backStencilOpState{};
+
         //! Controls whether to apply Logical Operations.
         bool              logicOpEnable{false};
         //! Which logical operation to apply.
         LogicOp           logicOp{LogicOp::NOOP};
+
         //! Controls whether a temporary coverage value is generated based on the alpha component of the fragment’s first color output
         bool              alphaToCoverageEnable{false};
     };

@@ -69,6 +69,7 @@ extern PFN_vkCmdDrawIndexed vkCmdDrawIndexed;
 extern PFN_vkCmdEndRendering vkCmdEndRendering;
 extern PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier;
 extern PFN_vkCmdSetDepthBias vkCmdSetDepthBias;
+extern PFN_vkCmdSetStencilReference vkCmdSetStencilReference;
 extern PFN_vkCmdSetRasterizerDiscardEnable vkCmdSetRasterizerDiscardEnable;
 extern PFN_vkCmdSetScissorWithCount vkCmdSetScissorWithCount;
 extern PFN_vkCmdSetViewportWithCount vkCmdSetViewportWithCount;

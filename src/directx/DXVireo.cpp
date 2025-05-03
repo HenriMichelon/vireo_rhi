@@ -145,7 +145,7 @@ namespace vireo {
                 name,
                 false,
                 true,
-                type == RenderTargetType::DEPTH,
+                type == RenderTargetType::DEPTH || type == RenderTargetType::DEPTH_STENCIL,
                 clearValue,
                 msaa),
             type);

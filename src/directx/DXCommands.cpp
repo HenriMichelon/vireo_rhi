@@ -308,12 +308,15 @@ namespace vireo {
                 colorTargetsToDiscard.push_back(static_pointer_cast<DXImage>(dxColorImage->getImage())->getImage());
             }
         }
-
         commandList->OMSetRenderTargets(
             rtvHandles.size(),
             rtvHandles.empty() ? nullptr : rtvHandles.data(),
             FALSE,
             haveDepthResource ? &dsvHandle : nullptr);
+    }
+
+    void DXCommandList::setStencilReference(const uint32_t reference) const {
+        commandList->OMSetStencilRef(reference);
     }
 
     void DXCommandList::endRendering() {

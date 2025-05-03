@@ -185,6 +185,8 @@ export namespace vireo {
 
         void setScissors(const Extent& extent) const override;
 
+        void setStencilReference(uint32_t reference) const override;
+
         void barrier(
             const std::shared_ptr<const Image>& image,
             ResourceState oldState,

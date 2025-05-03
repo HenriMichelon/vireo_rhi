@@ -163,6 +163,16 @@ export namespace vireo {
             VK_LOGIC_OP_OR_REVERSE,     // OR_REVERSE
             VK_LOGIC_OP_OR_INVERTED     // OR_INVERTED
         };
+        static constexpr VkStencilOp vkStencilOp[] = {
+            VK_STENCIL_OP_KEEP,
+            VK_STENCIL_OP_ZERO,
+            VK_STENCIL_OP_REPLACE,
+            VK_STENCIL_OP_INCREMENT_AND_CLAMP,
+            VK_STENCIL_OP_DECREMENT_AND_CLAMP,
+            VK_STENCIL_OP_INVERT,
+            VK_STENCIL_OP_INCREMENT_AND_WRAP,
+            VK_STENCIL_OP_DECREMENT_AND_WRAP,
+        };
 
         VKGraphicPipeline(
            const std::shared_ptr<VKDevice>& device,

@@ -182,6 +182,7 @@ namespace vireo {
         const std::vector dynamicStates = {
             VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT,
             VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT,
+            VK_DYNAMIC_STATE_STENCIL_REFERENCE,
         };
         const auto dynamicState = VkPipelineDynamicStateCreateInfo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
@@ -205,7 +206,24 @@ namespace vireo {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
             .depthTestEnable = configuration.depthTestEnable,
             .depthWriteEnable = configuration.depthWriteEnable,
-            .depthCompareOp = vkCompareOp[static_cast<int>(configuration.depthCompareOp)]
+            .depthCompareOp = vkCompareOp[static_cast<int>(configuration.depthCompareOp)],
+            .stencilTestEnable = configuration.stencilTestEnable,
+            .front = {
+                .failOp = vkStencilOp[static_cast<int>(configuration.frontStencilOpState.failOp)],
+                .passOp = vkStencilOp[static_cast<int>(configuration.frontStencilOpState.passOp)],
+                .depthFailOp = vkStencilOp[static_cast<int>(configuration.frontStencilOpState.failOp)],
+                .compareOp = vkCompareOp[static_cast<int>(configuration.frontStencilOpState.compareOp)],
+                .compareMask = configuration.frontStencilOpState.compareMask,
+                .writeMask = configuration.frontStencilOpState.writeMask,
+            },
+            .back = {
+                .failOp = vkStencilOp[static_cast<int>(configuration.backStencilOpState.failOp)],
+                .passOp = vkStencilOp[static_cast<int>(configuration.backStencilOpState.passOp)],
+                .depthFailOp = vkStencilOp[static_cast<int>(configuration.backStencilOpState.failOp)],
+                .compareOp = vkCompareOp[static_cast<int>(configuration.backStencilOpState.compareOp)],
+                .compareMask = configuration.backStencilOpState.compareMask,
+                .writeMask = configuration.backStencilOpState.writeMask,
+            },
         };
         const auto multisampling = VkPipelineMultisampleStateCreateInfo {
             .sType                  = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,

@@ -161,6 +161,17 @@ namespace vireo {
         depthStencil.DepthEnable = configuration.depthTestEnable;
         depthStencil.DepthWriteMask = configuration.depthWriteEnable ? D3D12_DEPTH_WRITE_MASK_ALL  : D3D12_DEPTH_WRITE_MASK_ZERO;
         depthStencil.DepthFunc = dxCompareOp[static_cast<int>(configuration.depthCompareOp)];
+        depthStencil.StencilEnable = configuration.stencilTestEnable;
+        depthStencil.FrontFace.StencilFailOp      = dxStencilOp[static_cast<int>(configuration.frontStencilOpState.failOp)];
+        depthStencil.FrontFace.StencilDepthFailOp = dxStencilOp[static_cast<int>(configuration.frontStencilOpState.depthFailOp)];
+        depthStencil.FrontFace.StencilPassOp      = dxStencilOp[static_cast<int>(configuration.frontStencilOpState.passOp)];
+        depthStencil.FrontFace.StencilFunc        = dxCompareOp[static_cast<int>(configuration.frontStencilOpState.compareOp)];
+        depthStencil.BackFace.StencilFailOp      = dxStencilOp[static_cast<int>(configuration.backStencilOpState.failOp)];
+        depthStencil.BackFace.StencilDepthFailOp = dxStencilOp[static_cast<int>(configuration.backStencilOpState.depthFailOp)];
+        depthStencil.BackFace.StencilPassOp      = dxStencilOp[static_cast<int>(configuration.backStencilOpState.passOp)];
+        depthStencil.BackFace.StencilFunc        = dxCompareOp[static_cast<int>(configuration.backStencilOpState.compareOp)];
+        depthStencil.StencilReadMask = 0xFF;
+        depthStencil.StencilWriteMask = 0xFF;
 
         const auto samples = DXPhysicalDevice::dxSampleCount[static_cast<int>(configuration.msaa)];
 
