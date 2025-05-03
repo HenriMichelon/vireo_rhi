@@ -538,13 +538,15 @@ namespace vireo {
         D3D12_RESOURCE_STATES srcState, dstState;
         convertState(oldState, newState, srcState, dstState);
         std::vector<D3D12_RESOURCE_BARRIER> barriers;
-        barriers.reserve(arraySize);
-        for (int slice = 0; slice < arraySize; ++slice) {
-            for (int mip = firstMipLevel; mip < levelCount; ++mip) {
+        if (oldState == ResourceState::RENDER_TARGET_DEPTH_STENCIL ||
+            newState == ResourceState::RENDER_TARGET_DEPTH_STENCIL ||
+            oldState == ResourceState::RENDER_TARGET_DEPTH_STENCIL_READ ||
+            newState == ResourceState::RENDER_TARGET_DEPTH_STENCIL_READ) {
+            for (int plane = 0; plane < 2; ++plane) {
                 const auto subresourceIndex = D3D12CalcSubresource(
-                    mip,
-                    slice,
                     0,
+                    0,
+                    plane,
                     levelCount,
                     arraySize);
                 barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(
@@ -552,6 +554,23 @@ namespace vireo {
                     srcState,
                     dstState,
                     subresourceIndex));
+            }
+        } else {
+            barriers.reserve(arraySize);
+            for (int slice = 0; slice < arraySize; ++slice) {
+                for (int mip = firstMipLevel; mip < levelCount; ++mip) {
+                    const auto subresourceIndex = D3D12CalcSubresource(
+                        mip,
+                        slice,
+                        0,
+                        levelCount,
+                        arraySize);
+                    barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(
+                        resource.Get(),
+                        srcState,
+                        dstState,
+                        subresourceIndex));
+                }
             }
         }
         commandList->ResourceBarrier(barriers.size(), barriers.data());
