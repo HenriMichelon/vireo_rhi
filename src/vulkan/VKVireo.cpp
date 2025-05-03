@@ -118,6 +118,7 @@ namespace vireo {
             false,
             false,
             false,
+            false,
             MSAA::NONE);
     }
 
@@ -137,6 +138,7 @@ namespace vireo {
             arraySize,
             name,
             true,
+            false,
             false,
             false,
             MSAA::NONE);
@@ -162,7 +164,8 @@ namespace vireo {
                 name,
                 false,
                 true,
-                type == RenderTargetType::DEPTH,
+                type == RenderTargetType::DEPTH || type == RenderTargetType::DEPTH_STENCIL,
+                type == RenderTargetType::DEPTH_STENCIL,
                 msaa));
     }
 
@@ -183,6 +186,7 @@ namespace vireo {
                 name,
                 false,
                 true,
+                false,
                 false,
                 msaa));
     }

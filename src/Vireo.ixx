@@ -230,6 +230,8 @@ export namespace vireo {
         COLOR,
         //! Used as a depth attachment
         DEPTH,
+        //! Used as a depth and stencil attachment
+        DEPTH_STENCIL,
     };
 
     /**

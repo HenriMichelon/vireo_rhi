@@ -167,6 +167,7 @@ export namespace vireo {
             bool useByComputeShader,
             bool isRenderTarget,
             bool isDepthBuffer,
+            bool isDepthBufferWithStencil,
             MSAA msaa);
 
         ~VKImage() override;

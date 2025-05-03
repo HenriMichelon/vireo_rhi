@@ -153,6 +153,7 @@ namespace vireo {
         const bool        useByComputeShader,
         const bool        isRenderTarget,
         const bool        isDepthBuffer,
+        const bool        isDepthBufferWithStencil,
         const MSAA        msaa):
         Image{format, width, height, mipLevels, arraySize, useByComputeShader},
         device{device} {
@@ -203,7 +204,11 @@ namespace vireo {
         "VKImage Memory : " + to_string(name));
 #endif
 
-        const VkImageAspectFlagBits aspect = isDepthBuffer ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+        const auto aspect = isDepthBuffer ?
+            isDepthBufferWithStencil ?
+            VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT:
+            VK_IMAGE_ASPECT_DEPTH_BIT :
+            VK_IMAGE_ASPECT_COLOR_BIT;
         const auto viewInfo = VkImageViewCreateInfo {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .image = image,
