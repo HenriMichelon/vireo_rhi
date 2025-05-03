@@ -583,6 +583,13 @@ namespace vireo {
             dstAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
             srcLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             dstLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        } else if (oldState == ResourceState::SHADER_READ && newState == ResourceState::RENDER_TARGET_COLOR) {
+            srcStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            srcAccess = VK_ACCESS_SHADER_READ_BIT;
+            dstAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::RENDER_TARGET_DEPTH_STENCIL) {
             srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
             dstStage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
@@ -598,6 +605,14 @@ namespace vireo {
             dstAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
             srcLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+            aspectFlag = VK_IMAGE_ASPECT_DEPTH_BIT;
+        } else if (oldState == ResourceState::RENDER_TARGET_DEPTH_STENCIL_READ && newState == ResourceState::RENDER_TARGET_DEPTH_STENCIL) {
+            srcStage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            dstStage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            srcAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+            dstAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
             aspectFlag = VK_IMAGE_ASPECT_DEPTH_BIT;
         } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::RENDER_TARGET_DEPTH_STENCIL_READ) {
             srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
