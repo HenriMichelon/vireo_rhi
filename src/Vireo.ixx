@@ -425,9 +425,13 @@ export namespace vireo {
         GENERAL,
         //! Used as a color attachment in the graphics pipeline
         RENDER_TARGET_COLOR,
-        //! Used as a depth or stencil attachment in the graphics pipeline
+        //! Used as a depth attachment in the graphics pipeline
+        RENDER_TARGET_DEPTH,
+        //! Used as a depth attachment in the graphics pipeline
+        RENDER_TARGET_DEPTH_READ,
+        //! Used as a depth and stencil attachment in the graphics pipeline
         RENDER_TARGET_DEPTH_STENCIL,
-        //! Used as a depth or stencil attachment in the graphics pipeline
+        //! Used as a depth and stencil attachment in the graphics pipeline
         RENDER_TARGET_DEPTH_STENCIL_READ,
         //! Used as a read/write image with a compute pipeline
         DISPATCH_TARGET,
