@@ -310,12 +310,11 @@ namespace vireo {
 
     void VKCommandList::bindDescriptors(
         const std::shared_ptr<const Pipeline>& pipeline,
-        const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors) const {
+        const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors,
+        const uint32_t firstSet) const {
         assert(pipeline != nullptr);
         assert(!descriptors.empty());
-        if (descriptors.empty()) { return; }
         const auto vkLayout = static_pointer_cast<const VKPipelineResources>(pipeline->getResources())->getPipelineLayout();
-
         std::vector<VkDescriptorSet> descriptorSets(descriptors.size());
         for (int i = 0; i < descriptors.size(); i++) {
             descriptorSets[i] = static_pointer_cast<const VKDescriptorSet>(descriptors[i])->getSet();
@@ -325,11 +324,53 @@ namespace vireo {
                                     VK_PIPELINE_BIND_POINT_COMPUTE :
                                     VK_PIPELINE_BIND_POINT_GRAPHICS,
                                 vkLayout,
-                                0,
+                                firstSet,
                                 descriptorSets.size(),
                                 descriptorSets.data(),
                                 0,
                                 nullptr);
+    }
+
+    void VKCommandList::bindDescriptor(
+        const std::shared_ptr<const Pipeline>& pipeline,
+        const std::shared_ptr<const DescriptorSet>& descriptor,
+        const uint32_t set) const {
+        assert(pipeline != nullptr);
+        assert(descriptor != nullptr);
+        const auto vkLayout = static_pointer_cast<const VKPipelineResources>(pipeline->getResources())->getPipelineLayout();
+        const auto& descriptorSet = static_pointer_cast<const VKDescriptorSet>(descriptor)->getSet();
+        vkCmdBindDescriptorSets(commandBuffer,
+                                pipeline->getType() == PipelineType::COMPUTE ?
+                                    VK_PIPELINE_BIND_POINT_COMPUTE :
+                                    VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                vkLayout,
+                                set,
+                                1,
+                                &descriptorSet,
+                                0,
+                                nullptr);
+    }
+
+    void VKCommandList::bindDescriptor(
+        const std::shared_ptr<const Pipeline>& pipeline,
+        const std::shared_ptr<const DescriptorSet>& descriptor,
+        const uint32_t set,
+        const std::vector<uint32_t>& offsets) const {
+        assert(pipeline != nullptr);
+        assert(descriptor != nullptr);
+        assert(offsets.size() > 0);
+        const auto vkLayout = static_pointer_cast<const VKPipelineResources>(pipeline->getResources())->getPipelineLayout();
+        const auto& descriptorSet = static_pointer_cast<const VKDescriptorSet>(descriptor)->getSet();
+        vkCmdBindDescriptorSets(commandBuffer,
+                                pipeline->getType() == PipelineType::COMPUTE ?
+                                    VK_PIPELINE_BIND_POINT_COMPUTE :
+                                    VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                vkLayout,
+                                set,
+                                1,
+                                &descriptorSet,
+                                offsets.size(),
+                                offsets.data());
     }
 
     void VKCommandList::setStencilReference(const uint32_t reference) const {
@@ -928,14 +969,14 @@ namespace vireo {
             buffer->getInstanceCount(),
             L"StagingBuffer for buffer");
         stagingBuffer->map();
-        if ((buffer->getAlignmentSize() == 1) || (buffer->getInstanceCount() == 1)) {
+        if ((buffer->getInstanceSizeAligned() == 1) || (buffer->getInstanceCount() == 1)) {
             stagingBuffer->write(source);
         } else {
             for (int i = 0; i < buffer->getInstanceCount(); i++) {
                 stagingBuffer->write(
                     static_cast<const unsigned char*>(source) + i * buffer->getInstanceSize(),
                     buffer->getInstanceSize(),
-                    buffer->getAlignmentSize() * i);
+                    buffer->getInstanceSizeAligned() * i);
             }
         }
         stagingBuffer->unmap();
@@ -977,7 +1018,7 @@ namespace vireo {
                 stagingBuffer->write(
                     static_cast<const unsigned char*>(source) + i * image->getImageSize(),
                     image->getImageSize(),
-                    stagingBuffer->getAlignmentSize() * i);
+                    stagingBuffer->getInstanceSizeAligned() * i);
             }
         }
         stagingBuffer->unmap();
@@ -1060,7 +1101,7 @@ namespace vireo {
             stagingBuffer->write(
                 sources[i],
                 image->getImageSize(),
-                stagingBuffer->getAlignmentSize() * i);
+                stagingBuffer->getInstanceSizeAligned() * i);
         }
         stagingBuffer->unmap();
 

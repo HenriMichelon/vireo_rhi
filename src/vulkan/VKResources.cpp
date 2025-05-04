@@ -24,10 +24,10 @@ namespace vireo {
         if (type == BufferType::UNIFORM) {
             minOffsetAlignment = device->getPhysicalDevice().getDeviceProperties().limits.minUniformBufferOffsetAlignment;
         }
-        alignmentSize = minOffsetAlignment > 0
+        instanceSizeAligned = minOffsetAlignment > 0
                ? (size + minOffsetAlignment - 1) & ~(minOffsetAlignment - 1)
                : size;
-        bufferSize = alignmentSize * count;
+        bufferSize = instanceSizeAligned * count;
         instanceSize = size;
         instanceCount = count;
 

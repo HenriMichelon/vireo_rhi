@@ -171,29 +171,75 @@ namespace vireo {
         }
     }
 
-    void DXCommandList::bindDescriptors(
-        const std::shared_ptr<const Pipeline>&pipeline,
+    void DXCommandList::setDescriptors(
         const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors) const {
-        assert(pipeline != nullptr);
         assert(descriptors.size() > 0);
-        if (descriptors.empty()) { return; }
         std::vector<ID3D12DescriptorHeap*> heaps(descriptors.size());
         for (int i = 0; i < descriptors.size(); i++) {
             heaps[i] = static_pointer_cast<const DXDescriptorSet>(descriptors[i])->getHeap().Get();
         }
         commandList->SetDescriptorHeaps(heaps.size(), heaps.data());
+    }
+
+    void DXCommandList::bindDescriptors(
+        const std::shared_ptr<const Pipeline>&pipeline,
+        const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors,
+        const uint32_t firstSet) const {
+        assert(pipeline != nullptr);
+        assert(descriptors.size() > 0);
         D3D12_GPU_DESCRIPTOR_HANDLE handle;
         for (int i = 0; i < descriptors.size(); i++) {
+            const auto heap =  static_pointer_cast<const DXDescriptorSet>(descriptors[i])->getHeap().Get();
 #ifdef _MSC_VER
-            handle = heaps[i]->GetGPUDescriptorHandleForHeapStart();
+            handle = heap->GetGPUDescriptorHandleForHeapStart();
 #else
-            heaps[i]->GetGPUDescriptorHandleForHeapStart(&handle);
+            heap->GetGPUDescriptorHandleForHeapStart(&handle);
 #endif
             if (pipeline->getType() == PipelineType::COMPUTE) {
-                commandList->SetComputeRootDescriptorTable(i, handle);
+                commandList->SetComputeRootDescriptorTable(firstSet + i, handle);
             } else {
-                commandList->SetGraphicsRootDescriptorTable(i, handle);
+                commandList->SetGraphicsRootDescriptorTable(firstSet + i, handle);
             }
+        }
+    }
+
+    void DXCommandList::bindDescriptor(
+        const std::shared_ptr<const Pipeline>&pipeline,
+        const std::shared_ptr<const DescriptorSet>& descriptor,
+        const uint32_t set) const {
+        assert(pipeline != nullptr);
+        assert(descriptor != nullptr);
+        const auto heap =  static_pointer_cast<const DXDescriptorSet>(descriptor)->getHeap().Get();
+        D3D12_GPU_DESCRIPTOR_HANDLE handle;
+#ifdef _MSC_VER
+        handle = heap->GetGPUDescriptorHandleForHeapStart();
+#else
+        heap->GetGPUDescriptorHandleForHeapStart(&handle);
+#endif
+        if (pipeline->getType() == PipelineType::COMPUTE) {
+            commandList->SetComputeRootDescriptorTable(set, handle);
+        } else {
+            commandList->SetGraphicsRootDescriptorTable(set, handle);
+        }
+    }
+
+    void DXCommandList::bindDescriptor(
+        const std::shared_ptr<const Pipeline>& pipeline,
+        const std::shared_ptr<const DescriptorSet>& descriptor,
+        const uint32_t set,
+        const std::vector<uint32_t>& offsets) const {
+        assert(pipeline != nullptr);
+        assert(descriptor != nullptr);
+        const auto layout = const_pointer_cast<DescriptorLayout>(descriptor->getLayout());
+        const auto dxLayout = static_pointer_cast<DXDescriptorLayout>(layout);
+        assert(dxLayout->getIsDynamic());
+        assert(dxLayout->getDynamicBindingIndices().size() == offsets.size());
+        const auto dxDescriptorSet = static_pointer_cast<const DXDescriptorSet>(descriptor);
+        for (int i = 0; i < offsets.size(); i++) {
+            const auto& buffer = static_pointer_cast<const DXBuffer>(dxDescriptorSet->getDynamicBuffers()[i]);
+            commandList->SetGraphicsRootConstantBufferView(
+                set,
+                buffer->getBuffer()->GetGPUVirtualAddress() + offsets[i]);
         }
     }
 

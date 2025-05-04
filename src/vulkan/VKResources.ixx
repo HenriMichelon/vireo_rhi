@@ -33,13 +33,10 @@ export namespace vireo {
 
         inline auto getBuffer() const { return buffer; }
 
-        auto getAlignmentSize() const { return alignmentSize; }
-
     private:
         const std::shared_ptr<const VKDevice> device;
         VkBuffer        buffer{VK_NULL_HANDLE};
         VkDeviceMemory  bufferMemory{VK_NULL_HANDLE};
-        size_t alignmentSize{0};
 
         static void createBuffer(
             const std::shared_ptr<const VKDevice>& device,

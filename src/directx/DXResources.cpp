@@ -26,10 +26,10 @@ namespace vireo {
         if (type == BufferType::UNIFORM || type == BufferType::TRANSFER) {
             minOffsetAlignment = 256;
         }
-        alignmentSize = minOffsetAlignment > 0
+        instanceSizeAligned = minOffsetAlignment > 0
                ? (size + minOffsetAlignment - 1) & ~(minOffsetAlignment - 1)
                : size;
-        bufferSize = alignmentSize * count;
+        bufferSize = instanceSizeAligned * count;
         instanceSize = size;
         instanceCount = count;
 
@@ -73,14 +73,14 @@ namespace vireo {
         assert(data != nullptr);
         if (size == WHOLE_SIZE) {
             for (int y = 0; y < instanceCount; y++) {
-                auto *pScan = static_cast<UINT8*>(mappedAddress) + y * alignmentSize;
+                auto *pScan = static_cast<UINT8*>(mappedAddress) + y * instanceSizeAligned;
                 auto *pSource = static_cast<const UINT8*>(data) + y * instanceSize;
                 memcpy(pScan, pSource, instanceSize);
             }
         } else {
             assert((offset + size) <= bufferSize);
             for (int y = 0; y < instanceCount; y++) {
-                auto *pScan = static_cast<UINT8*>(mappedAddress) + offset + y * alignmentSize;
+                auto *pScan = static_cast<UINT8*>(mappedAddress) + offset + y * instanceSizeAligned;
                 auto *pSource = static_cast<const UINT8*>(data) + y * instanceSize;
                 memcpy(pScan, pSource, instanceSize);
             }

@@ -15,17 +15,34 @@ import vireo.directx.tools;
 namespace vireo {
 
     DescriptorLayout& DXDescriptorLayout::add(const DescriptorIndex index, const DescriptorType type, const size_t count) {
+        if (isForSampler && type != DescriptorType::SAMPLER) {
+            throw Exception("Sampler descriptor layout only accept SAMPLER resources");
+        }
+        if ((!isForSampler) && type == DescriptorType::SAMPLER) {
+            throw Exception("Use Sampler descriptor for SAMPLER resources");
+        }
+        if (isDynamic && type != DescriptorType::UNIFORM_DYNAMIC) {
+            throw Exception("Uniform dynamic descriptor layout only accept UNIFORM_DYNAMIC resources");
+        }
+        if ((!isDynamic) && type == DescriptorType::UNIFORM_DYNAMIC) {
+            throw Exception("Use uniform dynamic descriptor for UNIFORM_DYNAMIC resources");
+        }
         CD3DX12_DESCRIPTOR_RANGE1 range;
         range.Init(
-                type == DescriptorType::BUFFER ? D3D12_DESCRIPTOR_RANGE_TYPE_CBV :
+                type == DescriptorType::UNIFORM ? D3D12_DESCRIPTOR_RANGE_TYPE_CBV :
+                type == DescriptorType::UNIFORM_DYNAMIC ? D3D12_DESCRIPTOR_RANGE_TYPE_CBV :
                 type == DescriptorType::SAMPLED_IMAGE ? D3D12_DESCRIPTOR_RANGE_TYPE_SRV :
                 type == DescriptorType::READWRITE_IMAGE ? D3D12_DESCRIPTOR_RANGE_TYPE_UAV :
                 D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,
                 count,
                 index,
                 0, // set when binding
-                type == DescriptorType::BUFFER ? D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC :
+                type == DescriptorType::UNIFORM ? D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC :
+                type == DescriptorType::UNIFORM_DYNAMIC ? D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC :
                 D3D12_DESCRIPTOR_RANGE_FLAG_NONE);
+        if (type == DescriptorType::UNIFORM_DYNAMIC) {
+            dynamicBindingIndices.push_back(index);
+        }
         ranges.push_back(range);
         capacity += count;
         return *this;
@@ -59,15 +76,18 @@ namespace vireo {
         // heap->Release();
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer) const {
+    void DXDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer) {
         assert(buffer != nullptr);
         const auto dxBuffer = static_pointer_cast<const DXBuffer>(buffer);
         const auto bufferViewDesc = D3D12_CONSTANT_BUFFER_VIEW_DESC{
             .BufferLocation = dxBuffer->getBuffer()->GetGPUVirtualAddress(),
-            .SizeInBytes = static_cast<UINT>(dxBuffer->getAlignmentSize()),
+            .SizeInBytes = dxBuffer->getInstanceSizeAligned(),
         };
         const auto cpuHandle = D3D12_CPU_DESCRIPTOR_HANDLE { cpuBase.ptr + index * descriptorSize };
         device->CreateConstantBufferView(&bufferViewDesc, cpuHandle);
+        if ((buffer->getType() == BufferType::UNIFORM) && (buffer->getInstanceCount() > 1)) {
+            dynamicBuffers.push_back(buffer);
+        }
     }
 
     void DXDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<const Image>& image) const {
@@ -111,7 +131,7 @@ namespace vireo {
         device->CreateSampler(&samplerDesc, cpuHandle);
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Buffer>>& buffers) const {
+    void DXDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Buffer>>& buffers) {
         for (int i = 0; i < buffers.size(); ++i) {
             update(index + i, buffers[i]);
         }

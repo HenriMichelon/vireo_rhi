@@ -177,7 +177,19 @@ export namespace vireo {
 
         void bindDescriptors(
             const std::shared_ptr<const Pipeline>& pipeline,
-            const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors) const override;
+            const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors,
+            uint32_t firstSet) const override;
+
+        void bindDescriptor(
+            const std::shared_ptr<const Pipeline>& pipeline,
+            const std::shared_ptr<const DescriptorSet>& descriptor,
+            uint32_t set) const override;
+
+        void bindDescriptor(
+            const std::shared_ptr<const Pipeline>& pipeline,
+            const std::shared_ptr<const DescriptorSet>& descriptor,
+            uint32_t set,
+            const std::vector<uint32_t>& offsets) const override;
 
         void draw(
             uint32_t vertexCountPerInstance,

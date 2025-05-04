@@ -171,7 +171,9 @@ export namespace vireo {
      */
     enum class DescriptorType {
         //! Uniform buffer
-        BUFFER,
+        UNIFORM,
+        //! Dynamic binding uniform buffer
+        UNIFORM_DYNAMIC,
         //! Sampled texture (image only, no sampler)
         SAMPLED_IMAGE,
         //! Sampler for SAMPLED_IMAGE
@@ -697,6 +699,11 @@ export namespace vireo {
         auto getInstanceSize() const { return instanceSize; }
 
         /**
+         * Returns the aligned size of a data instance, in bytes
+         */
+        auto getInstanceSizeAligned() const { return instanceSizeAligned; }
+
+        /**
          * Returns the number of data instances
          */
         auto getInstanceCount() const { return instanceCount; }
@@ -726,8 +733,9 @@ export namespace vireo {
 
     protected:
         size_t bufferSize{0};
-        size_t instanceSize{0};
-        size_t instanceCount{0};
+        uint32_t instanceSize{0};
+        uint32_t instanceCount{0};
+        uint32_t instanceSizeAligned{0};
         void*  mappedAddress{nullptr};
 
         Buffer(const BufferType type): type{type} {}
@@ -977,7 +985,7 @@ export namespace vireo {
          * @param index Binding index
          * @param buffer The buffezr
          */
-        virtual void update(DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer) const = 0;
+        virtual void update(DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer) = 0;
 
         /**
          * Bind a texture
@@ -1005,7 +1013,7 @@ export namespace vireo {
          * @param index Binding index
          * @param buffers The buffers
          */
-        virtual void update(DescriptorIndex index, const std::vector<std::shared_ptr<Buffer>>& buffers) const = 0;
+        virtual void update(DescriptorIndex index, const std::vector<std::shared_ptr<Buffer>>& buffers) = 0;
 
         /**
          * Bind an array of samplers
@@ -1013,6 +1021,8 @@ export namespace vireo {
          * @param samplers The samplers
          */
         virtual void update(DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& samplers) const = 0;
+
+        const auto& getLayout() const { return layout; }
 
     protected:
         const std::shared_ptr<const DescriptorLayout> layout;
@@ -1250,13 +1260,45 @@ export namespace vireo {
         virtual void bindPipeline(const std::shared_ptr<const Pipeline>& pipeline) = 0;
 
         /**
+         * Sets descriptor sets to bind a command list. All used descriptor sets must be sets.
+         * @param descriptors The descriptor sets to attach
+         */
+        virtual void setDescriptors(const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors) const {}
+
+        /**
          * Binds descriptor sets to a command list
          * @param pipeline The pipeline that will use the descriptors
-         * @param descriptors The descriptors sets to bind
+         * @param descriptors The descriptor sets to bind
+         * @param firstSet The set number of the first descriptor set to be bound
          */
         virtual void bindDescriptors(
             const std::shared_ptr<const Pipeline>& pipeline,
-            const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors) const = 0;
+            const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors,
+            uint32_t firstSet = 0) const = 0;
+
+        /**
+         * Binds descriptor set to a command list
+         * @param pipeline The pipeline that will use the descriptors
+         * @param descriptor The descriptor set to bind
+         * @param set The set number of the descriptor set to be bound
+        */
+        virtual void bindDescriptor(
+            const std::shared_ptr<const Pipeline>& pipeline,
+            const std::shared_ptr<const DescriptorSet>& descriptor,
+            uint32_t set) const = 0;
+
+        /**
+         * Binds descriptor set to a command list
+         * @param pipeline The pipeline that will use the descriptors
+         * @param descriptor The descriptor set to bind
+         * @param set The set number of the descriptor set to be bound
+         * @param offsets Array of uint32_t values specifying dynamic offsets for UNIFORM_DYNAMIC resources..
+        */
+        virtual void bindDescriptor(
+            const std::shared_ptr<const Pipeline>& pipeline,
+            const std::shared_ptr<const DescriptorSet>& descriptor,
+            uint32_t set,
+            const std::vector<uint32_t>& offsets) const = 0;
 
         /**
          * Draw primitives
@@ -1850,11 +1892,18 @@ export namespace vireo {
             const std::wstring& name = L"DescriptorLayout") = 0;
 
         /**
-         * Creates an empty description layout for Sampler resources types
+         * Creates an empty description layout for SAMPLER resources types
          * @param name Object name for debug
          */
         virtual std::shared_ptr<DescriptorLayout> createSamplerDescriptorLayout(
             const std::wstring& name = L"createSamplerDescriptorLayout") = 0;
+
+        /**
+         * Creates an empty description layout for UNIFORM_DYNAMIX resources types
+         * @param name Object name for debug
+         */
+        virtual std::shared_ptr<DescriptorLayout> createDynamicUniformDescriptorLayout(
+            const std::wstring& name = L"createDynamicUniformDescriptorLayout") = 0;
 
         /**
          * Creates an empty descriptor set

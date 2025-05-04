@@ -175,12 +175,17 @@ namespace vireo {
     }
     std::shared_ptr<DescriptorLayout> DXVireo::createDescriptorLayout(
         const std::wstring& name) {
-        return std::make_shared<DXDescriptorLayout>(false);
+        return std::make_shared<DXDescriptorLayout>(false, false);
     }
 
     std::shared_ptr<DescriptorLayout> DXVireo::createSamplerDescriptorLayout(
         const std::wstring& name) {
-        return std::make_shared<DXDescriptorLayout>(true);
+        return std::make_shared<DXDescriptorLayout>(true, false);
+    }
+
+    std::shared_ptr<DescriptorLayout> DXVireo::createDynamicUniformDescriptorLayout(
+    const std::wstring& name) {
+        return std::make_shared<DXDescriptorLayout>(false, true);
     }
 
     std::shared_ptr<DescriptorSet> DXVireo::createDescriptorSet(

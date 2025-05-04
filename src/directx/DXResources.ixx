@@ -39,14 +39,11 @@ export namespace vireo {
 
         auto getStride() const { return size; }
 
-        auto getAlignmentSize() const { return alignmentSize; }
-
     private:
         const size_t                    size;
         ComPtr<ID3D12Device>            device;
         ComPtr<ID3D12Resource>          buffer;
         D3D12_CONSTANT_BUFFER_VIEW_DESC bufferViewDesc;
-        size_t alignmentSize{0};
     };
 
     class DXSampler : public Sampler {
