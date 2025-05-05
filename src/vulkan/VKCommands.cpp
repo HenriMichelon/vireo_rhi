@@ -419,38 +419,49 @@ namespace vireo {
         };
         vkCmdSetScissorWithCount(commandBuffer, 1, &scissor);
     }
+
     void VKCommandList::beginRendering(const RenderingConfiguration& conf) {
         uint32_t width{0}, height{0};
         const auto vkDepthImage =
-            conf.depthRenderTarget ? static_pointer_cast<VKImage>(conf.depthRenderTarget->getImage()) : nullptr;
+            conf.depthStencilRenderTarget ? static_pointer_cast<VKImage>(conf.depthStencilRenderTarget->getImage()) : nullptr;
         auto depthAttachmentInfo = VkRenderingAttachmentInfo {};
+        auto stencilAttachmentInfo = VkRenderingAttachmentInfo {};
         if (vkDepthImage) {
-            depthAttachmentInfo.imageView   = vkDepthImage->getImageView();
-            depthAttachmentInfo.sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
-            depthAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-            depthAttachmentInfo.loadOp      = conf.clearDepth ?
+            auto dsAttachmentInfo = VkRenderingAttachmentInfo {};
+            dsAttachmentInfo.sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
+            dsAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+            dsAttachmentInfo.loadOp      = conf.clearDepthStencil ?
                 VK_ATTACHMENT_LOAD_OP_CLEAR :
                 VK_ATTACHMENT_LOAD_OP_LOAD,
-            depthAttachmentInfo.storeOp     = conf.discardDepthAfterRender ?
+            dsAttachmentInfo.storeOp     = conf.discardDepthStencilAfterRender ?
                 VK_ATTACHMENT_STORE_OP_DONT_CARE :
                 VK_ATTACHMENT_STORE_OP_STORE,
-            depthAttachmentInfo.clearValue  = {
+            dsAttachmentInfo.clearValue  = {
                 .depthStencil = {
-                    .depth = conf.depthClearValue.depthStencil.depth,
-                    .stencil = conf.depthClearValue.depthStencil.stencil,
+                    .depth = conf.depthStencilClearValue.depthStencil.depth,
+                    .stencil = conf.depthStencilClearValue.depthStencil.stencil,
                 }
             };
             width = vkDepthImage->getWidth();
             height = vkDepthImage->getHeight();
 
-            const auto msaaDepth = conf.multisampledDepthRenderTarget ?
-                static_pointer_cast<VKImage>(conf.multisampledDepthRenderTarget->getImage()) :
+            const auto msaaDepth = conf.multisampledDepthStencilRenderTarget ?
+                static_pointer_cast<VKImage>(conf.multisampledDepthStencilRenderTarget->getImage()) :
                 VK_NULL_HANDLE;
             if (msaaDepth) {
-                depthAttachmentInfo.imageView = msaaDepth->getImageView();
-                depthAttachmentInfo.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
-                depthAttachmentInfo.resolveImageLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
-                depthAttachmentInfo.resolveImageView = vkDepthImage->getImageView();
+                dsAttachmentInfo.imageView = msaaDepth->getImageView();
+                dsAttachmentInfo.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
+                dsAttachmentInfo.resolveImageLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
+                dsAttachmentInfo.resolveImageView = vkDepthImage->getImageView();
+            } else {
+                dsAttachmentInfo.imageView   = vkDepthImage->getImageView();
+            }
+
+            if (conf.depthTestEnable) {
+                depthAttachmentInfo = dsAttachmentInfo;
+            }
+            if (conf.stencilTestEnable) {
+                stencilAttachmentInfo = dsAttachmentInfo;
             }
         }
 
@@ -506,8 +517,8 @@ namespace vireo {
             .layerCount           = 1,
             .colorAttachmentCount = static_cast<uint32_t>(colorAttachmentsInfo.size()),
             .pColorAttachments    = colorAttachmentsInfo.empty() ? nullptr : colorAttachmentsInfo.data(),
-            .pDepthAttachment     = vkDepthImage ? &depthAttachmentInfo : nullptr,
-            .pStencilAttachment   = nullptr
+            .pDepthAttachment     = depthAttachmentInfo.imageView != VK_NULL_HANDLE ? &depthAttachmentInfo : nullptr,
+            .pStencilAttachment   = stencilAttachmentInfo.imageView != VK_NULL_HANDLE ? &stencilAttachmentInfo : nullptr,
         };
         vkCmdBeginRendering(commandBuffer, &renderingInfo);
     }

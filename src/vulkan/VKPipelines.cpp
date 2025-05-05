@@ -262,7 +262,12 @@ namespace vireo {
             .pNext                   = VK_NULL_HANDLE,
             .colorAttachmentCount    = static_cast<uint32_t>(formats.size()),
             .pColorAttachmentFormats = formats.data(),
-            .depthAttachmentFormat   = VKImage::vkFormats[static_cast<int>(configuration.depthImageFormat)],
+            .depthAttachmentFormat   = configuration.depthTestEnable ?
+                VKImage::vkFormats[static_cast<int>(configuration.depthStencilImageFormat)]:
+                VK_FORMAT_UNDEFINED,
+            .stencilAttachmentFormat = configuration.stencilTestEnable ?
+                VKImage::vkFormats[static_cast<int>(configuration.depthStencilImageFormat)] :
+                VK_FORMAT_UNDEFINED,
         };
         const auto IAInfo = VkPipelineInputAssemblyStateCreateInfo{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,

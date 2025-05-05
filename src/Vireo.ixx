@@ -1148,16 +1148,20 @@ export namespace vireo {
     struct RenderingConfiguration {
         //! Color attachments. Can be empty
         std::vector<RenderTargetDesc>  colorRenderTargets{};
-        //! Depth attachment. Can be empty
-        std::shared_ptr<RenderTarget>  depthRenderTarget{nullptr};
+        //! Depth and stencil attachment. Can be empty
+        std::shared_ptr<RenderTarget>  depthStencilRenderTarget{nullptr};
         //! Multisampled depth attachment. `nullptr` if MSAA is disabled for the current pipeline.
-        std::shared_ptr<RenderTarget>  multisampledDepthRenderTarget{nullptr};
-        //! Clear the depth & stencil attachment if `true`
-        bool                           clearDepth{false};
-        //! Depth & stencil clear value
-        ClearValue                     depthClearValue{ .depthStencil = {1.0f, 0} };
-        //! Discard the content of the depth & stencil attachment after rendering
-        bool                           discardDepthAfterRender{false};
+        std::shared_ptr<RenderTarget>  multisampledDepthStencilRenderTarget{nullptr};
+        //! `true` is the depth and stencil attachment is used for depth testing
+        bool                           depthTestEnable{false};
+        //! `true` is the depth and stencil attachment is used for stencil testing
+        bool                           stencilTestEnable{false};
+        //! Clear the depth and stencil attachment if `true`
+        bool                           clearDepthStencil{false};
+        //! Depth and stencil clear value
+        ClearValue                     depthStencilClearValue{ .depthStencil = {1.0f, 0} };
+        //! Discard the content of the depth and stencil attachment after rendering
+        bool                           discardDepthStencilAfterRender{false};
     };
 
     /**
@@ -1672,7 +1676,7 @@ export namespace vireo {
         bool              frontFaceCounterClockwise{true};
 
         //! The format of the depth attachment used in this pipeline.
-        ImageFormat       depthImageFormat{ImageFormat::D32_SFLOAT};
+        ImageFormat       depthStencilImageFormat{ImageFormat::D32_SFLOAT};
         //! Controls whether depth testing is enabled.
         bool              depthTestEnable{false};
         //! Controls whether depth writes are enabled when `depthTestEnable` is `true`. Depth writes are always disabled when `depthTestEnable` is `false`.

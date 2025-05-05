@@ -202,7 +202,7 @@ namespace vireo {
             .DepthStencilState = depthStencil,
             .PrimitiveTopologyType = dxPrimitivesTypes[static_cast<int>(configuration.primitiveTopology)],
             .NumRenderTargets = static_cast<UINT>(configuration.colorRenderFormats.size()),
-            .DSVFormat = DXImage::dxFormats[static_cast<int>(configuration.depthImageFormat)],
+            .DSVFormat = DXImage::dxFormats[static_cast<int>(configuration.depthStencilImageFormat)],
             .SampleDesc = {
                 .Count = samples,
                 .Quality = quality
