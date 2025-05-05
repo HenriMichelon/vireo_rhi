@@ -1900,10 +1900,12 @@ export namespace vireo {
 
         /**
          * Creates an empty description layout for UNIFORM_DYNAMIX resources types
+         * @param index Binding index
          * @param name Object name for debug
          */
-        virtual std::shared_ptr<DescriptorLayout> createDynamicUniformDescriptorLayout(
-            const std::wstring& name = L"createDynamicUniformDescriptorLayout") = 0;
+        std::shared_ptr<DescriptorLayout> createDynamicUniformDescriptorLayout(
+            DescriptorIndex index,
+            const std::wstring& name = L"createDynamicUniformDescriptorLayout");
 
         /**
          * Creates an empty descriptor set
@@ -1939,6 +1941,10 @@ export namespace vireo {
         std::shared_ptr<Instance>        instance;
         std::shared_ptr<PhysicalDevice>  physicalDevice;
         std::shared_ptr<Device>          device;
+
+        virtual std::shared_ptr<DescriptorLayout> createDynamicUniformDescriptorLayout(
+            const std::wstring& name = L"DynamicUniformDescriptorLayout") = 0;
+
     };
 
 }

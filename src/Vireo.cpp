@@ -31,4 +31,13 @@ namespace vireo {
 #endif
         return backend == Backend::VULKAN;
     }
+
+    std::shared_ptr<DescriptorLayout> Vireo::createDynamicUniformDescriptorLayout(
+            const DescriptorIndex index,
+            const std::wstring& name) {
+        const auto layout = createDynamicUniformDescriptorLayout(name);
+        layout->add(index, DescriptorType::UNIFORM_DYNAMIC);
+        layout->build();
+        return layout;
+    }
 }

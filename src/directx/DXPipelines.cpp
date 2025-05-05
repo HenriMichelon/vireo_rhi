@@ -50,10 +50,7 @@ namespace vireo {
         const std::wstring& name) {
 
         constexpr D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
-               D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
-               D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-               D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-               D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+               D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
         D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
         featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
@@ -64,13 +61,21 @@ namespace vireo {
         std::vector<CD3DX12_ROOT_PARAMETER1> rootParameters(descriptorLayouts.size());
         for (int i = 0; i < descriptorLayouts.size(); i++) {
             const auto layout = static_pointer_cast<DXDescriptorLayout>(descriptorLayouts[i]);
-            for (auto& range : layout->getRanges()) {
-                range.RegisterSpace = i;
+            if (layout->getIsDynamic()) {
+                rootParameters[i].InitAsConstantBufferView(
+                    0,
+                    i,
+                    D3D12_ROOT_DESCRIPTOR_FLAG_DATA_STATIC,
+                    D3D12_SHADER_VISIBILITY_ALL);
+            } else {
+                for (auto& range : layout->getRanges()) {
+                    range.RegisterSpace = i;
+                }
+                rootParameters[i].InitAsDescriptorTable(
+                    layout->getRanges().size(),
+                    layout->getRanges().data(),
+                    D3D12_SHADER_VISIBILITY_ALL);
             }
-            rootParameters[i].InitAsDescriptorTable(
-                layout->getRanges().size(),
-                layout->getRanges().data(),
-                D3D12_SHADER_VISIBILITY_ALL);
         }
 
         if (pushConstants.size > 0) {
