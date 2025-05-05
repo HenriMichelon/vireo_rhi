@@ -29,8 +29,6 @@ export namespace vireo {
 
         void unmap() override;
 
-        void write(const void* data, size_t size = WHOLE_SIZE, size_t offset = 0) override;
-
         inline auto getBuffer() const { return buffer; }
 
     private:

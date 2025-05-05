@@ -59,17 +59,6 @@ namespace vireo {
         mappedAddress = nullptr;
     }
 
-    void VKBuffer::write(const void* data, const size_t size, const size_t offset) {
-        assert(mappedAddress != nullptr);
-        assert(data != nullptr);
-        if (size == WHOLE_SIZE) {
-            memcpy(mappedAddress, data, bufferSize);
-        } else {
-            assert((offset + size) <= bufferSize);
-            memcpy(static_cast<unsigned char*>(mappedAddress) + offset, data, size);
-        }
-    }
-
     void VKBuffer::createBuffer(
             const std::shared_ptr<const VKDevice>& device,
             const VkDeviceSize size,

@@ -39,4 +39,19 @@ namespace vireo {
         layout->build();
         return layout;
     }
+
+    void Buffer::write(const void* data, const size_t size, const size_t offset) {
+        assert(mappedAddress != nullptr);
+        assert(data != nullptr);
+        if (size == WHOLE_SIZE) {
+            for (int y = 0; y < instanceCount; y++) {
+                auto *pScan = static_cast<UINT8*>(mappedAddress) + y * instanceSizeAligned;
+                auto *pSource = static_cast<const UINT8*>(data) + y * instanceSize;
+                memcpy(pScan, pSource, instanceSize);
+            }
+        } else {
+            assert((offset + size) <= bufferSize);
+            memcpy(static_cast<unsigned char*>(mappedAddress) + offset, data, size);
+        }
+    }
 }

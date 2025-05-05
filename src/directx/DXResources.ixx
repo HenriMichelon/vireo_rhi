@@ -33,8 +33,6 @@ export namespace vireo {
 
         void unmap() override;
 
-        void write(const void* data, size_t size = WHOLE_SIZE, size_t offset = 0) override;
-
         auto& getBuffer() const { return buffer; }
 
         auto getStride() const { return size; }
