@@ -15,7 +15,7 @@ export namespace vireo {
 
     class VKDescriptorLayout : public DescriptorLayout {
     public:
-        VKDescriptorLayout(VkDevice device, const std::wstring& name);
+        VKDescriptorLayout(VkDevice device, bool samplers, bool dynamic, const std::wstring& name);
 
         ~VKDescriptorLayout() override;
 

@@ -227,20 +227,16 @@ namespace vireo {
         const std::shared_ptr<const Pipeline>& pipeline,
         const std::shared_ptr<const DescriptorSet>& descriptor,
         const uint32_t set,
-        const std::vector<uint32_t>& offsets) const {
+        const uint32_t offset) const {
         assert(pipeline != nullptr);
         assert(descriptor != nullptr);
-        const auto layout = const_pointer_cast<DescriptorLayout>(descriptor->getLayout());
-        const auto dxLayout = static_pointer_cast<DXDescriptorLayout>(layout);
-        assert(dxLayout->getIsDynamic());
-        assert(dxLayout->getDynamicBindingIndices().size() == offsets.size());
+        assert(descriptor->getLayout()->isDynamicUniform());
         const auto dxDescriptorSet = static_pointer_cast<const DXDescriptorSet>(descriptor);
-        for (int i = 0; i < offsets.size(); i++) {
-            const auto& buffer = static_pointer_cast<const DXBuffer>(dxDescriptorSet->getDynamicBuffers()[i]);
-            commandList->SetGraphicsRootConstantBufferView(
-                set,
-                buffer->getBuffer()->GetGPUVirtualAddress() + offsets[i]);
-        }
+        const auto& buffer = static_pointer_cast<const DXBuffer>(dxDescriptorSet->getDynamicBuffer());
+        assert(buffer->getType() == BufferType::UNIFORM);
+        commandList->SetGraphicsRootConstantBufferView(
+            set,
+            buffer->getBuffer()->GetGPUVirtualAddress() + offset);
     }
 
     void DXCommandList::setViewports(const std::vector<Extent>& extents) const {

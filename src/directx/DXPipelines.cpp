@@ -61,7 +61,7 @@ namespace vireo {
         std::vector<CD3DX12_ROOT_PARAMETER1> rootParameters(descriptorLayouts.size());
         for (int i = 0; i < descriptorLayouts.size(); i++) {
             const auto layout = static_pointer_cast<DXDescriptorLayout>(descriptorLayouts[i]);
-            if (layout->getIsDynamic()) {
+            if (layout->isDynamicUniform()) {
                 rootParameters[i].InitAsConstantBufferView(
                     0,
                     i,

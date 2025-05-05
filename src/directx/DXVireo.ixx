@@ -103,7 +103,7 @@ export namespace vireo {
         std::shared_ptr<DescriptorLayout> createSamplerDescriptorLayout(
             const std::wstring& name) override;
 
-        std::shared_ptr<DescriptorLayout> createDynamicUniformDescriptorLayout(
+        std::shared_ptr<DescriptorLayout> _createDynamicUniformDescriptorLayout(
             const std::wstring& name) override;
 
         std::shared_ptr<DescriptorSet> createDescriptorSet(

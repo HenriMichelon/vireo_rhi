@@ -15,11 +15,23 @@ import vireo.vulkan.tools;
 
 namespace vireo {
 
-    VKDescriptorLayout::VKDescriptorLayout(const VkDevice device, const std::wstring& name):
-        device{device}, name{name} {
+    VKDescriptorLayout::VKDescriptorLayout(const VkDevice device, const bool samplers, const bool dynamic, const std::wstring& name):
+        DescriptorLayout{samplers, dynamic}, device{device}, name{name} {
     }
 
     DescriptorLayout& VKDescriptorLayout::add(const DescriptorIndex index, const DescriptorType type, const size_t count) {
+        if (isSamplers() && type != DescriptorType::SAMPLER) {
+            throw Exception("Sampler descriptor layout only accepts SAMPLER resources");
+        }
+        if ((!isSamplers()) && type == DescriptorType::SAMPLER) {
+            throw Exception("Use Sampler descriptor layout for SAMPLER resources");
+        }
+        if (isDynamicUniform() && type != DescriptorType::UNIFORM_DYNAMIC) {
+            throw Exception("Uniform dynamic descriptor layout only accepts UNIFORM_DYNAMIC resources");
+        }
+        if ((!isDynamicUniform()) && type == DescriptorType::UNIFORM_DYNAMIC) {
+            throw Exception("Use uniform dynamic descriptor layout for UNIFORM_DYNAMIC resources");
+        }
         poolSizes[index] = {
             .type =
                 type == DescriptorType::UNIFORM ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER :
@@ -103,6 +115,7 @@ namespace vireo {
     }
 
     void VKDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer) {
+        assert(!layout->isSamplers());
         assert(buffer != nullptr);
         const auto vkBuffer = static_pointer_cast<const VKBuffer>(buffer);
         const auto bufferInfo = VkDescriptorBufferInfo {
@@ -115,13 +128,15 @@ namespace vireo {
             .dstBinding = index,
             .dstArrayElement = 0,
             .descriptorCount = 1,
-            .descriptorType = buffer->getInstanceCount() == 1 ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+            .descriptorType = layout->isDynamicUniform() ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             .pBufferInfo = &bufferInfo,
         };
         vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
     }
 
     void VKDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<const Image>& image) const {
+        assert(!layout->isDynamicUniform());
+        assert(!layout->isSamplers());
         assert(image != nullptr);
         const auto vkImage = static_pointer_cast<const VKImage>(image);
         const auto imageInfo = VkDescriptorImageInfo {
@@ -142,6 +157,7 @@ namespace vireo {
     }
 
     void VKDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<const Sampler>& sampler) const {
+        assert(layout->isSamplers());
         assert(sampler != nullptr);
         const auto vkSampler = static_pointer_cast<const VKSampler>(sampler);
         const auto imageInfo = VkDescriptorImageInfo {
@@ -162,6 +178,8 @@ namespace vireo {
     }
 
     void VKDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Buffer>>& buffers) {
+        assert(!layout->isDynamicUniform());
+        assert(!layout->isSamplers());
         assert(buffers.size() > 0);
         auto buffersInfo = std::vector<VkDescriptorBufferInfo>(buffers.size());
         for (int i = 0; i < buffers.size(); i++) {
@@ -182,6 +200,8 @@ namespace vireo {
     }
 
     void VKDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Image>>& images) const {
+        assert(!layout->isDynamicUniform());
+        assert(!layout->isSamplers());
         assert(images.size() > 0);
         auto imagesInfo = std::vector<VkDescriptorImageInfo>(images.size());
         bool isStorage = false;
@@ -204,6 +224,7 @@ namespace vireo {
     }
 
     void VKDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>&samplers) const {
+        assert(layout->isSamplers());
         assert(samplers.size() > 0);
         auto imagesInfo = std::vector<VkDescriptorImageInfo>(samplers.size());
         for (int i = 0; i < samplers.size(); i++) {

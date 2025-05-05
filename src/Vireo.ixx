@@ -966,10 +966,16 @@ export namespace vireo {
          */
         auto getCapacity() const { return capacity; }
 
+        auto isDynamicUniform() const { return dynamic; }
+
+        auto isSamplers() const { return samplers; }
+
     protected:
         size_t capacity{0};
+        bool   samplers{false};
+        bool   dynamic{false};
 
-        DescriptorLayout() = default;
+        DescriptorLayout(bool samplers, bool dynamic): samplers{samplers}, dynamic{dynamic} {}
     };
 
     /**
@@ -981,11 +987,19 @@ export namespace vireo {
         virtual ~DescriptorSet() = default;
 
         /**
-         * Bind a buffer
+         * Bind an uniform buffer
          * @param index Binding index
          * @param buffer The buffezr
          */
         virtual void update(DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer) = 0;
+
+        /**
+         * Bind a dynamic uniform buffer
+         * @param buffer The buffer
+         */
+        void update(const std::shared_ptr<const Buffer>& buffer) {
+            update(0, buffer);
+        }
 
         /**
          * Bind a texture
@@ -1288,17 +1302,17 @@ export namespace vireo {
             uint32_t set) const = 0;
 
         /**
-         * Binds descriptor set to a command list
+         * Binds a dynamic uniform descriptor set to a command list
          * @param pipeline The pipeline that will use the descriptors
          * @param descriptor The descriptor set to bind
          * @param set The set number of the descriptor set to be bound
-         * @param offsets Array of uint32_t values specifying dynamic offsets for UNIFORM_DYNAMIC resources..
+         * @param offset Values specifying dynamic offsets for the UNIFORM_DYNAMIC resource.
         */
         virtual void bindDescriptor(
             const std::shared_ptr<const Pipeline>& pipeline,
             const std::shared_ptr<const DescriptorSet>& descriptor,
             uint32_t set,
-            const std::vector<uint32_t>& offsets) const = 0;
+            uint32_t offset) const = 0;
 
         /**
          * Draw primitives
@@ -1904,7 +1918,6 @@ export namespace vireo {
          * @param name Object name for debug
          */
         std::shared_ptr<DescriptorLayout> createDynamicUniformDescriptorLayout(
-            DescriptorIndex index,
             const std::wstring& name = L"createDynamicUniformDescriptorLayout");
 
         /**
@@ -1942,7 +1955,7 @@ export namespace vireo {
         std::shared_ptr<PhysicalDevice>  physicalDevice;
         std::shared_ptr<Device>          device;
 
-        virtual std::shared_ptr<DescriptorLayout> createDynamicUniformDescriptorLayout(
+        virtual std::shared_ptr<DescriptorLayout> _createDynamicUniformDescriptorLayout(
             const std::wstring& name = L"DynamicUniformDescriptorLayout") = 0;
 
     };

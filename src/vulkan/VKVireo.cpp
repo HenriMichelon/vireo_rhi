@@ -197,17 +197,17 @@ namespace vireo {
 
     std::shared_ptr<DescriptorLayout> VKVireo::createDescriptorLayout(
         const std::wstring& name) {
-        return std::make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), name);
+        return std::make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), false, false, name);
     }
 
     std::shared_ptr<DescriptorLayout> VKVireo::createSamplerDescriptorLayout(
         const std::wstring& name) {
-        return std::make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), name);
+        return std::make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), true, false, name);
     }
 
-    std::shared_ptr<DescriptorLayout> VKVireo::createDynamicUniformDescriptorLayout(
+    std::shared_ptr<DescriptorLayout> VKVireo::_createDynamicUniformDescriptorLayout(
         const std::wstring& name) {
-        return std::make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), name);
+        return std::make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), false, true, name);
     }
 
     std::shared_ptr<DescriptorSet> VKVireo::createDescriptorSet(

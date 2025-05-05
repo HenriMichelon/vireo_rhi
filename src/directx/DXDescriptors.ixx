@@ -14,7 +14,7 @@ export namespace vireo {
 
     class DXDescriptorLayout : public DescriptorLayout {
     public:
-        DXDescriptorLayout(const bool isForSampler, const bool isDynamic) : isForSampler{isForSampler}, isDynamic{isDynamic} {}
+        DXDescriptorLayout(const bool isForSampler, const bool isDynamic) : DescriptorLayout{isForSampler, isDynamic} {}
 
         DescriptorLayout& add(DescriptorIndex index, DescriptorType type, size_t count = 1) override;
 
@@ -22,18 +22,9 @@ export namespace vireo {
 
         const auto& getStaticSamplesDesc() const { return staticSamplersDesc; }
 
-        auto getIsForSampler() const { return isForSampler; }
-
-        auto getIsDynamic() const { return isDynamic; }
-
-        const auto& getDynamicBindingIndices() const { return dynamicBindingIndices; }
-
     private:
-        bool isForSampler;
-        bool isDynamic;
         std::vector<CD3DX12_DESCRIPTOR_RANGE1> ranges;
         std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplersDesc;
-        std::vector<DescriptorIndex>           dynamicBindingIndices;
     };
 
     class DXDescriptorSet : public DescriptorSet {
@@ -62,15 +53,15 @@ export namespace vireo {
 
         auto getDescriptorSize() const { return descriptorSize; }
 
-        const auto& getDynamicBuffers() const { return dynamicBuffers; }
+        const auto& getDynamicBuffer() const { return dynamicBuffer; }
 
     private:
-        ComPtr<ID3D12Device>         device;
-        ComPtr<ID3D12DescriptorHeap> heap;
-        D3D12_CPU_DESCRIPTOR_HANDLE  cpuBase;
-        D3D12_GPU_DESCRIPTOR_HANDLE  gpuBase;
-        uint32_t                     descriptorSize{0};
-        std::vector<std::shared_ptr<const Buffer>> dynamicBuffers;
+        ComPtr<ID3D12Device>          device;
+        ComPtr<ID3D12DescriptorHeap>  heap;
+        D3D12_CPU_DESCRIPTOR_HANDLE   cpuBase;
+        D3D12_GPU_DESCRIPTOR_HANDLE   gpuBase;
+        uint32_t                      descriptorSize{0};
+        std::shared_ptr<const Buffer> dynamicBuffer{nullptr};
     };
 
 }

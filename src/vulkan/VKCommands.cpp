@@ -355,10 +355,10 @@ namespace vireo {
         const std::shared_ptr<const Pipeline>& pipeline,
         const std::shared_ptr<const DescriptorSet>& descriptor,
         const uint32_t set,
-        const std::vector<uint32_t>& offsets) const {
+        const uint32_t offset) const {
         assert(pipeline != nullptr);
         assert(descriptor != nullptr);
-        assert(offsets.size() > 0);
+        assert(descriptor->getLayout()->isDynamicUniform());
         const auto vkLayout = static_pointer_cast<const VKPipelineResources>(pipeline->getResources())->getPipelineLayout();
         const auto& descriptorSet = static_pointer_cast<const VKDescriptorSet>(descriptor)->getSet();
         vkCmdBindDescriptorSets(commandBuffer,
@@ -369,8 +369,8 @@ namespace vireo {
                                 set,
                                 1,
                                 &descriptorSet,
-                                offsets.size(),
-                                offsets.data());
+                                1,
+                                &offset);
     }
 
     void VKCommandList::setStencilReference(const uint32_t reference) const {

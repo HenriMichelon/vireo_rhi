@@ -15,17 +15,17 @@ import vireo.directx.tools;
 namespace vireo {
 
     DescriptorLayout& DXDescriptorLayout::add(const DescriptorIndex index, const DescriptorType type, const size_t count) {
-        if (isForSampler && type != DescriptorType::SAMPLER) {
-            throw Exception("Sampler descriptor layout only accept SAMPLER resources");
+        if (isSamplers() && type != DescriptorType::SAMPLER) {
+            throw Exception("Sampler descriptor layout only accepts SAMPLER resources");
         }
-        if ((!isForSampler) && type == DescriptorType::SAMPLER) {
-            throw Exception("Use Sampler descriptor for SAMPLER resources");
+        if ((!isSamplers()) && type == DescriptorType::SAMPLER) {
+            throw Exception("Use Sampler descriptor layout for SAMPLER resources");
         }
-        if (isDynamic && type != DescriptorType::UNIFORM_DYNAMIC) {
-            throw Exception("Uniform dynamic descriptor layout only accept UNIFORM_DYNAMIC resources");
+        if (isDynamicUniform() && type != DescriptorType::UNIFORM_DYNAMIC) {
+            throw Exception("Uniform dynamic descriptor layout only accepts UNIFORM_DYNAMIC resources");
         }
-        if ((!isDynamic) && type == DescriptorType::UNIFORM_DYNAMIC) {
-            throw Exception("Use uniform dynamic descriptor for UNIFORM_DYNAMIC resources");
+        if ((!isDynamicUniform()) && type == DescriptorType::UNIFORM_DYNAMIC) {
+            throw Exception("Use uniform dynamic descriptor layout for UNIFORM_DYNAMIC resources");
         }
         CD3DX12_DESCRIPTOR_RANGE1 range;
         range.Init(
@@ -40,9 +40,6 @@ namespace vireo {
                 type == DescriptorType::UNIFORM ? D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC :
                 type == DescriptorType::UNIFORM_DYNAMIC ? D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC :
                 D3D12_DESCRIPTOR_RANGE_FLAG_NONE);
-        if (type == DescriptorType::UNIFORM_DYNAMIC) {
-            dynamicBindingIndices.push_back(index);
-        }
         ranges.push_back(range);
         capacity += count;
         return *this;
@@ -53,7 +50,7 @@ namespace vireo {
         device{device} {
         const auto dxLayout = static_pointer_cast<const DXDescriptorLayout>(layout);
         const auto heapDesc = D3D12_DESCRIPTOR_HEAP_DESC {
-            .Type = dxLayout->getIsForSampler() ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+            .Type = dxLayout->isSamplers() ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
             .NumDescriptors = static_cast<UINT>(layout->getCapacity()),
             .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
         };
@@ -77,6 +74,7 @@ namespace vireo {
     }
 
     void DXDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer) {
+        assert(!layout->isSamplers());
         assert(buffer != nullptr);
         const auto dxBuffer = static_pointer_cast<const DXBuffer>(buffer);
         const auto bufferViewDesc = D3D12_CONSTANT_BUFFER_VIEW_DESC{
@@ -85,12 +83,15 @@ namespace vireo {
         };
         const auto cpuHandle = D3D12_CPU_DESCRIPTOR_HANDLE { cpuBase.ptr + index * descriptorSize };
         device->CreateConstantBufferView(&bufferViewDesc, cpuHandle);
-        if ((buffer->getType() == BufferType::UNIFORM) && (buffer->getInstanceCount() > 1)) {
-            dynamicBuffers.push_back(buffer);
+        if (layout->isDynamicUniform()) {
+            assert(buffer->getType() == BufferType::UNIFORM);
+            dynamicBuffer = buffer;
         }
     }
 
     void DXDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<const Image>& image) const {
+        assert(!layout->isDynamicUniform());
+        assert(!layout->isSamplers());
         assert(image != nullptr);
         const auto dxImage = static_pointer_cast<const DXImage>(image);
         const auto cpuHandle= D3D12_CPU_DESCRIPTOR_HANDLE{ cpuBase.ptr + index * descriptorSize };
@@ -124,6 +125,7 @@ namespace vireo {
     }
 
     void DXDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<const Sampler>& sampler) const {
+        assert(layout->isSamplers());
         assert(sampler != nullptr);
         const auto dxSampler = static_pointer_cast<const DXSampler>(sampler);
         const auto samplerDesc = dxSampler->getSamplerDesc();

@@ -183,7 +183,7 @@ namespace vireo {
         return std::make_shared<DXDescriptorLayout>(true, false);
     }
 
-    std::shared_ptr<DescriptorLayout> DXVireo::createDynamicUniformDescriptorLayout(
+    std::shared_ptr<DescriptorLayout> DXVireo::_createDynamicUniformDescriptorLayout(
     const std::wstring& name) {
         return std::make_shared<DXDescriptorLayout>(false, true);
     }

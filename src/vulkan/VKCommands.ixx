@@ -189,7 +189,7 @@ export namespace vireo {
             const std::shared_ptr<const Pipeline>& pipeline,
             const std::shared_ptr<const DescriptorSet>& descriptor,
             uint32_t set,
-            const std::vector<uint32_t>& offsets) const override;
+            uint32_t offset) const override;
 
         void draw(
             uint32_t vertexCountPerInstance,
