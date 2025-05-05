@@ -252,6 +252,7 @@ namespace vireo {
             .logicOp        = vkLogicOp[static_cast<size_t>(configuration.logicOp)],
             .attachmentCount= static_cast<uint32_t>(colorBlendStates.size()),
             .pAttachments   = colorBlendStates.data(),
+
         };
         const auto formatsView = configuration.colorRenderFormats | std::views::transform([](const ImageFormat& format) {
             return VKImage::vkFormats[static_cast<int>(format)];

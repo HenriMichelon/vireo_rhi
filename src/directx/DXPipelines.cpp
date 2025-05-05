@@ -195,7 +195,7 @@ namespace vireo {
             .pRootSignature = dxPipelineResources->getRootSignature().Get(),
             .BlendState = {
                 .AlphaToCoverageEnable = configuration.alphaToCoverageEnable,
-                .IndependentBlendEnable = FALSE
+                .IndependentBlendEnable = TRUE
             },
             .SampleMask = UINT_MAX,
             .RasterizerState = rasterizerState,

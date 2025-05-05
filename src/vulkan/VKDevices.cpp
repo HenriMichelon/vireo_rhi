@@ -376,6 +376,7 @@ namespace vireo {
 
         // Initialize device extensions and create a logical device
         {
+
             VkPhysicalDeviceSynchronization2FeaturesKHR sync2Features{
                 .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES,
                 .pNext = nullptr,
@@ -385,6 +386,7 @@ namespace vireo {
                 .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
                 .pNext = &sync2Features,
                 .features = {
+                    .independentBlend = VK_TRUE,
                     .samplerAnisotropy = VK_TRUE,
                 }
             };
