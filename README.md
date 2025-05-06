@@ -17,6 +17,6 @@ Functionalities are added when needed.
 
 [User documentation](https://henrimichelon.github.io/Vireo/md_000_vireo.html)
 
-["Hello triangle" tutorial](https://henrimichelon.github.io/Vireo/md_001_tutorial_triangle.html)
+["Hello triangle" tutorial](https://henrimichelon.github.io/Vireo/md_020_tutorial_triangle.html)
 
 [Samples repository](https://github.com/HenriMichelon/vireo_samples)
