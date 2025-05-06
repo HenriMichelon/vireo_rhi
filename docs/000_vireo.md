@@ -1,4 +1,4 @@
-User documentation
+Vireo user documentation
 ===========================================================================
 
 Vireo RHI is an open source library written in modern C++ that implements a common abstraction layer over multiple 3D graphics APIs.
@@ -24,7 +24,7 @@ Released under the [MIT license](https://raw.githubusercontent.com/HenriMichelon
 Tutorials & examples
 ---------------------------------------------------------------------------
 
-- Tutorial ["Hello triangle"](https://henrimichelon.github.io/Vireo/md_001_tutorial_triangle.html)
+- Tutorial ["Hello triangle"](md_020_tutorial_triangle.html)
 - [Samples repository](https://github.com/HenriMichelon/vireo_samples)
 
 Contact

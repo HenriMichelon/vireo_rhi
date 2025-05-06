@@ -1,7 +1,7 @@
-    {
+{
     "clang": {
         "clang-compilation-path": "",
-        "clang-dialect": "-std=c++23",
+        "clang-dialect": "-std=c++14",
         "clang-flags": [
             ""
         ],
@@ -57,8 +57,8 @@
         "language-mapping": [
             ""
         ],
-        "layout-file": "layout_default.xml",
-        "main-page-name": "mainpage.md",
+        "layout-file": "layout.xml",
+        "main-page-name": "",
         "main-page-omit": false,
         "markdown": true,
         "max-init-lines": 30,
@@ -74,7 +74,7 @@
         "show-file-page": true,
         "show-grouped-members-inc": false,
         "show-include-files": false,
-        "show-namespace-page": true,
+        "show-namespace-page": false,
         "show-used-files": false,
         "sip-support": false,
         "sort-brief-docs": false,
@@ -136,7 +136,6 @@
         "uml-limit-num-fields": 10,
         "uml-look": false
     },
-    "doxyPress-location": "",
     "doxypress-format": 1,
     "doxypress-updated": "2018-Jun-30",
     "external": {
@@ -197,18 +196,18 @@
             ""
         ],
         "exclude-files": [
+            "../src/Tools.ixx",
+            "../src/Vireo.cpp",
             "../src/vulkan",
-            "../src/directx",
-            "doxygen-awesome-css"
+            "../src/directx"
         ],
         "exclude-patterns": [
             ""
         ],
         "exclude-symbols": [
-            "_*",
-            "hash*"
+            "_*"
         ],
-        "exclude-symlinks": true,
+        "exclude-symlinks": false,
         "filter-patterns": [
             ""
         ],
@@ -218,19 +217,19 @@
             ""
         ],
         "image-path": [
-            "."
+            "images"
         ],
         "input-encoding": "UTF-8",
         "input-patterns": [
             "*.ixx",
             "*.md"
         ],
-        "input-recursive": true,
+        "input-recursive": false,
         "input-source": [
             "../src",
             "."
         ],
-        "mdfile-mainpage": "mainpage.md"
+        "mdfile-mainpage": ""
     },
     "messages": {
         "quiet": true,
@@ -246,8 +245,6 @@
         "warn-undoc-param": false,
         "warnings": true
     },
-    "opened-files": [
-    ],
     "output-chm": {
         "binary-toc": false,
         "chm-file": "",
@@ -282,7 +279,7 @@
         "formula-macrofile": "",
         "formula-transparent": true,
         "generate-html": true,
-        "generate-treeview": false,
+        "generate-treeview": true,
         "ghostscript": "",
         "html-colorstyle-gamma": 80,
         "html-colorstyle-hue": 220,
@@ -392,11 +389,8 @@
         "xml-output": "xml",
         "xml-program-listing": true
     },
-    "pathPrior": "",
-    "pos-x": -8,
-    "pos-y": -8,
     "preprocessor": {
-        "enable-preprocessing": false,
+        "enable-preprocessing": true,
         "expand-as-defined": [
             ""
         ],
@@ -416,21 +410,17 @@
     },
     "project": {
         "project-brief": "Vireo 3D Rendering Hardware Interface",
-        "project-logo": "",
-        "project-name": "Vireo RHI",
-        "project-version": "v0.0"
+        "project-logo": "logo.png",
+        "project-name": "Vireo",
+        "project-version": "0.0"
     },
-    "recent-files": [
-    ],
-    "size-height": 1009,
-    "size-width": 1920,
     "source": {
         "inline-source": false,
         "ref-by-relation": false,
         "ref-link-source": false,
         "ref-relation": false,
         "source-code": false,
-        "source-tooltips": true,
+        "source-tooltips": false,
         "strip-code-comments": true,
         "suffix-exclude-navtree": [
             "doc",
@@ -447,15 +437,13 @@
             "h++",
             "idl",
             "ddl",
-            "pidl",
-            "cppm"
+            "pidl"
         ],
         "suffix-source-navtree": [
             "c",
             "cc",
             "cxx",
             "cpp",
-            "cppm",
             "c++",
             "ii",
             "ixx",
