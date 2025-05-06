@@ -196,7 +196,6 @@
             ""
         ],
         "exclude-files": [
-            "../src/Tools.ixx",
             "../src/Vireo.cpp",
             "../src/vulkan",
             "../src/directx"

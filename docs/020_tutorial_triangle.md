@@ -1,4 +1,4 @@
-# Vireo RHI "Hello Triangle" tutorial
+# "Hello Triangle" tutorial
 
 ## Introduction
 This tutorial will teach you the basics of using the Vireo Rendering Hardware
@@ -110,7 +110,7 @@ Select an API and an empty window will be displayed :
 ![empty_window.png](images/empty_window.png)
 
 ## The Vireo class
-The [Vireo](https://henrimichelon.github.io/Vireo/classvireo_1_1Vireo.html) class
+The [`Vireo`](classvireo_1_1Vireo.html) class
 encapsulate the creation of the various objects needed by the graphics API such as
 the physical adapter and the logical device.
 The instance of the `Vireo` class is stored in the `vireo` field of the base 
@@ -121,14 +121,14 @@ runtime backend :
 
 ![backend_select.png](images/backend_select.png)
 
-The `Vireo` class is the main class of the library; You need an instance of 
+The [`Vireo`](classvireo_1_1Vireo.html) class is the main class of the library; You need an instance of 
 this class to create all the library objects.
 
 ## The submission queue
 Most operations performed with graphics API, like draw commands and memory 
 operations, are asynchronously executed by submitting them to a 
-[SubmitQueue](https://henrimichelon.github.io/Vireo/classvireo_1_1SubmitQueue.html).
-Queues are allocated from [command types](https://henrimichelon.github.io/Vireo/namespacevireo.html#a21e038f5b8958e203d28bc4f18472352), 
+[`SubmitQueue`](classvireo_1_1SubmitQueue.html).
+Queues are allocated from [command types](namespacevireo.html#a21e038f5b8958e203d28bc4f18472352), 
 where each type supports a specific set of operations in its queues. 
 For example, there could be separate queue families for graphics, compute and memory transfer operations.
 
@@ -169,7 +169,7 @@ We need a synchronization mechanism when we use a swap chain since the modern
 graphics API executes commands asynchronously: we have to wait for the GPU to finish the
 submitted work before reusing a frame buffer.
 
-The CPU/GPU synchronization is done with a [Fence](https://henrimichelon.github.io/Vireo/classvireo_1_1Fence.html)
+The CPU/GPU synchronization is done with a [`Fence`](classvireo_1_1Fence.html)
 object. Since we can have multiple frames in flight (the GPU can render in 
 multiple frame buffers in parallel), we need one `Fence` per frame buffer.
 
@@ -188,7 +188,7 @@ Create the fences after the queue creation in the `onInit()` method :
     }
 
 
-It's time to create the swap chain. Add a [SwapChain](https://henrimichelon.github.io/Vireo/classvireo_1_1SwapChain.html) field to your application interface:
+It's time to create the swap chain. Add a [`SwapChain`](classvireo_1_1SwapChain.html) field to your application interface:
 
     std::shared_ptr<vireo::SwapChain> swapChain;
 
@@ -244,8 +244,8 @@ A pipeline barrier is a GPU synchronization primitive that guarantees that any
 writes performed by those earlier stages are made visible (and available) 
 to reads or writes in the later stages.
 
-A pipeline barrier is created on the GPU with the help of a [CommandList](https://henrimichelon.github.io/Vireo/classvireo_1_1CommandList.html) 
-and a command list is allocated by a [CommandAllocator](https://henrimichelon.github.io/Vireo/classvireo_1_1CommandAllocator.html).
+A pipeline barrier is created on the GPU with the help of a [`CommandList`](classvireo_1_1CommandList.html) 
+and a command list is allocated by a [`CommandAllocator`](classvireo_1_1CommandAllocator.html).
 
 The command list will also be used to record pipeline and drawing commands for
 execution by the GPU.
@@ -405,7 +405,7 @@ Add the triangle data with a different color for each vertex, after the `Vertex`
 
 The next step is to tell the graphic API how to pass this data format to the 
 vertex shader once it's been uploaded into GPU memory. We have to describe
-each field of the `Vertex` struct using [VertexAttributeDesc](https://henrimichelon.github.io/Vireo/structvireo_1_1VertexAttributeDesc.html),
+each field of the `Vertex` struct using [`VertexAttributeDesc`](structvireo_1_1VertexAttributeDesc.html),
 after the triangle data:
 
     const std::vector<vireo::VertexAttributeDesc> vertexAttributes{

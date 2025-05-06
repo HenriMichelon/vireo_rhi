@@ -21,10 +21,15 @@ Released under the [MIT license](https://raw.githubusercontent.com/HenriMichelon
 
 [GitHub project page](https://github.com/HenriMichelon/vireo_rhi)
 
+Documentation
+---------------------------------------------------------------------------
+- How to [Build Vireo](md_010_build.html)
+- Explore the [Vireo concepts](md_100_concepts.html)
+
 Tutorials & examples
 ---------------------------------------------------------------------------
 
-- Tutorial ["Hello triangle"](md_020_tutorial_triangle.html)
+- ["Hello triangle"](md_020_tutorial_triangle.html) Tutorial
 - [Samples repository](https://github.com/HenriMichelon/vireo_samples)
 
 Contact
