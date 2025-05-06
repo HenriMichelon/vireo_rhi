@@ -79,11 +79,46 @@ namespace vireo {
 
     void DXSubmitQueue::submit(
         const std::shared_ptr<Semaphore>& waitSemaphore,
+        const std::vector<WaitStage>& waitStages,
+        const WaitStage,
+        const std::shared_ptr<Semaphore>& signalSemaphore,
+        const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
+        assert(waitSemaphore != nullptr || signalSemaphore != nullptr);
+        const auto dxWaitSemaphore = static_pointer_cast<DXSemaphore>(waitSemaphore);
+        const auto dxSignalSemaphore = static_pointer_cast<DXSemaphore>(signalSemaphore);
+        if (dxWaitSemaphore) {
+            assert(waitSemaphore->getType() == SemaphoreType::TIMELINE);
+            assert(waitStages.size() > 0);
+            for (int i = 0; i < waitStages.size(); i++) {
+                dxCheck(commandQueue->Wait(dxWaitSemaphore->getFence().Get(), dxWaitSemaphore->getValue() + i));
+            }
+        }
+        submit(commandLists);
+        if (dxSignalSemaphore) {
+            dxSignalSemaphore->incrementValue();
+            dxCheck(commandQueue->Signal(dxSignalSemaphore->getFence().Get(), dxSignalSemaphore->getValue()));
+        }
+    }
+
+    void DXSubmitQueue::submit(
+        const std::shared_ptr<Semaphore>& waitSemaphore,
         const WaitStage waitStage,
         const std::shared_ptr<Fence>& fence,
         const std::shared_ptr<const SwapChain>&swapChain,
         const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
         submit(waitSemaphore, waitStage, WaitStage::NONE, nullptr, commandLists);
+        const auto dxFence = static_pointer_cast<DXFence>(fence);
+        const auto dxSwapChain = static_pointer_cast<const DXSwapChain>(swapChain);
+        dxFence->setValue(dxSwapChain->getFenceValue());
+    }
+
+    void DXSubmitQueue::submit(
+           const std::shared_ptr<Semaphore>& waitSemaphore,
+           const std::vector<WaitStage>& waitStages,
+           const std::shared_ptr<Fence>& fence,
+           const std::shared_ptr<const SwapChain>&swapChain,
+           const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
+        submit(waitSemaphore, waitStages, WaitStage::NONE, nullptr, commandLists);
         const auto dxFence = static_pointer_cast<DXFence>(fence);
         const auto dxSwapChain = static_pointer_cast<const DXSwapChain>(swapChain);
         dxFence->setValue(dxSwapChain->getFenceValue());

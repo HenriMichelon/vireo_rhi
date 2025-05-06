@@ -624,7 +624,11 @@ export namespace vireo {
 
         auto getValue() const { return value; }
 
+        void setValue(const uint64_t value) { this->value = value; }
+
         void incrementValue() { value++; }
+
+        void decrementValue() { value--; }
 
         virtual ~Semaphore() = default;
 
@@ -1508,6 +1512,22 @@ export namespace vireo {
             const std::vector<std::shared_ptr<const CommandList>>& commandLists) const = 0;
 
         /**
+         * Submit graphics commands and synchronize the host & the device with a fence
+         * and the GPU operations with a semaphore.
+         * @param waitSemaphore GPU semaphore to wait  (must be a timeline semaphore)
+         * @param waitStages Stages to wait.  The queue will wait for two incremental values of the semaphore.
+         * @param fence Host/device synchronization fence
+         * @param swapChain  Associated swap chain
+         * @param commandLists Commands to execute
+         */
+        virtual void submit(
+            const std::shared_ptr<Semaphore>& waitSemaphore,
+            const std::vector<WaitStage>& waitStages,
+            const std::shared_ptr<Fence>& fence,
+            const std::shared_ptr<const SwapChain>& swapChain,
+            const std::vector<std::shared_ptr<const CommandList>>& commandLists) const = 0;
+
+        /**
          * Submit commands without synchronization
          * @param commandLists Commands to execute
          */
@@ -1538,6 +1558,21 @@ export namespace vireo {
             const std::vector<std::shared_ptr<const CommandList>>& commandLists) const = 0;
 
         /**
+          * Submit commands with GPU/GPU synchronization
+          * @param waitSemaphore GPU semaphore to wait (must be a timeline semaphore)
+          * @param waitStages Stages to wait. The queue will wait for two incremental values of the semaphore.
+          * @param signalStage Stage to wait for signal (Vulkan only)
+          * @param signalSemaphore GPU semaphore to signal
+          * @param commandLists Commands to execute
+          */
+        virtual void submit(
+            const std::shared_ptr<Semaphore>& waitSemaphore,
+            const std::vector<WaitStage>& waitStages,
+            WaitStage signalStage,
+            const std::shared_ptr<Semaphore>& signalSemaphore,
+            const std::vector<std::shared_ptr<const CommandList>>& commandLists) const = 0;
+
+        /**
          * Submit commands with GPU/GPU synchronization
          * @param waitSemaphore GPU semaphore to wait
          * @param waitStage Stage to wait (Vulkan only)
@@ -1552,8 +1587,21 @@ export namespace vireo {
 
         /**
          * Submit commands with GPU/GPU synchronization
+         * @param waitSemaphore GPU semaphore to wait   (must be a timeline semaphore)
+         * @param waitStages Stage to wait. The queue will wait for two incremental values of the semaphore.
+         * @param commandLists Commands to execute
+         */
+        virtual void submit(
+            const std::shared_ptr<Semaphore>& waitSemaphore,
+            const std::vector<WaitStage>& waitStages,
+            const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
+            submit(waitSemaphore, waitStages, WaitStage::NONE, nullptr, commandLists);
+        }
+
+        /**
+         * Submit commands with GPU/GPU synchronization
          * @param signalSemaphore GPU semaphore to signal
-         * @param signalStage Stage to wait for signal (Vulkan only)
+         * @param signalStage Stage to wait for signal (Vulkan only).
          * @param commandLists Commands to execute
          */
         virtual void submit(

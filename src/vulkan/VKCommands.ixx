@@ -83,6 +83,13 @@ export namespace vireo {
             const std::shared_ptr<const SwapChain>& swapChain,
             const std::vector<std::shared_ptr<const CommandList>>& commandLists) const override;
 
+        void submit(
+            const std::shared_ptr<Semaphore>& waitSemaphore,
+            const std::vector<WaitStage>& waitStages,
+            const std::shared_ptr<Fence>& fence,
+            const std::shared_ptr<const SwapChain>& swapChain,
+            const std::vector<std::shared_ptr<const CommandList>>& commandLists) const override;
+
         void submit(const std::vector<std::shared_ptr<const CommandList>>& commandLists) const override;
 
         void submit(
@@ -92,6 +99,13 @@ export namespace vireo {
         void submit(
             const std::shared_ptr<Semaphore>& waitSemaphore,
             WaitStage waitStage,
+            WaitStage signalStage,
+            const std::shared_ptr<Semaphore>& signalSemaphore,
+            const std::vector<std::shared_ptr<const CommandList>>& commandLists) const override;
+
+        void submit(
+            const std::shared_ptr<Semaphore>& waitSemaphore,
+            const std::vector<WaitStage>& waitStages,
             WaitStage signalStage,
             const std::shared_ptr<Semaphore>& signalSemaphore,
             const std::vector<std::shared_ptr<const CommandList>>& commandLists) const override;

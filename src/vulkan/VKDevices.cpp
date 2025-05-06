@@ -376,10 +376,14 @@ namespace vireo {
 
         // Initialize device extensions and create a logical device
         {
-
+            VkPhysicalDeviceTimelineSemaphoreFeatures timelineSemaphoreFeatures{
+                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES,
+                .pNext = nullptr,
+                .timelineSemaphore = VK_TRUE
+            };
             VkPhysicalDeviceSynchronization2FeaturesKHR sync2Features{
                 .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES,
-                .pNext = nullptr,
+                .pNext = &timelineSemaphoreFeatures,
                 .synchronization2 = VK_TRUE
             };
             VkPhysicalDeviceFeatures2 deviceFeatures2 {

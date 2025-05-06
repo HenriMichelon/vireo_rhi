@@ -141,8 +141,7 @@ namespace vireo {
                 vkSignalSemaphore->incrementValue();
             }
             signalSemaphoreSubmitInfo.semaphore = vkSignalSemaphore->getSemaphore();
-            signalSemaphoreSubmitInfo
-            .stageMask = static_cast<VkPipelineStageFlags2>(signalStage);
+            signalSemaphoreSubmitInfo.stageMask = static_cast<VkPipelineStageFlags2>(signalStage);
             signalSemaphoreSubmitInfo.value = vkSignalSemaphore->getValue();
         }
         const auto submitInfo = VkSubmitInfo2 {
@@ -156,6 +155,58 @@ namespace vireo {
         };
         vkCheck(vkQueueSubmit2(commandQueue, 1, &submitInfo, VK_NULL_HANDLE));
     }
+
+    void VKSubmitQueue::submit(
+           const std::shared_ptr<Semaphore>& waitSemaphore,
+           const std::vector<WaitStage>& waitStages,
+           const WaitStage signalStage,
+           const std::shared_ptr<Semaphore>& signalSemaphore,
+           const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
+        assert(waitSemaphore != nullptr || signalSemaphore != nullptr);
+        assert(!commandLists.empty());
+        const auto vkWaitSemaphore = static_pointer_cast<VKSemaphore>(waitSemaphore);
+        const auto vkSignalSemaphore = static_pointer_cast<VKSemaphore>(signalSemaphore);
+        auto submitInfos = std::vector<VkCommandBufferSubmitInfo>(commandLists.size());
+        for (int i = 0; i < commandLists.size(); i++) {
+            submitInfos[i] = {
+                .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
+                .commandBuffer = static_pointer_cast<const VKCommandList>(commandLists[i])->getCommandBuffer(),
+            };
+        }
+        std::vector<VkSemaphoreSubmitInfo> waitSemaphoreSubmitInfos(waitStages.size());
+        if (vkWaitSemaphore) {
+            assert(waitSemaphore->getType() == SemaphoreType::TIMELINE);
+            assert(waitStages.size() > 0);
+            for (int i = 0; i < waitStages.size(); i++) {
+                waitSemaphoreSubmitInfos[i].sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
+                waitSemaphoreSubmitInfos[i].semaphore = vkWaitSemaphore->getSemaphore();
+                waitSemaphoreSubmitInfos[i].stageMask = static_cast<VkPipelineStageFlags2>(waitStages[i]);
+                waitSemaphoreSubmitInfos[i].value = vkWaitSemaphore->getValue() + i;
+            }
+        }
+        auto signalSemaphoreSubmitInfo = VkSemaphoreSubmitInfo{
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO
+        };
+        if (vkSignalSemaphore) {
+            if (vkSignalSemaphore->getType() == SemaphoreType::TIMELINE) {
+                vkSignalSemaphore->incrementValue();
+            }
+            signalSemaphoreSubmitInfo.semaphore = vkSignalSemaphore->getSemaphore();
+            signalSemaphoreSubmitInfo.stageMask = static_cast<VkPipelineStageFlags2>(signalStage);
+            signalSemaphoreSubmitInfo.value = vkSignalSemaphore->getValue();
+        }
+        const auto submitInfo = VkSubmitInfo2 {
+            .sType                    = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+            .waitSemaphoreInfoCount   = waitSemaphore ? static_cast<uint32_t>(waitSemaphoreSubmitInfos.size()) : 0u,
+            .pWaitSemaphoreInfos      = waitSemaphore ? waitSemaphoreSubmitInfos.data() : VK_NULL_HANDLE,
+            .commandBufferInfoCount   = static_cast<uint32_t>(submitInfos.size()),
+            .pCommandBufferInfos      = submitInfos.data(),
+            .signalSemaphoreInfoCount = signalSemaphore ? 1u : 0u,
+            .pSignalSemaphoreInfos    = signalSemaphore ? &signalSemaphoreSubmitInfo : VK_NULL_HANDLE,
+        };
+        vkCheck(vkQueueSubmit2(commandQueue, 1, &submitInfo, VK_NULL_HANDLE));
+    }
+
 
     void VKSubmitQueue::submit(
            const std::shared_ptr<Semaphore>& waitSemaphore,
@@ -188,6 +239,56 @@ namespace vireo {
                 .value = vkWaitSemaphore->getValue(),
                 .stageMask = static_cast<VkPipelineStageFlags2>(waitStage),
             });
+        }
+
+        const auto submitInfo = VkSubmitInfo2 {
+            .sType                    = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+            .waitSemaphoreInfoCount   = static_cast<uint32_t>(waitSubmitInfos.size()),
+            .pWaitSemaphoreInfos      = waitSubmitInfos.data(),
+            .commandBufferInfoCount   = static_cast<uint32_t>(submitInfos.size()),
+            .pCommandBufferInfos      = submitInfos.data(),
+            .signalSemaphoreInfoCount = 1,
+            .pSignalSemaphoreInfos    = &vkSwapChain->getCurrentRenderFinishedSemaphoreInfo(),
+        };
+        vkCheck(vkQueueSubmit2(commandQueue, 1, &submitInfo, vkFence->getFence()));
+    }
+
+    void VKSubmitQueue::submit(
+           const std::shared_ptr<Semaphore>& waitSemaphore,
+           const std::vector<WaitStage>& waitStages,
+           const std::shared_ptr<Fence>& fence,
+           const std::shared_ptr<const SwapChain>& swapChain,
+           const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
+        assert(waitSemaphore != nullptr);
+        assert(fence != nullptr);
+        assert(swapChain != nullptr);
+        assert(!commandLists.empty());
+        const auto vkSwapChain = static_pointer_cast<const VKSwapChain>(swapChain);
+        const auto vkFence = static_pointer_cast<const VKFence>(fence);
+        const auto vkWaitSemaphore = static_pointer_cast<VKSemaphore>(waitSemaphore);
+        auto submitInfos = std::vector<VkCommandBufferSubmitInfo>(commandLists.size());
+        for (int i = 0; i < commandLists.size(); i++) {
+            submitInfos[i] = {
+                .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
+                .commandBuffer = static_pointer_cast<const VKCommandList>(commandLists[i])->getCommandBuffer(),
+            };
+        }
+
+        auto waitSubmitInfos = std::vector {
+            vkSwapChain->getCurrentImageAvailableSemaphoreInfo()
+        };
+        std::vector<VkSemaphoreSubmitInfo> waitSemaphoreSubmitInfos(waitStages.size());
+        if (vkWaitSemaphore) {
+            assert(waitSemaphore->getType() == SemaphoreType::TIMELINE);
+            assert(waitStages.size() > 0);
+            for (int i = 0; i < waitStages.size(); i++) {
+                waitSubmitInfos.push_back(VkSemaphoreSubmitInfo{
+                    .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+                    .semaphore = vkWaitSemaphore->getSemaphore(),
+                    .value = vkWaitSemaphore->getValue() + i,
+                    .stageMask = static_cast<VkPipelineStageFlags2>(waitStages[i]),
+                });
+            }
         }
 
         const auto submitInfo = VkSubmitInfo2 {
