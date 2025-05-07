@@ -1,0 +1,29 @@
+/*!
+\page manual_040_00_descriptors Resources Descriptors
+
+A descriptor is a data structure representing a shader \ref manual_030_00_resources "resource" such as a buffer, image or sampler.
+
+Descriptors are organized into \ref manual_040_02_descriptor_set "descriptor sets", which are bound during command
+recording for use in subsequent drawing commands. The arrangement of content in each descriptor set is determined by a
+\ref manual_040_01_descriptor_layout "descriptor layout", which determines what descriptors can be stored within it.
+The sequence of descriptor layouts that can be used by a pipeline is specified by creating a \ref manual_040_03_pipeline_resources "pipeline resources"
+ object.
+
+Shaders access resources via variables decorated with a set/space number and a binding number that link them to a descriptor in a descriptor set.
+
+- \subpage manual_040_01_descriptor_layout
+- \subpage manual_040_02_descriptor_set
+- \subpage manual_040_03_pipeline_resources
+
+## Resources types in descriptor sets
+
+There are a number of different \ref vireo::DescriptorType "resources types" :
+- \ref vireo::DescriptorType::UNIFORM : a memory aligned consecutive \ref manual_030_01_resources "array of data" bound to a shader variable. \ref vireo::PushConstantsDesc "push constants" can be used to specify to a shader which element to use.
+- \ref vireo::DescriptorType::UNIFORM_DYNAMIC : a memory aligned \ref manual_030_01_resources "array of data" bound to a shader variable. \ref vireo::CommandList::bindDescriptor can be used to bind a specific element by his memory offset.
+- \ref vireo::DescriptorType::SAMPLED_IMAGE : an array of \ref manual_030_02_resources "images" that can be sampled in a shader.
+- \ref vireo::DescriptorType::SAMPLER : an array of \ref manual_030_03_resources "samplers" that can be used to sample a texture in a shader.
+- \ref vireo::DescriptorType::READWRITE_IMAGE : an array of \ref manual_030_02_resources "images" that can be used in a compute shader.
+
+
+
+*/

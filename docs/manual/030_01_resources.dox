@@ -2,7 +2,8 @@
 \page manual_030_01_resources Memory buffers
 
 The \ref vireo::Buffer "Buffer" class represent linear arrays of data which are used for various purposes by binding
-them to a graphics or compute pipeline via descriptor sets or certain commands or by directly specifying them as parameters to certain commands.
+them to a graphics or compute pipeline via \ref manual_040_00_descriptors "descriptor sets" or certain commands or by
+directly specifying them as parameters to certain commands.
 
 Thera are four types of buffers :
 - \ref vireo::BufferType::VERTEX : used to store vertex data for the vertex shaders, used by the GPU when drawing primitives.
@@ -57,12 +58,12 @@ to copy data from a temporary, host-accessible (staging) buffer to the destinati
 By using the \ref vireo::CommandList::upload methods you can easily upload data into a buffer. The `upload` method will
 take care of the staging buffer and temporary copy of the data for you.
 
-The GPU commands recorded with a \ref vireo::CommandList "CommandList" are executed asynchronously by the GPU.
-Once you have uploaded all of the data using one \ref vireo::CommandList "CommandList" you need to call
-\ref vireo::CommandList::cleanup on this `CommandList` to clear the temporary (staging) buffers used for the host-to-device transfers.
+The GPU commands recorded with a \ref manual_050_00_commands "CommandList" are executed asynchronously by the GPU.
+Once you have uploaded all of the data using one`CommandList` you need to call \ref vireo::CommandList::cleanup on this `CommandList`
+to clear the temporary (staging) buffers used for the host-to-device transfers.
 The asynchronous nature of the operation means that we have to wait for the end of the operation to free the host-visible
-allocated memory, which mean you have to call `cleanup` only after the submit queue have finished the commands execution
-by blocking the CPU-side with \ref vireo::SubmitQueue::waitIdle.
+allocated memory, which mean you have to call `cleanup` only after the \ref manual_060_00_queues "submit queue" have finished
+the commands execution by blocking the CPU-side with \ref vireo::SubmitQueue::waitIdle.
 
 \note Since the call to `cleanup` is done automatically in the command list destructor, you only have to call it
  explicitly on non-temporary command lists.

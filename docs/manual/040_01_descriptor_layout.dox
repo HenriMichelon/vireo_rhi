@@ -1,0 +1,36 @@
+/*!
+\page manual_040_01_descriptor_layout Descriptor Layout
+
+A descriptor layout is a collection describing the content of a \ref manual_040_02_descriptor_set "descriptor set".
+Each resource is specified by his binding number, a resources type and a number of element.
+
+There is three types of layouts :
+- Generic layout used for \ref vireo::DescriptorType::UNIFORM, \ref vireo::DescriptorType::SAMPLED_IMAGE and \ref vireo::DescriptorType::READWRITE_IMAGE resources
+- Samplers only for a collection of \ref vireo::DescriptorType::SAMPLER resources
+- Dynamic Uniform for a single \ref vireo::DescriptorType::UNIFORM_DYNAMIC resource
+
+The samplers and dynamic uniform types of layouts exists for the sole reason of portability across graphics API.
+
+A descriptor layout can be used to create multiple descriptor sets and for multiple pipelines. For example you can have in
+your application only one descriptor layout with all the needed samplers for all the pipelines.
+
+## Creating a descriptor layout
+
+Descriptor layouts are created using \ref vireo::Vireo::createDescriptorLayout, \ref vireo::Vireo::createSamplerDescriptorLayout
+or  \ref vireo::Vireo::createDynamicUniformDescriptorLayout.
+
+For generic and samplers layouts add resources descriptions with \ref vireo::DescriptorLayout::add then build the
+layout with \ref vireo::DescriptorLayout::build. For dynamic uniform layouts the add and build process is done automatically
+and the uniform buffer is bound to the index `0`.
+
+\code{.cpp}
+descriptorLayout = vireo->createDescriptorLayout();
+descriptorLayout->add(BINDING_GLOBAL, vireo::DescriptorType::UNIFORM);
+descriptorLayout->add(BINDING_LIGHT, vireo::DescriptorType::UNIFORM);
+descriptorLayout->add(BINDING_TEXTURES, vireo::DescriptorType::SAMPLED_IMAGE, scene.getTextures().size());
+descriptorLayout->build();
+
+materialsDescriptorLayout = vireo->createDynamicUniformDescriptorLayout();
+\endcode
+
+*/

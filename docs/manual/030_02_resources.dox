@@ -2,7 +2,7 @@
 \page manual_030_02_resources Images
 
 The \ref vireo::Image "Image" class represent multidimensional arrays of data which can be used for various purposes
-(e.g. attachments, textures), by binding them to a graphics or compute pipeline via descriptor sets,
+(e.g. attachments, textures), by binding them to a graphics or compute pipeline via \ref manual_040_00_descriptors "descriptor sets",
  or by directly specifying them as parameters to certain commands.
 
 An image have a \ref vireo::ImageFormat "pixel format". Vireo supports images formats that are commons to both Vulkan

@@ -7,7 +7,7 @@ to read image data and apply filtering and other transformations for the shader.
 You can't do much with a sampler on the CPU side beside creating them, they are exclusively used in the shaders.
 
 The main difference in managing samplers in Vireo compared to some graphics API is when you bind them to a pipeline
-using descriptor sets : for portability reasons you need a specific descriptor set that can only have samplers (no buffer and no image).
+using \ref manual_040_00_descriptors "descriptor sets" : for portability reasons you need a specific descriptor set that can only have samplers (no buffer and no image).
 
 Samplers are created with \ref vireo::Vireo::createSampler :
 \code{.cpp}
