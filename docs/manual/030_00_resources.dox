@@ -1,0 +1,11 @@
+/*!
+\page manual_030_00_resources Resources
+
+The term \b resources refers to all objects that are stored in GPU-accessible video memory (\b VRAM):
+- \subpage manual_030_01_resources "Vertex, index, uniform and transfer memory buffers"
+- \subpage manual_030_02_resources "Images"
+- \subpage manual_030_03_resources "Images samplers"
+
+The resources classes are used to upload data into this resources and to associate them pipelines and shaders.
+
+*/

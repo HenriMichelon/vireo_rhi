@@ -26,6 +26,11 @@ h3:before {
     content: "‣ ";
 }
 
+dl.note {
+    font-style: italic;
+    font-size: 90%;
+}
+
 .textblock .el {
     display: inline;
     background: var(--code-background);

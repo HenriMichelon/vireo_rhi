@@ -1,0 +1,42 @@
+/*!
+\page manual_030_03_resources Image samplers
+
+The \ref vireo::Sampler "Sampler" class represent the state of an image sampler which is used by the GPU
+to read image data and apply filtering and other transformations for the shader.
+
+You can't do much with a sampler on the CPU side beside creating them, they are exclusively used in the shaders.
+
+The main difference in managing samplers in Vireo compared to some graphics API is when you bind them to a pipeline
+using descriptor sets : for portability reasons you need a specific descriptor set that can only have samplers (no buffer and no image).
+
+Samplers are created with \ref vireo::Vireo::createSampler :
+\code{.cpp}
+// Create all of our static samplers
+samplers.push_back(vireo->createSampler(
+    vireo::Filter::NEAREST,
+    vireo::Filter::NEAREST,
+    vireo::AddressMode::CLAMP_TO_BORDER,
+    vireo::AddressMode::CLAMP_TO_BORDER,
+    vireo::AddressMode::CLAMP_TO_BORDER));
+samplers.push_back(vireo->createSampler(
+    vireo::Filter::LINEAR,
+    vireo::Filter::LINEAR,
+    vireo::AddressMode::CLAMP_TO_EDGE,
+    vireo::AddressMode::CLAMP_TO_EDGE,
+    vireo::AddressMode::CLAMP_TO_EDGE));
+
+// Create a sampler-only descriptor layout with sequential binding indices
+descriptorLayout = vireo->createSamplerDescriptorLayout(L"Samplers");
+for (int i = 0; i < samplers.size(); i++) {
+    descriptorLayout->add(i, vireo::DescriptorType::SAMPLER);
+}
+descriptorLayout->build();
+
+// Create a global descriptor set used by all pipelines
+descriptorSet = vireo->createDescriptorSet(descriptorLayout, L"Samplers");
+for (int i = 0; i < samplers.size(); i++) {
+    descriptorSet->update(i, samplers[i]);
+}
+\endcode
+
+*/

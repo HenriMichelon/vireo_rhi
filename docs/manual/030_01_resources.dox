@@ -1,0 +1,100 @@
+/*!
+\page manual_030_01_resources Memory buffers
+
+The \ref vireo::Buffer "Buffer" class represent linear arrays of data which are used for various purposes by binding
+them to a graphics or compute pipeline via descriptor sets or certain commands or by directly specifying them as parameters to certain commands.
+
+Thera are four types of buffers :
+- \ref vireo::BufferType::VERTEX : used to store vertex data for the vertex shaders, used by the GPU when drawing primitives.
+- \ref vireo::BufferType::INDEX : used to store vertex index data for the vertex shaders, used by the GPU when drawing primitives.
+- \ref vireo::BufferType::UNIFORM : used to share various data such as struct or arrays with any shaders
+- \ref vireo::BufferType::TRANSFER : used to upload data in device-only memory (memory only accessible by the GPU) from the CPU.
+
+Depending on their type theses buffers are located in :
+- Device-only memory (memory only accessible by the GPU) : \ref vireo::BufferType::VERTEX and \ref vireo::BufferType::INDEX
+- Host-accessible memory (memory accessible by the GPU and the CPU) : \ref vireo::BufferType::UNIFORM and \ref vireo::BufferType::TRANSFER
+
+## Creating a buffer
+
+Buffers are created using \ref vireo::Vireo::createBuffer by specifying the \ref vireo::BufferType "type",
+the size in bytes of each element (data block) and the number of elements :
+
+ \code{.cpp}
+frame.materialUniform = vireo->createBuffer(vireo::BufferType::UNIFORM, sizeof(Material), scene.getMaterials().size());
+\endcode
+
+Each instance of the elements in the buffer \b can need to be memory aligned. The alignment depends on the type of buffer and the graphic API
+(Vulkan and DirectX can uses different values). When creating the buffer the alignment is automatically calculated:
+- The \ref vireo::Buffer::getInstanceSizeAligned returns the aligned size in bytes of each element,
+- The \ref vireo::Buffer::getSize returns the total size of the buffer in VRAM with each element memory aligned.
+
+## Writing data into buffers
+
+For host-accessible buffers (\ref vireo::BufferType::UNIFORM and \ref vireo::BufferType::TRANSFER) data can be written
+directly from the CPU by \b mapping them with \ref vireo::Buffer::map. To "map memory" means to obtain a CPU pointer to
+a device (GPU) memory, to be able to read from it or write to it in CPU code.
+
+Once the buffer is mapped, data can be written with \ref vireo::Buffer::write. This method take care of the alignment
+of the element if you write the whole buffer by using \ref vireo::Buffer::WHOLE_SIZE size. If you use a different
+size or an offset you are responsible for the alignment of the source data.
+
+Once you have written the data you can \b unmap the buffer memory with \ref vireo::Buffer::unmap.
+
+\code{.cpp}
+frame.materialUniform->map();
+frame.materialUniform->write(scene.getMaterials().data());
+frame.materialUniform->unmap();
+\endcode
+
+\note You can leave the memory mapped until the end the execution of the application (for uniform buffers whose content
+change each frame for example). The \ref vireo::Buffer "Buffer" destructor will take care of unmapping the memory.
+
+## Uploading data into VRAM
+
+For device-memory buffers (\ref vireo::BufferType::VERTEX and \ref vireo::BufferType::INDEX) you need to instruct the GPU
+to copy data from a temporary, host-accessible (staging) buffer to the destination buffer.
+
+By using the \ref vireo::CommandList::upload methods you can easily upload data into a buffer. The `upload` method will
+take care of the staging buffer and temporary copy of the data for you.
+
+The GPU commands recorded with a \ref vireo::CommandList "CommandList" are executed asynchronously by the GPU.
+Once you have uploaded all of the data using one \ref vireo::CommandList "CommandList" you need to call
+\ref vireo::CommandList::cleanup on this `CommandList` to clear the temporary (staging) buffers used for the host-to-device transfers.
+The asynchronous nature of the operation means that we have to wait for the end of the operation to free the host-visible
+allocated memory, which mean you have to call `cleanup` only after the submit queue have finished the commands execution
+by blocking the CPU-side with \ref vireo::SubmitQueue::waitIdle.
+
+\note Since the call to `cleanup` is done automatically in the command list destructor, you only have to call it
+ explicitly on non-temporary command lists.
+
+\code{.cpp}
+// Example of a vertex buffer upload
+// In a local scope for temporary objects destruction
+{
+    // Allocate the buffer
+    vertexBuffer = vireo->createBuffer(vireo::BufferType::VERTEX, sizeof(Vertex), triangleVertices.size());
+
+    // Create a command list
+    const auto uploadCommandAllocator = vireo->createCommandAllocator(vireo::CommandType::TRANSFER);
+    const auto uploadCommandList = uploadCommandAllocator->createCommandList();
+
+    // Upload data into a temporary buffer and record the copy command
+    uploadCommandList->begin();
+    uploadCommandList->upload(vertexBuffer, &triangleVertices[0]);
+    uploadCommandList->end();
+
+    // Execute the copy command
+    const auto transferQueue = vireo->createSubmitQueue(vireo::CommandType::TRANSFER);
+    transferQueue->submit({uploadCommandList});
+
+    // Wait for the command to executed by the GPU
+    transferQueue->waitIdle();
+} // cleanup() is automatically called
+\endcode
+
+We have used a \ref vireo::CommandType::TRANSFER command list to upload the vertex data in this example but you can use
+a \ref vireo::CommandType::GRAPHIC command list for that. The \ref vireo::CommandType::TRANSFER command lists and
+submit queues can take advantage of DMA transfers. Some GPU have only one queue for both transfer and graphics operation,
+so the use of a specific transfer queue is not guaranteed. Also, the transfer only queues can't do some operations like pipeline
+barriers on images.
+*/

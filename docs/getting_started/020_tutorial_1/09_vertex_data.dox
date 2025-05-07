@@ -99,7 +99,7 @@ while we continue to create our pipeline.
 
 Note that we call the \ref vireo::CommandList::cleanup method to clear the temporary (staging)
 buffer used for the host-to-device copy of the vertex data. The asynchronous nature
-of the operating means that we have to wait for the end of the operation to free
+of the operation means that we have to wait for the end of the operation to free
 the host-visible allocated memory.
 This is done automatically in the command list destructor, but we added
 this call in the tutorial for clarification.

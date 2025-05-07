@@ -1,0 +1,73 @@
+/*!
+\page manual_030_02_resources Images
+
+The \ref vireo::Image "Image" class represent multidimensional arrays of data which can be used for various purposes
+(e.g. attachments, textures), by binding them to a graphics or compute pipeline via descriptor sets,
+ or by directly specifying them as parameters to certain commands.
+
+An image have a \ref vireo::ImageFormat "pixel format". Vireo supports images formats that are commons to both Vulkan
+and DirectX, so it's safe to use any of theses formats without compromising portability.
+
+They are created with \ref vireo::Vireo::createImage. You need to provide the format, the width and height in number of pixels, the number
+of mips level (e.g. for mipmaps) and the size of the image array (e.g. 6 for a cubemap) :
+
+\code{.cpp}
+texture = vireo->createImage(vireo::ImageFormat::R8G8B8A8_SRGB, 512, 512, 1, 1, L"CheckerBoardTexture");
+\endcode
+
+The last parameter is the resource name used when you debug the rendering process with tools like [RenderDoc](https://renderdoc.org/).
+
+## Uploading an image
+
+To be accessible by the GPU and the shader an image needs to be uploaded into video memory (VRAM).
+First you need to copy the image data into a temporary, host-accessible (staging) buffer, then you ask the GPU to
+execute a copy of the data to the image in device-only memory (memory only accessible by the GPU).
+
+Since it's common to use the same staging buffer to upload all of the same size, same format textures there is no
+equivalent to the \ref manual_030_01_resources "upload command for memory buffer". You have to handle the staging
+buffer by yourself.
+
+\code{.cpp}
+// Example of a texture upload
+// In a local scope for temporary objects destruction
+{
+    // Load texture data from the disk
+    auto* pixels = .... // insert the call to your preferred image loading library
+
+    // Allocate the texture in device-only memory
+    texture = vireo->createImage(vireo::ImageFormat::R8G8B8A8_SRGB);
+
+    // Allocate the staging buffer in host-accessible memory
+    const auto stagingBuffer = vireo->createBuffer(vireo::BufferType::TRANSFER, texture->getImageSize());
+
+    // Copy the image data into the staging buffer
+    stagingBuffer->map();
+    stagingBuffer->write(pixels);
+
+    // Create a command list
+    const auto uploadCommandAllocator = vireo->createCommandAllocator(vireo::CommandType::TRANSFER);
+    const auto uploadCommandList = uploadCommandAllocator->createCommandList();
+
+    uploadCommandList->begin();
+    // insert a memory barrier to prepare the image to be written
+    uploadCommandList->barrier(texture, vireo::ResourceState::UNDEFINED, vireo::ResourceState::COPY_DST);
+    // record copy command
+    uploadCommandList->copy(stagingBuffer, texture);
+    uploadCommandList->end();
+
+    // Execute the copy command
+    const auto transferQueue = vireo->createSubmitQueue(vireo::CommandType::TRANSFER);
+    transferQueue->submit({uploadCommandList});
+
+    // Wait for the command to executed by the GPU
+    transferQueue->waitIdle();
+} // unmap() is automatically called on the staging buffer
+\endcode
+
+\note It's more efficient to load the image data from the disk directly into the staging buffer by using the
+\ref vireo::Buffer::getMappedAddress "mapped address".
+
+
+
+
+*/

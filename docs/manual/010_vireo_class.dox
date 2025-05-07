@@ -22,6 +22,4 @@ is used to create all Vireo objects.
 
 When creating the Vireo object, the instance, physical device and logical devices objects are created.
 
-Next : \ref manual_020_devices
-
 */
