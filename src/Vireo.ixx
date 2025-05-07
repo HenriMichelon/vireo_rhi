@@ -733,7 +733,7 @@ export namespace vireo {
          * @param size Size of the data in bytes
          * @param offset Destination offset in bytes
          */
-        void write(const void* data, size_t size = WHOLE_SIZE, size_t offset = 0);
+        void write(const void* data, size_t size = WHOLE_SIZE, size_t offset = 0) const;
 
     protected:
         size_t bufferSize{0};

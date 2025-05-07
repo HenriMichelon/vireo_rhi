@@ -46,9 +46,6 @@ namespace vireo {
                 dxCheck(hardwareAdapter.As(&hardwareAdapter4));
             }
         }
-        if (hardwareAdapter == nullptr) {
-            throw Exception("Failed to find GPUs with DirectX 12 support");
-        }
     }
 
     const PhysicalDeviceDesc DXPhysicalDevice::getDescription() const {

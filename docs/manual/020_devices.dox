@@ -8,9 +8,8 @@ corresponding backends concepts :
 - DirectX : `IDXGIFactory4`, `IDXGIAdapter4` and `ID3D12Device`
 
 These classes are responsible for the backend initialization and for selecting the
-best GPU available on the host. If no supported GPU is detected an
-\ref vireo::Exception "Exception" is raised.
+best GPU available on the host. If no supported GPU is detected a \ref vireo::Exception is raised.
 
-The only available method is the \ref vireo::PhysicalDevice::getDescription who returns a textual description of the
-selected GPU.
+The only available method is the \ref vireo::PhysicalDevice::getDescription who returns a description of the
+selected GPU adapter.
 */

@@ -5,5 +5,6 @@ This series will describe the various concepts to build a 3D application with Vi
 
 - \subpage manual_010_vireo_class
 - \subpage manual_020_devices
+- \subpage manual_030_resources
 
 */

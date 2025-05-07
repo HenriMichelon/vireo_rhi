@@ -1,0 +1,69 @@
+/*!
+\page manual_030_resources Resources
+
+The term \b resources refers to all objects that are stored in video memory (\b VRAM):
+- Vertex, index, uniform and transfer memory buffers
+- Images
+- Images samplers
+
+The resources classes are used to upload data into this resources and to associate them pipelines and shaders.
+
+## Memory buffers
+
+The \ref vireo::Buffer "Buffer" class represent linear arrays of data which are used for various purposes by binding
+them to a graphics or compute pipeline via descriptor sets or certain commands or by directly specifying them as parameters to certain commands.
+
+Thera are four types of buffers :
+- \ref vireo::BufferType::VERTEX : used to store vertex data for the vertex shaders, used by the GPU when drawing primitives.
+- \ref vireo::BufferType::INDEX : used to store vertex index data for the vertex shaders, used by the GPU when drawing primitives.
+- \ref vireo::BufferType::UNIFORM : used to share various data such as struct or arrays with any shaders
+- \ref vireo::BufferType::TRANSFER : used to upload data in device-only memory (memory only accessible by the GPU) from the CPU.
+
+Depending on their type theses buffers are located in :
+- Device-only memory (memory only accessible by the GPU) : \ref vireo::BufferType::VERTEX and \ref vireo::BufferType::INDEX
+- Host-accessible memory (memory accessible by the GPU and the CPU) : \ref vireo::BufferType::UNIFORM and \ref vireo::BufferType::TRANSFER
+
+### Creating a buffer
+
+Buffers are created using \ref vireo::Vireo::createBuffer by specifying the \ref vireo::BufferType "type",
+the size in bytes of each element (data block) and the number of elements :
+
+ \code{.cpp}
+frame.materialUniform = vireo->createBuffer(vireo::BufferType::UNIFORM, sizeof(Material), scene.getMaterials().size());
+\endcode
+
+Each instance of the elements in the buffer \b can need to be memory aligned. The alignment depends on the type of buffer and the graphic API
+(Vulkan and DirectX can uses different values). When creating the buffer the alignment is automatically calculated:
+- The \ref vireo::Buffer::getInstanceSizeAligned returns the aligned size in bytes of each element,
+- The \ref vireo::Buffer::getSize returns the total size of the buffer in VRAM with each element memory aligned.
+
+### Writing data into buffers
+
+For host-accessible buffers (\ref vireo::BufferType::UNIFORM and \ref vireo::BufferType::TRANSFER) data can be written
+directly from the CPU by \b mapping them with \ref vireo::Buffer::map. To "map memory" means to obtain a CPU pointer to
+a device (GPU) memory, to be able to read from it or write to it in CPU code.
+
+Once the buffer is mapped data can be written with \ref vireo::Buffer::write. This method take care of the alignment
+of the element if you write the whole buffer by using \ref vireo::Buffer::WHOLE_SIZE size. If you use a different
+size or an offset you are responsible for the alignment of the source data.
+
+Once you have written the data you can \b unmap the buffer memory with \ref vireo::Buffer::unmap.
+
+\code{.cpp}
+frame.materialUniform->map();
+frame.materialUniform->write(scene.getMaterials().data());
+frame.materialUniform->unmap();
+\endcode
+
+\note You can leave the memory mapped until the end the execution of the application. The \ref vireo::Buffer "Buffer"
+destructor will take care of unmapping the memory.
+
+### Uploading data into VRAM
+
+For uploading data into \ref vireo::BufferType::VERTEX and \ref vireo::BufferType::INDEX buffer you need to instruct the GPU
+to copy data from the temporary (staging) buffer which is CPU accessible memory buffer to a device-only memory buffer.
+
+By using the \ref vireo::CommandList::upload methods you can directly
+
+
+*/

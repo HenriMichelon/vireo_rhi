@@ -40,9 +40,10 @@ namespace vireo {
         return layout;
     }
 
-    void Buffer::write(const void* data, const size_t size, const size_t offset) {
+    void Buffer::write(const void* data, const size_t size, const size_t offset) const {
         assert(mappedAddress != nullptr);
         assert(data != nullptr);
+        assert(type == BufferType::UNIFORM || type == BufferType::TRANSFER);
         if (size == WHOLE_SIZE) {
             for (int y = 0; y < instanceCount; y++) {
                 auto *pScan = static_cast<UINT8*>(mappedAddress) + y * instanceSizeAligned;
