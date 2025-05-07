@@ -1,6 +1,14 @@
 /*!
 \page manual_090_00_synchronization Synchronization
 
+The synchronization objects ensure writes complete before reads (read-after-write), avoid write-after-write races, etc.
+They are use to know when work is done or when resources are free.
+
+Vireo have three synchronization objects :
+- \subpage manual_090_01_fences "Fences"
+- \subpage manual_090_02_semaphores "Semaphores"
+- \subpage manual_090_03_barriers "Memory barriers"
+
 ...More to come...
 
 

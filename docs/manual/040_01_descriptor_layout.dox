@@ -24,6 +24,12 @@ layout with \ref vireo::DescriptorLayout::build. For dynamic uniform layouts the
 and the uniform buffer is bound to the index `0`.
 
 \code{.cpp}
+...
+static constexpr vireo::DescriptorIndex BINDING_GLOBAL{0};
+static constexpr vireo::DescriptorIndex BINDING_LIGHT{1};
+static constexpr vireo::DescriptorIndex BINDING_TEXTURES{2};
+...
+
 descriptorLayout = vireo->createDescriptorLayout();
 descriptorLayout->add(BINDING_GLOBAL, vireo::DescriptorType::UNIFORM);
 descriptorLayout->add(BINDING_LIGHT, vireo::DescriptorType::UNIFORM);

@@ -1,0 +1,13 @@
+/*!
+\page manual_090_03_barriers Memory barriers
+
+A memory barrier is a GPU→GPU synchronization mechanism.
+Barriers enforce execution and memory ordering within or across \ref manual_050_00_commands "command lists".
+
+They prevent hazards like read-after-write, write-after-read, etc., by ensuring visibility and availability of resource modifications
+and prepare the resource to be in an optimized layout for the next task.
+
+...More to come...
+
+
+*/

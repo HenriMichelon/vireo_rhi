@@ -1,0 +1,9 @@
+/*!
+\page manual_090_01_fences Fences
+
+A fence is a GPU→CPU synchronization primitive. It's used to lets the CPU know when submitted GPU work has completed.
+
+...More to come...
+
+
+*/

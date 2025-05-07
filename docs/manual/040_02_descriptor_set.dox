@@ -1,7 +1,125 @@
 /*!
 \page manual_040_02_descriptor_set Descriptor Set
 
+A \ref vireo::DescriptorSet "descriptor set" is a collection of \ref manual_030_00_resources "shader resources" bindings —
+think of it as a bundle that tells the GPU “here are all the buffers, images and samplers this shader will need.”
 
-More to come...
+## Creating a descriptor set
+
+A descriptor set is created from a description of the resources in the form of a \ref manual_040_01_descriptor_layout
+"descriptor layout" with \ref vireo::Vireo::createDescriptorSet.
+
+\code{.cpp}
+
+// Create a generic descriptor set
+frame.descriptorSet = vireo->createDescriptorSet(descriptorLayout);
+
+// Create a dynamic uniform descriptor set
+frame.materialsDescriptorSet = vireo->createDescriptorSet(materialsDescriptorLayout);
+
+\endcode
+
+## Updating a descriptor set
+
+Before use, fill each set’s slots with actual buffer,  image or sampler via \ref vireo::DescriptorSet::update methods.
+This can be done at any time except inside a \ref manual_100_00_renderpass "render pass".
+
+For each resource added to the corresponding \ref manual_040_01_descriptor_layout "descriptor layout" you need to call
+\ref vireo::DescriptorSet::update with the same binding numbers and the same resource type.
+
+\code{.cpp}
+...
+static constexpr vireo::DescriptorIndex BINDING_GLOBAL{0};
+static constexpr vireo::DescriptorIndex BINDING_LIGHT{1};
+static constexpr vireo::DescriptorIndex BINDING_TEXTURES{2};
+...
+
+// Update during the initialization phase
+
+// Updating a generic descriptor set
+frame.descriptorSet->update(BINDING_GLOBAL, frame.globalUniform);
+frame.descriptorSet->update(BINDING_LIGHT, frame.lightUniform);
+frame.descriptorSet->update(BINDING_TEXTURES, scene.getTextures());
+
+// Updating a dynamic uniform descriptor set
+frame.materialsDescriptorSet->update(frame.materialUniform);
+
+\endcode
+
+\code{.cpp}
+// Update during the render phase, before beginRendering()
+frame.smaaEdgeDescriptorSet->update(BINDING_INPUT, colorBuffer->getImage());
+
+\endcode
+
+
+## Binding descriptor sets
+
+When recording commands during a \ref manual_100_00_renderpass "render pass" :
+- Before binding the pipeline to the  \ref manual_050_00_commands "command list" set the future descriptors sets (non the dynamic uniform ones) that will be used with \ref vireo::CommandList::setDescriptors.
+- After binding the pipeline to the \ref manual_050_00_commands "command list" bind the descriptor sets with \ref vireo::CommandList::bindDescriptor or \ref vireo::CommandList::bindDescriptors
+
+If you use dynamic uniform buffer \ref vireo::CommandList::bindDescriptor let you change buffer offsets at bind time without reallocating sets.
+
+Each descriptor set will the bound to a specific set/space number.
+
+\code{.cpp}
+...
+static constexpr vireo::DescriptorIndex SET_GLOBAL{0};
+static constexpr vireo::DescriptorIndex SET_SAMPLERS{1};
+static constexpr vireo::DescriptorIndex SET_MODELS{2};
+static constexpr vireo::DescriptorIndex SET_MATERIALS{3};
+...
+
+// Start a render pass
+cmdList->beginRendering(renderingConfig);
+...
+// Set the list of generic and samplers descriptor sets that will be used
+cmdList->setDescriptors({frame.descriptorSet, samplers.getDescriptorSet()});
+...
+// Bind the pipeline
+cmdList->bindPipeline(pipeline);
+...
+// Bind the generic and samplers descriptor sets to the pipeline
+cmdList->bindDescriptor(pipeline, frame.descriptorSet, SET_GLOBAL);
+cmdList->bindDescriptor(pipeline, samplers.getDescriptorSet(), SET_SAMPLERS);
+
+// Bind a specific buffer in a uniform dynamic descriptor set
+cmdList->bindDescriptor(pipeline,
+    frame.materialsDescriptorSet,
+    SET_MATERIALS,
+    frame.materialUniform->getInstanceSizeAligned() * Scene::MATERIAL_ROCKS);
+...
+scene.drawCube(cmdList);
+...
+
+\endcode
+
+If you don't need dynamic uniform descriptor set you can bind the sets using one command :
+
+\code{.cpp}
+cmdList->bindDescriptors(pipeline, {frame.descriptorSet, samplers.getDescriptorSet()});
+\endcode
+
+The sets/spaces numbers will be calculated from the vector index.
+
+
+## Using resources of a descriptor set
+
+In the shaders code each resource need to be bound to the corresponding binding and set/space numbers.
+
+If you use the [Slang shader language](https://shader-slang.org/) just use the HLSL register syntax, it will works for both Vulkan and Direct X :
+
+\code
+// Binding of resources in a shader
+
+ConstantBuffer<Global>    global      : register(b0, space0); // BINDING_GLOBAL, SET_GLOBAL
+ConstantBuffer<Light>     light       : register(b1, space0); // BINDING_LIGHT, SET_GLOBAL
+Texture2D                 textures[5] : register(t2, space0); // BINDING_TEXTURES, SET_GLOBAL
+
+SamplerState              sampler     : register(SAMPLER_LINEAR_EDGE, space1); // SET_SAMPLERS
+
+ConstantBuffer<Material>  material    : register(b0, space3); // selected dynamic buffer of the SET_MATERIALS
+\endcode
 
 */

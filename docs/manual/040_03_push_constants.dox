@@ -1,0 +1,67 @@
+/*!
+\page manual_040_03_push_constants Push constants
+
+A Push constant is a tiny block of GPU-visible memory (with a limit to 128 or 256 bytes, depending on the graphic API and the drivers)
+embedded directly in command lists.
+It's ideal for frequently-changing, small pieces of data (e.g. material index, small transform matrices, flags).
+
+## Declaring a push constant
+
+Push constant are not objects, they don't need to be created like other Vireo object. They are just small structs, matrix
+or small arrays. Just define your data like any CPU-side data then create the description of the data by declaring a
+\ref vireo::PushConstantsDesc.
+
+Example of a push constant struct used to specify which model and which material to use in a shader :
+\code{.cpp}
+struct PushConstants {
+    uint32_t modelIndex;
+    uint32_t materialIndex;
+};
+
+static constexpr auto pushConstantsDesc = vireo::PushConstantsDesc {
+    .stage = vireo::ShaderStage::ALL,
+    .size = sizeof(PushConstants),
+};
+\endcode
+
+## Binding a push constant
+
+During the initialization phase store the push constant description in the \ref manual_040_04_pipeline_resources "pipeline
+resources" object :
+
+\code{.cpp}
+pipelineConfig.resources = vireo->createPipelineResources(
+    { descriptorLayout, samplers.getDescriptorLayout() },
+    pushConstantsDesc);
+\endcode
+
+The push constant will be bound to the first free set/space number : if you have two descriptor layouts in the pipeline
+resource the push constant will be bound to the set `2` (and the binding `0` since Vireo currently only support one push constant
+per pipeline resources).
+
+## Using a push constant
+
+During the render pass update the data then copy the data in the \ref manual_050_00_commands "command list" :
+
+\code{.cpp}
+pushConstants.modelIndex = Scene::MODEL_OPAQUE;
+pushConstants.materialIndex = Scene::MATERIAL_ROCKS;
+cmdList->pushConstants(pipelineConfig.resources, pushConstantsDesc, &pushConstants);
+\endcode
+
+In the shader, if you use the [Slang shader language](https://shader-slang.org/) use the `[[push_constant]]` attribute
+for Vulkan and the register syntax for DirectX :
+
+\code
+
+struct PushConstants {
+    uint modelIndex;
+    uint materialIndex;
+};
+
+[[push_constant]]
+PushConstants pushConstants : register(b0, space2);
+
+\endcode
+
+*/

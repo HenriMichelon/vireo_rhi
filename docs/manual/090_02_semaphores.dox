@@ -1,0 +1,10 @@
+/*!
+\page manual_090_02_semaphores Semaphores
+
+A semaphore is a GPU→GPU synchronization primitive. It ensures ordering between queue submissions
+(e.g. “don’t start color pass until depth pre pass finishes”).
+
+...More to come...
+
+
+*/

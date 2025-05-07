@@ -43,7 +43,7 @@ It's time to create the swap chain. Add a \ref vireo::SwapChain "SwapChain" fiel
     std::shared_ptr<vireo::SwapChain> swapChain;
 \endcode
 
-We need the window handle to create the swap chain.  The window is created by the `Win32Application` and the os-specific handle
+We need the window handle to create the swap chain.  The window is created by the `Win32Application` class and the os-specific handle
 is stored in the `windowHandle` field of the base `Application` class.
 We can use this field to create the swap chain, just after the `graphicQueue`
 creation, in the `onInit()` method :

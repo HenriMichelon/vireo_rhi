@@ -6,14 +6,15 @@ A descriptor is a data structure representing a shader \ref manual_030_00_resour
 Descriptors are organized into \ref manual_040_02_descriptor_set "descriptor sets", which are bound during command
 recording for use in subsequent drawing commands. The arrangement of content in each descriptor set is determined by a
 \ref manual_040_01_descriptor_layout "descriptor layout", which determines what descriptors can be stored within it.
-The sequence of descriptor layouts that can be used by a pipeline is specified by creating a \ref manual_040_03_pipeline_resources "pipeline resources"
+The sequence of descriptor layouts that can be used by a pipeline is specified by creating a \ref manual_040_04_pipeline_resources "pipeline resources"
  object.
 
 Shaders access resources via variables decorated with a set/space number and a binding number that link them to a descriptor in a descriptor set.
 
 - \subpage manual_040_01_descriptor_layout
 - \subpage manual_040_02_descriptor_set
-- \subpage manual_040_03_pipeline_resources
+- \subpage manual_040_03_push_constants
+- \subpage manual_040_04_pipeline_resources
 
 ## Resources types in descriptor sets
 

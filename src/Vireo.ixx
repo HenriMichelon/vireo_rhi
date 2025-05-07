@@ -300,19 +300,27 @@ export namespace vireo {
      * Stencil comparison function
      */
     enum class StencilOp {
+        //! Keeps the current value.
         KEEP = 0,
+        //! Sets the value to 0.
         ZERO = 1,
+        //! Sets the value to the reference value
         REPLACE = 2,
+        //! Increments the current value and clamps to the maximum representable unsigned value.
         INCREMENT_AND_CLAMP = 3,
+        //! Decrements the current value and clamps to 0.
         DECREMENT_AND_CLAMP = 4,
+        //! Bitwise-inverts the current value.
         INVERT = 5,
+        //! Increments the current value and wraps to 0 when the maximum value would have been exceeded.
         INCREMENT_AND_WRAP = 6,
+        //! Decrements the current value and wraps to the maximum possible value when the value would go below 0.
         DECREMENT_AND_WRAP = 7,
     };
 
     /**
      * Framebuffer blending factors.
-     * https://registry.khronos.org/vulkan/specs/latest/man/html/VkBlendFactor.html
+     * cf. https://registry.khronos.org/vulkan/specs/latest/man/html/VkBlendFactor.html
      */
     enum class BlendFactor {
         ZERO,
@@ -338,7 +346,7 @@ export namespace vireo {
 
     /**
      * Framebuffer blending operations.
-     * https://registry.khronos.org/vulkan/specs/latest/man/html/VkBlendOp.html
+     * cf. https://registry.khronos.org/vulkan/specs/latest/man/html/VkBlendOp.html
      */
     enum class BlendOp {
         ADD,
@@ -350,7 +358,7 @@ export namespace vireo {
 
     /**
      * Framebuffer logical operations.
-     * https://registry.khronos.org/vulkan/specs/latest/man/html/VkLogicOp.html
+     * cf. https://registry.khronos.org/vulkan/specs/latest/man/html/VkLogicOp.html
      */
     enum class LogicOp {
         CLEAR,
@@ -386,13 +394,21 @@ export namespace vireo {
      * Graphic pipeline color blend attachment description
      */
     struct ColorBlendDesc {
+        //! Controls whether blending is enabled for the corresponding color attachment. If blending is not enabled, the source fragment’s color for that attachment is passed through unmodified.
         bool            blendEnable{false};
+        //! Selects which blend factor is used to determine the source factors (Sr,Sg,Sb).
         BlendFactor     srcColorBlendFactor{BlendFactor::SRC_ALPHA};
+        //! Selects which blend factor is used to determine the destination factors (Dr,Dg,Db).
         BlendFactor     dstColorBlendFactor{BlendFactor::ONE_MINUS_SRC_ALPHA};
+        //! Selects which blend operation is used to calculate the RGB values to write to the color attachment.
         BlendOp         colorBlendOp{BlendOp::ADD};
+        //! Selects which blend factor is used to determine the source factor Sa.
         BlendFactor     srcAlphaBlendFactor{BlendFactor::ONE};
+        //! Selects which blend factor is used to determine the destination factor Da.
         BlendFactor     dstAlphaBlendFactor{BlendFactor::ZERO};
+        //! Selects which blend operation is used to calculate the alpha values to write to the color attachment.
         BlendOp         alphaBlendOp{BlendOp::ADD};
+        //! Is a bitmask specifying which of the R, G, B, and/or A components are enabled for writing
         ColorWriteMask  colorWriteMask{ColorWriteMask::ALL};
     };
 
@@ -400,11 +416,17 @@ export namespace vireo {
      * Structure specifying stencil operation state
      */
     struct StencilOpState {
+        //! Value specifying the action performed on samples that fail the stencil test.
         StencilOp failOp{StencilOp::KEEP};
+        //! Value specifying the action performed on samples that pass both the depth and stencil tests.
         StencilOp passOp{StencilOp::KEEP};
+        //! Value specifying the action performed on samples that pass the stencil test and fail the depth test.
         StencilOp depthFailOp{StencilOp::KEEP};
+        //! Value specifying the comparison operator used in the stencil test.
         CompareOp compareOp{CompareOp::ALWAYS};
+        //! Selects the bits of the unsigned integer stencil values participating in the stencil test.
         uint32_t  compareMask{0xFFFFFFFF};
+        //! Selects the bits of the unsigned integer stencil values updated by the stencil test in the stencil attachment
         uint32_t  writeMask{0xFFFFFFFF};
     };
 
@@ -603,8 +625,10 @@ export namespace vireo {
      */
     class Fence {
     public:
+        //! Wait for the fences to become signaled
         virtual void wait() const = 0;
 
+        //! Reset the fence state
         virtual void reset() = 0;
 
         virtual ~Fence() = default;
@@ -620,14 +644,33 @@ export namespace vireo {
     public:
         Semaphore(const SemaphoreType type) : type{type} {}
 
+        /**
+         * Return the type of the semaphore
+         */
         auto getType() const { return type; }
 
+        /**
+         * Returns the current integer value of the semaphore (the value that will be used in the next
+         * wait or signal command)
+        */
         auto getValue() const { return value; }
 
+        /**
+         * Sets the current integer value of the semaphore (the value that will be used in the next
+         * wait or signal command)
+        */
         void setValue(const uint64_t value) { this->value = value; }
 
+        /**
+         * Increments the current integer value of the semaphore (the value that will be used in the next
+         * wait or signal command)
+        */
         void incrementValue() { value++; }
 
+        /**
+         * Decrements the current integer value of the semaphore (the value that will be used in the next
+         * wait or signal command)
+        */
         void decrementValue() { value--; }
 
         virtual ~Semaphore() = default;
@@ -970,8 +1013,14 @@ export namespace vireo {
          */
         auto getCapacity() const { return capacity; }
 
+        /**
+         * Returns `true` if the layout describes one dynamic uniform buffer
+         */
         auto isDynamicUniform() const { return dynamic; }
 
+        /**
+         * Returns `true` if the layout is for samplers only
+         */
         auto isSamplers() const { return samplers; }
 
     protected:
@@ -1351,29 +1400,32 @@ export namespace vireo {
             uint32_t firstInstance = 0) const = 0;
 
         /**
-         * Set the viewports for a command list
+         * Sets the viewports for a command list
          * @param extents An array of `Extent` structures specifying viewport parameters.
          */
         virtual void setViewports(const std::vector<Extent>& extents) const = 0;
 
         /**
-         * Set the scissors for a command list
+         * Sets the scissors for a command list
          * @param extents An array of `Extent` structures specifying viewport parameters.
          */
         virtual void setScissors(const std::vector<Extent>& extents) const = 0;
 
         /**
-        * Set the viewport for a command list
+        * Sets the viewport for a command list
         * @param extent An array of `Extent` structures specifying viewport parameters.
         */
         virtual void setViewport(const Extent& extent) const = 0;
 
         /**
-         * Set the scissors for a command list
+         * Sets the scissors for a command list
          * @param extent An array of `Extent` structures specifying viewport parameters.
          */
         virtual void setScissors(const Extent& extent) const = 0;
 
+        /**
+         * Set the reference value for stencil tests and operations
+         */
         virtual void setStencilReference(uint32_t reference) const = 0;
 
         /**
@@ -1758,7 +1810,6 @@ export namespace vireo {
         bool              alphaToCoverageEnable{false};
     };
 
-
     /**
      * Main Vireo abstraction class
      */
@@ -1995,8 +2046,14 @@ export namespace vireo {
                                                   bool anisotropyEnable = true,
                                                   MipMapMode mipMapMode = MipMapMode::LINEAR) const = 0;
 
+        /**
+         * Returns `true` if the backend API is supported
+         */
         static bool isBackendSupported(Backend backend);
 
+        /**
+         * Returns the physical device/adapter object
+         */
         auto getPhysicalDevice() const { return physicalDevice; }
 
         auto getDevice() const { return device; }

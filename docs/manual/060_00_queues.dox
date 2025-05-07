@@ -3,7 +3,8 @@
 
 Submission queues are used to submit work to the GPU.
 You submit recorded \ref manual_050_00_commands "command lists" with a \ref vireo::SubmitQueue "SubmitQueue".
-Work is executed asynchronously on the GPU and synchronization between queues (or with CPU) must be handled explicitly by the developer.
+Work is executed asynchronously on the GPU and \ref manual_090_00_synchronization "synchronization" between queues
+(or with CPU) must be handled explicitly by the developer.
 
 ...More to come...
 

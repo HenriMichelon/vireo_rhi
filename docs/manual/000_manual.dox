@@ -13,6 +13,6 @@ This series will describe the various concepts to build a 3D application with Vi
 - \subpage manual_080_00_pipelines
 - \subpage manual_090_00_synchronization
 - \subpage manual_100_00_renderpass
-\- subpage manual_100_10_swapchain
+- \subpage manual_110_00_swapchain
 
 */

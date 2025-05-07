@@ -5,7 +5,8 @@ Command lists are objects used to record commands which can be subsequently subm
  for execution.
 
 Recorded commands include commands to bind pipelines and \ref manual_040_00_descriptors "descriptor sets" to the command list,
-commands to modify the GPU state, commands to draw (for graphics rendering), commands to dispatch (for compute), commands to copy buffers and images, and other commands.
+commands to modify the GPU state, commands to draw (for graphics rendering), commands to dispatch (for compute),
+commands to copy \ref manual_030_00_resources "buffers and images", and other commands.
 
 Each command list manages state independently of other command lists. Unless otherwise specified, and without explicit
 synchronization, the various commands submitted to a \ref manual_060_00_queues "submission queue" via command lists may execute in arbitrary order

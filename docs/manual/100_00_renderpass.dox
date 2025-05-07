@@ -1,5 +1,7 @@
 /*!
-\page manual_100_00_renderpass Rendering
+\page manual_100_00_renderpass Render pass
+
+A render pass is the process of recording then executing multiple \ref manual_050_00_commands "command lists".
 
 ...More to come...
 

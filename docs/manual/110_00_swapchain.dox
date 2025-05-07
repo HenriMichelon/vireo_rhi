@@ -1,5 +1,8 @@
 /*!
-\page manual_100_10_swapchain Swap Chains
+\page manual_110_00_swapchain Swap Chains
+
+A swapchain is the GPU–window system bridge: a queue of images you render into and then present to the screen.
+It manages double- or triple-buffering under the hood, letting you render ahead of vsync and avoid tearing.
 
 ...More to come...
 

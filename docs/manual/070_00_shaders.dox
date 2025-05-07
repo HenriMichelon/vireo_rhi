@@ -1,6 +1,27 @@
 /*!
 \page manual_070_00_shaders Shaders
 
+A shader is simply a small program that runs on the GPU to process graphics or compute data.
+think of it as an application for GPU.
+
+## Use of shaders
+
+They are used to transform or generate data in the graphics pipeline (e.g. position, color), or perform general-purpose computation
+and replaces fixed-function stages with flexible, user-written code.
+
+In a graphic pipeline the following fixed-function stages can be replaced with shaders :
+- Vertex Shader: Runs once per vertex; computes transformed positions, normals, and outputs “vertex data.”
+- Fragment (Pixel) Shader: Runs once per pixel (or sample); computes final color, depth, and other per-pixel outputs.
+- Geometry/Tessellation Shaders: (Optional) Generate or modify primitives (points, lines, triangles) on the fly.
+
+A compute shader is a general-purpose GPU application; not tied to drawing, used for physics, special effects, image filtering, AI, etc.
+
+## Creating a shader
+
+## Compiling a shader
+
+## Using a shader
+
 ...More to come...
 
 

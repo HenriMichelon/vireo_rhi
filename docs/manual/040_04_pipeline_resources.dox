@@ -1,0 +1,23 @@
+/*!
+\page manual_040_04_pipeline_resources Pipeline Resources
+
+The sequence of \ref manual_040_01_descriptor_layout "descriptor layouts" and \ref manual_040_03_push_constants "push constants"
+that can be used by a pipeline is specified by creating a \ref vireo::PipelineResources and using it when creating the pipeline.
+
+You can't do much with a pipeline resource on the CPU side beside creating them, they are exclusively used to allocate data
+needed by the graphics API (the real descriptor layouts/root signatures).
+
+## Creating and using a pipeline resources
+
+Pipeline resources are created using \ref vireo::Vireo::createPipelineResources and you use them in a
+\ref vireo::GraphicPipelineConfiguration struct.
+
+\code{.cpp}
+
+pipelineConfig.resources = vireo->createPipelineResources(
+    { descriptorLayout, samplers.getDescriptorLayout() },
+    pushConstantsDesc);
+
+\endcode
+
+*/
