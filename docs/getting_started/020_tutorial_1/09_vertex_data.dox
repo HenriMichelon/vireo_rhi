@@ -1,0 +1,108 @@
+/*!
+\page tutorial_1_09_vertex_data Vertex data
+Our triangle vertices will be hard-coded into the application. 
+Add the struct describing a vertex composed of a XYZ position and an RGB color in 
+your class interface:
+
+\code{.cpp}
+    struct Vertex {
+        glm::vec3 pos;
+        glm::vec3 color;
+    };
+\endcode
+
+Add the triangle data with a different color for each vertex, after the `Vertex` struct:
+
+\code{.cpp}
+    std::vector<Vertex> triangleVertices{
+        { {  0.0f,  0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
+        { {  0.5f, -0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
+        { { -0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f } }
+    };
+\endcode
+
+The next step is to tell the graphic API how to pass this data format to the
+vertex shader once it's been uploaded into GPU memory. We have to describe
+each field of the `Vertex` struct using \ref vireo::VertexAttributeDesc "VertexAttributeDesc",
+after the triangle data:
+
+\code{.cpp}
+    const std::vector<vireo::VertexAttributeDesc> vertexAttributes{
+        {"POSITION", vireo::AttributeFormat::R32G32B32_FLOAT, offsetof(Vertex, pos)},
+        {"COLOR",    vireo::AttributeFormat::R32G32B32_FLOAT, offsetof(Vertex, color)}
+    };
+\endcode
+
+This vector is used to create the vertex layout for the future pipeline.
+Add the following code before the for loop in the `onInit()` method:
+
+\code{.cpp}
+    const auto vertexLayout = vireo->createVertexLayout(sizeof(Vertex), vertexAttributes);
+
+    for (auto& frameData : framesData) {
+\endcode
+
+We are done with the vertex layout. Now we have to upload the vertex data into
+the VRAM in a \ref vireo::BufferType::VERTEX buffer. Add the buffer field to your application :
+
+\code{.cpp}
+    std::shared_ptr<vireo::Buffer> vertexBuffer;
+\endcode
+
+In the `onInit()` method, just before the `createVertexLayout()` line, add the buffer
+creation :
+
+\code{.cpp}
+    vertexBuffer = vireo->createBuffer(
+       vireo::BufferType::VERTEX,
+       sizeof(Vertex),
+       triangleVertices.size());
+\endcode
+
+We will use a \ref vireo::CommandType::TRANSFER command list to upload the vertex data into the VRAM.
+You can use a \ref vireo::CommandType::GRAPHIC command list for that but the \ref vireo::CommandType::TRANSFER command buffers
+ and submit queues can take advantage of DMA transfers.
+
+In the `onInit()` method, just after the buffer creation add the
+command allocator and command list creation :
+
+\code{.cpp}
+    const auto uploadCommandAllocator = vireo->createCommandAllocator(vireo::CommandType::TRANSFER);
+    const auto uploadCommandList = uploadCommandAllocator->createCommandList();
+\endcode
+
+Followed by the recording of the upload command :
+
+\code{.cpp}
+    uploadCommandList->begin();
+    uploadCommandList->upload(vertexBuffer, &triangleVertices[0]);
+    uploadCommandList->end();
+\endcode
+
+Then the submission of the commands using a \ref vireo::CommandType::TRANSFER submit queue :
+
+\code{.cpp}
+    const auto transferQueue = vireo->createSubmitQueue(vireo::CommandType::TRANSFER);
+    transferQueue->submit({uploadCommandList});
+\endcode
+
+Since the upload operation is asynchronous, we have to wait for the command to finish
+before terminating the `onInit()` method. Add the following code at the end of the method :
+
+\code{.cpp}
+    transferQueue->waitIdle();
+    uploadCommandList->cleanup();
+\endcode
+
+By adding the \ref vireo::SubmitQueue::waitIdle at the end of the method, the upload operation will be executed
+while we continue to create our pipeline.
+
+Note that we call the \ref vireo::CommandList::cleanup method to clear the temporary (staging)
+buffer used for the host-to-device copy of the vertex data. The asynchronous nature
+of the operating means that we have to wait for the end of the operation to free
+the host-visible allocated memory.
+This is done automatically in the command list destructor, but we added
+this call in the tutorial for clarification.
+
+Next : \ref tutorial_1_10_pipeline
+*/

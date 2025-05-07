@@ -1,0 +1,9 @@
+/*!
+\page manual Manual
+
+This series will describe the various concepts to build a 3D application with Vireo.
+
+- \subpage manual_010_vireo_class
+- \subpage manual_020_devices
+
+*/

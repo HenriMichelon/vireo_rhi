@@ -1,0 +1,16 @@
+/*!
+\page tutorial_1_03_vireo_class The Vireo class
+
+The \ref vireo::Vireo "Vireo" class encapsulate the creation of the various objects needed by the graphics API such as
+the physical adapter and the logical device.
+The instance of the \ref vireo::Vireo "Vireo" class is stored in the `vireo` field of the base  `Application` class of your project.
+The creation of the instance is done in the os-specific main class (`Win32Application` for Windows) of your project after the user selects the
+runtime backend :
+
+![backend_select.png](images/backend_select.png)
+
+The \ref vireo::Vireo "Vireo" class is the main class of the library; You need an instance of
+this class to create all the library objects.
+
+Next : \ref tutorial_1_04_queues
+*/

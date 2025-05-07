@@ -1,24 +1,26 @@
-Building Vireo RHI
-===========================================================================
+/*!
+\page gs_010_build Building Vireo
 
 Dependencies
 ---------------------------------------------------------------------------
 Most of the dependencies used by Vireo RHI are automatically configured
 by the `CMakeLists.txt` file except for the Vulkan SDK.
 
-**Install the Vulkan SDK**
+### Install the Vulkan SDK
 - [Vulkan SDK 1.3.x+](https://vulkan.lunarg.com/)
 
-**Install the build tools**
-
+### Install the build tools
 For Microsoft Windows :
 - [MSVC 19+ (VS 2022)](https://visualstudio.microsoft.com/fr/)
+(or [LLVM 20+](https://github.com/mstorsjo/llvm-mingw/releases) but only with the DirectX backend disabled)
 - [CMake 3.29+](https://cmake.org/download/) ([Visual Studio](https://learn.microsoft.com/en-us/cpp/build/cmake-projects-in-visual-studio?view=msvc-170)) with a [build tool](https://github.com/ninja-build/ninja/releases)
 
 Standalone build
 ---------------------------------------------------------------------------
-
-- Clone the [Vireo RHI repository](https://github.com/HenriMichelon/vireo_rhi)
+Clone the [Vireo RHI repository](https://github.com/HenriMichelon/vireo_rhi) then :
 - `cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=Release` (adapt for your build tool)
 - `cmake --build build`
 
+Next : \ref gs_020_tutorial_1
+
+*/

@@ -1,0 +1,86 @@
+/*!
+\page tutorial_1_02_project Setting up the project
+
+First, clone the following projects somewhere in your computer :
+- [the Vireo RHI repository](https://github.com/HenriMichelon/vireo_rhi)
+- [Vireo template project](https://github.com/HenriMichelon/vireo_template)
+
+Then add a `.env.cmake` file containing the following variable at the root of your project template project:
+
+    set(VIREO_PROJECT_DIR "path_to_the_cloned_vireo_directory")
+
+In the `src` directory creates :
+
+A new `MyApp.ixx` interface file for your application :
+
+\code{.cpp}
+    module;
+    #include "Libraries.h"
+    export module myapp;
+
+    import app;
+
+    export class MyApp : public Application {
+    public:
+        void onInit() override;
+        void onRender() override;
+        void onResize() override;
+        void onDestroy() override;
+    }
+\endcode
+
+A new `MyApp.cpp` implementation file :
+
+\code{.cpp}
+    module;
+    #include "Libraries.h"
+    module myapp;
+    
+    void MyApp::onInit() {
+    }
+    
+    void MyApp::onRender() {
+    }
+    
+    void MyApp::onResize() {
+    }
+    
+    void MyApp::onDestroy() {
+    }
+\endcode
+
+And a new `MyAppMain.cpp` source file :
+
+\code{.cpp}
+    #include "Macros.h"
+    import myapp;
+    
+    APP(std::make_shared<MyApp>(), L"Hello, Vireo !", 1280, 720);
+\endcode
+
+Update the `CMakeLists.txt` file by uncommenting the last part :
+
+\code
+    ...
+    
+    #######################################################
+    set(MY_TARGET_SRC
+            ${SRC_DIR}/MyApp.cpp
+            ${SRC_DIR}/MyAppMain.cpp)
+    set(MY_TARGET_MODULES ${SRC_DIR}/MyApp.ixx)
+    build_target(myapp "${MY_TARGET_SRC}" ${MY_TARGET_MODULES})
+\endcode
+
+Then reload the CMake project and build the `myapp` target.
+
+Execute the application (from the project root directory), it will display
+the graphic API selection dialog :
+
+![backend_select.png](images/backend_select.png)
+
+Select an API and an empty window will be displayed :
+
+![empty_window.png](images/empty_window.png)
+
+Next : \ref tutorial_1_03_vireo_class
+*/

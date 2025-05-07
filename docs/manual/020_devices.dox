@@ -1,0 +1,16 @@
+/*!
+\page manual_020_devices Backend instances, physical devices and logical devices
+
+The \ref vireo::Instance "Instance", \ref vireo::PhysicalDevice "PhysicalDevice"
+and \ref vireo::Device "Device" are opaque classes that encapsulate the
+corresponding backends concepts :
+- Vulkan : `VkInstance`, `VkPhysicalDevice` and `VkDevice`
+- DirectX : `IDXGIFactory4`, `IDXGIAdapter4` and `ID3D12Device`
+
+These classes are responsible for the backend initialization and for selecting the
+best GPU available on the host. If no supported GPU is detected an
+\ref vireo::Exception "Exception" is raised.
+
+The only available method is the \ref vireo::PhysicalDevice::getDescription who returns a textual description of the
+selected GPU.
+*/

@@ -1,0 +1,62 @@
+/*!
+\page tutorial_1_11_shaders Shader modules
+We will use the [Slang shader language](https://shader-slang.org/) to write our shaders.
+By using Slang we will have only one code for all the supported graphics API.
+
+The `CMakeLists.txt` file supports the compilation of the shaders in the
+SPIR-V and DXIL intermediates formats.
+
+Add a new `shaders` directory under the `src` directory, then add a new 
+`triangle_color.slang` file into the `src/shaders` directory with the following content :
+    
+\code{.cpp}
+    struct VertexInput {
+       float3 position : POSITION;
+       float3 color    : COLOR;
+    };
+    
+    struct VertexOutput {
+       float4 position : SV_POSITION;
+       float3 color    : COLOR;
+    };
+    
+    VertexOutput vertexMain(VertexInput input) {
+       VertexOutput output;
+       output.position = float4(input.position, 1.0) ;
+       output.color = input.color;
+       return output;
+    }
+    
+    float4 fragmentMain(VertexOutput input) : SV_TARGET {
+       return float4(input.color, 1.0);
+    }
+\endcode
+
+The `POSITION` and `COLOR` attributes in the `VertexInput` struct refers to the
+fields of the `vertexAttributes` array. Since Vulkan does not use textual attributes
+names but binding indices the fields must be in the same order in the struct and in
+the array.
+
+The fragment shader uses the vertex color to produce a nice RGB gradient (the GPU 
+calculates the color interpolation for each fragment/pixel from the vertices colors).
+
+Reload the CMake project to add the new shader code to the list of shaders to compile then
+build the `shaders` target.
+
+If you look into the `shaders` directory in the root of your project you will see
+four files with the compiled vertex and fragment shaders, both in SPIR-V and DXIL :
+
+![compiled_shaders.png](images/compiled_shaders.png)
+
+Now we can load the shaders in our `onInit()` method, just after the vertex layout
+creation :
+
+\code{.cpp}
+    const auto vertexLayout = vireo->createVertexLayout(sizeof(Vertex), vertexAttributes);
+    const auto vertexShader = vireo->createShaderModule("shaders/triangle_color.vert");
+    const auto fragmentShader = vireo->createShaderModule("shaders/triangle_color.frag");
+    ...
+\endcode
+
+Next : \ref tutorial_1_12_pipeline_config
+*/

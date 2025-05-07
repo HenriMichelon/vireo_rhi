@@ -1,0 +1,96 @@
+/*!
+\page tutorial_1_05_swapchain The swap chain
+
+The swap chain is a collection of frame buffers. 
+Its basic purpose is to ensure that the image that we're currently rendering 
+to is different from the one that is currently on the screen. 
+This is important to make sure that only complete images are shown. 
+Every time we want to draw a frame we have to ask the swap chain to 
+provide us with an image to render to. When we've finished drawing a frame, 
+the image is returned to the swap chain for it to be presented to the 
+screen at some point. The swap chain is abstracted in the \ref vireo::SwapChain "SwapChain" class.
+
+We need a synchronization mechanism when we use a swap chain since the modern
+graphics API executes commands asynchronously: we have to wait for the GPU to finish the
+submitted work before reusing a frame buffer.
+
+The CPU/GPU synchronization is done with a \ref vireo::Fence "Fence"
+object. Since we can have multiple frames in flight (the GPU can render in 
+multiple frame buffers in parallel), we need one `Fence` per frame buffer.
+
+Add a `FrameData` `struct` and a `vector` of `FrameData` to your application:
+
+\code{.cpp}
+    static constexpr auto FRAMES_IN_FLIGHT{2};
+    struct FrameData {
+        std::shared_ptr<vireo::Fence> inFlightFence;
+    };
+    std::vector<FrameData> framesData{FRAMES_IN_FLIGHT};
+\endcode
+
+Create the fences after the queue creation in the `onInit()` method :
+
+\code{.cpp}
+    for (auto& frameData : framesData) {
+        frameData.inFlightFence = vireo->createFence(true);
+    }
+\endcode
+
+
+It's time to create the swap chain. Add a \ref vireo::SwapChain "SwapChain" field to your application interface:
+
+\code{.cpp}
+    std::shared_ptr<vireo::SwapChain> swapChain;
+\endcode
+
+We need the window handle to create the swap chain.  The window is created by the `Win32Application` and the os-specific handle
+is stored in the `windowHandle` field of the base `Application` class.
+We can use this field to create the swap chain, just after the `graphicQueue`
+creation, in the `onInit()` method :
+
+\code{.cpp}
+    swapChain = vireo->createSwapChain(
+        vireo::ImageFormat::R8G8B8A8_SRGB,
+        graphicQueue,
+        windowHandle,
+        vireo::PresentMode::VSYNC,
+        FRAMES_IN_FLIGHT);
+\endcode
+
+The swap chain needs to be recreated each time the window is resized :
+
+\code{.cpp}
+    void MyApp::onResize() {
+        swapChain->recreate();
+    }
+\endcode
+
+We have to wait for the last frame presentation to be finished before
+closing the application :
+
+\code{.cpp}
+    void MyApp::onDestroy() {
+        graphicQueue->waitIdle();
+        swapChain->waitIdle();
+    }
+\endcode
+
+Get the frame data corresponding to the current frame in
+the `onRender()` method, acquire the next frame buffer (while waiting
+for the frame buffer to be ready), then present it into
+the window :
+
+\code{.cpp}
+    void MyApp::onRender() {
+        const auto& frameData = framesData[swapChain->getCurrentFrameIndex()];
+        if (!swapChain->acquire(frameData.inFlightFence)) { return; }
+    
+        // commands will be recorded and submitted here
+    
+        swapChain->present();
+        swapChain->nextFrameIndex();
+    }
+\endcode
+
+Next : \ref tutorial_1_06_commands
+*/

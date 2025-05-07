@@ -58,8 +58,8 @@
             ""
         ],
         "layout-file": "layout.xml",
-        "main-page-name": "",
-        "main-page-omit": false,
+        "main-page-name": "mainpage.dox",
+        "main-page-omit": true,
         "markdown": true,
         "max-init-lines": 30,
         "multiline-cpp-brief": false,
@@ -221,9 +221,9 @@
         "input-encoding": "UTF-8",
         "input-patterns": [
             "*.ixx",
-            "*.md"
+            "*.dox"
         ],
-        "input-recursive": false,
+        "input-recursive": true,
         "input-source": [
             "../src",
             "."
@@ -283,7 +283,7 @@
         "html-colorstyle-gamma": 80,
         "html-colorstyle-hue": 220,
         "html-colorstyle-sat": 100,
-        "html-dynamic-sections": false,
+        "html-dynamic-sections": true,
         "html-extra-files": [
             ""
         ],
@@ -393,7 +393,7 @@
         "expand-as-defined": [
             ""
         ],
-        "expand-only-predefined": false,
+        "expand-only-predefined": true,
         "include-path": [
             ""
         ],

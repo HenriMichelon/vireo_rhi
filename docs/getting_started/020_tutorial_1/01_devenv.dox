@@ -1,0 +1,22 @@
+/*!
+\page tutorial_1_01_devenv Development environment
+
+Since Vireo currently only supports Microsoft Windows this tutorial assumes that
+you use this operating system.
+
+We will be using CMake which means that you can use [Microsoft Visual Studio](https://visualstudio.microsoft.com/fr/) or
+[Jetbrains CLion](https://www.jetbrains.com/clion/) to edit and compile your code.
+Note that you need to install the CMake component for Visual Studio.
+
+Since Vireo implements a DirectX 12 backend under Windows you need to install 
+[Microsoft Visual C++ 2022 (MSCV 19+)](https://visualstudio.microsoft.com/fr/).
+Vireo can be compiled with LLVM but only with the Vulkan back-end alone.
+
+For DirectX 12 install the "Game Development with C++" component for Visual Studio.
+
+For Vulkan install the [Vulkan SDK](https://vulkan.lunarg.com/)
+
+The CMake scripts will automatically install the [GLM](https://github.com/g-truc/glm) library used in this tutorial
+
+Next : \ref tutorial_1_02_project
+*/

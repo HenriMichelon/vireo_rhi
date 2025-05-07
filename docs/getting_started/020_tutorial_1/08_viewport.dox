@@ -1,0 +1,25 @@
+/*!
+\page tutorial_1_08_viewport Viewports and scissors
+A viewport basically describes the region of the framebuffer that the output 
+will be rendered to. This will almost always be `(0, 0)` to `(width, height)`.
+
+While viewports define the transformation from the image to the framebuffer, 
+scissor rectangles define in which regions pixels will actually be stored. 
+Any pixels outside the scissor rectangles will be discarded by the rasterizer. 
+They function like a filter rather than a transformation (image is from 
+the [Vulkan tutorial](https://vulkan-tutorial.com/en/Drawing_a_triangle/Graphics_pipeline_basics/Fixed_functions)):
+
+![viewports_scissors.png](images/viewports_scissors.png)
+
+We need to record the commands to set the viewports & scissors at the start of the render
+pass :
+
+\code{.cpp}
+    frameData.commandList->beginRendering(renderingConfig);
+    frameData.commandList->setViewport(swapChain->getExtent());
+    frameData.commandList->setScissors(swapChain->getExtent());
+    // commands will be recorded and submitted here
+\endcode
+
+Next : \ref tutorial_1_09_vertex_data
+*/

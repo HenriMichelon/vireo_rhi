@@ -1,0 +1,37 @@
+/*!
+\page tutorial_1_04_queues The submission queue
+Most operations performed with graphics API, like draw commands and memory 
+operations, are asynchronously executed by submitting them to a 
+\ref vireo::SubmitQueue "SubmitQueue".
+Queues are allocated from \ref vireo::CommandType "CommandType", where each type supports a specific set of operations in its queues.
+For example, there could be separate queue families for graphics, compute and memory transfer operations.
+
+Add a submission queue field to your application :
+
+\code{.cpp}
+    private:
+        std::shared_ptr<vireo::SubmitQueue> graphicQueue;
+\endcode
+
+This queue will be used for all graphics commands and for presenting the result
+in the window.
+
+Create it in the `onInit()` method :
+
+\code{.cpp}
+    void MyApp::onInit() {
+        graphicQueue = vireo->createSubmitQueue(vireo::CommandType::GRAPHIC);
+    }
+\endcode
+
+and in the `onDestroy()` method add the code to wait for all the submitted commands
+to finish before closing the application :
+
+\code{.cpp}
+    void MyApp::onDestroy() {
+        graphicQueue->waitIdle();
+    }
+\endcode
+
+Next : \ref tutorial_1_05_swapchain
+*/

@@ -1,0 +1,94 @@
+/*!
+\page tutorial_1_06_commands Commands allocators and command lists
+We can't execute the application now because the swap chain image needs
+to be ready to be presented by the GPU before calling `present()`.
+To make this frame buffer ready to be presented, we have to use a pipeline barrier
+to synchronize resource like image between the different stages of a GPU pipeline.
+
+A pipeline barrier is a GPU synchronization primitive that guarantees that any 
+writes performed by those earlier stages are made visible (and available) 
+to reads or writes in the later stages.
+
+A pipeline barrier is created on the GPU with the help of a \ref vireo::CommandList "CommandList"
+and a command list is allocated by a \ref vireo::CommandAllocator "CommandAllocator".
+
+The command list will also be used to record pipeline and drawing commands for
+execution by the GPU.
+
+Since we can render multiple frames in flight, we need one allocator and one list
+per frame:
+    
+\code{.cpp}
+    struct FrameData {
+        std::shared_ptr<vireo::Fence>            inFlightFence;
+        std::shared_ptr<vireo::CommandAllocator> commandAllocator;
+        std::shared_ptr<vireo::CommandList>      commandList;
+    };
+\endcode
+
+Add the creation code after the fence creation :
+
+\code{.cpp}
+    for (auto& frameData : framesData) {
+        frameData.inFlightFence = vireo->createFence(true);
+        frameData.commandAllocator = vireo->createCommandAllocator(vireo::CommandType::GRAPHIC);
+        frameData.commandList = frameData.commandAllocator->createCommandList();
+    }
+\endcode
+
+Command lists need to be :
+- Reset before use (via the command allocator in this tutorial)
+- Submitted to the GPU with a submission queue 
+
+We will do that between `acquire()` and `present()`:
+    
+\code{.cpp}
+    ...
+    frameData.commandAllocator->reset();
+
+    // commands will be recorded and submitted here
+
+    graphicQueue->submit(
+        frameData.inFlightFence,
+        swapChain,
+        {frameData.commandList});
+    ...
+\endcode
+
+Recording commands in the command list is done in a *recording session*.
+A session starts with \ref vireo::CommandList::begin and ends with \ref vireo::CommandList::end, between `reset()` and
+`submit()` :
+
+\code{.cpp}
+    ...
+    frameData.commandList->begin();
+
+    // commands will be recorded and submitted here
+
+    frameData.commandList->end();
+    ...
+\endcode
+
+We can finally add the pipeline barriers for the current swap chain frame buffer
+between `begin()` and `end()`:
+
+\code{.cpp}
+    frameData.commandList->barrier(
+        swapChain,
+        vireo::ResourceState::UNDEFINED,
+        vireo::ResourceState::RENDER_TARGET_COLOR);
+
+    // commands will be recorded and submitted here
+
+    frameData.commandList->barrier(
+        swapChain,
+        vireo::ResourceState::RENDER_TARGET_COLOR,
+        vireo::ResourceState::PRESENT);
+\endcode
+
+The application can be started to display a black window (since we never write
+data into the frame buffer):
+![swap_chain.png](images/swap_chain.png)
+
+Next : \ref tutorial_1_07_renderpass
+*/

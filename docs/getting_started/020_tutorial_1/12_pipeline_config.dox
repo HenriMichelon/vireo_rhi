@@ -1,0 +1,39 @@
+/*!
+\page tutorial_1_12_pipeline_config Pipeline creation
+The graphic pipeline configuration is described in a \ref vireo::GraphicPipelineConfiguration "GraphicPipelineConfiguration"
+struct.
+
+For rendering in a color attachment you need :
+- The color format of the attachment
+- The color blending configuration for this attachment
+
+Add a basic configuration in your application with only one color attachment :
+
+\code{.cpp}
+    vireo::GraphicPipelineConfiguration pipelineConfig {
+       .colorRenderFormats = {vireo::ImageFormat::R8G8B8A8_SRGB},
+       .colorBlendDesc = {{}}
+    };
+\endcode
+
+Then add the pipeline field :
+
+\code{.cpp}
+    std::shared_ptr<vireo::Pipeline> pipeline;
+\endcode
+
+and the pipeline creation just after the shader modules creation in `onInit()`:
+
+\code{.cpp}
+    pipelineConfig.resources = vireo->createPipelineResources();
+    pipelineConfig.vertexInputLayout = vertexLayout;
+    pipelineConfig.vertexShader = vertexShader;
+    pipelineConfig.fragmentShader = fragmentShader;
+    defaultPipeline = vireo->createGraphicPipeline(pipelineConfig);
+\endcode
+
+We use an empty pipeline resource object since our shader only uses the vertex 
+input described by the vertex layout.
+
+Next : \ref tutorial_1_13_drawing
+*/

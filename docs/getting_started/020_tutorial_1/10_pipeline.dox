@@ -1,0 +1,13 @@
+/*!
+\page tutorial_1_10_pipeline The graphic pipeline
+The graphics pipeline is the sequence of operations that take the vertices and textures of 
+your meshes all the way to the pixels in the render targets.
+You can learn more about graphics pipelines in the [Vulkan tutorial](https://vulkan-tutorial.com/Drawing_a_triangle/Graphics_pipeline_basics/Introduction).
+To create a graphic pipeline, we need :
+- The vertex layout
+- The shader(s) module(s)
+- The list of resources (uniform buffers, images, samplers, ...) used by the shaders
+- The configuration of the pipeline
+
+Next : \ref tutorial_1_11_shaders
+*/

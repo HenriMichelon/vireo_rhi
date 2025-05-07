@@ -1381,6 +1381,8 @@ export namespace vireo {
          * @param image The image affected by this barrier.
          * @param oldState Old state in an image state transition.
          * @param newState New state in an image state transition.
+         * @param firstMipLevel  The first mip level to include is this barrier
+         * @param levelCount Number of level to include
          */
         virtual void barrier(
             const std::shared_ptr<const Image>& image,
@@ -1966,7 +1968,6 @@ export namespace vireo {
 
         /**
          * Creates an empty description layout for UNIFORM_DYNAMIX resources types
-         * @param index Binding index
          * @param name Object name for debug
          */
         std::shared_ptr<DescriptorLayout> createDynamicUniformDescriptorLayout(

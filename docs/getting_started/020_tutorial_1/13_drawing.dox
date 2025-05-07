@@ -1,0 +1,26 @@
+/*!
+\page tutorial_1_13_drawing Drawing
+
+It's time to draw our triangle!
+
+Add the drawing commands recording in the `onRender()` method between `setScissors()`
+and `endRendering()` :
+
+\code{.cpp}
+    frameData.commandList->bindPipeline(pipeline);
+    frameData.commandList->bindVertexBuffer(vertexBuffer);
+    frameData.commandList->draw(triangleVertices.size());
+\endcode
+
+If you did everything correctly up to this point, then you should now see something resembling the following when you run your program.
+
+With Vulkan :
+
+![triangle_color_vk.png](images/triangle_color_vk.png)
+
+With DirectX :
+
+![triangle_color_dx.png](images/triangle_color_dx.png)
+
+Next : \ref tutorial_1_14_conclusion
+*/

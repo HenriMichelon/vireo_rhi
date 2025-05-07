@@ -15,8 +15,8 @@ Key features :
 **Note** this library is not intended to be a full-featured abstraction of the graphics API.
 Functionalities are added when needed.
 
-[User documentation](https://henrimichelon.github.io/Vireo/md_000_vireo.html)
+[User documentation](https://henrimichelon.github.io/Vireo)
 
-["Hello triangle" tutorial](https://henrimichelon.github.io/Vireo/md_020_tutorial_triangle.html)
+["Hello triangle" tutorial](https://henrimichelon.github.io/Vireo/gs_020_tutorial_1.html)
 
 [Samples repository](https://github.com/HenriMichelon/vireo_samples)

@@ -1,0 +1,28 @@
+/*!
+\page manual_010_vireo_class The Vireo class
+
+The [`Vireo`](classvireo_1_1Vireo.html) class encapsulate the creation of the various objects needed by the graphics API such as
+the physical adapter and the logical device.
+
+The starting point for using Vireo is to import the `vireo` modules then create an instance of this class by calling the
+[`create()`](classvireo_1_1Vireo.html#a182f874336d2992e9cd06e11661e2ddb) static method.
+This method takes the [`Backend`](namespacevireo.html#ae046059fd4567480e8f03be6171dafd1)
+you want to use, DirectX or Vulkan :
+
+\code{.cpp}
+import vireo;
+
+...
+
+auto vireo = vireo::Vireo::create(vireo::Backend::VULKAN);
+
+\endcode
+
+\note This instance needs to be accessible everywhere you want to use Vireo since this class
+is used to create all Vireo objects.
+
+When creating the Vireo object, the instance, physical device and logical devices objects are created.
+
+Next : \ref manual_020_devices
+
+*/

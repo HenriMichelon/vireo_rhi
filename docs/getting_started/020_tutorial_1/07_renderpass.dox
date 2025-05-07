@@ -1,0 +1,46 @@
+/*!
+\page tutorial_1_07_renderpass Render pass
+A render pass consists of a list of commands submitted to the GPU to draw
+into various frame buffers also named attachments.
+In this tutorial we will directly draw into the swap chain frame buffers. 
+
+To configure the attachments and the render pass we have to create a \ref vireo::RenderingConfiguration "RenderingConfiguration".
+Add a configuration object to your application class:
+
+\code{.cpp}
+    vireo::RenderingConfiguration renderingConfig {
+        .colorRenderTargets = {{
+            .clear = true,
+            .clearValue = {0.0f, 0.2f, 0.4f, 1.0f}
+        }}
+    };
+\endcode
+
+We declare in this object *one* frame buffer as a color attachment.
+The only parameter for this attachment is the RGBA color used to clear the 
+frame buffer before drawing (we need it to be different from the default
+black color to visually control that the frame buffer clearing is effective).
+
+Since we will render directly into the swap chain we need to set the color 
+attachment target just after the swap chain creation with \ref vireo::Vireo::createSwapChain :
+
+\code{.cpp}
+    renderingConfig.colorRenderTargets[0].swapChain = swapChain;
+\endcode
+ 
+In the `onRender()` method we can start the render pass between the swap chain
+barriers:
+
+\code{.cpp}
+    frameData.commandList->beginRendering(renderingConfig);
+
+    // commands will be recorded and submitted here
+
+    frameData.commandList->endRendering();
+\endcode
+
+After the white then the black window we now have a blue window :
+![clear_color.png](images/clear_color.png)
+
+Next : \ref tutorial_1_08_viewport
+*/

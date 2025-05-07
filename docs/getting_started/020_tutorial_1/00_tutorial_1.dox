@@ -1,0 +1,35 @@
+/*!
+\page gs_020_tutorial_1 "Hello Triangle" tutorial
+
+## Introduction
+This tutorial will teach you the basics of using the Vireo Rendering Hardware
+Interface.
+Vireo is an open source library written in modern C++ that implements a 
+common abstraction layer over multiple 3D graphics APIs.
+
+Like modern graphics API, Vireo is a low-level library but is designed
+to be less verbose, at the price of reduced flexibility.
+
+This tutorial assumes that the reader already knows the basic concepts of the
+modern graphics API like Vulkan or DirectX 12, like pipelines, descriptors,
+resources, buffers, barriers, ...
+
+Sources of the tutorial are available at https://github.com/HenriMichelon/vireo_tutorial_1
+
+-# \subpage tutorial_1_01_devenv
+-# \subpage tutorial_1_02_project
+-# \subpage tutorial_1_03_vireo_class
+-# \subpage tutorial_1_04_queues
+-# \subpage tutorial_1_05_swapchain
+-# \subpage tutorial_1_06_commands
+-# \subpage tutorial_1_07_renderpass
+-# \subpage tutorial_1_08_viewport
+-# \subpage tutorial_1_09_vertex_data
+-# \subpage tutorial_1_10_pipeline
+-# \subpage tutorial_1_11_shaders
+-# \subpage tutorial_1_12_pipeline_config
+-# \subpage tutorial_1_13_drawing
+-# \subpage tutorial_1_14_conclusion
+
+
+*/
