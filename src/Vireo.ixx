@@ -152,9 +152,11 @@ export namespace vireo {
         INDEX,
         //! Used for shader uniform (in host visible memory)
         UNIFORM,
-        //! Used for copy operations (in host visible memory)
-        TRANSFER,
-    };
+        //! Used for vertex and index buffers copy operations (in host visible memory)
+        BUFFER_TRANSFER,
+        //! Used for image copy operations (in host visible memory)
+        IMAGE_TRANSFER,
+};
 
     /**
      * Index type for vertex indices
@@ -1233,12 +1235,14 @@ export namespace vireo {
         virtual void end() const = 0;
 
         /**
-         * Uploads data into a buffer
+         * Uploads data into a buffer using a temporary (staging) buffer.
          */
-        virtual void upload(const std::shared_ptr<const Buffer>& destination, const void* source) = 0;
+        virtual void upload(
+            const std::shared_ptr<const Buffer>& destination,
+            const void* source) = 0;
 
         /**
-         * Upload data into an image
+         * Upload data into an image using a temporary (staging) buffer.
          */
         virtual void upload(
             const std::shared_ptr<const Image>& destination,
@@ -1253,6 +1257,16 @@ export namespace vireo {
             const std::shared_ptr<const Image>& destination,
             uint32_t sourceOffset = 0,
             uint32_t firstMipLevel = 0) = 0;
+
+        /**
+         * Copy a buffer into another buffer
+         */
+        virtual void copy(
+            const std::shared_ptr<Buffer>& source,
+            const std::shared_ptr<Buffer>& destination,
+            size_t size = Buffer::WHOLE_SIZE,
+            uint32_t sourceOffset = 0,
+            uint32_t destinationOffset = 0) = 0;
 
         /**
          * Upload images into an image array

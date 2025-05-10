@@ -1076,7 +1076,7 @@ namespace vireo {
         const auto buffer = static_pointer_cast<const VKBuffer>(destination);
         const auto stagingBuffer = std::make_shared<VKBuffer>(
             device,
-            BufferType::TRANSFER,
+            BufferType::BUFFER_TRANSFER,
             buffer->getInstanceSize(),
             buffer->getInstanceCount(),
             L"StagingBuffer for buffer");
@@ -1108,6 +1108,30 @@ namespace vireo {
         stagingBuffers.push_back(stagingBuffer);
     }
 
+    void VKCommandList::copy(
+            const std::shared_ptr<Buffer>& source,
+            const std::shared_ptr<Buffer>& destination,
+            const size_t size,
+            const uint32_t sourceOffset,
+            const uint32_t destinationOffset) {
+        assert(source != nullptr);
+        assert(destination != nullptr);
+        const auto copySize = size == Buffer::WHOLE_SIZE ? destination->getSize() : size;
+        assert(source->getSize() >= (copySize + sourceOffset));
+        assert(destination->getSize() >= (copySize + destinationOffset));
+        const auto copyRegion = VkBufferCopy{
+            .srcOffset = sourceOffset,
+            .dstOffset = destinationOffset,
+            .size = copySize,
+        };
+        vkCmdCopyBuffer(
+            commandBuffer,
+            static_pointer_cast<VKBuffer>(source)->getBuffer(),
+            static_pointer_cast<VKBuffer>(destination)->getBuffer(),
+            1,
+            &copyRegion);
+    }
+
     void VKCommandList::upload(
         const std::shared_ptr<const Image>& destination,
         const void* source,
@@ -1118,7 +1142,7 @@ namespace vireo {
         const auto image = static_pointer_cast<const VKImage>(destination);
         const auto stagingBuffer = std::make_shared<VKBuffer>(
            device,
-           BufferType::TRANSFER,
+           BufferType::IMAGE_TRANSFER,
            image->getImageSize(),
            image->getArraySize(),
            L"StagingBuffer for image");
@@ -1204,7 +1228,7 @@ namespace vireo {
         const auto image = static_pointer_cast<const VKImage>(destination);
         const auto stagingBuffer = std::make_shared<VKBuffer>(
            device,
-           BufferType::TRANSFER,
+           BufferType::IMAGE_TRANSFER,
            image->getImageSize(),
            image->getArraySize(),
            L"StagingBuffer for image array");

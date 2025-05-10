@@ -164,6 +164,13 @@ export namespace vireo {
             uint32_t sourceOffset,
             uint32_t firstMipLevel) override;
 
+        void copy(
+            const std::shared_ptr<Buffer>& source,
+            const std::shared_ptr<Buffer>& destination,
+            size_t size,
+            uint32_t sourceOffset,
+            uint32_t destinationOffset) override;
+
         void uploadArray(
             const std::shared_ptr<const Image>& destination,
             const std::vector<void*>& sources,

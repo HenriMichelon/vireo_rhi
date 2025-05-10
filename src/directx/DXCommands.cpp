@@ -796,6 +796,34 @@ namespace vireo {
         stagingBuffers.push_back(stagingBuffer);
     }
 
+    void DXCommandList::copy(
+            const std::shared_ptr<Buffer>& source,
+            const std::shared_ptr<Buffer>& destination,
+            const size_t size,
+            const uint32_t sourceOffset,
+            const uint32_t destinationOffset) {
+        assert(source != nullptr);
+        assert(destination != nullptr);
+        const auto copySize = size == Buffer::WHOLE_SIZE ? destination->getSize() : size;
+        assert(source->getSize() >= (copySize + sourceOffset));
+        assert(destination->getSize() >= (copySize + destinationOffset));
+        const auto dxDestination = static_pointer_cast<DXBuffer>(destination);
+        commandList->CopyBufferRegion(
+            dxDestination->getBuffer().Get(),
+            destinationOffset,
+            static_pointer_cast<DXBuffer>(source)->getBuffer().Get(),
+            sourceOffset,
+            copySize
+        );
+        {
+            const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+                dxDestination->getBuffer().Get(),
+                D3D12_RESOURCE_STATE_COPY_DEST,
+                DXBuffer::ResourceStates[static_cast<int>(dxDestination->getType())]);
+            commandList->ResourceBarrier(1, &memoryBarrier);
+        }
+    }
+
     void DXCommandList::upload(
         const std::shared_ptr<const Image>& destination,
         const void* source,

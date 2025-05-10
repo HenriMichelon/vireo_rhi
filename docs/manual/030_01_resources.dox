@@ -9,11 +9,14 @@ Thera are four types of buffers :
 - \ref vireo::BufferType::VERTEX : used to store vertex data for the vertex shaders, used by the GPU when drawing primitives.
 - \ref vireo::BufferType::INDEX : used to store vertex index data for the vertex shaders, used by the GPU when drawing primitives.
 - \ref vireo::BufferType::UNIFORM : used to share various data such as struct or arrays with any shaders
-- \ref vireo::BufferType::TRANSFER : used to upload data in device-only memory (memory only accessible by the GPU) from the CPU.
+- \ref vireo::BufferType::BUFFER_TRANSFER : used to upload vertex and index data in device-only memory (memory only accessible by the GPU) from the CPU.
+- \ref vireo::BufferType::IMAGE_TRANSFER : used to upload image data in device-only memory (memory only accessible by the GPU) from the CPU.
 
 Depending on their type theses buffers are located in :
 - Device-only memory (memory only accessible by the GPU) : \ref vireo::BufferType::VERTEX and \ref vireo::BufferType::INDEX
-- Host-accessible memory (memory accessible by the GPU and the CPU) : \ref vireo::BufferType::UNIFORM and \ref vireo::BufferType::TRANSFER
+- Host-accessible memory (memory accessible by the GPU and the CPU) : \ref vireo::BufferType::UNIFORM, \ref vireo::BufferType::BUFFER_TRANSFER and \ref vireo::BufferType::IMAGE_TRANSFER
+
+There is two types of TRANSER buffers to take into account the difference of memory alignment between various graphics API.
 
 ## Creating a buffer
 
@@ -24,15 +27,15 @@ the size in bytes of each element (data block) and the number of elements :
 frame.materialUniform = vireo->createBuffer(vireo::BufferType::UNIFORM, sizeof(Material), scene.getMaterials().size());
 \endcode
 
-Each instance of the elements in the buffer \b can need to be memory aligned. The alignment depends on the type of buffer and the graphic API
+Each instance of the elements in the buffer \b can be memory aligned. The alignment depends on the type of buffer and the graphic API
 (Vulkan and DirectX can uses different values). When creating the buffer the alignment is automatically calculated:
 - The \ref vireo::Buffer::getInstanceSizeAligned returns the aligned size in bytes of each element,
 - The \ref vireo::Buffer::getSize returns the total size of the buffer in VRAM with each element memory aligned.
 
 ## Writing data into buffers
 
-For host-accessible buffers (\ref vireo::BufferType::UNIFORM and \ref vireo::BufferType::TRANSFER) data can be written
-directly from the CPU by \b mapping them with \ref vireo::Buffer::map. To "map memory" means to obtain a CPU pointer to
+For host-accessible buffers (\ref vireo::BufferType::UNIFORM,  \ref vireo::BufferType::IMAGE_TRANSFER and \ref vireo::BufferType::BUFFER_TRANSFER)
+data can be written directly from the CPU by \b mapping them with \ref vireo::Buffer::map. To "map memory" means to obtain a CPU pointer to
 a device (GPU) memory, to be able to read from it or write to it in CPU code.
 
 Once the buffer is mapped, data can be written with \ref vireo::Buffer::write. This method take care of the alignment
@@ -52,6 +55,12 @@ change each frame for example). The \ref vireo::Buffer "Buffer" destructor will 
 
 ## Uploading data into VRAM
 
+There is two methods to upload data into the GPU memory :
+- Using `upload()` : the easy way
+- Using `copy()`: the flexible way
+
+### using upload()
+
 For device-memory buffers (\ref vireo::BufferType::VERTEX and \ref vireo::BufferType::INDEX) you need to instruct the GPU
 to copy data from a temporary, host-accessible (staging) buffer to the destination buffer.
 
@@ -69,7 +78,7 @@ the commands execution by blocking the CPU-side with \ref vireo::SubmitQueue::wa
  explicitly on non-temporary command lists.
 
 \code{.cpp}
-// Example of a vertex buffer upload
+// Example of a vertex buffer upload using upload()
 // In a local scope for temporary objects destruction
 {
     // Allocate the buffer
@@ -98,4 +107,50 @@ a \ref vireo::CommandType::GRAPHIC command list for that. The \ref vireo::Comman
 submit queues can take advantage of DMA transfers. Some GPU have only one queue for both transfer and graphics operation,
 so the use of a specific transfer queue is not guaranteed. Also, the transfer only queues can't do some operations like pipeline
 barriers on images.
+
+### using copy()
+
+If you need to take care of the staging buffer yourself or if you need to copy the data with different source or
+destination offset you have to use \ref vireo::CommandList::copy.
+
+To use this method you need to :
+- Create a staging buffer of type \ref vireo::BufferType::BUFFER_TRANSFER
+- Write data into this buffer
+- Create the destination buffer of type \ref vireo::BufferType::VERTEX or \ref vireo::BufferType::INDEX
+- Record the copy command to instruct the GPU to copy data from the staging buffer to the destination buffer
+- Keep the staging buffer alive until the copy command have been executed (you may need to wait on the CPU side for
+the completion of the commands on the submit queue).
+
+\code{.cpp}
+// Example of a vertex buffer upload using copy()
+// In a local scope for temporary objects destruction
+{
+    // Allocate and fill the staging buffer
+    const auto stagingBufferVertex = vireo->createBuffer(vireo::BufferType::BUFFER_TRANSFER, sizeof(Vertex), triangleVertices.size());
+    stagingBufferVertex->map();
+    stagingBufferVertex->write(triangleVertices.data());
+    stagingBufferVertex->unmap();
+
+    // Allocate the destination buffer
+    vertexBuffer = vireo->createBuffer(vireo::BufferType::VERTEX, sizeof(Vertex), triangleVertices.size());
+
+    // Create a command list
+    const auto uploadCommandAllocator = vireo->createCommandAllocator(vireo::CommandType::TRANSFER);
+    const auto uploadCommandList = uploadCommandAllocator->createCommandList();
+
+    // Record the copy command
+    uploadCommandList->begin();
+    uploadCommandList->copy(stagingBufferVertex, vertexBuffer);
+    uploadCommandList->end();
+
+    // Execute the copy command
+    const auto transferQueue = vireo->createSubmitQueue(vireo::CommandType::TRANSFER);
+    transferQueue->submit({uploadCommandList});
+
+    // Wait for the command to executed by the GPU
+    transferQueue->waitIdle();
+} // the staging buffer is automatically destroyed
+\endcode
+
+
 */
