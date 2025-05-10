@@ -6,7 +6,64 @@ You submit recorded \ref manual_050_00_commands "command lists" with a \ref vire
 Work is executed asynchronously on the GPU and \ref manual_090_00_synchronization "synchronization" between queues
 (or with CPU) must be handled explicitly by the developer.
 
-...More to come...
+You can only submit work to a queue from one thread at a time, but different threads can submit work to a different queue simultaneously.
 
+Each queue is created to submit one \ref vireo::CommandType "type of commands" : graphic work, compute work or memory transfer.
+It's safe to use the \ref vireo::CommandType::GRAPHIC type for all commands, all GPU and drivers have at least one queue of this type with support
+for the three types of commands.
+
+\note Not all applications will require or benefit from multiple queues. It is reasonable for an application to have a
+single “global” graphics queue to submit all the work to the GPU.
+
+How a queue is mapped to the underlying hardware is implementation-defined. Some implementations will have multiple
+hardware queues and submitting work to multiple queues will proceed independently and concurrently.
+Some implementations will do scheduling at a kernel driver level before submitting work to the hardware.
+There is no current way in Vulkan or DirectX to expose the exact details how each queue is mapped.
+
+## Creating a submission queue
+
+Submission queues are create using \ref vireo::Vireo::createSubmitQueue :
+
+\code{.cpp}
+graphicQueue = vireo->createSubmitQueue(vireo::CommandType::GRAPHIC);
+\endcode
+
+## Using a submission queue
+
+There is two typical uses :
+- Submit commands independently to the presentation mechanism
+- Submit commands just before presenting with specific synchronization
+
+For the first type of use you specify the command lists to execute and, optionally, the \ref manual_090_02_semaphores "synchronization semaphores" :
+
+\code{.cpp}
+// Submit graphic commands while waiting then signaling a timeline semaphore
+graphicQueue->submit(
+           semaphore,
+           vireo::WaitStage::VERTEX_SHADER,
+           vireo::WaitStage::FRAGMENT_SHADER,
+           semaphore,
+           {cmdList});
+\endcode
+
+For "global" submission queue remember to wait for all the commands to be executed by the GPU with \ref vireo::SubmitQueue::waitIdle :
+- Before closing the application
+- After submitting "global" work between frames, like resizing attachments.
+
+For one-time queue always wait before destroying the queue, the one-time command lists or the staging buffers :
+
+\code{.cpp}
+// Execute transfer commands
+const auto transferQueue = vireo->createSubmitQueue(vireo::CommandType::TRANSFER);
+transferQueue->submit({uploadCommandList});
+transferQueue->waitIdle();
+\endcode
+
+For the second type of use you need to use a `submit()` method with a per-frame fence and the swap chain used to present
+images on screen for proper frame synchronization, especially if you have multiple frames in flight :
+
+\code{.cpp}
+graphicQueue->submit(frame.inFlightFence, swapChain, {cmdList});
+\endcode
 
 */

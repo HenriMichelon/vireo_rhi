@@ -10,9 +10,9 @@ They are used to transform or generate data in the graphics pipeline (e.g. posit
 and replaces fixed-function stages with flexible, user-written code.
 
 In a graphic pipeline the following fixed-function stages can be replaced with shaders :
-- Vertex Shader: Runs once per vertex; computes transformed positions, normals, and outputs “vertex data.”
-- Fragment (Pixel) Shader: Runs once per pixel (or sample); computes final color, depth, and other per-pixel outputs.
-- Geometry/Tessellation Shaders: (Optional) Generate or modify primitives (points, lines, triangles) on the fly.
+- Vertex Shader: runs once per vertex; computes transformed positions, normals, and outputs “vertex data.”
+- Fragment (Pixel) Shader: runs once per pixel (or sample); computes final color, depth, and other per-pixel outputs.
+- Geometry/Tessellation/Hull/Domain Shaders: (Optional) generate or modify primitives (points, lines, triangles) on the fly.
 
 A compute shader is a general-purpose GPU application; not tied to drawing, used for physics, special effects, image filtering, AI, etc.
 

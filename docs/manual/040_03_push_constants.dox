@@ -7,7 +7,7 @@ It's ideal for frequently-changing, small pieces of data (e.g. material index, s
 
 ## Declaring a push constant
 
-Push constant are not objects, they don't need to be created like other Vireo object. They are just small structs, matrix
+Push constant are not objects, they don't need to be created like other Vireo objects. They are just small structs, matrix
 or small arrays. Just define your data like any CPU-side data then create the description of the data by declaring a
 \ref vireo::PushConstantsDesc.
 
@@ -41,7 +41,8 @@ per pipeline resources).
 
 ## Using a push constant
 
-During the render pass update the data then copy the data in the \ref manual_050_00_commands "command list" :
+During the render pass update the data then copy the data in the \ref manual_050_00_commands "command list" using
+ \ref vireo::CommandList::pushConstants :
 
 \code{.cpp}
 pushConstants.modelIndex = Scene::MODEL_OPAQUE;

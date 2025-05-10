@@ -1,7 +1,7 @@
 /*!
 \page manual_050_00_commands Command Lists
 
-Command lists are objects used to record commands which can be subsequently submitted to a \ref manual_060_00_queues "submission queue"
+\ref vireo::CommandList "Command lists" are objects used to record commands which can be subsequently submitted to a \ref manual_060_00_queues "submission queue"
  for execution.
 
 Recorded commands include commands to bind pipelines and \ref manual_040_00_descriptors "descriptor sets" to the command list,
@@ -12,7 +12,103 @@ Each command list manages state independently of other command lists. Unless oth
 synchronization, the various commands submitted to a \ref manual_060_00_queues "submission queue" via command lists may execute in arbitrary order
  relative to each other, and/or concurrently.
 
-...More to come...
+## Command allocators
 
+Command lists are created from \ref vireo::CommandAllocator "command allocators".
+A \ref vireo::CommandAllocator "CommandAllocator" is used to allocate datas needed by command lists and to reset them before use.
+
+For portability (between graphics API) reasons you can only reset command lists from command allocator, which mean that
+you reset all command lists created by the corresponding allocator.
+
+And since command allocators can't be shared between threads you typically need one command allocator and a least one
+command list per worker or frame thread. But don't worry about that, command allocators are cheap and command list
+allocations ara fast and doing it from multiple allocators in parallel scales well.
+
+If you use threads, record commands in parallel, but submit in one place; use fences/semaphores to coordinate when it’s safe to reset.
+
+## Creating a command list
+
+First create a \ref vireo::CommandAllocator "CommandAllocator" then create a \ref vireo::CommandList "CommandList".
+Command lists are created ready-to-use, you don't need to reset them explicitly if you need a one-time command list
+(e.g. for memory transfers).
+
+
+\code{.cpp}
+// Create a command list
+const auto uploadCommandAllocator = vireo->createCommandAllocator(vireo::CommandType::TRANSFER);
+const auto uploadCommandList = uploadCommandAllocator->createCommandList();
+\endcode
+
+## Using a command list
+
+There is two typical use of command list :
+- One-time command list : for buffer, image transfer or one-time execution of a compute shader
+- Per frame command list : for rendering
+
+For both cases you start a command recording session with \ref vireo::CommandList::begin and end the recording session
+with \ref vireo::CommandList::end. Then you need to submit the work to the GPU using \ref manual_060_00_queues.
+
+### One-time command list
+
+For one-time command list you create them, use them, submit them, wait for the end of the execution then destroy them :
+
+\code{.cpp}
+// Example of a using a one-time command list
+// In a local scope for objects destruction
+{
+    // Create a command list
+    const auto uploadCommandAllocator = vireo->createCommandAllocator(vireo::CommandType::TRANSFER);
+    const auto uploadCommandList = uploadCommandAllocator->createCommandList();
+
+    uploadCommandList->begin();
+    ...
+    // Record command here
+    ...
+    uploadCommandList->end();
+
+    // Execute the commands
+    const auto transferQueue = vireo->createSubmitQueue(vireo::CommandType::TRANSFER);
+    transferQueue->submit({uploadCommandList});
+
+    // Wait for the commands to executed by the GPU
+    transferQueue->waitIdle();
+} // commands allocator, list and queue are destroyed
+\endcode
+
+### Other command list
+
+When rendering you generally need a least one command allocator and one command list per frame if you do not want to
+wait on the CPU side at the end of each frame. Having one command list per frame and waiting for the previous frame
+to be presented at the \b start of each frame allow you to do more work on the CPU side (e.g. processing the physic)
+between frames and you can also have multiple frames in flight.
+
+For this type of use you have to :
+- Allocate one command allocator and at least one command list per frame during the initialization phase
+- Reset the command allocator at the start of the frame
+
+\code{.cpp}
+// Typical command list use inside a frame rendering function
+
+// Get the current frame data
+const auto& frame = framesData[swapChain->getCurrentFrameIndex()];
+
+...
+
+// Reset the frame command allocator and all the command lists for this frame
+frame.commandAllocator->reset();
+
+// Begin a command recording session
+const auto& cmdList = frame.commandList;
+cmdList->begin();
+...
+// Record drawing commands
+...
+cmdList->end();
+
+// Submit all command lists before presenting
+graphicQueue->submit(frame.inFlightFence, swapChain, {cmdList});
+
+...
+\endcode
 
 */

@@ -5,7 +5,7 @@ The sequence of \ref manual_040_01_descriptor_layout "descriptor layouts" and \r
 that can be used by a pipeline is specified by creating a \ref vireo::PipelineResources and using it when creating the pipeline.
 
 You can't do much with a pipeline resource on the CPU side beside creating them, they are exclusively used to allocate data
-needed by the graphics API (the real descriptor layouts/root signatures).
+needed by the graphics API (the real descriptor set layouts/root signatures).
 
 ## Creating and using a pipeline resources
 
