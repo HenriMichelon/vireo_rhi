@@ -192,7 +192,6 @@ namespace vireo {
     void DXSwapChain::present() {
         dxCheck(swapChain->Present(syncInterval, presentFlags));
         dxCheck(presentCommandQueue->Signal(fence.Get(), fenceValue));
-
     }
 
 }

@@ -1,10 +1,91 @@
 /*!
 \page manual_110_00_swapchain Swap Chains
 
-A swapchain is the GPU–window system bridge: a queue of images you render into and then present to the screen.
-It manages double- or triple-buffering under the hood, letting you render ahead of vsync and avoid tearing.
+A \ref vireo::SwapChain "swapchain" is the GPU–window system bridge: a queue of images you render into and then present to the screen.
+It manages double- or triple-buffering under the hood and provide the application mechanisms to wait for the frame to be presented
+and which frame in currently rendering.
 
-...More to come...
+A CPU/GPU synchronization must be used to ensure that the image we want to use is ready to be used and a GPU/GPU
+synchronization to ensure that the rendering of the frame is terminated before presenting the image to the screen.
+
+The CPU/GPU synchronization is done with a \ref manual_090_01_fences "fence" and the GPU/GPU synchronization is done
+internally by the \ref vireo::SwapChain "SwapChain" and \ref vireo::SubmitQueue "SubmitQueue" classes for portability
+between graphic API.
+
+## Creating a swap chain
+
+To create a swap chain we need :
+- The os-specific window handle to indicate to the swap chain where to present the image.
+- A \ref vireo::SubmitQueue "submit queue" to use for presenting and synchronizing with the rendering.
+- The \ref vireo::ImageFormat "image format" for the frame buffers.
+- The \ref vireo::PresentMode "presentation mode".
+- Optionally, the number of frames in flight the application wants (two by default).
+
+There is two presentation modes :
+- \ref vireo::PresentMode::IMMEDIATE : the presentation occurs immediately, there is no synchronization. Tearing may occurs.
+- \ref vireo::PresentMode::VSYNC : synchronize presentation after the first vertical blank. Tearing cannot be observed.
+
+\code{.cpp}
+ swapChain = vireo->createSwapChain(
+            vireo::ImageFormat::R8G8B8A8_UNORM,
+            graphicQueue,
+            windowHandle,
+            vireo::PresentMode::VSYNC,
+            3);
+\endcode
+
+\note Since the swap chain is linked to a specific window you need one swap chain per window.
+
+## Using a swap chain
+
+Before using the swap chain for rendering make sure to :
+- Resize the swap chain when the target window is resized with \ref vireo::SwapChain::recreate. This method take care for you of the CPU/GPU synchronization before resizing the images (resizing can block the CPU code).
+- Wait for the last presentation to end before closing the presentation window with \ref vireo::SwapChain::waitIdle
+
+For CPU/GPU synchronization when rendering you need to use a \ref manual_090_01_fences "fence". For rendering multiple
+frames in flight you need one fence par frame. The best solution is to put them in the same data structure as the
+frame \ref manual_050_00_commands "command list" :
+
+\code{.cpp}
+struct FrameData {
+    std::shared_ptr<vireo::CommandAllocator> commandAllocator;
+    std::shared_ptr<vireo::CommandList>      commandList;
+    std::shared_ptr<vireo::Fence>            inFlightFence;
+    ...
+};
+\endcode
+
+When rendering get the frame data corresponding to the current frame, acquire the next frame buffer (while waiting for
+the frame buffer to be ready with the fence) with \ref vireo::SwapChain::acquire, draw the frame then, after submitting
+all the frame command lists, present the frame buffer to the screen \ref vireo::SwapChain::present.
+
+At the end of the rendering, get the next frame index with \ref vireo::SwapChain::nextFrameIndex. By doing that at
+the end of the rendering, the new frame index can be used in the application to update the frame specific data during the
+next frame update and rendering.
+
+\note Acquiring the next frame buffer swap chain can block the CPU code since it use a fence.
+
+\code{.cpp}
+// Get the current frame data
+ const auto& frame = framesData[swapChain->getCurrentFrameIndex()];
+
+// Acquire the next frame buffer or stop rendering on error.
+if (!swapChain->acquire(frame.inFlightFence)) { return; }
+
+...
+// Record commands
+...
+
+// Submit the frame command list then ask the submission queue to signal the end of the rendering to the swap chain
+graphicQueue->submit(frame.inFlightFence, swapChain, {frame.commandList});
+
+// Present the swap chain. Presentation will be done when the submission queue will signal the end of the rendering.
+// It's a GPU/GPU synchronization mechanism, the CPU will not be blocked, only the swap chain presentation.
+swapChain->present();
+
+// Get the next frame index for the next frame
+swapChain->nextFrameIndex();
+\endcode
 
 
 */
