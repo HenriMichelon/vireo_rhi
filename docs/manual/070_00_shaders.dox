@@ -2,7 +2,7 @@
 \page manual_070_00_shaders Shaders
 
 A shader is simply a small program that runs on the GPU to process graphics or compute data.
-think of it as an application for GPU.
+Think of it as an application for GPU.
 
 ## Use of shaders
 
@@ -10,19 +10,206 @@ They are used to transform or generate data in the graphics pipeline (e.g. posit
 and replaces fixed-function stages with flexible, user-written code.
 
 In a graphic pipeline the following fixed-function stages can be replaced with shaders :
-- Vertex Shader: runs once per vertex; computes transformed positions, normals, and outputs “vertex data.”
-- Fragment (Pixel) Shader: runs once per pixel (or sample); computes final color, depth, and other per-pixel outputs.
+- Vertex Shader: runs once per vertex; computes transformed positions, normals, and outputs “vertex data”.
+- Fragment/Pixel Shader: runs once per pixel (or sample); computes final color, depth, and other per-pixel outputs.
 - Geometry/Tessellation/Hull/Domain Shaders: (Optional) generate or modify primitives (points, lines, triangles) on the fly.
 
 A compute shader is a general-purpose GPU application; not tied to drawing, used for physics, special effects, image filtering, AI, etc.
 
-## Creating a shader
+## Writing shaders
 
-## Compiling a shader
+To write a shader you need the source code written using a shading language that is supported by both DirectX and Vulkan :
+- [HLSL](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl)
+- [Slang](https://shader-slang.org/)
 
-## Using a shader
+Since the main goal of Vireo is to allow the creation of portable 3D application, the [Slang shader language](https://shader-slang.org/)
+is the best solution (moreover Slang is highly derived from HLSL). By using Slang you only have one version of your shaders
+for both backends.
 
-...More to come...
+If you want to discover Slang with real examples, take a look at the [Vireo Samples repository](https://github.com/HenriMichelon/vireo_samples).
+All the shaders of the samples are written with Slang : vertex, fragment, guffers, lighting, order independent transparency, depth prepass, SMAA, FXAA, ...
 
+Example of a nice wave effect compute shader written in Slang for Vireo :
+\code
+struct Params {
+    uint2 imageSize;
+    float time;
+};
+
+ConstantBuffer<Params> params : register(b0);
+RWTexture2D outputImage       : register(u1);
+
+[shader("compute")]
+[numthreads(8, 8, 1)]
+void main(uint3 dispatchThreadID : SV_DispatchThreadID) {
+    uint2 coord = dispatchThreadID.xy;
+    if (coord.x >= params.imageSize.x || coord.y >=  params.imageSize.y) { return; }
+    float2 uv = float2(coord) / params.imageSize;
+
+    const float frequency = 20.0;
+    const float amplitude = 0.03;
+    const float bandHeight = 0.05;
+    const float speedX = 0.2;
+    const float speedY = 2.0;
+    const float lightingStrength = 0.75;
+
+    float waveAmplitude = amplitude * (0.5 + 0.5 * sin(params.time * speedY)) + amplitude;
+    float wavePhase = (uv.x + params.time * speedX) * frequency;
+    float wave = sin(wavePhase) * waveAmplitude;
+    float slope = cos(wavePhase) * frequency * waveAmplitude;
+
+    int waveStripeIndex = int((uv.y + wave) / bandHeight);
+    bool isEvenStripe = (waveStripeIndex % 2) == 0;
+
+    float3 color;
+    if (isEvenStripe) {
+        float2 uvUp = float2(coord.x, coord.y-1) / params.imageSize;
+        float2 uvDown = float2(coord.x, coord.y+1) / params.imageSize;
+        if (coord.y > 0 && ((int((uvUp.y + wave) / bandHeight) % 2 != 0) || (int((uvDown.y + wave) / bandHeight) % 2 != 0))) {
+            color = float3(1.0);
+        } else {
+            color = float3(uv.x + 0.25, uv.y, .5);
+        }
+    } else {
+        color = float3(0.0);
+    }
+    float lighting = saturate(1.0 - slope * lightingStrength);
+    outputImage[coord] = float4(color * lighting, 1.0);
+}
+\endcode
+
+Note that there is no Vulkan or DirectX specific declaration or instruction in this shader.
+
+## Compiling shaders
+
+A shader need to be compiled to an intermediate binary format before loading them into a pipeline. The format depends
+on the graphic API :
+- For \ref vireo::Backend::DIRECTX : [DirectX Intermediate Language (DXIL)](https://github.com/Microsoft/DirectXShaderCompiler/blob/main/docs/DXIL.rst)
+- For \ref vireo::Backend::VULKAN : [SPIR-V](https://github.com/KhronosGroup/SPIRV-Guide)
+
+\note [Once Shader Model 7 is released, DirectX 12 will accept shaders compiled to SPIR-V](https://devblogs.microsoft.com/directx/directx-adopting-spir-v/),
+suppressing the need for two versions of the binary files for Vireo.
+
+To compile a Slang shader to both DXIL and SPIR-V intermediate formats the best tool is the Vulkan version of `slangc` shipped
+with the [Vulkan SDK](https://vulkan.lunarg.com/sdk/home). Take a look at the `cmake/shaders.cmake` and `CMakeLists.txt` files of the
+[Vireo Samples repository](https://github.com/HenriMichelon/vireo_samples) for an example of use with [CMake](https://cmake.org/).
+
+This binary formats are called "intermediate" because the drivers needs to translate them to the final binary format
+with hardware specific instruction sets:
+- For AMD GPUs : Graphics Core Next (GCN) ISA (also called « AMDGPU ISA »).
+- For NVidia GPUs : PTX (Parallel Thread Execution, intermediate) and SASS (Streaming ASSembler Shader, low level).
+- For Intel GPUs : Gen ISA (also called « Intel GPU ISA »).
+
+This process can take time and resources, which means that creating a pipeline is a time consuming task :
+\b never create pipelines on the fly during rendering, always create all your pipelines during the initialization phase
+of your application.
+
+## Creating shader modules
+
+A shader module is a binary compiled version of a shader (like an executable for GPU) that you can load into a pipeline
+for future execution.
+
+They are created with \ref vireo::Vireo::createShaderModule :
+\code{.cpp}
+    const auto vertexShader = vireo->createShaderModule("shaders/triangle_color.vert");
+    const auto fragmentShader = vireo->createShaderModule("shaders/triangle_color.frag");
+\endcode
+
+For maximum portability of the application code the extension of the file is not specified. The \ref vireo::ShaderModule
+"ShaderModule" class load the binary file corresponding to the graphic API specified for the \ref manual_010_vireo_class "vireo object" :
+- For \ref vireo::Backend::DIRECTX it loads the `.dxil` files
+- For \ref vireo::Backend::VULKAN it loads the `.spv` files
+
+Once loaded, a shader module can be use with one or more pipeline.
+
+## Using shader modules
+
+Once loaded into shader modules the shaders are used when \ref manual_080_00_pipelines "configuring pipelines" :
+\code{.cpp}
+    pipelineConfig.vertexShader = vertexShader;
+    pipelineConfig.fragmentShader = fragmentShader;
+\endcode
+
+\note A pipeline is tied to the configured shader modules, which means that you need one pipeline for each set of shaders.
+
+## Binding resources with shader variables
+
+To use a \ref manual_030_00_resources "resource" in a shader you need to :
+- \ref manual_040_00_descriptors "bind them to the pipeline" using \ref manual_040_02_descriptor_set "descriptor sets"
+- Reference them in your shader using the same binding and set/space numbers.
+
+When using the Slang shader language you can use the HLSL register syntax to reference resource by binding numbers and set/space
+number.
+
+For example, if you have a \ref manual_040_02_descriptor_set "descriptor set" configured described by this
+\ref manual_040_01_descriptor_layout "descriptor layout" and structures:
+
+\code{.cpp}
+struct Global {
+    alignas(16) glm::vec3 cameraPosition{0.0f, 0.0f, 1.75f};
+    alignas(16) glm::mat4 projection;
+    glm::mat4 view;
+    glm::mat4 viewInverse;
+};
+
+struct Light {
+    alignas(16) glm::vec3 direction{1.0f, -.25f, -.5f};
+    alignas(16) glm::vec4 color{1.0f, 1.0f, 1.0f, 1.0f};
+};
+
+...
+
+static constexpr vireo::DescriptorIndex SET_GLOBAL{0};
+static constexpr vireo::DescriptorIndex BINDING_GLOBAL{0};
+static constexpr vireo::DescriptorIndex BINDING_LIGHT{1};
+static constexpr vireo::DescriptorIndex BINDING_TEXTURES{2};
+
+...
+
+descriptorLayout = vireo->createDescriptorLayout();
+descriptorLayout->add(BINDING_GLOBAL, vireo::DescriptorType::UNIFORM);
+descriptorLayout->add(BINDING_LIGHT, vireo::DescriptorType::UNIFORM);
+descriptorLayout->add(BINDING_TEXTURES, vireo::DescriptorType::SAMPLED_IMAGE, scene.getTextures().size());
+descriptorLayout->build();
+\endcode
+
+During initialization create the descriptor set using this layout and attach the \ref manual_030_00_resources "resources" :
+\code{.cpp}
+frame.descriptorSet = vireo->createDescriptorSet(descriptorLayout);
+frame.descriptorSet->update(BINDING_GLOBAL, frame.globalUniform);
+frame.descriptorSet->update(BINDING_LIGHT, frame.lightUniform);
+frame.descriptorSet->update(BINDING_TEXTURES, scene.getTextures());
+\endcode
+
+And during rendering update the data in VRAM then bind the resources before drawing :
+\code{.cpp}
+frame.globalUniform->write(&scene.getGlobal());
+frame.lightUniform->write(&light);
+frameCommandList->bindDescriptor(pipeline, frame.descriptorSet, SET_GLOBAL);
+\endcode
+
+You can reference the corresponding resources in the shader like that using the same `SET_*` (`space*`) and `BINDING_*` values :
+\code
+struct Global {
+    float3   cameraPosition;
+    float4x4 projection;
+    float4x4 view;
+    float4x4 viewInverse;
+}
+
+struct Light {
+    float3 direction;
+    float4 color;
+}
+
+...
+
+ConstantBuffer<Global> global      : register(b0, space0);
+ConstantBuffer<Light>  light       : register(b1, space0);
+Texture2D              textures[5] : register(t2, space0);
+\endcode
+
+
+The `slangc` tool will translate the register syntax to a SPIR-V compatible code for you.
 
 */
