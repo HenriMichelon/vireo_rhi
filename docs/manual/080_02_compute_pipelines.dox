@@ -1,11 +1,74 @@
 /*!
 \page manual_080_02_compute_pipelines Compute Pipelines
 
+A compute pipeline is a GPU pipeline specialized for running general-purpose compute shaders (rather than the
+fixed‐function stages of \ref manual_080_01_graphic_pipelines "graphics pipelines").
+It as a single programmable stage : the compute shader.
+
+Because it omits all the fixed‐function graphics stages, the compute pipeline gives you maximum flexibility and
+performance for purely computational tasks on the GPU, executed in parallel.
+
+Use cases of compute shaders :
+- Physics simulations
+- Particle systems
+- Image processing / post-processing
+- Special effects
+- Advanced lighting calculations
+- General data-parallel algorithms
+
+For more information about compute pipelines and dispatching work read
+ [Compute with DirectX 12 by Stefan Pijnacker](https://www.stefanpijnacker.nl/article/compute-with-directx12-part-1/)
+
 ## Creating a compute pipeline
 
-## Dispatch work
+A \ref vireo::ComputePipeline "Compute pipeline" is created with \ref vireo::Vireo::createComputePipeline.
+Unlike \ref manual_080_01_graphic_pipelines "graphic pipelines" there is not configuration object since the is nothing to
+configure. Only the \ref manual_040_04_pipeline_resources "pipeline resources" and the \ref manual_070_00_shaders
+"shader module" are needed :
 
-...More to come...
+\code{.cpp}
+pipeline = vireo->createComputePipeline(
+        vireo->createPipelineResources( { descriptorLayout }),
+        vireo->createShaderModule("shaders/compute.comp"));
+\endcode
 
+## Dispatching work
+
+To execute the shader, you bind the compute pipeline with \ref vireo::CommandList::bindPipeline and its descriptor sets
+with \ref vireo::CommandList::bindDescriptors, then issue a dispatch call with \ref vireo::CommandList::dispatch
+specifying a 3D grid of workgroups.
+
+Each workgroup invokes the compute shader on one or more GPU threads (they are very light threads compared to CPU threads).
+
+\code{.cpp}
+
+// Set the descriptor sets list
+frame.commandList->setDescriptors({frame.descriptorSet});
+
+// Update the destination image in the descriptor set
+frame.descriptorSet->update(BINDING_IMAGE, frame.image);
+
+// Bind the compute pipeline
+frame.commandList->bindPipeline(pipeline);
+
+// Bind the descriptor sets
+frame.commandList->bindDescriptors(pipeline, {frame.descriptorSet});
+
+// Prepare the destination image
+frame.commandList->barrier(
+    frame.image,
+    vireo::ResourceState::COPY_SRC,
+    vireo::ResourceState::DISPATCH_TARGET);
+
+// Dispatch work on the GPU
+frame.commandList->dispatch((frame.image->getWidth() + 7)/8, (frame.image->getHeight() + 7)/8, 1);
+
+...
+
+\endcode
+
+\note The destination image must be a \ref vireo::DescriptorType::READWRITE_IMAGE created with
+\ref vireo::Vireo::createReadWriteImage. If you need to do non-graphic computational work just consider the image
+as an array...
 
 */

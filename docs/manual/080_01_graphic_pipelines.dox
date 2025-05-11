@@ -1,6 +1,14 @@
 /*!
 \page manual_080_01_graphic_pipelines Graphics Pipelines
 
+The graphics pipeline is the sequence of operations that take the vertices and textures of your meshes all the way to the pixels in the render targets.
+
+The different stages of the pipeline operations are the same in Vulkan and DirectX but sometime with different names :
+- [Vulkan graphic pipeline](https://vulkan-tutorial.com/Drawing_a_triangle/Graphics_pipeline_basics/Introduction)
+- [DirectX 12 graphic pipeline](https://learn.microsoft.com/en-us/windows/win32/direct3d11/overviews-direct3d-11-graphics-pipeline)
+
+## Configuration of a graphic pipeline
+
 ## Creating a graphic pipeline
 
 ## Drawing
