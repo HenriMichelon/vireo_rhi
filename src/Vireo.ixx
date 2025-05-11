@@ -12,6 +12,8 @@ export namespace vireo {
 
     /**
      * Type of supported backends
+     *
+     * Manual page : \ref manual_010_vireo_class
      */
     enum class Backend : uint8_t {
         //! Not used
@@ -24,6 +26,8 @@ export namespace vireo {
 
     /**
      * Possible values of the Vireo::createSampler magFilter and minFilter parameters, specifying filters used for texture lookups
+     *
+     * Manual page : \ref manual_030_03_resources
      */
     enum class Filter {
         //! Nearest filtering
@@ -35,7 +39,9 @@ export namespace vireo {
     /**
      * Possible values of the Vireo::createSampler addressMode* parameters,
      * specifying the behavior of sampling with coordinates outside the range [0,1] for the respective u, v, or w
-     * coordinate
+     * coordinate.
+     *
+     * Manual page : \ref manual_030_03_resources
      */
     enum class AddressMode {
         //! Repeat wrap mode
@@ -50,7 +56,9 @@ export namespace vireo {
 
     /**
      * Possible values of the Vireo::createSampler mipmapMode parameter, specifying the mipmap mode used for texture
-     * lookups
+     * lookups.
+     *
+     * Manual page : \ref manual_030_03_resources
      */
     enum class MipMapMode {
         //! Nearest filtering
@@ -61,6 +69,8 @@ export namespace vireo {
 
     /**
      * Available image formats. Only the common formats between the supported back ends are available.
+     *
+     * Manual page : \ref manual_030_02_resources
      */
     enum class ImageFormat {
         R8_UNORM,
@@ -144,6 +154,8 @@ export namespace vireo {
 
     /**
      * VRAM Buffer use type
+     *
+     * Manual page : \ref manual_030_01_resources
      */
     enum class BufferType {
         //! Used to store vertices (in device local memory)
@@ -160,6 +172,8 @@ export namespace vireo {
 
     /**
      * Index type for vertex indices
+     *
+     * Manual page : \ref manual_080_01_graphic_pipelines
      */
     enum class IndexType {
         //! Two bytes unsigned int
@@ -170,6 +184,8 @@ export namespace vireo {
 
     /**
      * Type of data for shaders
+     *
+     * Manual page : \ref manual_040_00_descriptors
      */
     enum class DescriptorType {
         //! Uniform buffer
@@ -186,6 +202,8 @@ export namespace vireo {
 
     /**
      * Type of command or submit queue
+     *
+     * Manual pages : \ref manual_050_00_commands, \ref manual_060_00_queues
      */
     enum class CommandType {
         //! Command/Queue for a graphic pipeline
@@ -198,6 +216,8 @@ export namespace vireo {
 
     /**
      * Size and type of a vertex attribute data
+     *
+     * Manual page : \ref manual_080_01_graphic_pipelines
      */
     enum class AttributeFormat {
         //! One signed float
@@ -228,6 +248,8 @@ export namespace vireo {
 
     /**
      * Use of a render target image
+     *
+     * Manual page : \ref manual_080_01_graphic_pipelines
      */
     enum class RenderTargetType {
         //! Used as a color attachment
@@ -240,6 +262,8 @@ export namespace vireo {
 
     /**
      * Values controlling triangle culling. Triangle orientation is specified in the pipeline configuration.
+     *
+     * Manual page : \ref manual_080_01_graphic_pipelines
      */
     enum class CullMode {
         //! No triangles are discarded
@@ -252,6 +276,8 @@ export namespace vireo {
 
     /**
      * Supported primitive topologies
+     *
+     * Manual page : \ref manual_080_01_graphic_pipelines
      */
     enum class PrimitiveTopology {
         //! A series of separate point primitives.
@@ -268,6 +294,8 @@ export namespace vireo {
 
     /**
     * Control polygon rasterization mode
+    *
+    * Manual page : \ref manual_080_01_graphic_pipelines
     */
     enum class PolygonMode {
         //! Polygon is filled
@@ -278,6 +306,8 @@ export namespace vireo {
 
     /**
      * Comparison operator for depth, stencil, and sampler operations
+     *
+     * Manual page : \ref manual_080_01_graphic_pipelines
      */
     enum class CompareOp {
         //! Comparison always evaluates false.
@@ -300,6 +330,8 @@ export namespace vireo {
 
     /*
      * Stencil comparison function
+     *
+     * Manual page : \ref manual_080_01_graphic_pipelines
      */
     enum class StencilOp {
         //! Keeps the current value.
@@ -323,6 +355,8 @@ export namespace vireo {
     /**
      * Framebuffer blending factors.
      * cf. https://registry.khronos.org/vulkan/specs/latest/man/html/VkBlendFactor.html
+     *
+     * Manual page : \ref manual_080_01_graphic_pipelines
      */
     enum class BlendFactor {
         ZERO,
@@ -349,6 +383,8 @@ export namespace vireo {
     /**
      * Framebuffer blending operations.
      * cf. https://registry.khronos.org/vulkan/specs/latest/man/html/VkBlendOp.html
+     *
+     * Manual page : \ref manual_080_01_graphic_pipelines
      */
     enum class BlendOp {
         ADD,
@@ -361,6 +397,8 @@ export namespace vireo {
     /**
      * Framebuffer logical operations.
      * cf. https://registry.khronos.org/vulkan/specs/latest/man/html/VkLogicOp.html
+     *
+     * Manual page : \ref manual_080_01_graphic_pipelines
      */
     enum class LogicOp {
         CLEAR,
@@ -383,6 +421,8 @@ export namespace vireo {
 
     /*
      * Bitmask controlling which components are written to the framebuffer
+     *
+     * Manual page : \ref manual_080_01_graphic_pipelines
     */
     enum class ColorWriteMask : uint8_t {
         RED    = 0x00000001,
@@ -394,6 +434,8 @@ export namespace vireo {
 
     /**
      * Graphic pipeline color blend attachment description
+     *
+     * Manual page : \ref manual_080_01_graphic_pipelines
      */
     struct ColorBlendDesc {
         //! Controls whether blending is enabled for the corresponding color attachment. If blending is not enabled, the source fragment’s color for that attachment is passed through unmodified.
@@ -416,6 +458,8 @@ export namespace vireo {
 
     /**
      * Structure specifying stencil operation state
+     *
+     * Manual page : \ref manual_080_01_graphic_pipelines
      */
     struct StencilOpState {
         //! Value specifying the action performed on samples that fail the stencil test.
@@ -434,6 +478,8 @@ export namespace vireo {
 
     /**
      * Pipeline stage
+     *
+     * Manual page : \ref manual_070_00_shaders
      */
     enum class ShaderStage {
         //! All shader stages supported by the device
@@ -448,6 +494,8 @@ export namespace vireo {
 
     /**
      * Semaphores wait stages
+     *
+     * Manual page : \ref manual_090_02_semaphores
      */
     enum class WaitStage {
         NONE,
@@ -471,6 +519,8 @@ export namespace vireo {
 
     /**
      *  State/Layout of images for pipeline barriers
+     *
+     * Manual page : \ref manual_090_03_barriers
      */
     enum class ResourceState {
         //! Unknown/general/common state
@@ -503,6 +553,8 @@ export namespace vireo {
 
     /**
      * Sample counts supported for an image used for storage operations
+     *
+     * Manual pages : \ref manual_080_01_graphic_pipelines and \ref manual_100_00_renderpass
      */
     enum class MSAA {
         NONE = 0,
@@ -522,6 +574,8 @@ export namespace vireo {
 
     /**
      * Presentation mode for a surface
+     *
+     * Manual page : \ref manual_110_00_swapchain
      */
     enum class PresentMode {
         //! The presentation engine does not wait for a vertical blanking period to update the current image, meaning this mode may result in visible tearing.
@@ -532,6 +586,8 @@ export namespace vireo {
 
     /**
      * Pipeline type
+     *
+     * Manual page : \ref manual_080_00_pipelines
      */
     enum class PipelineType {
         GRAPHIC,
@@ -540,6 +596,8 @@ export namespace vireo {
 
     /**
      * Semaphores types.
+     *
+     * Manual page : \ref manual_090_02_semaphores
      */
     enum class SemaphoreType {
         //! Binary semaphores have two states - signaled and unsignaled.
@@ -550,11 +608,15 @@ export namespace vireo {
 
     /**
      * Index type used for binding resources with a descriptor set
+     *
+     * Manual page : \ref manual_040_00_descriptors
      */
     using DescriptorIndex = uint32_t;
 
     /**
      * Description of a video adapter
+     *
+     * Manual page : \ref manual_020_devices
      */
     struct PhysicalDeviceDesc {
         //! Adapter name
@@ -579,6 +641,8 @@ export namespace vireo {
 
     /**
      * A push constant range
+     *
+     * Manual page : \ref manual_040_03_push_constants
      */
     struct PushConstantsDesc {
         //! Shader stages that will access a range of push constants
@@ -591,6 +655,8 @@ export namespace vireo {
 
     /**
      * Vertex input attribute description
+     *
+     * Manual page : \ref manual_080_01_graphic_pipelines
      */
     struct VertexAttributeDesc {
         //! Binding name which this attribute takes its data from.
@@ -603,6 +669,8 @@ export namespace vireo {
 
     /**
      * A clear depth stencil value
+     *
+     * Manual page : \ref manual_100_00_renderpass
      */
     struct DepthClearValue {
         //! Clear value for the depth aspect of the depth/stencil attachment. It is a floating-point value which is automatically converted to the attachment’s forma
@@ -613,6 +681,8 @@ export namespace vireo {
 
     /**
      * Structure specifying a clear value
+     *
+     * Manual page : \ref manual_100_00_renderpass
      */
     typedef union ClearValue {
         //! The color image clear values to use when clearing a color image or attachment.
@@ -624,6 +694,8 @@ export namespace vireo {
     /**
      * A fence object. Fences are a synchronization primitive that can be used to insert a dependency from a queue to
      * the host (CPU/GPU synchronization).
+     *
+     * Manual page : \ref manual_090_01_fences
      */
     class Fence {
     public:
@@ -636,11 +708,12 @@ export namespace vireo {
         virtual ~Fence() = default;
     };
 
-
     /**
      * A Semaphore object.
      * Semaphores are a synchronization primitive that can be used to insert a dependency between queue operations
      * (GPU/GPU synchronization)
+     *
+     * Manual page : \ref manual_090_02_semaphores
      */
     class Semaphore {
     public:
@@ -684,6 +757,8 @@ export namespace vireo {
 
     /**
      * Backend instance object
+     *
+     * Manual page : \ref manual_020_devices
      */
     class Instance {
     public:
@@ -695,6 +770,8 @@ export namespace vireo {
 
     /**
      * A physical device object (adapter)
+     *
+     * Manual page : \ref manual_020_devices
      */
     class PhysicalDevice {
     public:
@@ -711,6 +788,8 @@ export namespace vireo {
 
     /**
      * A logical device object
+     *
+     * Manual page : \ref manual_020_devices
      */
     class Device {
     public:
@@ -725,6 +804,8 @@ export namespace vireo {
      * Buffers represent linear arrays of data which are used for various purposes by binding them to a
      * graphics or compute pipeline via descriptor sets or certain commands,
      * or by directly specifying them as parameters to certain commands.
+     *
+     * Manual page : \ref manual_030_01_resources
      */
     class Buffer {
     public:
@@ -795,6 +876,8 @@ export namespace vireo {
 
     /**
      * A texture sampler object
+     *
+     * Manual page : \ref manual_030_03_resources
      */
     class Sampler {
     public:
@@ -806,6 +889,8 @@ export namespace vireo {
 
     /**
      * An image object
+     *
+     * Manual page : \ref manual_030_02_resources
      */
     class Image {
     public:
@@ -963,6 +1048,8 @@ export namespace vireo {
 
     /**
      * A color or depth render attachment
+     *
+     * Manual page : \ref manual_100_00_renderpass
      */
     class RenderTarget {
     public:
@@ -992,6 +1079,8 @@ export namespace vireo {
      * Describes resources that shaders can use.
      * Add resources with `add()` then call `build()` to build the layout.
      * Note that samplers must be bounds to a specific sampler-only layout.
+     *
+     * Manual page : \ref manual_040_01_descriptor_layout
      */
     class DescriptorLayout {
     public:
@@ -1036,6 +1125,8 @@ export namespace vireo {
     /**
      * A descriptor set object.
      * Contains resources for the shaders.
+     *
+     * Manual page : \ref manual_040_02_descriptor_set
      */
     class DescriptorSet {
     public:
@@ -1101,6 +1192,8 @@ export namespace vireo {
 
     /**
      * An input vertex layout
+     *
+     * Manual page : \ref manual_080_01_graphic_pipelines
      */
     class VertexInputLayout {
     public:
@@ -1112,6 +1205,8 @@ export namespace vireo {
 
     /**
      * A shader module object
+     *
+     * Manual page : \ref manual_070_00_shaders
      */
     class ShaderModule {
     public:
@@ -1123,6 +1218,8 @@ export namespace vireo {
 
     /**
      * All resources used by the shaders of a pipeline : descriptor layouts & push constants
+     *
+     * Manual page : \ref manual_040_04_pipeline_resources
      */
     class PipelineResources {
     public:
@@ -1134,6 +1231,8 @@ export namespace vireo {
 
     /**
      * Base class for all pipeline types
+     *
+     * Manual page : \ref manual_080_00_pipelines
      */
     class Pipeline {
     public:
@@ -1161,6 +1260,8 @@ export namespace vireo {
 
     /**
      * A compute pipeline
+     *
+     * Manual page : \ref manual_080_02_compute_pipelines
      */
     class ComputePipeline : public Pipeline {
     protected:
@@ -1170,6 +1271,8 @@ export namespace vireo {
 
     /**
      * A graphic pipeline
+     *
+     * Manual page : \ref manual_080_01_graphic_pipelines
      */
     class GraphicPipeline : public Pipeline {
     protected:
@@ -1181,6 +1284,8 @@ export namespace vireo {
 
     /**
      * Color attachments description
+     *
+     * Manual page : \ref manual_100_00_renderpass
      */
     struct RenderTargetDesc {
         //! Use the current swap chain image as a color attachment. Must be `nullptr` if `renderTarget` is set
@@ -1199,6 +1304,8 @@ export namespace vireo {
 
     /**
      * Color & depth attachments descriptions
+     *
+     * Manual page : \ref manual_100_00_renderpass
      */
     struct RenderingConfiguration {
         //! Color attachments. Can be empty
@@ -1221,6 +1328,8 @@ export namespace vireo {
 
     /**
      * A command list (buffer) object
+     *
+     * Manual page : \ref manual_050_00_commands
      */
     class CommandList {
     public:
@@ -1514,6 +1623,8 @@ export namespace vireo {
 
     /**
      * a command allocator (pool) object
+     *
+     * Manual page : \ref manual_050_00_commands
      */
     class CommandAllocator {
     public:
@@ -1549,6 +1660,8 @@ export namespace vireo {
 
     /**
      * Command submission queue
+     *
+     * Manual page : \ref manual_060_00_queues
      */
     class SubmitQueue {
     public:
@@ -1692,6 +1805,8 @@ export namespace vireo {
 
     /**
      * A swapchain object
+     *
+     * Manual page : \ref manual_110_00_swapchain
      */
     class SwapChain {
     public:
@@ -1765,6 +1880,8 @@ export namespace vireo {
 
     /**
      * Parameters for creating a graphics pipeline
+     *
+     * Manual page : \ref manual_080_01_graphic_pipelines
      */
     struct GraphicPipelineConfiguration {
         //! Description of descriptor sets and push constants
@@ -1825,12 +1942,14 @@ export namespace vireo {
     };
 
     /**
-     * Main Vireo abstraction class
+     * Main abstraction class.
+     *
+     * Manual page : \ref manual_010_vireo_class
      */
     class Vireo {
     public:
         /**
-         * Creates a new Vireo class using the given backend
+         * Creates a new Vireo class using the given backend.
          */
         static std::shared_ptr<Vireo> create(Backend backend);
 
