@@ -91,4 +91,7 @@ data into the frame buffer):
 ![swap_chain.png](images/swap_chain.png)
 
 Next : \ref tutorial_1_07_renderpass
+
+------------------------------------------------------------------------------------------------------------------------
+Related manual page : \ref manual_050_00_commands
 */

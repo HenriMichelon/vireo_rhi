@@ -20,7 +20,7 @@ Tutorials & examples
 ---------------------------------------------------------------------------
 
 - \ref gs_020_tutorial_1
-- [Samples repository](https://github.com/HenriMichelon/vireo_samples)
+- [Samples repository](https://github.com/HenriMichelon/vireo_samples), including simplified examples for a forward renderer and a deferred renderer.
 
 
 */

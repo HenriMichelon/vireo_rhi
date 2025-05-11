@@ -59,4 +59,7 @@ creation :
 \endcode
 
 Next : \ref tutorial_1_12_pipeline_config
+
+------------------------------------------------------------------------------------------------------------------------
+Related manual page : \ref manual_070_00_shaders
 */

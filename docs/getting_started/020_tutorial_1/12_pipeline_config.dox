@@ -36,4 +36,7 @@ We use an empty pipeline resource object since our shader only uses the vertex
 input described by the vertex layout.
 
 Next : \ref tutorial_1_13_drawing
+
+------------------------------------------------------------------------------------------------------------------------
+Related manual page : \ref manual_080_00_pipelines
 */

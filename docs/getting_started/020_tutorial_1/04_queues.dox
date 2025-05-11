@@ -34,4 +34,7 @@ to finish before closing the application :
 \endcode
 
 Next : \ref tutorial_1_05_swapchain
+
+------------------------------------------------------------------------------------------------------------------------
+Related manual page : \ref manual_060_00_queues
 */

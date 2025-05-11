@@ -1,8 +1,8 @@
 /*!
 \page tutorial_1_14_conclusion What's next?
 Explore the [Vireo RHI Samples repository](https://github.com/HenriMichelon/vireo_samples)
-for other examples (uniforms, push constants, compute pipeline, MSAA, 
-depth pre-pass, post-processing effects, ...)
+for other examples (uniforms, push constants, compute pipeline, forward rendering, deferred rendering, MSAA,
+depth pre-pass, SMAA, FXAA, gamma correction and others post-processing effects, ...)
 
 And don't forget to take a look at the \ref manual
 

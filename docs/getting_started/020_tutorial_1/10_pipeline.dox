@@ -10,4 +10,8 @@ To create a graphic pipeline, we need :
 - The configuration of the pipeline
 
 Next : \ref tutorial_1_11_shaders
+
+------------------------------------------------------------------------------------------------------------------------
+Related manual page : \ref manual_080_01_graphic_pipelines
+
 */

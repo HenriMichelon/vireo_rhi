@@ -105,4 +105,8 @@ This is done automatically in the command list destructor, but we added
 this call in the tutorial for clarification.
 
 Next : \ref tutorial_1_10_pipeline
+
+------------------------------------------------------------------------------------------------------------------------
+Related manual page : \ref manual_030_01_resources
+
 */

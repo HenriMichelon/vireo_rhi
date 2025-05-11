@@ -43,4 +43,8 @@ After the white then the black window we now have a blue window :
 ![clear_color.png](images/clear_color.png)
 
 Next : \ref tutorial_1_08_viewport
+
+------------------------------------------------------------------------------------------------------------------------
+Related manual page : \ref manual_100_00_renderpass
+
 */

@@ -13,4 +13,7 @@ The \ref vireo::Vireo "Vireo" class is the main class of the library; You need a
 this class to create all the library objects.
 
 Next : \ref tutorial_1_04_queues
+
+------------------------------------------------------------------------------------------------------------------------
+Related manual page : \ref manual_010_vireo_class
 */

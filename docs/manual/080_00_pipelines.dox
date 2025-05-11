@@ -3,10 +3,13 @@
 
 A pipeline is an object storing the GPU state needed to execute shaders
 
+## Configuration of a pipeline
+
+## Pipeline types
+
 They come in two flavors:
 - \subpage manual_080_01_graphic_pipelines "Graphics Pipeline" : for draw calls (vertex → raster → fragment).
 - \subpage manual_080_02_compute_pipelines "Compute Pipeline" : for dispatch calls (single compute shader).
-
 
 ...More to come...
 
