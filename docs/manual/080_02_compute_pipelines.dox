@@ -34,7 +34,7 @@ pipeline = vireo->createComputePipeline(
 
 ## Dispatching work
 
-To execute the shader, you bind the compute pipeline with \ref vireo::CommandList::bindPipeline and its descriptor sets
+To execute the shader, bind the compute pipeline with \ref vireo::CommandList::bindPipeline and its descriptor sets
 with \ref vireo::CommandList::bindDescriptors, then issue a dispatch call with \ref vireo::CommandList::dispatch
 specifying a 3D grid of workgroups.
 

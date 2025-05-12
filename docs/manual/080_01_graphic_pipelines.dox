@@ -100,11 +100,122 @@ For each value of  `colorBlendDesc` :
 - `frontStencilOpState` : value controlling the \ref vireo::StencilOpState "corresponding parameters" of the stencil test.
 - `backStencilOpState` : value controlling the \ref vireo::StencilOpState "corresponding parameters" of the stencil test.
 
+The stencil reference value is set in the \ref manual_100_00_renderpass "render pass" with \ref vireo::CommandList::setStencilReference.
+
 ## Creating a graphic pipeline
+
+After populating the \ref vireo::GraphicPipelineConfiguration "GraphicPipelineConfiguration" structure the pipeline
+creation with \ref vireo::Vireo::createGraphicPipeline is straightforward :
+
+\code{.cpp}
+...
+
+// The pipeline parameters structure
+vireo::GraphicPipelineConfiguration pipelineConfig {
+    .colorRenderFormats = {vireo::ImageFormat::R8G8B8A8_SRGB},
+    .colorBlendDesc     = {{}}
+};
+
+// The vertex structure
+struct Vertex {
+    glm::vec3 pos;
+    glm::vec3 color;
+};
+
+// The vertex structure descriptions
+const std::vector<vireo::VertexAttributeDesc> vertexAttributes{
+    {"POSITION", vireo::AttributeFormat::R32G32B32_FLOAT, offsetof(Vertex, pos)},
+    {"COLOR",    vireo::AttributeFormat::R32G32B32_FLOAT, offsetof(Vertex, color)}
+};
+
+...
+
+// Create the pipeline resources and shader modules
+pipelineConfig.resources = vireo->createPipelineResources();
+pipelineConfig.vertexInputLayout = vireo->createVertexLayout(sizeof(Vertex), vertexAttributes);
+pipelineConfig.vertexShader = vireo->createShaderModule("shaders/triangle_color.vert");
+pipelineConfig.fragmentShader = vireo->createShaderModule("shaders/triangle_color.frag");
+
+// Create the pipeline
+defaultPipeline = vireo->createGraphicPipeline(pipelineConfig);
+
+\endcode
+
+Since the \ref vireo::GraphicPipelineConfiguration "GraphicPipelineConfiguration" structure is only used at creation time,
+you can use it for multiple pipelines creation :
+
+\code{.cpp}
+// Pipeline #1
+pipelineConfig.colorRenderFormats.push_back(vireo::ImageFormat::R16G16_SFLOAT);
+pipelineConfig.resources = resources;
+pipelineConfig.fragmentShader = vireo->createShaderModule("shaders/smaa_edge_detect.frag");
+smaaEdgePipeline = vireo->createGraphicPipeline(pipelineConfig);
+
+// Pipeline #2
+pipelineConfig.fragmentShader = vireo->createShaderModule("shaders/smaa_blend_weigth.frag");
+smaaBlendWeightPipeline = vireo->createGraphicPipeline(pipelineConfig);
+
+// Pipeline #3
+pipelineConfig.colorRenderFormats[0] = renderFormat;
+pipelineConfig.resources = smaaResources;
+pipelineConfig.fragmentShader = vireo->createShaderModule("shaders/smaa_neighborhood_blend.frag");
+smaaBlendPipeline = vireo->createGraphicPipeline(pipelineConfig);
+
+// Pipeline #4
+pipelineConfig.resources = resources;
+pipelineConfig.fragmentShader = vireo->createShaderModule("shaders/fxaa.frag");
+fxaaPipeline = vireo->createGraphicPipeline(pipelineConfig);
+
+// Pipeline #5
+pipelineConfig.fragmentShader = vireo->createShaderModule("shaders/voronoi.frag");
+effectPipeline = vireo->createGraphicPipeline(pipelineConfig);
+
+// Pipeline #6
+pipelineConfig.fragmentShader = vireo->createShaderModule("shaders/gamma_correction.frag");
+gammaCorrectionPipeline = vireo->createGraphicPipeline(pipelineConfig);
+\endcode
+
 
 ## Drawing
 
-...More to come...
+To execute the shaders, bind the compute pipeline with \ref vireo::CommandList::bindPipeline and its descriptor sets
+with \ref vireo::CommandList::bindDescriptors, then issue draw calls with \ref vireo::CommandList::draw or
+ \ref vireo::CommandList::drawIndexed :
 
+\code{.cpp}
 
+// Set the descriptor sets list
+frame.commandList->setDescriptors({frame.descriptorSet});
+
+// Bind the graphic pipeline
+frame.commandList->bindPipeline(pipeline);
+
+// Bind the descriptor sets
+frame.commandList->bindDescriptors(pipeline, {frame.descriptorSet});
+
+// Draw a triangle
+frame.commandList->draw(triangleVertices.size());
+
+\endcode
+
+If you need to select specific data in the descriptor set you can use
+\ref manual_040_02_descriptor_set "dynamic uniform buffer descriptor set" :
+
+\code{.cpp}
+cmdList->bindDescriptor(pipeline,
+    frame.materialsDescriptorSet, SET_MATERIALS,
+    frame.materialUniform->getInstanceSizeAligned() * Scene::MATERIAL_GRID);
+cmdList->bindDescriptor(pipeline,
+    frame.modelsDescriptorSet, SET_MODELS,
+    frame.modelUniform->getInstanceSizeAligned() * Scene::MODEL_TRANSPARENT);
+scene.drawCube(cmdList);
+\endcode
+
+Or \ref manual_040_03_push_constants "push constants" :
+\code{.cpp}
+pushConstants.modelIndex = Scene::MODEL_TRANSPARENT;
+pushConstants.materialIndex = Scene::MATERIAL_GRID;
+cmdList->pushConstants(pipelineConfig.resources, pushConstantsDesc, &pushConstants);
+scene.drawCube(cmdList);
+\endcode
 */
