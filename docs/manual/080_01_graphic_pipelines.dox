@@ -9,6 +9,97 @@ The different stages of the pipeline operations are the same in Vulkan and Direc
 
 ## Configuration of a graphic pipeline
 
+Creation of a graphic pipeline involve a lot of parameters. Most notable parameters are the format of the attachment
+(an attachment or render target is an image where the shaders will write), the color blending for each attachment,
+the format of the vertices, and the shaders.
+
+The \ref vireo::GraphicPipelineConfiguration "GraphicPipelineConfiguration" structure is used to specify all the creation parameter.
+
+### Resources parameters
+- `resources`: the \ref manual_040_04_pipeline_resources "resources" for the shaders created with \ref vireo::Vireo::createPipelineResources
+- `vertexInputLayout` : description of the format of a vertex created with  created with \ref vireo::Vireo::createVertexLayout from a \ref vireo::VertexAttributeDesc description
+
+For vireo::Vireo::createVertexLayout each field of the vertex data structure must be described with the following parameters :
+- `binding` :  Binding name which this attribute takes its data from for the HLSL style binding. For the Vulkan style the binding number will be calculated from the index of the field.
+- `format` : \ref vireo::AttributeFormat "Type for data"
+- `offset` : Byte offset of this attribute relative to the start of an element in the data structure.
+
+For example, if the vertex structure is, for each vertex :
+\code{.cpp}
+ struct Vertex {
+    glm::vec3 position;
+    glm::vec3 normal;
+    glm::vec2 uv;
+    glm::vec3 tangent;
+};
+\endcode
+
+The input layout description will be the following array :
+\code{.cpp}
+const std::vector<vireo::VertexAttributeDesc> vertexAttributes{
+    {"POSITION", vireo::AttributeFormat::R32G32B32_FLOAT, offsetof(Vertex, position) },  // Binding #0
+    {"NORMAL",   vireo::AttributeFormat::R32G32B32_FLOAT, offsetof(Vertex, normal)},     // Binding #1
+    {"UV",       vireo::AttributeFormat::R32G32_FLOAT,    offsetof(Vertex, uv)},         // Binding #2
+    {"TANGENT",  vireo::AttributeFormat::R32G32B32_FLOAT,   offsetof(Vertex, tangent)},  // Binding #3
+};
+\endcode
+
+and the corresponding structure in the shader in the Slang shader language (\b must be in the same order) :
+\code
+struct VertexInput {
+    float3 position : POSITION;
+    float3 normal   : NORMAL;
+    float2 uv       : UV;
+    float3 tangent  : TANGENT;
+};
+\endcode
+
+### Shader modules list
+- `vertexShader`, `fragmentShader` : the \ref manual_070_00_shaders "shader modules". Must have at least a vertex shader.
+
+### Color attachment parameters
+- `colorRenderFormats` : an array of \ref vireo::ImageFormat for each color attachment
+
+### Color blending parameters
+- `colorBlendDesc` : an array (with the same number of entries as `colorRenderFormats`) of \ref vireo::ColorBlendDesc for each color attachment
+- `logicOpEnable` : controls whether to apply \ref vireo::LogicOp "Logical Operations".
+- `logicOp` :  which logical operation to apply.
+
+For each value of  `colorBlendDesc` :
+- `blendEnable` :  Controls whether blending is enabled for the corresponding color attachment. If blending is not enabled, the source fragment’s color for that attachment is passed through unmodified.
+- `srcColorBlendFactor` : Selects which \ref vireo::BlendFactor "blend factor" is used to determine the source factors (Sr,Sg,Sb).
+- `dstColorBlendFactor` : Selects which \ref vireo::BlendFactor "blend factor" is used to determine the destination factors (Dr,Dg,Db).
+- `colorBlendOp` : Selects which \ref vireo::BlendOp "blend operation" is used to calculate the RGB values to write to the color attachment.
+- `srcAlphaBlendFactor` : Selects which \ref vireo::BlendFactor "blend factor" is used to determine the source factor Sa.
+- `dstAlphaBlendFactor` : Selects which \ref vireo::BlendFactor "blend factor" is used to determine the destination factor Da.
+- `alphaBlendOp` : Selects which \ref vireo::BlendOp "blend operation" is used to calculate the alpha values to write to the color attachment.
+- `colorWriteMask` :  Is a bitmask specifying which of the \ref vireo::ColorWriteMask "R, G, B, and/or A components" are enabled for writing
+
+### Multisampling parameters
+- `msaa` :  the \ref vireo::MSAA "number of samples" used in rasterization
+- `alphaToCoverageEnable` :  Controls whether a temporary coverage value is generated based on the alpha component of the fragment’s first color output
+
+### Rasterization parameters
+- `primitiveTopology` : the \ref vireo::PrimitiveTopology  "primitive topology"
+- `cullMode` : the \ref vireo::CullMode "triangle facing direction" used for primitive culling
+- `polygonMode` : the \ref vireo::PolygonMode  "the triangle rendering mode"
+- `frontFaceCounterClockwise`: `true` if a triangle with positive area is considered front-facing.
+
+### Depth testing parameters
+- `depthStencilImageFormat` : \ref vireo::ImageFormat "format" of the depth and stencil attachment
+- `depthTestEnable` :  controls whether depth testing is enabled.
+- `depthWriteEnable` : controls whether depth writes are enabled .
+- `depthCompareOp` :  the \ref vireo::CompareOp "comparison operator" to use
+- `depthBiasEnable` : Controls whether to bias fragment depth values.
+- `depthBiasConstantFactor` :  A scalar factor controlling the constant depth value added to each fragment.
+- `depthBiasClamp` : The maximum (or minimum) depth bias of a fragment.
+- `depthBiasSlopeFactor` :  A scalar factor applied to a fragment’s slope in depth bias calculations.
+
+### Stencil testing parameters
+- `stencilTestEnable` :  Controls whether stencil testing is enabled
+- `frontStencilOpState` : value controlling the \ref vireo::StencilOpState "corresponding parameters" of the stencil test.
+- `backStencilOpState` : value controlling the \ref vireo::StencilOpState "corresponding parameters" of the stencil test.
+
 ## Creating a graphic pipeline
 
 ## Drawing
