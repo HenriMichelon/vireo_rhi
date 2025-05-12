@@ -1,9 +1,61 @@
 /*!
 \page manual_090_01_fences Fences
 
-A fence is a GPU→CPU synchronization primitive. It's used to lets the CPU know when submitted GPU work has completed.
+A fence is a GPU/CPU synchronization primitive. It's used to lets the CPU know when submitted GPU work has completed.
 
-...More to come...
+There is two uses of \ref vireo::Fence :
+- Synchronize the frame rendering and presenting
+- Wait for the execution of a work submission
 
+## Frame rendering and presenting synchronization
+
+Synchronizing the frame rendering is mandatory if you want multiple frames in flight. You need one \ref vireo::Fence
+per frame then use them in the rendering loop :
+
+\code{.cpp}
+// Get the current frame data
+const auto& frame = framesData[swapChain->getCurrentFrameIndex()];
+
+// Acquire the next frame buffer or stop rendering on error.
+if (!swapChain->acquire(frame.inFlightFence)) { return; }
+
+...
+// Record commands
+...
+
+// Submit the frame command list then ask the submission queue to signal the end of the rendering to the swap chain
+graphicQueue->submit(frame.inFlightFence, swapChain, {frame.commandList});
+
+// Present the swap chain. Presentation will be done when the submission queue will signal the end of the rendering.
+// It's a GPU/GPU synchronization mechanism, the CPU will not be blocked, only the swap chain presentation.
+swapChain->present();
+
+// Get the next frame index for the next frame
+swapChain->nextFrameIndex();
+\endcode
+
+## Work completion synchronization
+
+Waiting for a command submission to end involve creating a \ref vireo::Fence with \ref vireo::Vireo::createFence,
+use it with \ref vireo::SubmitQueue::submit then \ref vireo::Fence::wait (blocking the CPU code).
+
+At initialization, create the fence in signaled state to be able use \ref vireo::Fence::reset the first time without using a condition :
+
+\code{.cpp}
+auto fence = vireo->createFence(true);
+\endcode
+
+Use the fence :
+\code{.cpp}
+// Reset the fence state
+fence->reset()
+
+// Submit work
+graphicQueue->submit(fence, {commandList});
+
+// Wait for the GPU to execute the commands
+fence->wait()
+
+\endcode
 
 */

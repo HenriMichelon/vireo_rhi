@@ -164,9 +164,6 @@ for (int y = 0; y < image->getHeight(); ++y) {
     memcpy(&imageData[y * rowPitch], &source[y * alignedRowPitch], rowPitch);
 }
 
-// Unmap the buffer
-buffer->unmap();
-
 // Write data to a file
 stbi_write_png("output.png",
     image->getWidth(),

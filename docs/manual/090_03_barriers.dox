@@ -1,13 +1,60 @@
 /*!
 \page manual_090_03_barriers Memory barriers
 
-A memory barrier is a GPU→GPU synchronization mechanism.
-Barriers enforce execution and memory ordering within or across \ref manual_050_00_commands "command lists".
+A memory barrier is a GPU/GPU synchronization mechanism. They are use \b inside \ref manual_100_00_renderpass "render passes" :
+barriers enforce execution and memory ordering within or across \ref manual_050_00_commands "command lists".
 
 They prevent hazards like read-after-write, write-after-read, etc., by ensuring visibility and availability of resource modifications
 and prepare the resource to be in an optimized layout for the next task.
 
-...More to come...
+A barrier in recorded in a command list with \ref vireo::CommandList::barrier with the resource, the source state and
+the destination state. For Vulkan the barrier methods will take care of the correct pipeline stages and layouts for you (for DirectX 12
+it's the driver) :
 
+\code{.cpp}
+// Wait for all the data of the graphic rendering pass to be written in the color attachment
+// before copying the image
+commandList->barrier(
+    colorBuffer,
+    vireo::ResourceState::RENDER_TARGET_COLOR,
+    vireo::ResourceState::COPY_SRC);
+\endcode
+
+In an application the barriers states \b must be perfect : with DirectX 12 you \b can't use an source state different
+from the current state of the resource.
+This can lead to a lot of barriers :
+
+\code{.cpp}
+commandList->barrier(
+    depthPrepass.getDepthBuffer(frameIndex),
+    depthPrepass.isWithStencil() ?
+            vireo::ResourceState::RENDER_TARGET_DEPTH_STENCIL :
+            vireo::ResourceState::RENDER_TARGET_DEPTH,
+    vireo::ResourceState::UNDEFINED);
+
+auto colorBuffer = postProcessing.getColorBuffer(frameIndex);
+if (colorBuffer == nullptr) {
+    colorBuffer = frame.colorBuffer;
+}
+commandList->barrier(
+    swapChain,
+    vireo::ResourceState::UNDEFINED,
+    vireo::ResourceState::COPY_DST);
+commandList->barrier(
+    colorBuffer,
+    vireo::ResourceState::RENDER_TARGET_COLOR,
+    vireo::ResourceState::COPY_SRC);
+commandList->copy(colorBuffer, swapChain);
+commandList->barrier(
+    colorBuffer,
+    vireo::ResourceState::COPY_SRC,
+    vireo::ResourceState::UNDEFINED);
+commandList->barrier(
+    swapChain,
+    vireo::ResourceState::COPY_DST,
+    vireo::ResourceState::PRESENT);
+commandList->end();
+
+\endcode
 
 */

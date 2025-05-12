@@ -1,10 +1,83 @@
 /*!
 \page manual_090_02_semaphores Semaphores
 
-A semaphore is a GPU→GPU synchronization primitive. It ensures ordering between queue submissions
+A semaphore is a GPU/GPU synchronization primitive.
+They are use \b between \ref manual_100_00_renderpass "render passes" : it ensures ordering between queue submissions
 (e.g. “don’t start color pass until depth pre pass finishes”).
 
-...More to come...
+There is two types of semaphores :
+- \ref vireo::SemaphoreType::BINARY : have only two states - signaled and unsignaled. Use them for simple synchronization between two \ref vireo::SubmitQueue::submit.
+- \ref vireo::SemaphoreType::TIMELINE : have an increasing 64-bit unsigned integer payload and are signaled with respect to a particular reference value. Use them for multi passes synchronization.
 
+## Using binary semaphores
+
+Create the semaphore with \ref vireo::Vireo::createSemaphore with the \ref vireo::SemaphoreType::BINARY parameter :
+
+\code{.cpp}
+auto semaphore = vireo->createSemaphore(vireo::SemaphoreType::BINARY);
+\endcode
+
+Then use it with \ref vireo::SubmitQueue::submit.
+In the following example both submissions will be started in parallel, the input assembly and vertex shaders will be
+executed in parallel, then the second submission will wait for the first vertex shader to end before starting the
+fragment shader :
+
+\code{.cpp}
+
+...
+// Record commands
+...
+
+// Submit commands and tell the GPU to signal a semaphore at the end of the vertex shader
+graphicQueue->submit(vireo::WaitStage::VERTEX_SHADER, semaphore, {commandList});
+
+...
+// Record commands
+...
+
+// Submit commands and tell the GPU to wait before starting the fragment shader
+graphicQueue->submit(semaphore, vireo::WaitStage::FRAGMENT_SHADER, {commandList});
+
+\endcode
+
+\note The shader waiting/signaling stages aren't used with DirectX 12, the semaphore will be signaled at the end of the
+pipeline work and waited at the start...
+
+
+## Using timeline semaphores
+
+Create the semaphore with \ref vireo::Vireo::createSemaphore with the \ref vireo::SemaphoreType::TIMELINE parameter :
+
+\code{.cpp}
+auto semaphore = vireo->createSemaphore(vireo::SemaphoreType::TIMELINE);
+\endcode
+
+The reference value of the semaphore counter starts at zero at will be incremented each time it will be signaled.
+
+You can use \ref vireo::Semaphore::incrementValue, \ref vireo::Semaphore::decrementValue or
+\ref vireo::Semaphore::setValue to specify the reference value before waiting but be careful to set the correct
+value back before signaling.
+
+Example of a submission waiting for two other render passes to signal the semaphore :
+\code{.cpp}
+// we have two previous passes, decrement to wait for the signaling value of the first pass
+frame.semaphore->decrementValue();
+
+graphicQueue->submit(
+    frame.semaphore,
+    // wait for "currentValue - 1" and "currentValue"
+    {vireo::WaitStage::FRAGMENT_SHADER, vireo::WaitStage::FRAGMENT_SHADER},
+    frame.inFlightFence,
+    swapChain,
+    {cmdList});
+swapChain->present();
+swapChain->nextFrameIndex();
+
+// roll back the semaphore value
+frame.semaphore->incrementValue();
+\endcode
+
+Check the ["Deferred"](https://github.com/HenriMichelon/vireo_samples/tree/main/src/samples/deferred) example in the [Samples repository](https://github.com/HenriMichelon/vireo_samples) for a
+complete example of a timeline semaphore use.
 
 */
