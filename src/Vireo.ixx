@@ -1359,13 +1359,22 @@ export namespace vireo {
             uint32_t firstMipLevel = 0) = 0;
 
         /**
-         * Copy a buffer into an image
+        * Copy a buffer into an image
          */
         virtual void copy(
             const std::shared_ptr<Buffer>& source,
             const std::shared_ptr<const Image>& destination,
             uint32_t sourceOffset = 0,
             uint32_t firstMipLevel = 0) = 0;
+
+        /**
+        * Copy an image into a buffer
+        */
+        virtual void copy(
+           const std::shared_ptr<const Image>& destination,
+           const std::shared_ptr<Buffer>& source,
+           uint32_t destinationOffset = 0,
+           uint32_t firstMipLevel = 0) = 0;
 
         /**
          * Copy a buffer into another buffer

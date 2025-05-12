@@ -62,6 +62,7 @@ extern PFN_vkCmdBindVertexBuffers vkCmdBindVertexBuffers;
 extern PFN_vkCmdBlitImage vkCmdBlitImage;
 extern PFN_vkCmdCopyBuffer vkCmdCopyBuffer;
 extern PFN_vkCmdCopyBufferToImage vkCmdCopyBufferToImage;
+extern PFN_vkCmdCopyImageToBuffer vkCmdCopyImageToBuffer;
 extern PFN_vkCmdCopyImage vkCmdCopyImage;
 extern PFN_vkCmdDispatch vkCmdDispatch;
 extern PFN_vkCmdDraw vkCmdDraw;

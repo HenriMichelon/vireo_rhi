@@ -29,6 +29,7 @@ PFN_vkCmdBindVertexBuffers vkCmdBindVertexBuffers;
 PFN_vkCmdBlitImage vkCmdBlitImage;
 PFN_vkCmdCopyBuffer vkCmdCopyBuffer;
 PFN_vkCmdCopyBufferToImage vkCmdCopyBufferToImage;
+PFN_vkCmdCopyImageToBuffer vkCmdCopyImageToBuffer;
 PFN_vkCmdCopyImage vkCmdCopyImage;
 PFN_vkCmdDispatch vkCmdDispatch;
 PFN_vkCmdDraw vkCmdDraw;
@@ -190,6 +191,7 @@ void vulkanInitializeDevice(VkDevice device) {
 	vkCmdBlitImage = (PFN_vkCmdBlitImage)vkGetDeviceProcAddr(device, "vkCmdBlitImage");
 	vkCmdCopyBuffer = (PFN_vkCmdCopyBuffer)vkGetDeviceProcAddr(device, "vkCmdCopyBuffer");
 	vkCmdCopyBufferToImage = (PFN_vkCmdCopyBufferToImage)vkGetDeviceProcAddr(device, "vkCmdCopyBufferToImage");
+	vkCmdCopyImageToBuffer = (PFN_vkCmdCopyImageToBuffer)vkGetDeviceProcAddr(device, "vkCmdCopyImageToBuffer");
 	vkCmdCopyImage = (PFN_vkCmdCopyImage)vkGetDeviceProcAddr(device, "vkCmdCopyImage");
 	vkCmdDispatch = (PFN_vkCmdDispatch)vkGetDeviceProcAddr(device, "vkCmdDispatch");
 	vkCmdDraw = (PFN_vkCmdDraw)vkGetDeviceProcAddr(device, "vkCmdDraw");
