@@ -889,7 +889,7 @@ export namespace vireo {
      */
     class Sampler {
     public:
-        static constexpr size_t LOD_CLAMP_NONE = ~0ULL;
+        static constexpr float LOD_CLAMP_NONE = 3.402823466e+38f;
 
         virtual ~Sampler() = default;
 
