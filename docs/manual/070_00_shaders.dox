@@ -93,6 +93,15 @@ suppressing the need for two versions of the binary files for Vireo.
 To compile a Slang shader to both DXIL and SPIR-V intermediate formats the best tool is the Vulkan version of `slangc` shipped
 with the [Vulkan SDK](https://vulkan.lunarg.com/sdk/home). Take a look at the `cmake/shaders.cmake` and `CMakeLists.txt` files of the
 [Vireo Samples repository](https://github.com/HenriMichelon/vireo_samples) for an example of use with [CMake](https://cmake.org/).
+This CMake scripts will search for all files with the `.slang` extension and :
+- Compile them as compute shader if the file name ends with `.comp.slang` (entry point `main`)
+- Compile them as hull/tesselation shader if the file name ends with `.hull.slang` (entry point `main`)
+- Compile them as domain shader if the file name ends with `.domain.slang` (entry point `main`)
+- Compile them as geometry shader if the file name ends with `.geom.slang` (entry point `main`)
+- Compile them as vertex shader if the file name ends with `.vert.slang` (entry point `vertexMain`)
+- Compile them as fragment shader if the file name ends with `.frag.slang` (entry point `fragmentMain`)
+- Does nothing if the file name ends with `.inc.slang`
+- Compile them as vertex and fragment shader for all other files (entry points `vertexMain` and `fragmentMain`)
 
 This binary formats are called "intermediate" because the drivers needs to translate them to the final binary format
 with hardware specific instruction sets:
