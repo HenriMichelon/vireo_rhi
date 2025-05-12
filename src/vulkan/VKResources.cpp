@@ -122,7 +122,7 @@ namespace vireo {
             .compareEnable = VK_FALSE,
             .compareOp = VK_COMPARE_OP_ALWAYS,
             .minLod = minLod,
-            .maxLod = maxLod,
+            .maxLod = maxLod == LOD_CLAMP_NONE ? VK_LOD_CLAMP_NONE : maxLod,
             .borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK,
             .unnormalizedCoordinates = VK_FALSE,
         };

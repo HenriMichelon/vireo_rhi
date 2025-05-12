@@ -54,10 +54,10 @@ export namespace vireo {
             AddressMode addressModeU,
             AddressMode addressModeV,
             AddressMode addressModeW,
-            float minLod = 0.0f,
-            float maxLod = 1.0f,
-            bool anisotropyEnable = true,
-            MipMapMode mipMapMode = MipMapMode::LINEAR);
+            float minLod,
+            float maxLod,
+            bool anisotropyEnable,
+            MipMapMode mipMapMode);
 
         ~VKSampler() override;
 

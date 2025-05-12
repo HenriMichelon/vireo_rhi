@@ -889,6 +889,8 @@ export namespace vireo {
      */
     class Sampler {
     public:
+        static constexpr size_t LOD_CLAMP_NONE = ~0ULL;
+
         virtual ~Sampler() = default;
 
     protected:
@@ -2208,7 +2210,7 @@ export namespace vireo {
                                                   AddressMode addressModeV,
                                                   AddressMode addressModeW,
                                                   float minLod = 0.0f,
-                                                  float maxLod = 1.0f,
+                                                  float maxLod = Sampler::LOD_CLAMP_NONE,
                                                   bool anisotropyEnable = true,
                                                   MipMapMode mipMapMode = MipMapMode::LINEAR) const = 0;
 

@@ -183,7 +183,7 @@ namespace vireo {
             .ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER,
             .BorderColor = {0.0f, 0.0f, 0.0f, 0.0f},
             .MinLOD = minLod,
-            .MaxLOD = maxLod,
+            .MaxLOD = maxLod == LOD_CLAMP_NONE ? D3D12_FLOAT32_MAX : maxLod,
         };
     }
 
