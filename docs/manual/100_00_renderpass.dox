@@ -59,8 +59,8 @@ parameters :
 - `colorRenderTargets` : an array of \ref vireo::RenderTargetDesc with the descriptions of the images used as color attachments. Must have the same number of elements and the same image formats as the `colorRenderFormats` of the corresponding graphic pipeline.
 - `depthStencilRenderTarget` : the depth and stencil attachment. Must have the same format as the `depthStencilImageFormat` of the corresponding graphic pipeline.
 - `multisampledDepthStencilRenderTarget` : the multisampled depth and stencil attachment if the `msaa` field of the graphic pipeline is different from \ref vireo::MSAA::NONE.
-- `depthTestEnable` : `true` if the depth and stencil attachment is used for depth testing. Same as the value of the `depthTestEnable` of the graphic pipeline.
-- `stencilTestEnable` : `true` if the depth and stencil attachment is used for stencil testing. Same as the value of the `stencilTestEnable` of the graphic pipeline.
+- `depthTestEnable` : `true` if the depth and stencil attachment is used for depth testing.
+- `stencilTestEnable` : `true` if the depth and stencil attachment is used for stencil testing.
 - `clearDepthStencil` : set to `true` to clear the depth and stencil attachment at the start of the pass.
 - `depthStencilClearValue` : values used to clear the depth and stencil attachment.
 - `discardDepthStencilAfterRender` : if `true` the depth and stencil attachment content can be discarded by the driver if needed.
