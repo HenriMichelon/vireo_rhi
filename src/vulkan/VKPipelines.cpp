@@ -146,24 +146,46 @@ namespace vireo {
            const std::wstring& name):
         GraphicPipeline{configuration.resources},
         device{device} {
-        assert(configuration.resources);
-        assert(configuration.vertexShader || configuration.fragmentShader);
+        assert(configuration.resources != nullptr);
+        assert(configuration.vertexShader != nullptr);
         assert(configuration.colorRenderFormats.size() == configuration.colorBlendDesc.size());
         const auto& vkPipelineLayout = static_pointer_cast<const VKPipelineResources>(configuration.resources);
 
         auto shaderStages = std::vector<VkPipelineShaderStageCreateInfo>{};
-        if (configuration.vertexShader) {
-            shaderStages.push_back({
-                .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-                .stage = VK_SHADER_STAGE_VERTEX_BIT,
-                .module = static_pointer_cast<const VKShaderModule>(configuration.vertexShader)->getShaderModule(),
-                .pName = "main",
-            });
-        }
+        shaderStages.push_back({
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .stage = VK_SHADER_STAGE_VERTEX_BIT,
+            .module = static_pointer_cast<const VKShaderModule>(configuration.vertexShader)->getShaderModule(),
+            .pName = "main",
+        });
         if (configuration.fragmentShader) {
             shaderStages.push_back({
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+                .module = static_pointer_cast<const VKShaderModule>(configuration.fragmentShader)->getShaderModule(),
+                .pName = "main"
+            });
+        }
+        if (configuration.hullShader) {
+            shaderStages.push_back({
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                .stage = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,
+                .module = static_pointer_cast<const VKShaderModule>(configuration.fragmentShader)->getShaderModule(),
+                .pName = "main"
+            });
+        }
+        if (configuration.domainShader) {
+            shaderStages.push_back({
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                .stage = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT,
+                .module = static_pointer_cast<const VKShaderModule>(configuration.fragmentShader)->getShaderModule(),
+                .pName = "main"
+            });
+        }
+        if (configuration.geometryShader) {
+            shaderStages.push_back({
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                .stage = VK_SHADER_STAGE_GEOMETRY_BIT,
                 .module = static_pointer_cast<const VKShaderModule>(configuration.fragmentShader)->getShaderModule(),
                 .pName = "main"
             });

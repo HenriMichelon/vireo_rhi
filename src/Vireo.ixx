@@ -5,7 +5,7 @@
 * https://opensource.org/licenses/MIT
 */
 export module vireo;
-
+#undef DOMAIN
 export import vireo.tools;
 
 export namespace vireo {
@@ -488,6 +488,12 @@ export namespace vireo {
         VERTEX,
         //! Fragment/pixel stage
         FRAGMENT,
+        //! Tessellation control/Hull stage
+        HULL,
+        //! Tessellation evaluation/Domain stage
+        DOMAIN,
+        //! Geometry stage
+        GEOMETRY,
         //! Compute stage
         COMPUTE,
     };
@@ -1905,6 +1911,12 @@ export namespace vireo {
         std::shared_ptr<ShaderModule>      vertexShader{nullptr};
         //! Fragment/Pixel shader
         std::shared_ptr<ShaderModule>      fragmentShader{nullptr};
+        //! Tessellation control/Hull shader
+        std::shared_ptr<ShaderModule>      hullShader{nullptr};
+        //! Tessellation evaluation/Domain shader
+        std::shared_ptr<ShaderModule>      domainShader{nullptr};
+        //! Geometry shader
+        std::shared_ptr<ShaderModule>      geometryShader{nullptr};
 
         //! The primitive topology
         PrimitiveTopology primitiveTopology{PrimitiveTopology::TRIANGLE_LIST};

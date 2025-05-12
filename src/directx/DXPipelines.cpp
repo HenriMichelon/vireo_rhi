@@ -130,7 +130,7 @@ namespace vireo {
         const std::shared_ptr<const ShaderModule>& shader,
         const std::wstring& name):
         ComputePipeline{pipelineResources} {
-        assert(shader);
+        assert(shader != nullptr);
         const auto dxPipelineResources = static_pointer_cast<const DXPipelineResources>(pipelineResources);
         const auto dxShader = static_pointer_cast<const DXShaderModule>(shader);
         const auto psoDesc = D3D12_COMPUTE_PIPELINE_STATE_DESC{
@@ -150,7 +150,8 @@ namespace vireo {
         const std::wstring& name):
         GraphicPipeline{configuration.resources},
         primitiveTopology{dxPrimitives[static_cast<int>(configuration.primitiveTopology)]} {
-        assert(configuration.vertexShader || configuration.fragmentShader);
+        assert(configuration.resources != nullptr);
+        assert(configuration.vertexShader != nullptr);
         assert(configuration.colorRenderFormats.size() == configuration.colorBlendDesc.size());
         const auto dxPipelineResources = static_pointer_cast<const DXPipelineResources>(configuration.resources);
 
@@ -214,11 +215,18 @@ namespace vireo {
             psoDesc.InputLayout.pInputElementDescs = dxVertexInputLayout->getInputElementsDesc().data();
         }
 
-        if (configuration.vertexShader) {
-            psoDesc.VS = CD3DX12_SHADER_BYTECODE(static_pointer_cast<const DXShaderModule>(configuration.vertexShader)->getShader().Get());
-        }
+        psoDesc.VS = CD3DX12_SHADER_BYTECODE(static_pointer_cast<const DXShaderModule>(configuration.vertexShader)->getShader().Get());
         if (configuration.fragmentShader) {
             psoDesc.PS = CD3DX12_SHADER_BYTECODE(static_pointer_cast<const DXShaderModule>(configuration.fragmentShader)->getShader().Get());
+        }
+        if (configuration.hullShader) {
+            psoDesc.HS = CD3DX12_SHADER_BYTECODE(static_pointer_cast<const DXShaderModule>(configuration.hullShader)->getShader().Get());
+        }
+        if (configuration.domainShader) {
+            psoDesc.DS = CD3DX12_SHADER_BYTECODE(static_pointer_cast<const DXShaderModule>(configuration.domainShader)->getShader().Get());
+        }
+        if (configuration.geometryShader) {
+            psoDesc.GS = CD3DX12_SHADER_BYTECODE(static_pointer_cast<const DXShaderModule>(configuration.geometryShader)->getShader().Get());
         }
         for (int i = 0; i < configuration.colorRenderFormats.size(); i++) {
             psoDesc.RTVFormats[i] = DXImage::dxFormats[static_cast<int>(configuration.colorRenderFormats[i])];
