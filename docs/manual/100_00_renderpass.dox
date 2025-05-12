@@ -1,9 +1,100 @@
 /*!
 \page manual_100_00_renderpass Render pass
 
-A render pass is the process of recording then executing multiple \ref manual_050_00_commands "command lists".
+A render pass is the process of recording then executing multiple \ref manual_050_00_commands "command lists" and
+using \ref manual_080_00_pipelines "pipelines".
 
-...More to come...
+## Executing a render pass
 
+There is no "render pass object" or data structure : a render pass consists of a series of commands that ends with a
+\ref manual_060_00_queues "submission".
+
+In a render pass we generally find :
+- The start and stop of a \ref manual_050_00_commands "recording session"
+- Multiples \ref manual_090_03_barriers "pipeline barriers" for GPU/GPU synchronization
+- One or more rendering passes with \ref manual_080_01_graphic_pipelines "graphic pipelines" or execution of \ref manual_080_02_compute_pipelines "compute pipelines"
+- \ref manual_060_00_queues "Submission" of the command lists
+
+Starting and stopping the commands recording session is done with \ref vireo::CommandList::begin and \ref vireo::CommandList::end,
+barriers are recorded with \ref vireo::CommandList::barrier and submission of command lists is done with \ref vireo::SubmitQueue::submit.
+A graphic rendering pass starts with \ref vireo::CommandList::beginRendering and ends with \ref vireo::CommandList::endRendering :
+
+\code{.cpp}
+// Start the recording session
+cmdList->begin();
+
+// Ensure that the color attachment is available and in the correct layout
+cmdList->barrier(swapChain, vireo::ResourceState::UNDEFINED, vireo::ResourceState::RENDER_TARGET_COLOR);
+
+// Start a graphic rendering pass
+cmdList->beginRendering(renderingConfig);
+
+...
+// Records commands
+...
+
+// End the graphic rendering pass
+cmdList->endRendering();
+
+// Ensure that all the writes in the color attachment are done
+cmdList->barrier(swapChain, vireo::ResourceState::RENDER_TARGET_COLOR, vireo::ResourceState::PRESENT);
+
+// End the recording session
+cmdList->end();
+
+// Submit commands to the GPU
+graphicQueue->submit(frame.inFlightFence, swapChain, {cmdList});
+\endcode
+
+You can have multiple graphic rendering pass in a render pass, in this case you need to synchronize the color and depth
+attachments with \ref manual_090_03_barriers "pipeline barriers".
+
+If you have multiple render passes (multiple command submissions) you need to synchronize them with
+\ref manual_090_02_semaphores "semaphores".
+
+## Configuration of a graphic rendering pass
+
+The graphic rendering pass must be configured with a \ref vireo::RenderingConfiguration structure with the following
+parameters :
+- `colorRenderTargets` : an array of \ref vireo::RenderTargetDesc with the descriptions of the images used as color attachments. Must have the same number of elements and the same image formats as the `colorRenderFormats` of the corresponding graphic pipeline.
+- `depthStencilRenderTarget` : the depth and stencil attachment. Must have the same format as the `depthStencilImageFormat` of the corresponding graphic pipeline.
+- `multisampledDepthStencilRenderTarget` : the multisampled depth and stencil attachment if the `msaa` field of the graphic pipeline is different from \ref vireo::MSAA::NONE.
+- `depthTestEnable` : `true` if the depth and stencil attachment is used for depth testing. Same as the value of the `depthTestEnable` of the graphic pipeline.
+- `stencilTestEnable` : `true` if the depth and stencil attachment is used for stencil testing. Same as the value of the `stencilTestEnable` of the graphic pipeline.
+- `clearDepthStencil` : set to `true` to clear the depth and stencil attachment at the start of the pass.
+- `depthStencilClearValue` : values used to clear the depth and stencil attachment.
+- `discardDepthStencilAfterRender` : if `true` the depth and stencil attachment content can be discarded by the driver if needed.
+
+For each color attachment of the `colorRenderTargets` array the parameters are described in a \ref vireo::RenderTargetDesc structure :
+- `swapChain` : if set, use the swap chain as color attachment.
+- `renderTarget` : if set, use this image as color attachment. The `swapchain` field is evaluated first.
+- `multisampledRenderTarget` :  the multisampled color attachment if the `msaa` field of the graphic pipeline is different from \ref vireo::MSAA::NONE.
+- `clear` : set to `true` to clear the color attachment at the start of the pass.
+- `clearValue` :  values used to clear the color attachment.
+- `discardAfterRender` : if `true` the color attachment content can be discarded by the driver if needed.
+
+\code{.cpp}
+
+// Configuration of the graphic rendering pass
+vireo::RenderingConfiguration renderingConfig {
+    .colorRenderTargets = {{
+        .clear      = true,
+        .clearValue = {0.0f, 0.2f, 0.4f, 1.0f}
+    }}
+};
+
+...
+
+// Set the color attachment
+renderingConfig.colorRenderTargets[0].swapChain = swapChain;
+
+...
+
+// Render
+cmdList->beginRendering(renderingConfig);
+...
+cmdList->endRendering();
+
+\endcode
 
 */
