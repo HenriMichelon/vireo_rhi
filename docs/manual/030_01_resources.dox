@@ -9,14 +9,15 @@ Thera are four types of buffers :
 - \ref vireo::BufferType::VERTEX : used to store vertex data for the vertex shaders, used by the GPU when drawing primitives.
 - \ref vireo::BufferType::INDEX : used to store vertex index data for the vertex shaders, used by the GPU when drawing primitives.
 - \ref vireo::BufferType::UNIFORM : used to share various data such as struct or arrays with any shaders
-- \ref vireo::BufferType::BUFFER_TRANSFER : used to upload vertex and index data in device-only memory (memory only accessible by the GPU) from the CPU.
-- \ref vireo::BufferType::IMAGE_TRANSFER : used to upload image data in device-only memory (memory only accessible by the GPU) from the CPU.
+- \ref vireo::BufferType::BUFFER_UPLOAD : used to upload vertex and index data in device-only memory (memory only accessible by the GPU) from the CPU.
+- \ref vireo::BufferType::IMAGE_UPLOAD : used to upload image data in device-only memory (memory only accessible by the GPU) from the CPU.
+- \ref vireo::BufferType::IMAGE_DOWNLOAD : used to download image data from the device-only memory (memory only accessible by the GPU) to the CPU.
 
 Depending on their type theses buffers are located in :
 - Device-only memory (memory only accessible by the GPU) : \ref vireo::BufferType::VERTEX and \ref vireo::BufferType::INDEX
-- Host-accessible memory (memory accessible by the GPU and the CPU) : \ref vireo::BufferType::UNIFORM, \ref vireo::BufferType::BUFFER_TRANSFER and \ref vireo::BufferType::IMAGE_TRANSFER
+- Host-accessible memory (memory accessible by the GPU and the CPU) : \ref vireo::BufferType::UNIFORM, \ref vireo::BufferType::BUFFER_UPLOAD, \ref vireo::BufferType::IMAGE_UPLOAD and \ref vireo::BufferType::IMAGE_DOWNLOAD
 
-There is two types of TRANSER buffers to take into account the difference of memory alignment between various graphics API.
+There is three types of TRANSFER buffers to take into account the difference of memory alignment and buffers layouts between various graphics API.
 
 ## Creating a buffer
 
@@ -34,7 +35,7 @@ Each instance of the elements in the buffer \b can be memory aligned. The alignm
 
 ## Writing data into buffers
 
-For host-accessible buffers (\ref vireo::BufferType::UNIFORM,  \ref vireo::BufferType::IMAGE_TRANSFER and \ref vireo::BufferType::BUFFER_TRANSFER)
+For host-accessible buffers (\ref vireo::BufferType::UNIFORM, \ref vireo::BufferType::BUFFER_UPLOAD, \ref vireo::BufferType::IMAGE_UPLOAD and \ref vireo::BufferType::IMAGE_DOWNLOAD)
 data can be written directly from the CPU by \b mapping them with \ref vireo::Buffer::map. To "map memory" means to obtain a CPU pointer to
 a device (GPU) memory, to be able to read from it or write to it in CPU code.
 
@@ -114,7 +115,7 @@ If you need to take care of the staging buffer yourself or if you need to copy t
 destination offset you have to use \ref vireo::CommandList::copy.
 
 To use this method you need to :
-- Create a staging buffer of type \ref vireo::BufferType::BUFFER_TRANSFER
+- Create a staging buffer of type \ref vireo::BufferType::BUFFER_UPLOAD
 - Write data into this buffer
 - Create the destination buffer of type \ref vireo::BufferType::VERTEX or \ref vireo::BufferType::INDEX
 - Record the copy command to instruct the GPU to copy data from the staging buffer to the destination buffer
@@ -126,7 +127,7 @@ the completion of the commands on the submit queue).
 // In a local scope for temporary objects destruction
 {
     // Allocate and fill the staging buffer
-    const auto stagingBufferVertex = vireo->createBuffer(vireo::BufferType::BUFFER_TRANSFER, sizeof(Vertex), triangleVertices.size());
+    const auto stagingBufferVertex = vireo->createBuffer(vireo::BufferType::BUFFER_UPLOAD, sizeof(Vertex), triangleVertices.size());
     stagingBufferVertex->map();
     stagingBufferVertex->write(triangleVertices.data());
     stagingBufferVertex->unmap();

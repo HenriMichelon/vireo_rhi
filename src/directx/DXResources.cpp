@@ -23,8 +23,10 @@ namespace vireo {
         Buffer{type},
         size{size} {
         auto minOffsetAlignment = 0;
-        if (type == BufferType::UNIFORM || type == BufferType::IMAGE_TRANSFER) {
+        if (type == BufferType::UNIFORM) {
             minOffsetAlignment = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
+        } else if (type == BufferType::IMAGE_UPLOAD || type == BufferType::IMAGE_DOWNLOAD) {
+            minOffsetAlignment = D3D12_TEXTURE_DATA_PITCH_ALIGNMENT;
         }
         instanceSizeAligned = minOffsetAlignment > 0
                ? (size + minOffsetAlignment - 1) & ~(minOffsetAlignment - 1)
@@ -35,8 +37,10 @@ namespace vireo {
 
         // GPU Buffer
         const auto heapProperties = CD3DX12_HEAP_PROPERTIES(
-            type == BufferType::UNIFORM || type == BufferType::IMAGE_TRANSFER || type == BufferType::BUFFER_TRANSFER ?
+            type == BufferType::UNIFORM || type == BufferType::IMAGE_UPLOAD || type == BufferType::BUFFER_UPLOAD ?
             D3D12_HEAP_TYPE_UPLOAD :
+            type == BufferType::IMAGE_DOWNLOAD ?
+            D3D12_HEAP_TYPE_READBACK :
             D3D12_HEAP_TYPE_DEFAULT
         );
         const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
@@ -141,6 +145,10 @@ namespace vireo {
 #ifdef _DEBUG
         image->SetName((L"DXIMage : " + name).c_str());
 #endif
+    }
+
+    uint32_t DXImage::getAlignedRowPitch() const {
+        return (getWidth() * getPixelSize(getFormat()) + (D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1)) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1);
     }
 
     DXSampler::DXSampler(

@@ -1076,7 +1076,7 @@ namespace vireo {
         const auto buffer = static_pointer_cast<const VKBuffer>(destination);
         const auto stagingBuffer = std::make_shared<VKBuffer>(
             device,
-            BufferType::BUFFER_TRANSFER,
+            BufferType::BUFFER_UPLOAD,
             buffer->getInstanceSize(),
             buffer->getInstanceCount(),
             L"StagingBuffer for buffer");
@@ -1142,7 +1142,7 @@ namespace vireo {
         const auto image = static_pointer_cast<const VKImage>(destination);
         const auto stagingBuffer = std::make_shared<VKBuffer>(
            device,
-           BufferType::IMAGE_TRANSFER,
+           BufferType::IMAGE_UPLOAD,
            image->getImageSize(),
            image->getArraySize(),
            L"StagingBuffer for image");
@@ -1259,7 +1259,7 @@ namespace vireo {
         const auto image = static_pointer_cast<const VKImage>(destination);
         const auto stagingBuffer = std::make_shared<VKBuffer>(
            device,
-           BufferType::IMAGE_TRANSFER,
+           BufferType::IMAGE_UPLOAD,
            image->getImageSize(),
            image->getArraySize(),
            L"StagingBuffer for image array");

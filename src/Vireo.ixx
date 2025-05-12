@@ -158,16 +158,18 @@ export namespace vireo {
      * Manual page : \ref manual_030_01_resources
      */
     enum class BufferType {
-        //! Used to store vertices (in device local memory)
+        //! Used to store vertices (in GPU memory)
         VERTEX,
-        //! Used to store indices (in device local memory)
+        //! Used to store indices (in GPU memory)
         INDEX,
         //! Used for shader uniform (in host visible memory)
         UNIFORM,
-        //! Used for vertex and index buffers copy operations (in host visible memory)
-        BUFFER_TRANSFER,
-        //! Used for image copy operations (in host visible memory)
-        IMAGE_TRANSFER,
+        //! Used for vertex and index buffers copy operations (from host visible memory to GPU memory)
+        BUFFER_UPLOAD,
+        //! Used for image copy operations (from host visible memory to GPU memory)
+        IMAGE_UPLOAD,
+        //! Used for image copy operations (from GPU memory to host visible)
+        IMAGE_DOWNLOAD,
 };
 
     /**
@@ -1009,14 +1011,24 @@ export namespace vireo {
         auto getArraySize() const { return arraySize; }
 
         /**
-         * Return the size in bytes of the first layer
-         */
-        auto getImageSize() const { return width * height * pixelSize[static_cast<int>(format)]; }
-
-        /**
-         * Returns the size in bytes of a line of the first layer
+         * Return the size in bytes of each row
          */
         auto getRowPitch() const { return width * pixelSize[static_cast<int>(format)]; }
+
+        /**
+         * Return the size in bytes of the first layer
+         */
+        auto getImageSize() const { return getRowPitch() * height; }
+
+        /**
+         * Return the size in bytes of the first layer, with aligned rows
+         */
+        auto getAlignedImageSize() const { return getAlignedRowPitch() * height; }
+
+        /**
+         * Return the size in bytes of aligned rows
+         */
+        virtual uint32_t getAlignedRowPitch() const { return getRowPitch(); }
 
         /**
          * Return `true` if the image have read/write access

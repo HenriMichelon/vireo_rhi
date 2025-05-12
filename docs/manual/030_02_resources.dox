@@ -95,7 +95,7 @@ on the CPU side for the completion of the commands on the submit queue).
     texture = vireo->createImage(vireo::ImageFormat::R8G8B8A8_SRGB);
 
     // Allocate the staging buffer in host-accessible memory
-    const auto stagingBuffer = vireo->createBuffer(vireo::BufferType::TRANSFER, texture->getImageSize());
+    const auto stagingBuffer = vireo->createBuffer(vireo::BufferType::IMAGE_UPLOAD, texture->getImageSize());
 
     // Copy the image data into the staging buffer
     stagingBuffer->map();
@@ -123,5 +123,58 @@ on the CPU side for the completion of the commands on the submit queue).
 
 \note It's more efficient to load the image data from the disk directly into the staging buffer by using the
 \ref vireo::Buffer::getMappedAddress "mapped address".
+
+
+## Downloading an image
+
+Downloading an image to save the result of a rendering or the result of a compute shader is similar to uploading with `copy` :
+- Allocate a staging buffer
+- Copy the image to the buffer
+- Use `map()` to access the memory
+
+The main difference is that you have to take care of the memory alignment of the rows of the image imposed by the graphic API :
+
+\code{.cpp}
+// Start recording commands
+commandList->begin();
+
+// Create a temporary, host-visible memory buffer
+const auto buffer = vireo->createBuffer(vireo::BufferType::IMAGE_DOWNLOAD, image->getAlignedImageSize());
+
+// Copy image to buffer
+// The image must be in the COPY_SRC state; insert a barrier if needed
+commandList->copy(image, buffer);
+
+// End recording commands
+commandList->end();
+
+// Submit work to the GPU and wait for the command execution
+graphicSubmitQueue->submit({commandList});
+graphicSubmitQueue->waitIdle();
+
+// Map the buffer to the CPU virtual address space
+buffer->map();
+const auto* source = static_cast<uint8_t*>(buffer->getMappedAddress());
+
+// Copy the image row by row in CPU memory
+const auto rowPitch = image->getRowPitch();
+const auto alignedRowPitch = image->getAlignedRowPitch();
+std::vector<uint8_t> imageData(image->getImageSize());
+for (int y = 0; y < image->getHeight(); ++y) {
+    memcpy(&imageData[y * rowPitch], &source[y * alignedRowPitch], rowPitch);
+}
+
+// Unmap the buffer
+buffer->unmap();
+
+// Write data to a file
+stbi_write_png("output.png",
+    image->getWidth(),
+    image->getHeight(),
+    image->getPixelSize(image->getFormat()),
+    imageData.data(),
+    rowPitch);
+
+\endcode
 
 */
