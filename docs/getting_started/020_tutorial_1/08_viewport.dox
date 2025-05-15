@@ -15,10 +15,13 @@ We need to record the commands to set the viewports & scissors at the start of t
 pass :
 
 \code{.cpp}
-    frameData.commandList->beginRendering(renderingConfig);
-    frameData.commandList->setViewport(swapChain->getExtent());
-    frameData.commandList->setScissors(swapChain->getExtent());
-    // commands will be recorded and submitted here
+   frameData.commandList->setViewport(vireo::Viewport{
+       .width  = static_cast<float>(swapChain->getExtent().width),
+       .height = static_cast<float>(swapChain->getExtent().height)});
+   frameData.commandList->setScissors(vireo::Rect{
+       .width  = swapChain->getExtent().width,
+       .height = swapChain->getExtent().height});
+   // commands will be recorded and submitted here
 \endcode
 
 Next : \ref tutorial_1_09_vertex_data

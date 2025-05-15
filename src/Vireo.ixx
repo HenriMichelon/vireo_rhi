@@ -648,6 +648,38 @@ export namespace vireo {
     };
 
     /**
+     *  Structure specifying two-dimensional subregion
+    */
+    struct Rect {
+        //! Rect’s upper left corner (x,y).
+        int32_t    x{0};
+        //! Rect’s upper left corner (x,y).
+        int32_t    y{0};
+        //! Rect’s width
+        uint32_t   width{0};
+        //! Rect’s height
+        uint32_t   height{0};
+    };
+
+    /**
+     *  Structure specifying a viewport
+    */
+    struct Viewport {
+        //! Viewport’s upper left corner (x,y).
+        float    x{0.0f};
+        //! Viewport’s upper left corner (x,y).
+        float    y{0.0f};
+        //! Viewport’s width
+        float   width{0.0f};
+        //! Viewport’s height
+        float   height{0.0f};
+        //! min depth range for the viewport.
+        float    minDepth{0.0f};
+        //! max depth range for the viewport.
+        float    maxDepth{1.0f};
+    };
+
+    /**
      * A push constant range
      *
      * Manual page : \ref manual_040_03_push_constants
@@ -1553,27 +1585,27 @@ export namespace vireo {
 
         /**
          * Sets the viewports for a command list
-         * @param extents An array of `Extent` structures specifying viewport parameters.
+         * @param viewports An array of `Viewport` structures specifying viewport parameters
          */
-        virtual void setViewports(const std::vector<Extent>& extents) const = 0;
+        virtual void setViewports(const std::vector<Viewport>& viewports) const = 0;
 
         /**
          * Sets the scissors for a command list
-         * @param extents An array of `Extent` structures specifying viewport parameters.
+         * @param rects An array of `Rect` structures specifying viewport parameters.
          */
-        virtual void setScissors(const std::vector<Extent>& extents) const = 0;
+        virtual void setScissors(const std::vector<Rect>& rects) const = 0;
 
         /**
         * Sets the viewport for a command list
-        * @param extent An array of `Extent` structures specifying viewport parameters.
+        * @param viewport An array of `Extent` structures specifying viewport parameters.
         */
-        virtual void setViewport(const Extent& extent) const = 0;
+        virtual void setViewport(const Viewport& viewport) const = 0;
 
         /**
          * Sets the scissors for a command list
-         * @param extent An array of `Extent` structures specifying viewport parameters.
+         * @param rect An array of `Extent` structures specifying viewport parameters.
          */
-        virtual void setScissors(const Extent& extent) const = 0;
+        virtual void setScissors(const Rect& rect) const = 0;
 
         /**
          * Set the reference value for stencil tests and operations

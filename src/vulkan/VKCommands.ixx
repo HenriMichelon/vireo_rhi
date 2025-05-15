@@ -231,13 +231,13 @@ export namespace vireo {
             uint32_t vertexOffset = 0,
             uint32_t firstInstance = 0) const override;
 
-        void setViewports(const std::vector<Extent>& extents) const override;
+        void setViewports(const std::vector<Viewport>& viewports) const override;
 
-        void setScissors(const std::vector<Extent>& extents) const override;
+        void setScissors(const std::vector<Rect>& rects) const override;
 
-        void setViewport(const Extent& extent) const override;
+        void setViewport(const Viewport& viewport) const override;
 
-        void setScissors(const Extent& extent) const override;
+        void setScissors(const Rect& rect) const override;
 
         void setStencilReference(uint32_t reference) const override;
 

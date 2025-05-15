@@ -478,45 +478,45 @@ namespace vireo {
         vkCmdSetStencilReference(commandBuffer, VK_STENCIL_FACE_FRONT_AND_BACK, reference);
     }
 
-    void VKCommandList::setViewports(const std::vector<Extent>& extents) const {
-        std::vector<VkViewport> viewports(extents.size());
+    void VKCommandList::setViewports(const std::vector<Viewport>& viewports) const {
+        std::vector<VkViewport> vkViewports(viewports.size());
         for (int i = 0; i < viewports.size(); i++) {
-            viewports[i].x = 0.0f;
-            viewports[i].y = static_cast<float>(extents[i].height),
-            viewports[i].width = static_cast<float>(extents[i].width);
-            viewports[i].height = -static_cast<float>(extents[i].height);
-            viewports[i].minDepth = 0.0f;
-            viewports[i].maxDepth = 1.0f;
+            vkViewports[i].x = viewports[i].x;
+            vkViewports[i].y = viewports[i].height - viewports[i].y;
+            vkViewports[i].width = viewports[i].width;
+            vkViewports[i].height = -viewports[i].height;
+            vkViewports[i].minDepth = viewports[i].minDepth;
+            vkViewports[i].maxDepth = viewports[i].maxDepth;
         }
-        vkCmdSetViewportWithCount(commandBuffer, viewports.size(), viewports.data());
+        vkCmdSetViewportWithCount(commandBuffer, vkViewports.size(), vkViewports.data());
     }
 
-    void VKCommandList::setScissors(const std::vector<Extent>& extents) const {
-        std::vector<VkRect2D> scissors(extents.size());
+    void VKCommandList::setScissors(const std::vector<Rect>& rects) const {
+        std::vector<VkRect2D> scissors(rects.size());
         for (int i = 0; i < scissors.size(); i++) {
-            scissors[i].offset = {0, 0};
-            scissors[i].extent.width = extents[i].width;
-            scissors[i].extent.height = extents[i].height;
+            scissors[i].offset = {rects[i].x, rects[i].y};
+            scissors[i].extent.width = rects[i].width;
+            scissors[i].extent.height = rects[i].height;
         }
         vkCmdSetScissorWithCount(commandBuffer, scissors.size(), scissors.data());
     }
 
-    void VKCommandList::setViewport(const Extent& extent) const {
-        const auto viewport = VkViewport {
-            .x = 0.0f,
-            .y = static_cast<float>(extent.height),
-            .width = static_cast<float>(extent.width),
-            .height = -static_cast<float>(extent.height),
-            .minDepth = 0.0f,
-            .maxDepth = 1.0f,
+    void VKCommandList::setViewport(const Viewport& viewport) const {
+        const auto vkViewport = VkViewport {
+            .x = viewport.x,
+            .y = viewport.height - viewport.y,
+            .width = viewport.width,
+            .height = -viewport.height,
+            .minDepth = viewport.minDepth,
+            .maxDepth = viewport.maxDepth,
         };
-        vkCmdSetViewportWithCount(commandBuffer, 1, &viewport);
+        vkCmdSetViewportWithCount(commandBuffer, 1, &vkViewport);
     }
 
-    void VKCommandList::setScissors(const Extent& extent) const {
+    void VKCommandList::setScissors(const Rect& rect) const {
         const auto scissor = VkRect2D{
-            .offset = {0, 0},
-            .extent = { extent.width, extent.height },
+            .offset = {rect.x, rect.y},
+            .extent = { rect.width, rect.height },
         };
         vkCmdSetScissorWithCount(commandBuffer, 1, &scissor);
     }
