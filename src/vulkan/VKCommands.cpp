@@ -482,9 +482,9 @@ namespace vireo {
         std::vector<VkViewport> vkViewports(viewports.size());
         for (int i = 0; i < viewports.size(); i++) {
             vkViewports[i].x = viewports[i].x;
-            vkViewports[i].y = viewports[i].height - viewports[i].y;
+            vkViewports[i].y = viewports[i].y;
             vkViewports[i].width = viewports[i].width;
-            vkViewports[i].height = -viewports[i].height;
+            vkViewports[i].height = viewports[i].height;
             vkViewports[i].minDepth = viewports[i].minDepth;
             vkViewports[i].maxDepth = viewports[i].maxDepth;
         }

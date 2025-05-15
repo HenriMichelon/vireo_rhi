@@ -278,9 +278,9 @@ namespace vireo {
         std::vector<CD3DX12_VIEWPORT> dxViewports(viewports.size());
         for (int i = 0; i < viewports.size(); i++) {
             dxViewports[i].TopLeftX = viewports[i].x;
-            dxViewports[i].TopLeftY = viewports[i].y;
+            dxViewports[i].TopLeftY = viewports[i].height - viewports[i].y;
             dxViewports[i].Width = viewports[i].width;
-            dxViewports[i].Height = viewports[i].height;
+            dxViewports[i].Height = -viewports[i].height;
             dxViewports[i].MinDepth = viewports[i].minDepth;
             dxViewports[i].MaxDepth = viewports[i].maxDepth;
         }
