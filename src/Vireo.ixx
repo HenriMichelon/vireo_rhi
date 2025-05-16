@@ -1606,14 +1606,14 @@ export namespace vireo {
          * @param indexCountPerInstance The number of vertices per instance to draw
          * @param instanceCount The number of instances
          * @param firstIndex The base index within the index buffer.
-         * @param vertexOffset The value added to the vertex index before indexing into the vertex buffer.
+         * @param firstVertex The value added to the vertex index before indexing into the vertex buffer.
          * @param firstInstance The index of the first instance to draw.
          */
         virtual void drawIndexed(
             uint32_t indexCountPerInstance,
             uint32_t instanceCount = 1,
             uint32_t firstIndex = 0,
-            uint32_t vertexOffset = 0,
+            uint32_t firstVertex = 0,
             uint32_t firstInstance = 0) const = 0;
 
         /**
