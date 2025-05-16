@@ -36,6 +36,7 @@ namespace vireo {
             .type =
                 type == DescriptorType::UNIFORM ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER :
                 type == DescriptorType::UNIFORM_DYNAMIC ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC :
+                type == DescriptorType::STORAGE ? VK_DESCRIPTOR_TYPE_STORAGE_BUFFER :
                 type == DescriptorType::SAMPLED_IMAGE ? VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE :
                 type == DescriptorType::READWRITE_IMAGE ? VK_DESCRIPTOR_TYPE_STORAGE_IMAGE :
                 VK_DESCRIPTOR_TYPE_SAMPLER,
@@ -128,7 +129,12 @@ namespace vireo {
             .dstBinding = index,
             .dstArrayElement = 0,
             .descriptorCount = 1,
-            .descriptorType = layout->isDynamicUniform() ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .descriptorType =
+                buffer->getType() == BufferType::UNIFORM ?
+                layout->isDynamicUniform() ?
+                VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC :
+                VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER :
+                VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             .pBufferInfo = &bufferInfo,
         };
         vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
@@ -181,9 +187,11 @@ namespace vireo {
         assert(!layout->isDynamicUniform());
         assert(!layout->isSamplers());
         assert(buffers.size() > 0);
+        auto type = buffers[0]->getType() == BufferType::UNIFORM ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
         auto buffersInfo = std::vector<VkDescriptorBufferInfo>(buffers.size());
         for (int i = 0; i < buffers.size(); i++) {
             const auto& vkBuffer = static_pointer_cast<const VKBuffer>(buffers[i]);
+            assert(vkBuffer->getType() ==  buffers[0]->getType());
             buffersInfo[i].buffer = vkBuffer->getBuffer();
             buffersInfo[i].range = vkBuffer->getSize();
         }
@@ -193,7 +201,7 @@ namespace vireo {
             .dstBinding = index,
             .dstArrayElement = 0,
             .descriptorCount = static_cast<uint32_t>(buffersInfo.size()),
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .descriptorType = type,
             .pBufferInfo = buffersInfo.data(),
         };
         vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);

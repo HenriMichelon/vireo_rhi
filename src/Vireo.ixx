@@ -166,6 +166,8 @@ export namespace vireo {
         INDIRECT,
         //! Used for shader uniform (in host visible memory)
         UNIFORM,
+        //! Used for shader storage (in host visible memory)
+        STORAGE,
         //! Used for vertex and index buffers copy operations (from host visible memory to GPU memory)
         BUFFER_UPLOAD,
         //! Used for image copy operations (from host visible memory to GPU memory)
@@ -196,6 +198,8 @@ export namespace vireo {
         UNIFORM,
         //! Dynamic binding uniform buffer
         UNIFORM_DYNAMIC,
+        //! Storage buffer
+        STORAGE,
         //! Sampled texture (image only, no sampler)
         SAMPLED_IMAGE,
         //! Sampler for SAMPLED_IMAGE

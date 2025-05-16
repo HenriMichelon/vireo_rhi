@@ -32,6 +32,7 @@ namespace vireo {
                 type == DescriptorType::UNIFORM ? D3D12_DESCRIPTOR_RANGE_TYPE_CBV :
                 type == DescriptorType::UNIFORM_DYNAMIC ? D3D12_DESCRIPTOR_RANGE_TYPE_CBV :
                 type == DescriptorType::SAMPLED_IMAGE ? D3D12_DESCRIPTOR_RANGE_TYPE_SRV :
+                type == DescriptorType::STORAGE ? D3D12_DESCRIPTOR_RANGE_TYPE_UAV :
                 type == DescriptorType::READWRITE_IMAGE ? D3D12_DESCRIPTOR_RANGE_TYPE_UAV :
                 D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,
                 count,
@@ -77,15 +78,34 @@ namespace vireo {
         assert(!layout->isSamplers());
         assert(buffer != nullptr);
         const auto dxBuffer = static_pointer_cast<const DXBuffer>(buffer);
-        const auto bufferViewDesc = D3D12_CONSTANT_BUFFER_VIEW_DESC{
-            .BufferLocation = dxBuffer->getBuffer()->GetGPUVirtualAddress(),
-            .SizeInBytes = dxBuffer->getInstanceSizeAligned(),
-        };
         const auto cpuHandle = D3D12_CPU_DESCRIPTOR_HANDLE { cpuBase.ptr + index * descriptorSize };
-        device->CreateConstantBufferView(&bufferViewDesc, cpuHandle);
-        if (layout->isDynamicUniform()) {
-            assert(buffer->getType() == BufferType::UNIFORM);
-            dynamicBuffer = buffer;
+        if (buffer->getType() == BufferType::UNIFORM) {
+            const auto bufferViewDesc = D3D12_CONSTANT_BUFFER_VIEW_DESC{
+                .BufferLocation = dxBuffer->getBuffer()->GetGPUVirtualAddress(),
+                .SizeInBytes = dxBuffer->getInstanceSizeAligned(),
+            };
+            device->CreateConstantBufferView(&bufferViewDesc, cpuHandle);
+            if (layout->isDynamicUniform()) {
+                assert(buffer->getType() == BufferType::UNIFORM);
+                dynamicBuffer = buffer;
+            }
+        } else if (buffer->getType() == BufferType::STORAGE) {
+            const auto uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC{
+                .ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
+                .Buffer = {
+                    .NumElements = buffer->getInstanceCount(),
+                    .StructureByteStride = buffer->getInstanceSizeAligned(),
+                }
+            };
+            device->CreateUnorderedAccessView(
+                dxBuffer->getBuffer().Get(),
+                nullptr,
+                &uavDesc,
+                cpuHandle
+            );
+
+        } else {
+            throw Exception("Unsupported buffer type");
         }
     }
 
