@@ -55,4 +55,17 @@ namespace vireo {
             memcpy(static_cast<unsigned char*>(mappedAddress) + offset, data, size);
         }
     }
+
+    void CommandList::upload(const std::vector<BufferUploadInfo>& infos) {
+        for (const auto &info : infos) {
+            upload(info.buffer, info.data);
+        }
+    }
+
+    void CommandList::upload(const std::vector<ImageUploadInfo>& infos) {
+        for (const auto &info : infos) {
+            upload(info.image, info.data);
+        }
+    }
+
 }

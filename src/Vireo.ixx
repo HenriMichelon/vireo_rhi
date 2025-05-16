@@ -1379,6 +1379,24 @@ export namespace vireo {
     };
 
     /**
+     * Batch buffer upload infos
+     */
+    struct BufferUploadInfo {
+        const std::shared_ptr<Buffer> buffer;
+        const void* data;
+    };
+
+
+    /**
+     * Batch image upload infos
+     */
+    struct ImageUploadInfo {
+        const std::shared_ptr<Image> image;
+        const void* data;
+    };
+
+
+    /**
      * A command list (buffer) object
      *
      * Manual page : \ref manual_050_00_commands
@@ -1408,12 +1426,22 @@ export namespace vireo {
             const void* source) = 0;
 
         /**
+         * Uploads data into buffers using temporary (staging) buffers.
+         */
+        virtual void upload(const std::vector<BufferUploadInfo>& infos);
+
+        /**
          * Upload data into an image using a temporary (staging) buffer.
          */
         virtual void upload(
             const std::shared_ptr<const Image>& destination,
             const void* source,
             uint32_t firstMipLevel = 0) = 0;
+
+        /**
+         * Uploads data into images using temporary (staging) buffers.
+         */
+        virtual void upload(const std::vector<ImageUploadInfo>& infos);
 
         /**
         * Copy a buffer into an image
