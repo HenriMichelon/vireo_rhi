@@ -162,6 +162,8 @@ export namespace vireo {
         VERTEX,
         //! Used to store indices (in GPU memory)
         INDEX,
+        //! Used to store draw commands for indirect drawing (in GPU memory)
+        INDIRECT,
         //! Used for shader uniform (in host visible memory)
         UNIFORM,
         //! Used for vertex and index buffers copy operations (from host visible memory to GPU memory)

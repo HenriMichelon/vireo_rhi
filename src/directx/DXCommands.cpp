@@ -187,6 +187,7 @@ namespace vireo {
             pipelineState == nullptr ? nullptr : pipelineState.Get(),
             IID_PPV_ARGS(&commandList)));
         dxCheck(commandList->Close());
+        dxCheck(device->CreateCommandSignature(&sigDesc, nullptr, IID_PPV_ARGS(&drawIndirectCommandSignature)));
     }
 
     DXCommandList::~DXCommandList() {
@@ -753,18 +754,8 @@ namespace vireo {
         const uint32_t drawCount,
         const uint32_t stride) const {
         const auto dxBuffer = static_pointer_cast<const DXBuffer>(buffer);
-        constexpr auto argDesc = D3D12_INDIRECT_ARGUMENT_DESC{
-            .Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED,
-        };
-        const auto sigDesc = D3D12_COMMAND_SIGNATURE_DESC {
-            .ByteStride = sizeof(D3D12_DRAW_INDEXED_ARGUMENTS),
-            .NumArgumentDescs = 1,
-            .pArgumentDescs = &argDesc,
-        };
-        ComPtr<ID3D12CommandSignature> commandSignature;
-        dxCheck(device->CreateCommandSignature(&sigDesc, nullptr, IID_PPV_ARGS(&commandSignature)));
         commandList->ExecuteIndirect(
-            commandSignature.Get(),
+            drawIndirectCommandSignature.Get(),
             drawCount,
             dxBuffer->getBuffer().Get(),
             offset,
@@ -782,18 +773,8 @@ namespace vireo {
         const uint32_t stride) const {
         const auto dxBuffer = static_pointer_cast<const DXBuffer>(buffer);
         const auto dxCountBuffer = static_pointer_cast<const DXBuffer>(countBuffer);
-        constexpr auto argDesc = D3D12_INDIRECT_ARGUMENT_DESC{
-            .Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED,
-        };
-        const auto sigDesc = D3D12_COMMAND_SIGNATURE_DESC {
-            .ByteStride = sizeof(D3D12_DRAW_INDEXED_ARGUMENTS),
-            .NumArgumentDescs = 1,
-            .pArgumentDescs = &argDesc,
-        };
-        ComPtr<ID3D12CommandSignature> commandSignature;
-        dxCheck(device->CreateCommandSignature(&sigDesc, nullptr, IID_PPV_ARGS(&commandSignature)));
         commandList->ExecuteIndirect(
-            commandSignature.Get(),
+            drawIndirectCommandSignature.Get(),
             maxDrawCount,
             dxBuffer->getBuffer().Get(),
             offset,

@@ -275,14 +275,24 @@ export namespace vireo {
         auto getCommandList() const  { return commandList; }
 
     private:
-        ComPtr<ID3D12Device>              device;
-        ComPtr<ID3D12GraphicsCommandList> commandList;
-        ComPtr<ID3D12CommandAllocator>    commandAllocator;
-        std::vector<ComPtr<ID3D12Resource>>    stagingBuffers{};
-        std::vector<std::shared_ptr<Image>>         resolveSource;
-        std::vector<ComPtr<ID3D12Resource>>    resolveDestination;
-        ComPtr<ID3D12Resource>            depthTargetToDiscard;
-        std::vector<ComPtr<ID3D12Resource>>    colorTargetsToDiscard;
+        ComPtr<ID3D12Device>                device;
+        ComPtr<ID3D12GraphicsCommandList>   commandList;
+        ComPtr<ID3D12CommandAllocator>      commandAllocator;
+        ComPtr<ID3D12CommandSignature>      drawIndirectCommandSignature;
+        std::vector<ComPtr<ID3D12Resource>> stagingBuffers{};
+        std::vector<std::shared_ptr<Image>> resolveSource;
+        std::vector<ComPtr<ID3D12Resource>> resolveDestination;
+        ComPtr<ID3D12Resource>              depthTargetToDiscard;
+        std::vector<ComPtr<ID3D12Resource>> colorTargetsToDiscard;
+
+        static constexpr auto argDesc = D3D12_INDIRECT_ARGUMENT_DESC{
+            .Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED,
+        };
+        const D3D12_COMMAND_SIGNATURE_DESC sigDesc {
+            .ByteStride = sizeof(D3D12_DRAW_INDEXED_ARGUMENTS),
+            .NumArgumentDescs = 1,
+            .pArgumentDescs = &argDesc,
+        };
 
         static void convertState(
             ResourceState oldState,

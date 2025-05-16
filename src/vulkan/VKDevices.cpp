@@ -391,6 +391,7 @@ namespace vireo {
                 .pNext = &sync2Features,
                 .features = {
                     .independentBlend = VK_TRUE,
+                    .multiDrawIndirect = VK_TRUE,
                     .samplerAnisotropy = VK_TRUE,
                 }
             };
