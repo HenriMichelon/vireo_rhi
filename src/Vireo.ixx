@@ -1385,6 +1385,11 @@ export namespace vireo {
      */
     class CommandList {
     public:
+        static constexpr uint32_t indexTypeSize[] = {
+            2,
+            4
+        };
+
         /**
          * Start recording a command list
          */
@@ -1502,12 +1507,12 @@ export namespace vireo {
          * Binds an index buffer to a command list
          * @param buffer An index buffer
          * @param indexType Value specifying the size of the indices
-         * @param offset Offset in bytes
+         * @param firstIndex First index in the buffer
          */
         virtual void bindIndexBuffer(
             const std::shared_ptr<const Buffer>& buffer,
             IndexType indexType = IndexType::UINT32,
-            size_t offset = 0) const = 0;
+            uint32_t firstIndex = 0) const = 0;
 
         /**
          * Binds a pipeline object to a command list

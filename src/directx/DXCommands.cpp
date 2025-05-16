@@ -718,9 +718,10 @@ namespace vireo {
         commandList->IASetVertexBuffers(0, 1, &bufferView);
     }
 
-    void DXCommandList::bindIndexBuffer(const std::shared_ptr<const Buffer>& buffer, IndexType indexType, const size_t offset) const {
+    void DXCommandList::bindIndexBuffer(const std::shared_ptr<const Buffer>& buffer, IndexType indexType, const uint32_t firstIndex) const {
         assert(buffer != nullptr);
         const auto& indexBuffer = static_pointer_cast<const DXBuffer>(buffer);
+        const auto offset = firstIndex * indexTypeSize[static_cast<int>(indexType)];
         const auto bufferView = D3D12_INDEX_BUFFER_VIEW {
             .BufferLocation = indexBuffer->getBuffer().Get()->GetGPUVirtualAddress() + offset,
             .SizeInBytes = static_cast<UINT>(indexBuffer->getSize() - offset),

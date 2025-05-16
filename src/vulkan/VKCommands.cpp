@@ -368,12 +368,12 @@ namespace vireo {
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
     }
 
-    void VKCommandList::bindIndexBuffer(const std::shared_ptr<const Buffer>& buffer, IndexType indexType, const size_t offset) const {
+    void VKCommandList::bindIndexBuffer(const std::shared_ptr<const Buffer>& buffer, IndexType indexType, const uint32_t firstIndex) const {
         assert(buffer != nullptr);
         const auto vkBuffer = static_pointer_cast<const VKBuffer>(buffer);
         vkCmdBindIndexBuffer(commandBuffer,
             vkBuffer->getBuffer(),
-            offset,
+            firstIndex * indexTypeSize[static_cast<int>(indexType)],
             vkIndexTypes[static_cast<int>(indexType)]);
     }
 

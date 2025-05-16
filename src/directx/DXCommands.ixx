@@ -183,7 +183,7 @@ export namespace vireo {
 
         void bindVertexBuffer(const std::shared_ptr<const Buffer>& buffer, size_t offset) const override;
 
-        void bindIndexBuffer(const std::shared_ptr<const Buffer>& buffer, IndexType indexType, size_t offset) const override;
+        void bindIndexBuffer(const std::shared_ptr<const Buffer>& buffer, IndexType indexType, uint32_t firstIndex) const override;
 
         void bindPipeline(const std::shared_ptr<const Pipeline>& pipeline) override;
 
