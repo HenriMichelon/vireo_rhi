@@ -747,6 +747,61 @@ namespace vireo {
         commandList->DrawIndexedInstanced(indexCountPerInstance, instanceCount, firstIndex, vertexOffset, firstInstance);
     }
 
+    void DXCommandList::drawIndexedIndirect(
+        const std::shared_ptr<Buffer>& buffer,
+        const size_t offset,
+        const uint32_t drawCount,
+        const uint32_t stride) const {
+        const auto dxBuffer = static_pointer_cast<const DXBuffer>(buffer);
+        constexpr auto argDesc = D3D12_INDIRECT_ARGUMENT_DESC{
+            .Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED,
+        };
+        const auto sigDesc = D3D12_COMMAND_SIGNATURE_DESC {
+            .ByteStride = sizeof(D3D12_DRAW_INDEXED_ARGUMENTS),
+            .NumArgumentDescs = 1,
+            .pArgumentDescs = &argDesc,
+        };
+        ComPtr<ID3D12CommandSignature> commandSignature;
+        dxCheck(device->CreateCommandSignature(&sigDesc, nullptr, IID_PPV_ARGS(&commandSignature)));
+        commandList->ExecuteIndirect(
+            commandSignature.Get(),
+            drawCount,
+            dxBuffer->getBuffer().Get(),
+            offset,
+            nullptr,
+            0
+        );
+    }
+
+    void DXCommandList::drawIndexedIndirectCount(
+        const std::shared_ptr<Buffer>& buffer,
+        const size_t offset,
+        const std::shared_ptr<Buffer>& countBuffer,
+        const size_t countOffset,
+        const uint32_t maxDrawCount,
+        const uint32_t stride) const {
+        const auto dxBuffer = static_pointer_cast<const DXBuffer>(buffer);
+        const auto dxCountBuffer = static_pointer_cast<const DXBuffer>(countBuffer);
+        constexpr auto argDesc = D3D12_INDIRECT_ARGUMENT_DESC{
+            .Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED,
+        };
+        const auto sigDesc = D3D12_COMMAND_SIGNATURE_DESC {
+            .ByteStride = sizeof(D3D12_DRAW_INDEXED_ARGUMENTS),
+            .NumArgumentDescs = 1,
+            .pArgumentDescs = &argDesc,
+        };
+        ComPtr<ID3D12CommandSignature> commandSignature;
+        dxCheck(device->CreateCommandSignature(&sigDesc, nullptr, IID_PPV_ARGS(&commandSignature)));
+        commandList->ExecuteIndirect(
+            commandSignature.Get(),
+            maxDrawCount,
+            dxBuffer->getBuffer().Get(),
+            offset,
+            dxCountBuffer->getBuffer().Get(),
+            countOffset
+        );
+    }
+
     void DXCommandList::upload(const std::shared_ptr<const Buffer>& destination, const void* source) {
         assert(destination != nullptr);
         assert(source != nullptr);

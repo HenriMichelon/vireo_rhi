@@ -219,6 +219,20 @@ export namespace vireo {
             uint32_t vertexOffset = 0,
             uint32_t firstInstance = 0) const override;
 
+        void drawIndexedIndirect(
+            const std::shared_ptr<Buffer>& buffer,
+            size_t offset,
+            uint32_t drawCount,
+            uint32_t stride) const override;
+
+        void drawIndexedIndirectCount(
+            const std::shared_ptr<Buffer>& buffer,
+            size_t offset,
+            const std::shared_ptr<Buffer>& countBuffer,
+            size_t countOffset,
+            uint32_t maxDrawCount,
+            uint32_t stride) const override;
+
         void setViewports(const std::vector<Viewport>& viewports) const override;
 
         void setScissors(const std::vector<Rect>& rects) const override;

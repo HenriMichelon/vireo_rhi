@@ -1395,6 +1395,16 @@ export namespace vireo {
         const void* data;
     };
 
+    /**
+     * Structure specifying an indexed indirect drawing command
+     */
+    struct DrawIndexedIndirectCommand {
+        uint32_t indexCount;
+        uint32_t instanceCount;
+        uint32_t firstIndex;
+        int32_t  vertexOffset;
+        uint32_t firstInstance;
+    };
 
     /**
      * A command list (buffer) object
@@ -1615,6 +1625,36 @@ export namespace vireo {
             uint32_t firstIndex = 0,
             uint32_t firstVertex = 0,
             uint32_t firstInstance = 0) const = 0;
+
+        /**
+         * Draw primitives with indirect parameters and indexed vertices
+         * @param buffer The buffer containing draw parameters.
+         * @param offset The byte offset into the buffer where parameters begin.
+         * @param drawCount The number of draws to execute, and can be zero.
+         * @param stride The byte stride between successive sets of draw parameters.
+         */
+        virtual void drawIndexedIndirect(
+            const std::shared_ptr<Buffer>& buffer,
+            size_t offset,
+            uint32_t drawCount,
+            uint32_t stride) const = 0;
+
+        /**
+         * Draw primitives with indirect parameters and indexed vertices
+         * @param buffer The buffer containing draw parameters.
+         * @param offset The byte offset into the buffer where parameters begin.
+         * @param countBuffer The buffer containing the draw count.
+         * @param countOffset The byte offset into `countBuffer` where the draw count begins.
+         * @param maxDrawCount The maximum number of draws that will be executed. The actual number of executed draw calls is the minimum of the count specified in countBuffer and maxDrawCount
+         * @param stride The byte stride between successive sets of draw parameters.
+         */
+        virtual void drawIndexedIndirectCount(
+            const std::shared_ptr<Buffer>& buffer,
+            size_t offset,
+            const std::shared_ptr<Buffer>& countBuffer,
+            size_t countOffset,
+            uint32_t maxDrawCount,
+            uint32_t stride) const = 0;
 
         /**
          * Sets the viewports for a command list

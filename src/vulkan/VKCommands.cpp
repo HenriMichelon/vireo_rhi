@@ -394,6 +394,27 @@ namespace vireo {
         vkCmdDrawIndexed(commandBuffer, indexCountPerInstance, instanceCount, firstIndex, vertexOffset, firstInstance);
     }
 
+    void VKCommandList::drawIndexedIndirect(
+        const std::shared_ptr<Buffer>& buffer,
+        const size_t offset,
+        const uint32_t drawCount,
+        const uint32_t stride) const {
+        const auto vkBuffer = static_pointer_cast<const VKBuffer>(buffer);
+        vkCmdDrawIndexedIndirect(commandBuffer, vkBuffer->getBuffer(), offset, drawCount, stride);
+    }
+
+    void VKCommandList::drawIndexedIndirectCount(
+        const std::shared_ptr<Buffer>& buffer,
+        const size_t offset,
+        const std::shared_ptr<Buffer>& countBuffer,
+        const size_t countOffset,
+        const uint32_t maxDrawCount,
+        const uint32_t stride) const {
+        const auto vkBuffer = static_pointer_cast<const VKBuffer>(buffer);
+        const auto vkCountBuffer = static_pointer_cast<const VKBuffer>(countBuffer);
+        vkCmdDrawIndexedIndirectCount(commandBuffer, vkBuffer->getBuffer(), offset, vkCountBuffer->getBuffer(), countOffset, maxDrawCount, stride);
+    }
+
     void VKCommandList::bindPipeline(const std::shared_ptr<const Pipeline>& pipeline) {
         assert(pipeline != nullptr);
         if (pipeline->getType() == PipelineType::COMPUTE) {
