@@ -8,6 +8,7 @@ module;
 #include "vireo/backend/directx/Libraries.h"
 export module vireo.directx.commands;
 
+import std;
 import vireo;
 
 export namespace vireo {
@@ -223,7 +224,7 @@ export namespace vireo {
             const std::shared_ptr<Buffer>& buffer,
             size_t offset,
             uint32_t drawCount,
-            uint32_t stride) const override;
+            uint32_t stride) override;
 
         void drawIndexedIndirectCount(
             const std::shared_ptr<Buffer>& buffer,
@@ -231,7 +232,7 @@ export namespace vireo {
             const std::shared_ptr<Buffer>& countBuffer,
             size_t countOffset,
             uint32_t maxDrawCount,
-            uint32_t stride) const override;
+            uint32_t stride) override;
 
         void setViewports(const std::vector<Viewport>& viewports) const override;
 
@@ -278,21 +279,18 @@ export namespace vireo {
         ComPtr<ID3D12Device>                device;
         ComPtr<ID3D12GraphicsCommandList>   commandList;
         ComPtr<ID3D12CommandAllocator>      commandAllocator;
-        ComPtr<ID3D12CommandSignature>      drawIndirectCommandSignature;
         std::vector<ComPtr<ID3D12Resource>> stagingBuffers{};
         std::vector<std::shared_ptr<Image>> resolveSource;
         std::vector<ComPtr<ID3D12Resource>> resolveDestination;
         ComPtr<ID3D12Resource>              depthTargetToDiscard;
         std::vector<ComPtr<ID3D12Resource>> colorTargetsToDiscard;
+        std::unordered_map<uint32_t, ComPtr<ID3D12CommandSignature>> drawIndirectCommandSignatures;
 
         static constexpr auto argDesc = D3D12_INDIRECT_ARGUMENT_DESC{
             .Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED,
         };
-        const D3D12_COMMAND_SIGNATURE_DESC sigDesc {
-            .ByteStride = sizeof(D3D12_DRAW_INDEXED_ARGUMENTS),
-            .NumArgumentDescs = 1,
-            .pArgumentDescs = &argDesc,
-        };
+
+        void checkIndirectCommandSignature(uint32_t stride);
 
         static void convertState(
             ResourceState oldState,

@@ -1643,7 +1643,7 @@ export namespace vireo {
             const std::shared_ptr<Buffer>& buffer,
             size_t offset,
             uint32_t drawCount,
-            uint32_t stride) const = 0;
+            uint32_t stride) = 0;
 
         /**
          * Draw primitives with indirect parameters and indexed vertices
@@ -1660,7 +1660,7 @@ export namespace vireo {
             const std::shared_ptr<Buffer>& countBuffer,
             size_t countOffset,
             uint32_t maxDrawCount,
-            uint32_t stride) const = 0;
+            uint32_t stride) = 0;
 
         /**
          * Sets the viewports for a command list

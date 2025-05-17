@@ -235,7 +235,7 @@ export namespace vireo {
             const std::shared_ptr<Buffer>& buffer,
             size_t offset,
             uint32_t drawCount,
-            uint32_t stride) const override;
+            uint32_t stride) override;
 
         void drawIndexedIndirectCount(
             const std::shared_ptr<Buffer>& buffer,
@@ -243,7 +243,7 @@ export namespace vireo {
             const std::shared_ptr<Buffer>& countBuffer,
             size_t countOffset,
             uint32_t maxDrawCount,
-            uint32_t stride) const override;
+            uint32_t stride) override;
 
         void setViewports(const std::vector<Viewport>& viewports) const override;
 
