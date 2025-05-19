@@ -1153,6 +1153,26 @@ namespace vireo {
             &copyRegion);
     }
 
+    void VKCommandList::copy(
+            const std::shared_ptr<Buffer>& source,
+            const std::shared_ptr<Buffer>& destination,
+            const std::vector<BufferCopyRegion>& regions) {
+        assert(source != nullptr);
+        assert(destination != nullptr);
+        std::vector<VkBufferCopy> copyRegions(regions.size());
+        for (int i = 0; i < regions.size(); i++) {
+            copyRegions[i].srcOffset = regions[i].srcOffset;
+            copyRegions[i].dstOffset = regions[i].dstOffset;
+            copyRegions[i].size = regions[i].size;
+        }
+        vkCmdCopyBuffer(
+            commandBuffer,
+            static_pointer_cast<VKBuffer>(source)->getBuffer(),
+            static_pointer_cast<VKBuffer>(destination)->getBuffer(),
+            copyRegions.size(),
+            copyRegions.data());
+    }
+
     void VKCommandList::upload(
         const std::shared_ptr<const Image>& destination,
         const void* source,

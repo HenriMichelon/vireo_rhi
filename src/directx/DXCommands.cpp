@@ -865,13 +865,34 @@ namespace vireo {
             sourceOffset,
             copySize
         );
-        {
-            const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-                dxDestination->getBuffer().Get(),
-                D3D12_RESOURCE_STATE_COPY_DEST,
-                DXBuffer::ResourceStates[static_cast<int>(dxDestination->getType())]);
-            commandList->ResourceBarrier(1, &memoryBarrier);
+        const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+            dxDestination->getBuffer().Get(),
+            D3D12_RESOURCE_STATE_COPY_DEST,
+            DXBuffer::ResourceStates[static_cast<int>(dxDestination->getType())]);
+        commandList->ResourceBarrier(1, &memoryBarrier);
+    }
+
+    void DXCommandList::copy(
+        const std::shared_ptr<Buffer>& source,
+        const std::shared_ptr<Buffer>& destination,
+        const std::vector<BufferCopyRegion>& regions) {
+        assert(source != nullptr);
+        assert(destination != nullptr);
+        const auto dxDestination = static_pointer_cast<DXBuffer>(destination);
+        for (const auto& region : regions) {
+            commandList->CopyBufferRegion(
+               dxDestination->getBuffer().Get(),
+               region.dstOffset,
+               static_pointer_cast<DXBuffer>(source)->getBuffer().Get(),
+               region.srcOffset,
+               region.size
+       );
         }
+        const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+            dxDestination->getBuffer().Get(),
+            D3D12_RESOURCE_STATE_COPY_DEST,
+            DXBuffer::ResourceStates[static_cast<int>(dxDestination->getType())]);
+            commandList->ResourceBarrier(1, &memoryBarrier);
     }
 
     void DXCommandList::upload(

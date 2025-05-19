@@ -1412,6 +1412,12 @@ export namespace vireo {
         uint32_t firstInstance{0};
     };
 
+    struct BufferCopyRegion {
+        size_t srcOffset;
+        size_t dstOffset;
+        size_t size;
+    };
+
     /**
      * A command list (buffer) object
      *
@@ -1486,6 +1492,11 @@ export namespace vireo {
             size_t size = Buffer::WHOLE_SIZE,
             uint32_t sourceOffset = 0,
             uint32_t destinationOffset = 0) = 0;
+
+        virtual void copy(
+            const std::shared_ptr<Buffer>& source,
+            const std::shared_ptr<Buffer>& destination,
+            const std::vector<BufferCopyRegion>& regions) = 0;
 
         /**
          * Upload images into an image array
