@@ -33,7 +33,7 @@ namespace vireo {
     }
 
     std::shared_ptr<DescriptorLayout> Vireo::createDynamicUniformDescriptorLayout(
-            const std::wstring& name) {
+            const std::wstring& name) const {
         const auto layout = _createDynamicUniformDescriptorLayout(name);
         layout->add(0, DescriptorType::UNIFORM_DYNAMIC);
         layout->build();

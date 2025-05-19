@@ -2298,21 +2298,21 @@ export namespace vireo {
          * @param name Object name for debug
          */
         virtual std::shared_ptr<DescriptorLayout> createDescriptorLayout(
-            const std::wstring& name = L"DescriptorLayout") = 0;
+            const std::wstring& name = L"DescriptorLayout") const = 0;
 
         /**
          * Creates an empty description layout for SAMPLER resources types
          * @param name Object name for debug
          */
         virtual std::shared_ptr<DescriptorLayout> createSamplerDescriptorLayout(
-            const std::wstring& name = L"createSamplerDescriptorLayout") = 0;
+            const std::wstring& name = L"createSamplerDescriptorLayout") const = 0;
 
         /**
          * Creates an empty description layout for UNIFORM_DYNAMIX resources types
          * @param name Object name for debug
          */
         std::shared_ptr<DescriptorLayout> createDynamicUniformDescriptorLayout(
-            const std::wstring& name = L"createDynamicUniformDescriptorLayout");
+            const std::wstring& name = L"createDynamicUniformDescriptorLayout") const;
 
         /**
          * Creates an empty descriptor set
@@ -2321,7 +2321,7 @@ export namespace vireo {
          */
         virtual std::shared_ptr<DescriptorSet> createDescriptorSet(
             const std::shared_ptr<const DescriptorLayout>& layout,
-            const std::wstring& name = L"DescriptorSet") = 0;
+            const std::wstring& name = L"DescriptorSet") const = 0;
 
         /**
          * Creates a texture sampler.
@@ -2356,7 +2356,7 @@ export namespace vireo {
         std::shared_ptr<Device>          device;
 
         virtual std::shared_ptr<DescriptorLayout> _createDynamicUniformDescriptorLayout(
-            const std::wstring& name = L"DynamicUniformDescriptorLayout") = 0;
+            const std::wstring& name = L"DynamicUniformDescriptorLayout") const = 0;
 
     };
 

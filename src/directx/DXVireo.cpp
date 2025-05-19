@@ -174,23 +174,23 @@ namespace vireo {
             RenderTargetType::COLOR);
     }
     std::shared_ptr<DescriptorLayout> DXVireo::createDescriptorLayout(
-        const std::wstring& name) {
+        const std::wstring& name) const {
         return std::make_shared<DXDescriptorLayout>(false, false);
     }
 
     std::shared_ptr<DescriptorLayout> DXVireo::createSamplerDescriptorLayout(
-        const std::wstring& name) {
+        const std::wstring& name) const {
         return std::make_shared<DXDescriptorLayout>(true, false);
     }
 
     std::shared_ptr<DescriptorLayout> DXVireo::_createDynamicUniformDescriptorLayout(
-    const std::wstring& name) {
+    const std::wstring& name) const {
         return std::make_shared<DXDescriptorLayout>(false, true);
     }
 
     std::shared_ptr<DescriptorSet> DXVireo::createDescriptorSet(
         const std::shared_ptr<const DescriptorLayout>& layout,
-        const std::wstring& name) {
+        const std::wstring& name) const {
         return std::make_shared<DXDescriptorSet>(layout, getDXDevice()->getDevice(), name);
     }
 
