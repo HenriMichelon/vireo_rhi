@@ -35,12 +35,16 @@ namespace vireo {
             type == BufferType::VERTEX ? VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT :
             type == BufferType::INDEX ? VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT:
             type == BufferType::INDIRECT ? VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT:
+            type == BufferType::STORAGE ? VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT:
             type == BufferType::IMAGE_UPLOAD ? VK_BUFFER_USAGE_TRANSFER_SRC_BIT:
             type == BufferType::IMAGE_DOWNLOAD ? VK_BUFFER_USAGE_TRANSFER_DST_BIT:
             type == BufferType::BUFFER_UPLOAD ? VK_BUFFER_USAGE_TRANSFER_SRC_BIT:
-            type == BufferType::STORAGE ? VK_BUFFER_USAGE_STORAGE_BUFFER_BIT:
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-        const auto memType = (type == BufferType::VERTEX || type == BufferType::INDEX || type == BufferType::INDIRECT) ?
+        const auto memType = (
+            type == BufferType::VERTEX ||
+            type == BufferType::INDEX ||
+            type == BufferType::INDIRECT ||
+            type == BufferType::STORAGE) ?
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT :
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
         createBuffer(device, bufferSize, usage, memType, buffer, bufferMemory);
