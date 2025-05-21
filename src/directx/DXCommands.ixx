@@ -218,6 +218,12 @@ export namespace vireo {
             uint32_t firstVertex = 0,
             uint32_t firstInstance = 0) const override;
 
+        void drawIndirect(
+            const std::shared_ptr<Buffer>& buffer,
+            size_t offset,
+            uint32_t drawCount,
+            uint32_t stride) override;
+
         void drawIndexed(
             uint32_t indexCountPerInstance,
             uint32_t instanceCount = 0,
@@ -291,11 +297,15 @@ export namespace vireo {
         std::vector<ComPtr<ID3D12Resource>> colorTargetsToDiscard;
         std::unordered_map<uint32_t, ComPtr<ID3D12CommandSignature>> drawIndirectCommandSignatures;
 
-        static constexpr auto argDesc = D3D12_INDIRECT_ARGUMENT_DESC{
+        static constexpr auto argDescIndexed = D3D12_INDIRECT_ARGUMENT_DESC{
             .Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED,
         };
 
-        void checkIndirectCommandSignature(uint32_t stride);
+        static constexpr auto argDesc = D3D12_INDIRECT_ARGUMENT_DESC{
+            .Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW,
+        };
+
+        void checkIndirectCommandSignature(const D3D12_INDIRECT_ARGUMENT_DESC& argDesc, uint32_t stride);
 
         static void convertState(
             ResourceState oldState,

@@ -35,6 +35,7 @@ PFN_vkCmdDispatch vkCmdDispatch;
 PFN_vkCmdDraw vkCmdDraw;
 PFN_vkCmdDrawIndexed vkCmdDrawIndexed;
 PFN_vkCmdDrawIndexedIndirect vkCmdDrawIndexedIndirect;
+PFN_vkCmdDrawIndirect vkCmdDrawIndirect;
 PFN_vkCmdDrawIndexedIndirectCount vkCmdDrawIndexedIndirectCount;
 PFN_vkCmdEndRendering vkCmdEndRendering;
 PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier;
@@ -199,6 +200,7 @@ void vulkanInitializeDevice(VkDevice device) {
 	vkCmdDraw = (PFN_vkCmdDraw)vkGetDeviceProcAddr(device, "vkCmdDraw");
 	vkCmdDrawIndexed = (PFN_vkCmdDrawIndexed)vkGetDeviceProcAddr(device, "vkCmdDrawIndexed");
 	vkCmdDrawIndexedIndirect = (PFN_vkCmdDrawIndexedIndirect)vkGetDeviceProcAddr(device, "vkCmdDrawIndexedIndirect");
+	vkCmdDrawIndirect = (PFN_vkCmdDrawIndirect)vkGetDeviceProcAddr(device, "vkCmdDrawIndirect");
 	vkCmdDrawIndexedIndirectCount = (PFN_vkCmdDrawIndexedIndirectCount)vkGetDeviceProcAddr(device, "vkCmdDrawIndexedIndirectCount");
 	vkCmdPipelineBarrier = (PFN_vkCmdPipelineBarrier)vkGetDeviceProcAddr(device, "vkCmdPipelineBarrier");
 	vkCmdPushConstants = (PFN_vkCmdPushConstants)vkGetDeviceProcAddr(device, "vkCmdPushConstants");

@@ -385,6 +385,15 @@ namespace vireo {
         vkCmdDraw(commandBuffer, vertexCountPerInstance, instanceCount, firstVertex, firstInstance);
     }
 
+    void VKCommandList::drawIndirect(
+        const std::shared_ptr<Buffer>& buffer,
+        const size_t offset,
+        const uint32_t drawCount,
+        const uint32_t stride) {
+        const auto vkBuffer = static_pointer_cast<const VKBuffer>(buffer);
+        vkCmdDrawIndirect(commandBuffer, vkBuffer->getBuffer(), offset, drawCount, stride);
+    }
+
     void VKCommandList::drawIndexed(
         const uint32_t indexCountPerInstance,
         const uint32_t instanceCount,

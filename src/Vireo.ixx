@@ -1402,6 +1402,16 @@ export namespace vireo {
     };
 
     /**
+     * Structure specifying an indirect drawing command
+     */
+    struct DrawIndirectCommand {
+        uint32_t vertexCount;
+        uint32_t instanceCount{1};
+        uint32_t firstVertex{0};
+        uint32_t firstInstance{0};
+    };
+
+    /**
      * Structure specifying an indexed indirect drawing command
      */
     struct DrawIndexedIndirectCommand {
@@ -1644,13 +1654,13 @@ export namespace vireo {
             uint32_t firstInstance = 0) const = 0;
 
         /**
-         * Draw primitives with indirect parameters and indexed vertices
+         * Draw primitives with indirect parameters
          * @param buffer The buffer containing draw parameters.
          * @param offset The byte offset into the buffer where parameters begin.
          * @param drawCount The number of draws to execute, and can be zero.
          * @param stride The byte stride between successive sets of draw parameters.
          */
-        virtual void drawIndexedIndirect(
+        virtual void drawIndirect(
             const std::shared_ptr<Buffer>& buffer,
             size_t offset,
             uint32_t drawCount,
@@ -1670,6 +1680,19 @@ export namespace vireo {
             size_t offset,
             const std::shared_ptr<Buffer>& countBuffer,
             size_t countOffset,
+            uint32_t maxDrawCount,
+            uint32_t stride) = 0;
+
+        /**
+         * Draw primitives with indirect parameters and indexed vertices
+         * @param buffer The buffer containing draw parameters.
+         * @param offset The byte offset into the buffer where parameters begin.
+         * @param maxDrawCount The maximum number of draws that will be executed. The actual number of executed draw calls is the minimum of the count specified in countBuffer and maxDrawCount
+         * @param stride The byte stride between successive sets of draw parameters.
+         */
+        virtual void drawIndexedIndirect(
+            const std::shared_ptr<Buffer>& buffer,
+            size_t offset,
             uint32_t maxDrawCount,
             uint32_t stride) = 0;
 

@@ -229,6 +229,12 @@ export namespace vireo {
             uint32_t firstVertex = 0,
             uint32_t firstInstance = 0) const override;
 
+        void drawIndirect(
+            const std::shared_ptr<Buffer>& buffer,
+            size_t offset,
+            uint32_t drawCount,
+            uint32_t stride) override;
+
         void drawIndexed(
             uint32_t indexCountPerInstance,
             uint32_t instanceCount = 0,

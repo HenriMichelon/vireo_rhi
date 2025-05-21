@@ -67,6 +67,7 @@ extern PFN_vkCmdCopyImage vkCmdCopyImage;
 extern PFN_vkCmdDispatch vkCmdDispatch;
 extern PFN_vkCmdDraw vkCmdDraw;
 extern PFN_vkCmdDrawIndexed vkCmdDrawIndexed;
+extern PFN_vkCmdDrawIndirect vkCmdDrawIndirect;
 extern PFN_vkCmdDrawIndexedIndirect vkCmdDrawIndexedIndirect;
 extern PFN_vkCmdDrawIndexedIndirectCount vkCmdDrawIndexedIndirectCount;
 extern PFN_vkCmdEndRendering vkCmdEndRendering;
