@@ -193,16 +193,15 @@ namespace vireo {
         DXCommandList::cleanup();
     }
 
-    void DXCommandList::bindPipeline(const std::shared_ptr<const Pipeline>& pipeline) {
-        assert(pipeline != nullptr);
-        if (pipeline->getType() == PipelineType::COMPUTE) {
-            commandList->SetPipelineState(static_pointer_cast<const DXComputePipeline>(pipeline)->getPipelineState().Get());
-            commandList->SetComputeRootSignature(static_pointer_cast<const DXPipelineResources>(pipeline->getResources())->getRootSignature().Get());
+    void DXCommandList::bindPipeline(const Pipeline& pipeline) {
+        if (pipeline.getType() == PipelineType::COMPUTE) {
+            commandList->SetPipelineState(static_cast<const DXComputePipeline&>(pipeline).getPipelineState().Get());
+            commandList->SetComputeRootSignature(static_pointer_cast<const DXPipelineResources>(pipeline.getResources())->getRootSignature().Get());
         } else {
-            const auto dxPipeline = static_pointer_cast<const DXGraphicPipeline>(pipeline);
-            commandList->SetPipelineState(dxPipeline->getPipelineState().Get());
-            commandList->SetGraphicsRootSignature(static_pointer_cast<const DXPipelineResources>(pipeline->getResources())->getRootSignature().Get());
-            commandList->IASetPrimitiveTopology(dxPipeline->getPrimitiveTopology());
+            const auto dxPipeline = static_cast<const DXGraphicPipeline&>(pipeline);
+            commandList->SetPipelineState(dxPipeline.getPipelineState().Get());
+            commandList->SetGraphicsRootSignature(static_pointer_cast<const DXPipelineResources>(pipeline.getResources())->getRootSignature().Get());
+            commandList->IASetPrimitiveTopology(dxPipeline.getPrimitiveTopology());
         }
     }
 
@@ -217,10 +216,9 @@ namespace vireo {
     }
 
     void DXCommandList::bindDescriptors(
-        const std::shared_ptr<const Pipeline>&pipeline,
+        const Pipeline& pipeline,
         const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors,
         const uint32_t firstSet) const {
-        assert(pipeline != nullptr);
         assert(descriptors.size() > 0);
         D3D12_GPU_DESCRIPTOR_HANDLE handle;
         for (int i = 0; i < descriptors.size(); i++) {
@@ -230,7 +228,7 @@ namespace vireo {
 #else
             heap->GetGPUDescriptorHandleForHeapStart(&handle);
 #endif
-            if (pipeline->getType() == PipelineType::COMPUTE) {
+            if (pipeline.getType() == PipelineType::COMPUTE) {
                 commandList->SetComputeRootDescriptorTable(firstSet + i, handle);
             } else {
                 commandList->SetGraphicsRootDescriptorTable(firstSet + i, handle);

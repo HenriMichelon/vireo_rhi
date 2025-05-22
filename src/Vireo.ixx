@@ -1582,7 +1582,12 @@ export namespace vireo {
         /**
          * Binds a pipeline object to a command list
          */
-        virtual void bindPipeline(const std::shared_ptr<const Pipeline>& pipeline) = 0;
+        virtual void bindPipeline(const Pipeline& pipeline) = 0;
+
+        /**
+         * Binds a pipeline object to a command list
+         */
+        virtual void bindPipeline(const std::shared_ptr<const Pipeline>& pipeline) { bindPipeline(*pipeline); }
 
         /**
          * Sets descriptor sets to bind a command list. All used descriptor sets must be sets.
@@ -1598,6 +1603,17 @@ export namespace vireo {
          */
         virtual void bindDescriptors(
             const std::shared_ptr<const Pipeline>& pipeline,
+            const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors,
+            uint32_t firstSet = 0) const { bindDescriptors(*pipeline, descriptors); }
+
+        /**
+         * Binds descriptor sets to a command list
+         * @param pipeline The pipeline that will use the descriptors
+         * @param descriptors The descriptor sets to bind
+         * @param firstSet The set number of the first descriptor set to be bound
+         */
+        virtual void bindDescriptors(
+            const Pipeline& pipeline,
             const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors,
             uint32_t firstSet = 0) const = 0;
 

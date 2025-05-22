@@ -424,34 +424,32 @@ namespace vireo {
         vkCmdDrawIndexedIndirectCount(commandBuffer, vkBuffer->getBuffer(), offset, vkCountBuffer->getBuffer(), countOffset, maxDrawCount, stride);
     }
 
-    void VKCommandList::bindPipeline(const std::shared_ptr<const Pipeline>& pipeline) {
-        assert(pipeline != nullptr);
-        if (pipeline->getType() == PipelineType::COMPUTE) {
+    void VKCommandList::bindPipeline(const Pipeline& pipeline) {
+        if (pipeline.getType() == PipelineType::COMPUTE) {
             vkCmdBindPipeline(
                 commandBuffer,
                 VK_PIPELINE_BIND_POINT_COMPUTE ,
-                static_pointer_cast<const VKComputePipeline>(pipeline)->getPipeline());
+                static_cast<const VKComputePipeline&>(pipeline).getPipeline());
         } else {
             vkCmdBindPipeline(
                 commandBuffer,
                 VK_PIPELINE_BIND_POINT_GRAPHICS ,
-                static_pointer_cast<const VKGraphicPipeline>(pipeline)->getPipeline());
+                static_cast<const VKGraphicPipeline&>(pipeline).getPipeline());
         }
     }
 
     void VKCommandList::bindDescriptors(
-        const std::shared_ptr<const Pipeline>& pipeline,
+        const Pipeline& pipeline,
         const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors,
         const uint32_t firstSet) const {
-        assert(pipeline != nullptr);
         assert(!descriptors.empty());
-        const auto vkLayout = static_pointer_cast<const VKPipelineResources>(pipeline->getResources())->getPipelineLayout();
+        const auto vkLayout = static_pointer_cast<const VKPipelineResources>(pipeline.getResources())->getPipelineLayout();
         std::vector<VkDescriptorSet> descriptorSets(descriptors.size());
         for (int i = 0; i < descriptors.size(); i++) {
             descriptorSets[i] = static_pointer_cast<const VKDescriptorSet>(descriptors[i])->getSet();
         }
         vkCmdBindDescriptorSets(commandBuffer,
-                                pipeline->getType() == PipelineType::COMPUTE ?
+                                pipeline.getType() == PipelineType::COMPUTE ?
                                     VK_PIPELINE_BIND_POINT_COMPUTE :
                                     VK_PIPELINE_BIND_POINT_GRAPHICS,
                                 vkLayout,
