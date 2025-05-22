@@ -32,6 +32,7 @@ namespace vireo {
                 type == DescriptorType::UNIFORM ? D3D12_DESCRIPTOR_RANGE_TYPE_CBV :
                 type == DescriptorType::UNIFORM_DYNAMIC ? D3D12_DESCRIPTOR_RANGE_TYPE_CBV :
                 type == DescriptorType::SAMPLED_IMAGE ? D3D12_DESCRIPTOR_RANGE_TYPE_SRV :
+                type == DescriptorType::DEVICE_STORAGE ? D3D12_DESCRIPTOR_RANGE_TYPE_SRV :
                 type == DescriptorType::STORAGE ? D3D12_DESCRIPTOR_RANGE_TYPE_SRV :
                 type == DescriptorType::READWRITE_STORAGE ? D3D12_DESCRIPTOR_RANGE_TYPE_UAV :
                 type == DescriptorType::READWRITE_IMAGE ? D3D12_DESCRIPTOR_RANGE_TYPE_UAV :
@@ -109,7 +110,7 @@ namespace vireo {
                 &uavDesc,
                 cpuHandle
             );
-        } else if (buffer.getType() == BufferType::STORAGE) {
+        } else if (buffer.getType() == BufferType::STORAGE || buffer.getType() == BufferType::DEVICE_STORAGE) {
             const auto srvDesc = D3D12_SHADER_RESOURCE_VIEW_DESC {
                 .Format = DXGI_FORMAT_UNKNOWN,
                 .ViewDimension = D3D12_SRV_DIMENSION_BUFFER,

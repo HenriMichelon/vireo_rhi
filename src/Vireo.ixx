@@ -168,6 +168,8 @@ export namespace vireo {
         UNIFORM,
         //! Used for read-only shader storage (in host visible memory)
         STORAGE,
+        //! Used for read-only shader storage (in GPU memory)
+        DEVICE_STORAGE,
         //! Used for read/write shader storage (in GPU memory)
         READWRITE_STORAGE,
         //! Used for vertex and index buffers copy operations (from host visible memory to GPU memory)
@@ -200,8 +202,10 @@ export namespace vireo {
         UNIFORM,
         //! Dynamic binding uniform buffer
         UNIFORM_DYNAMIC,
-        //! Read only storage buffer
+        //! Read-only storage buffer in host-visible memory
         STORAGE,
+        //! Read-only storage buffer in GPU memory
+        DEVICE_STORAGE,
         //! Read & write storage buffer
         READWRITE_STORAGE,
         //! Sampled texture (image only, no sampler)

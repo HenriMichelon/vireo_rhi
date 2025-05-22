@@ -880,6 +880,11 @@ namespace vireo {
         const Buffer& destination,
         const std::vector<BufferCopyRegion>& regions) const {
         const auto& dxDestination = static_cast<const DXBuffer&>(destination);
+        // auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+        //            dxDestination.getBuffer().Get(),
+        //            DXBuffer::resourceStates[static_cast<int>(dxDestination.getType())],
+        //            D3D12_RESOURCE_STATE_COPY_DEST);
+        // commandList->ResourceBarrier(1, &memoryBarrier);
         for (const auto& region : regions) {
             commandList->CopyBufferRegion(
                dxDestination.getBuffer().Get(),
@@ -892,7 +897,7 @@ namespace vireo {
             dxDestination.getBuffer().Get(),
             D3D12_RESOURCE_STATE_COPY_DEST,
             DXBuffer::resourceStates[static_cast<int>(dxDestination.getType())]);
-            commandList->ResourceBarrier(1, &memoryBarrier);
+        commandList->ResourceBarrier(1, &memoryBarrier);
     }
 
     void DXCommandList::upload(

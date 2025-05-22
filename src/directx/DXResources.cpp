@@ -45,11 +45,10 @@ namespace vireo {
             D3D12_HEAP_TYPE_READBACK :
             D3D12_HEAP_TYPE_DEFAULT
         );
-        auto flag =
-            type == BufferType::READWRITE_STORAGE |
-            type == BufferType::STORAGE ?
+        int flag =
+            type == BufferType::READWRITE_STORAGE ?
             D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS :
-            0;
+            D3D12_RESOURCE_FLAG_NONE;
         const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize, static_cast<D3D12_RESOURCE_FLAGS >(flag));
         dxCheck(device->CreateCommittedResource(
             &heapProperties,

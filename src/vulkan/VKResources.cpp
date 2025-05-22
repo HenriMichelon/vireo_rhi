@@ -36,6 +36,7 @@ namespace vireo {
             type == BufferType::INDEX ? VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT:
             type == BufferType::INDIRECT ? VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT:
             type == BufferType::STORAGE ? VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT:
+            type == BufferType::DEVICE_STORAGE ? VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT:
             type == BufferType::READWRITE_STORAGE ? VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT:
             type == BufferType::IMAGE_UPLOAD ? VK_BUFFER_USAGE_TRANSFER_SRC_BIT:
             type == BufferType::IMAGE_DOWNLOAD ? VK_BUFFER_USAGE_TRANSFER_DST_BIT:
@@ -45,6 +46,7 @@ namespace vireo {
             type == BufferType::VERTEX ||
             type == BufferType::INDEX ||
             type == BufferType::INDIRECT ||
+            type == BufferType::DEVICE_STORAGE ||
             type == BufferType::READWRITE_STORAGE) ?
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT :
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
