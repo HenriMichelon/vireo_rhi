@@ -35,9 +35,11 @@ export namespace vireo {
 
         void update(DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer) override;
 
-        void update(DescriptorIndex index, const std::shared_ptr<const Image>& image) const override;
+        void update(DescriptorIndex index, const Buffer& buffer) override;
 
-        void update(DescriptorIndex index, const std::shared_ptr<const Sampler>& sampler) const override;
+        void update(DescriptorIndex index, const Image& image) const override;
+
+        void update(DescriptorIndex index, const Sampler& sampler) const override;
 
         void update(DescriptorIndex index, const std::vector<std::shared_ptr<Buffer>>& buffers) override;
 

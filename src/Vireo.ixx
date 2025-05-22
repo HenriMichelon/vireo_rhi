@@ -752,6 +752,9 @@ export namespace vireo {
         virtual void reset() = 0;
 
         virtual ~Fence() = default;
+        Fence () = default;
+        Fence (const Fence&) = delete;
+        Fence& operator= (const Fence&) = delete;
     };
 
     /**
@@ -795,6 +798,8 @@ export namespace vireo {
         void decrementValue() { value--; }
 
         virtual ~Semaphore() = default;
+        Semaphore (const Semaphore&) = delete;
+        Semaphore& operator= (const Semaphore&) = delete;
 
     protected:
         const SemaphoreType type;
@@ -809,7 +814,8 @@ export namespace vireo {
     class Instance {
     public:
         virtual ~Instance() = default;
-
+        Instance (Instance&) = delete;
+        Instance& operator= (const Instance&) = delete;
     protected:
         Instance() = default;
     };
@@ -821,12 +827,14 @@ export namespace vireo {
      */
     class PhysicalDevice {
     public:
-        virtual ~PhysicalDevice() = default;
-
         /**
          * Returns the graphic adapter description
          */
         virtual const PhysicalDeviceDesc getDescription() const = 0;
+
+        virtual ~PhysicalDevice() = default;
+        PhysicalDevice (PhysicalDevice&) = delete;
+        PhysicalDevice& operator= (const PhysicalDevice&) = delete;
 
     protected:
         PhysicalDevice() = default;
@@ -840,7 +848,8 @@ export namespace vireo {
     class Device {
     public:
         virtual ~Device() = default;
-
+        Device (Device&) = delete;
+        Device& operator= (const Device&) = delete;
     protected:
         Device() = default;
     };
@@ -856,8 +865,6 @@ export namespace vireo {
     class Buffer {
     public:
         static constexpr size_t WHOLE_SIZE = ~0ULL;
-
-        virtual ~Buffer() = default;
 
         /**
          * Returns the total buffer size in bytes
@@ -907,6 +914,10 @@ export namespace vireo {
          */
         void write(const void* data, size_t size = WHOLE_SIZE, size_t offset = 0) const;
 
+        virtual ~Buffer() = default;
+        Buffer (const Buffer&) = delete;
+        Buffer& operator= (const Buffer&) = delete;
+
     protected:
         size_t bufferSize{0};
         uint32_t instanceSize{0};
@@ -930,6 +941,8 @@ export namespace vireo {
         static constexpr float LOD_CLAMP_NONE = 3.402823466e+38f;
 
         virtual ~Sampler() = default;
+        Sampler (Sampler&) = delete;
+        Sampler& operator = (const Sampler&) = delete;
 
     protected:
         Sampler() = default;
@@ -1080,6 +1093,9 @@ export namespace vireo {
          */
         static auto getPixelSize(const ImageFormat format) { return pixelSize[static_cast<int>(format)]; }
 
+        Image (Image&) = delete;
+        Image& operator = (const Image&) = delete;
+
     protected:
         Image(
             const ImageFormat format,
@@ -1111,8 +1127,6 @@ export namespace vireo {
      */
     class RenderTarget {
     public:
-        virtual ~RenderTarget() = default;
-
         /**
          * Return the associated image
          */
@@ -1126,6 +1140,10 @@ export namespace vireo {
         RenderTarget(const RenderTargetType type, const std::shared_ptr<Image>& image) :
             type{type},
             image{image} {}
+
+        virtual ~RenderTarget() = default;
+        RenderTarget (RenderTarget&) = delete;
+        RenderTarget& operator = (const RenderTarget&) = delete;
 
     private:
         const RenderTargetType  type;
@@ -1142,8 +1160,6 @@ export namespace vireo {
      */
     class DescriptorLayout {
     public:
-        virtual ~DescriptorLayout() = default;
-
         /**
          * Add a resource to the layout
          * @param index Binding index
@@ -1172,12 +1188,16 @@ export namespace vireo {
          */
         auto isSamplers() const { return samplers; }
 
+        virtual ~DescriptorLayout() = default;
+        DescriptorLayout (DescriptorLayout&) = delete;
+        DescriptorLayout& operator = (const DescriptorLayout&) = delete;
+
     protected:
         size_t capacity{0};
         bool   samplers{false};
         bool   dynamic{false};
 
-        DescriptorLayout(bool samplers, bool dynamic): samplers{samplers}, dynamic{dynamic} {}
+        DescriptorLayout(const bool samplers, const bool dynamic): samplers{samplers}, dynamic{dynamic} {}
     };
 
     /**
@@ -1188,14 +1208,19 @@ export namespace vireo {
      */
     class DescriptorSet {
     public:
-        virtual ~DescriptorSet() = default;
+        /**
+         * Bind an uniform buffer
+         * @param index Binding index
+         * @param buffer The buffer
+         */
+        virtual void update(DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer) = 0;
 
         /**
          * Bind an uniform buffer
          * @param index Binding index
-         * @param buffer The buffezr
+         * @param buffer The buffer
          */
-        virtual void update(DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer) = 0;
+        virtual void update(DescriptorIndex index, const Buffer& buffer) = 0;
 
         /**
          * Bind a dynamic uniform buffer
@@ -1210,14 +1235,32 @@ export namespace vireo {
          * @param index Binding index
          * @param image The texture
          */
-        virtual void update(DescriptorIndex index, const std::shared_ptr<const Image>& image) const = 0;
+        void update(const DescriptorIndex index, const std::shared_ptr<const Image>& image) const {
+            update(index, *image);
+        }
+
+        /**
+         * Bind a texture
+         * @param index Binding index
+         * @param image The texture
+         */
+        virtual void update(DescriptorIndex index, const Image& image) const = 0;
 
         /**
          * Bind a sampler
          * @param index Binding index
          * @param sampler The sampler
          */
-        virtual void update(DescriptorIndex index, const std::shared_ptr<const Sampler>& sampler) const = 0;
+        void update(const DescriptorIndex index, const std::shared_ptr<const Sampler>& sampler) const {
+            update(index, *sampler);
+        }
+
+        /**
+         * Bind a sampler
+         * @param index Binding index
+         * @param sampler The sampler
+        */
+        virtual void update(DescriptorIndex index, const Sampler& sampler) const = 0;
 
         /**
          * Bind an array of textures
@@ -1242,6 +1285,10 @@ export namespace vireo {
 
         const auto& getLayout() const { return layout; }
 
+        virtual ~DescriptorSet() = default;
+        DescriptorSet (DescriptorSet&) = delete;
+        DescriptorSet& operator = (const DescriptorSet&) = delete;
+
     protected:
         const std::shared_ptr<const DescriptorLayout> layout;
 
@@ -1256,7 +1303,8 @@ export namespace vireo {
     class VertexInputLayout {
     public:
         virtual ~VertexInputLayout() = default;
-
+        VertexInputLayout (VertexInputLayout&) = delete;
+        VertexInputLayout& operator = (const VertexInputLayout&) = delete;
     protected:
         VertexInputLayout() = default;
     };
@@ -1269,7 +1317,8 @@ export namespace vireo {
     class ShaderModule {
     public:
         virtual ~ShaderModule() = default;
-
+        ShaderModule (ShaderModule&) = delete;
+        ShaderModule& operator = (const ShaderModule&) = delete;
     protected:
         ShaderModule() = default;
     };
@@ -1282,7 +1331,8 @@ export namespace vireo {
     class PipelineResources {
     public:
         virtual ~PipelineResources() = default;
-
+        PipelineResources (PipelineResources&) = delete;
+        PipelineResources& operator = (const PipelineResources&) = delete;
     protected:
         PipelineResources() = default;
     };
@@ -1294,8 +1344,6 @@ export namespace vireo {
      */
     class Pipeline {
     public:
-        virtual ~Pipeline() = default;
-
         /**
          * Returns the pipeline resources
          */
@@ -1305,6 +1353,10 @@ export namespace vireo {
          * Return the type of the pipeline
          */
         auto getType() const { return type; }
+
+        virtual ~Pipeline() = default;
+        Pipeline (Pipeline&) = delete;
+        Pipeline& operator = (const Pipeline&) = delete;
 
     protected:
         Pipeline(const PipelineType type, const std::shared_ptr<PipelineResources>& pipelineResources) :
@@ -1391,7 +1443,6 @@ export namespace vireo {
         const std::shared_ptr<Buffer> buffer;
         const void* data;
     };
-
 
     /**
      * Batch image upload infos
@@ -1806,6 +1857,8 @@ export namespace vireo {
         virtual void cleanup() = 0;
 
         virtual ~CommandList() = default;
+        CommandList (CommandList&) = delete;
+        CommandList& operator = (const CommandList&) = delete;
 
     protected:
         CommandList() = default;
@@ -1834,12 +1887,14 @@ export namespace vireo {
          */
         virtual std::shared_ptr<CommandList> createCommandList() const  = 0;
 
-        virtual ~CommandAllocator() = default;
-
         /**
          * Returns the type of command list created by this allocator
          */
         auto getCommandListType() const { return commandListType; }
+
+        virtual ~CommandAllocator() = default;
+        CommandAllocator (CommandAllocator&) = delete;
+        CommandAllocator& operator = (const CommandAllocator&) = delete;
 
     protected:
         CommandAllocator(const CommandType type) : commandListType{type} {}
@@ -1988,6 +2043,8 @@ export namespace vireo {
         virtual void waitIdle() const = 0;
 
         virtual ~SubmitQueue() = default;
+        SubmitQueue (SubmitQueue&) = delete;
+        SubmitQueue& operator = (const SubmitQueue&) = delete;
 
     protected:
         SubmitQueue() = default;
@@ -2000,8 +2057,6 @@ export namespace vireo {
      */
     class SwapChain {
     public:
-        virtual ~SwapChain() = default;
-
         /**
          * Returns the swap chain extent
          */
@@ -2052,6 +2107,10 @@ export namespace vireo {
          * Waits for the last present operation to end
          */
         virtual void waitIdle() = 0;
+
+        virtual ~SwapChain() = default;
+        SwapChain (SwapChain&) = delete;
+        SwapChain& operator = (const SwapChain&) = delete;
 
     protected:
         const PresentMode presentMode;
@@ -2148,8 +2207,6 @@ export namespace vireo {
          * Creates a new Vireo class using the given backend.
          */
         static std::shared_ptr<Vireo> create(Backend backend);
-
-        virtual ~Vireo() = default;
 
         virtual void waitIdle() {}
 
@@ -2388,6 +2445,11 @@ export namespace vireo {
         auto getDevice() const { return device; }
 
         auto getInstance() const { return instance; }
+
+        virtual ~Vireo() = default;
+        Vireo () = default;
+        Vireo (Vireo&) = delete;
+        Vireo& operator = (const Vireo&) = delete;
 
     protected:
         std::shared_ptr<Instance>        instance;

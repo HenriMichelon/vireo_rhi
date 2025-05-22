@@ -198,7 +198,7 @@ namespace vireo {
             commandList->SetPipelineState(static_cast<const DXComputePipeline&>(pipeline).getPipelineState().Get());
             commandList->SetComputeRootSignature(static_pointer_cast<const DXPipelineResources>(pipeline.getResources())->getRootSignature().Get());
         } else {
-            const auto dxPipeline = static_cast<const DXGraphicPipeline&>(pipeline);
+            const auto& dxPipeline = static_cast<const DXGraphicPipeline&>(pipeline);
             commandList->SetPipelineState(dxPipeline.getPipelineState().Get());
             commandList->SetGraphicsRootSignature(static_pointer_cast<const DXPipelineResources>(pipeline.getResources())->getRootSignature().Get());
             commandList->IASetPrimitiveTopology(dxPipeline.getPrimitiveTopology());

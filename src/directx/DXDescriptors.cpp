@@ -77,28 +77,33 @@ namespace vireo {
     void DXDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer) {
         assert(!layout->isSamplers());
         assert(buffer != nullptr);
-        const auto dxBuffer = static_pointer_cast<const DXBuffer>(buffer);
+        if (buffer->getType() == BufferType::UNIFORM && layout->isDynamicUniform()) {
+            assert(buffer->getType() == BufferType::UNIFORM);
+            dynamicBuffer = buffer;
+        }
+        update(index, *buffer);
+    }
+
+    void DXDescriptorSet::update(const DescriptorIndex index, const Buffer& buffer) {
+        assert(!layout->isSamplers());
+        const auto& dxBuffer = static_cast<const DXBuffer&>(buffer);
         const auto cpuHandle = D3D12_CPU_DESCRIPTOR_HANDLE { cpuBase.ptr + index * descriptorSize };
-        if (buffer->getType() == BufferType::UNIFORM) {
+        if (buffer.getType() == BufferType::UNIFORM) {
             const auto bufferViewDesc = D3D12_CONSTANT_BUFFER_VIEW_DESC{
-                .BufferLocation = dxBuffer->getBuffer()->GetGPUVirtualAddress(),
-                .SizeInBytes = dxBuffer->getInstanceSizeAligned(),
+                .BufferLocation = dxBuffer.getBuffer()->GetGPUVirtualAddress(),
+                .SizeInBytes = dxBuffer.getInstanceSizeAligned(),
             };
             device->CreateConstantBufferView(&bufferViewDesc, cpuHandle);
-            if (layout->isDynamicUniform()) {
-                assert(buffer->getType() == BufferType::UNIFORM);
-                dynamicBuffer = buffer;
-            }
-        } else if (buffer->getType() == BufferType::STORAGE) {
+        } else if (buffer.getType() == BufferType::STORAGE) {
             const auto uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC{
                 .ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
                 .Buffer = {
-                    .NumElements = buffer->getInstanceCount(),
-                    .StructureByteStride = buffer->getInstanceSizeAligned(),
+                    .NumElements = buffer.getInstanceCount(),
+                    .StructureByteStride = buffer.getInstanceSizeAligned(),
                 }
             };
             device->CreateUnorderedAccessView(
-                dxBuffer->getBuffer().Get(),
+                dxBuffer.getBuffer().Get(),
                 nullptr,
                 &uavDesc,
                 cpuHandle
@@ -109,46 +114,44 @@ namespace vireo {
         }
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<const Image>& image) const {
+    void DXDescriptorSet::update(const DescriptorIndex index, const Image& image) const {
         assert(!layout->isDynamicUniform());
         assert(!layout->isSamplers());
-        assert(image != nullptr);
-        const auto dxImage = static_pointer_cast<const DXImage>(image);
+        const auto& dxImage = static_cast<const DXImage&>(image);
         const auto cpuHandle= D3D12_CPU_DESCRIPTOR_HANDLE{ cpuBase.ptr + index * descriptorSize };
-        if (image->isReadWrite()) {
+        if (image.isReadWrite()) {
             const auto viewDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC {
-                .Format = DXImage::dxFormats[static_cast<int>(image->getFormat())],
-                .ViewDimension = image->getArraySize() > 1 ? D3D12_UAV_DIMENSION_TEXTURE2DARRAY : D3D12_UAV_DIMENSION_TEXTURE2D,
+                .Format = DXImage::dxFormats[static_cast<int>(image.getFormat())],
+                .ViewDimension = image.getArraySize() > 1 ? D3D12_UAV_DIMENSION_TEXTURE2DARRAY : D3D12_UAV_DIMENSION_TEXTURE2D,
                 .Texture2DArray = {
                     .MipSlice = 0,
                     .FirstArraySlice = 0,
-                    .ArraySize = image->getArraySize(),
+                    .ArraySize = image.getArraySize(),
                 },
             };
-            device->CreateUnorderedAccessView(dxImage->getImage().Get(), nullptr, &viewDesc, cpuHandle);
+            device->CreateUnorderedAccessView(dxImage.getImage().Get(), nullptr, &viewDesc, cpuHandle);
         } else {
             const auto viewDesc = D3D12_SHADER_RESOURCE_VIEW_DESC {
-                .Format = DXImage::dxFormats[static_cast<int>(image->getFormat())],
+                .Format = DXImage::dxFormats[static_cast<int>(image.getFormat())],
                 .ViewDimension =
-                    image->getArraySize() > 1 ?
-                        image->getArraySize() == 6 ?
+                    image.getArraySize() > 1 ?
+                        image.getArraySize() == 6 ?
                         D3D12_SRV_DIMENSION_TEXTURECUBE :
                         D3D12_SRV_DIMENSION_TEXTURE2DARRAY :
                     D3D12_SRV_DIMENSION_TEXTURE2D,
                 .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
                 .Texture2D= {
-                    .MipLevels = image->getMipLevels()
+                    .MipLevels = image.getMipLevels()
                 },
             };
-            device->CreateShaderResourceView(dxImage->getImage().Get(), &viewDesc, cpuHandle);
+            device->CreateShaderResourceView(dxImage.getImage().Get(), &viewDesc, cpuHandle);
         }
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<const Sampler>& sampler) const {
+    void DXDescriptorSet::update(const DescriptorIndex index, const Sampler& sampler) const {
         assert(layout->isSamplers());
-        assert(sampler != nullptr);
-        const auto dxSampler = static_pointer_cast<const DXSampler>(sampler);
-        const auto samplerDesc = dxSampler->getSamplerDesc();
+        const auto& dxSampler = static_cast<const DXSampler&>(sampler);
+        const auto samplerDesc = dxSampler.getSamplerDesc();
         const auto cpuHandle= D3D12_CPU_DESCRIPTOR_HANDLE{ cpuBase.ptr + index * descriptorSize };
         device->CreateSampler(&samplerDesc, cpuHandle);
     }
@@ -161,13 +164,13 @@ namespace vireo {
 
     void DXDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Image>>& images) const {
         for (int i = 0; i < images.size(); ++i) {
-            update(index + i, images[i]);
+            update(index + i, *images[i]);
         }
     }
 
     void DXDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& samplers) const {
         for (int i = 0; i < samplers.size(); ++i) {
-            update(index + i, samplers[i]);
+            update(index + i, *samplers[i]);
         }
     }
 
