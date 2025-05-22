@@ -844,7 +844,7 @@ namespace vireo {
             const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
                 buffer.getBuffer().Get(),
                 D3D12_RESOURCE_STATE_COPY_DEST,
-                DXBuffer::ResourceStates[static_cast<int>(buffer.getType())]);
+                DXBuffer::resourceStates[static_cast<int>(buffer.getType())]);
             commandList->ResourceBarrier(1, &memoryBarrier);
         }
 
@@ -871,7 +871,7 @@ namespace vireo {
         const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
             dxDestination.getBuffer().Get(),
             D3D12_RESOURCE_STATE_COPY_DEST,
-            DXBuffer::ResourceStates[static_cast<int>(dxDestination.getType())]);
+            DXBuffer::resourceStates[static_cast<int>(dxDestination.getType())]);
         commandList->ResourceBarrier(1, &memoryBarrier);
     }
 
@@ -891,7 +891,7 @@ namespace vireo {
         const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
             dxDestination.getBuffer().Get(),
             D3D12_RESOURCE_STATE_COPY_DEST,
-            DXBuffer::ResourceStates[static_cast<int>(dxDestination.getType())]);
+            DXBuffer::resourceStates[static_cast<int>(dxDestination.getType())]);
             commandList->ResourceBarrier(1, &memoryBarrier);
     }
 

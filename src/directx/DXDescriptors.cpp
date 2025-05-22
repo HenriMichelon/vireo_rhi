@@ -94,7 +94,7 @@ namespace vireo {
                 .SizeInBytes = dxBuffer.getInstanceSizeAligned(),
             };
             device->CreateConstantBufferView(&bufferViewDesc, cpuHandle);
-        } else if (buffer.getType() == BufferType::STORAGE) {
+        } else if (buffer.getType() == BufferType::READWRITE_STORAGE) {
             const auto uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC{
                 .ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
                 .Buffer = {
@@ -108,7 +108,22 @@ namespace vireo {
                 &uavDesc,
                 cpuHandle
             );
-
+        } else if (buffer.getType() == BufferType::STORAGE) {
+            const auto srvDesc = D3D12_SHADER_RESOURCE_VIEW_DESC {
+                .Format = DXGI_FORMAT_UNKNOWN,
+                .ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
+                .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
+                .Buffer = {
+                    .FirstElement = 0,
+                    .NumElements = buffer.getInstanceCount(),
+                    .StructureByteStride = buffer.getInstanceSizeAligned(),
+                },
+            };
+            device->CreateShaderResourceView(
+                dxBuffer.getBuffer().Get(),
+                &srvDesc,
+                cpuHandle
+            );
         } else {
             throw Exception("Unsupported buffer type");
         }

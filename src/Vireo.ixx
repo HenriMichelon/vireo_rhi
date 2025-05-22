@@ -168,6 +168,8 @@ export namespace vireo {
         UNIFORM,
         //! Used for shader storage (in host visible memory)
         STORAGE,
+        //! Used for read/write shader storage (in GPU memory)
+        READWRITE_STORAGE,
         //! Used for vertex and index buffers copy operations (from host visible memory to GPU memory)
         BUFFER_UPLOAD,
         //! Used for image copy operations (from host visible memory to GPU memory)

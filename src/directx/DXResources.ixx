@@ -14,10 +14,15 @@ export namespace vireo {
 
     class DXBuffer : public Buffer {
     public:
-        static constexpr D3D12_RESOURCE_STATES ResourceStates[] {
+        static constexpr D3D12_RESOURCE_STATES resourceStates[] {
             D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
             D3D12_RESOURCE_STATE_INDEX_BUFFER,
-            D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER
+            D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT,
+            D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
+            D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+            D3D12_RESOURCE_STATE_GENERIC_READ,
+            D3D12_RESOURCE_STATE_GENERIC_READ,
+            D3D12_RESOURCE_STATE_GENERIC_READ
         };
 
         DXBuffer(

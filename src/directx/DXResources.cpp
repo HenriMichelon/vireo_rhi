@@ -35,15 +35,21 @@ namespace vireo {
         instanceSize = size;
         instanceCount = count;
 
-        // GPU Buffer
         const auto heapProperties = CD3DX12_HEAP_PROPERTIES(
-            type == BufferType::UNIFORM || type == BufferType::IMAGE_UPLOAD || type == BufferType::BUFFER_UPLOAD ?
+            type == BufferType::UNIFORM ||
+            type == BufferType::STORAGE ||
+            type == BufferType::IMAGE_UPLOAD ||
+            type == BufferType::BUFFER_UPLOAD ?
             D3D12_HEAP_TYPE_UPLOAD :
             type == BufferType::IMAGE_DOWNLOAD ?
             D3D12_HEAP_TYPE_READBACK :
             D3D12_HEAP_TYPE_DEFAULT
         );
-        auto flag = type == BufferType::STORAGE ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : 0;
+        auto flag =
+            type == BufferType::READWRITE_STORAGE |
+            type == BufferType::STORAGE ?
+            D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS :
+            0;
         const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize, static_cast<D3D12_RESOURCE_FLAGS >(flag));
         dxCheck(device->CreateCommittedResource(
             &heapProperties,
