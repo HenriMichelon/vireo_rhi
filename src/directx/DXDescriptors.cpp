@@ -32,7 +32,8 @@ namespace vireo {
                 type == DescriptorType::UNIFORM ? D3D12_DESCRIPTOR_RANGE_TYPE_CBV :
                 type == DescriptorType::UNIFORM_DYNAMIC ? D3D12_DESCRIPTOR_RANGE_TYPE_CBV :
                 type == DescriptorType::SAMPLED_IMAGE ? D3D12_DESCRIPTOR_RANGE_TYPE_SRV :
-                type == DescriptorType::STORAGE ? D3D12_DESCRIPTOR_RANGE_TYPE_UAV :
+                type == DescriptorType::STORAGE ? D3D12_DESCRIPTOR_RANGE_TYPE_SRV :
+                type == DescriptorType::READWRITE_STORAGE ? D3D12_DESCRIPTOR_RANGE_TYPE_UAV :
                 type == DescriptorType::READWRITE_IMAGE ? D3D12_DESCRIPTOR_RANGE_TYPE_UAV :
                 D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,
                 count,

@@ -37,6 +37,7 @@ namespace vireo {
                 type == DescriptorType::UNIFORM ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER :
                 type == DescriptorType::UNIFORM_DYNAMIC ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC :
                 type == DescriptorType::STORAGE ? VK_DESCRIPTOR_TYPE_STORAGE_BUFFER :
+                type == DescriptorType::READWRITE_STORAGE ? VK_DESCRIPTOR_TYPE_STORAGE_BUFFER :
                 type == DescriptorType::SAMPLED_IMAGE ? VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE :
                 type == DescriptorType::READWRITE_IMAGE ? VK_DESCRIPTOR_TYPE_STORAGE_IMAGE :
                 VK_DESCRIPTOR_TYPE_SAMPLER,
