@@ -807,7 +807,6 @@ namespace vireo {
     void DXCommandList::upload(const Buffer& destination, const void* source) {
         assert(source != nullptr);
         const auto& buffer = static_cast<const DXBuffer&>(destination);
-
         ComPtr<ID3D12Resource> stagingBuffer;
         {
             const auto stagingBufferSize = GetRequiredIntermediateSize(buffer.getBuffer().Get(), 0, 1);
@@ -857,8 +856,8 @@ namespace vireo {
         const Buffer& destination,
         const size_t size,
         const uint32_t sourceOffset,
-        const uint32_t destinationOffset) {
-        const auto copySize = size == Buffer::WHOLE_SIZE ? destination.getSize() : size;
+        const uint32_t destinationOffset) const {
+        const auto copySize = size == Buffer::WHOLE_SIZE ? min(source.getSize(), destination.getSize()) : size;
         assert(source.getSize() >= (copySize + sourceOffset));
         assert(destination.getSize() >= (copySize + destinationOffset));
         const auto& dxDestination = static_cast<const DXBuffer&>(destination);
@@ -879,7 +878,7 @@ namespace vireo {
     void DXCommandList::copy(
         const Buffer& source,
         const Buffer& destination,
-        const std::vector<BufferCopyRegion>& regions) {
+        const std::vector<BufferCopyRegion>& regions) const {
         const auto& dxDestination = static_cast<const DXBuffer&>(destination);
         for (const auto& region : regions) {
             commandList->CopyBufferRegion(
@@ -948,7 +947,7 @@ namespace vireo {
        const Buffer& source,
        const Image& destination,
        const uint32_t sourceOffset,
-       const uint32_t firstMipLevel) {
+       const uint32_t firstMipLevel) const {
         const auto& image = static_cast<const DXImage&>(destination);
         const auto& buffer = static_cast<const DXBuffer&>(source);
 
@@ -995,7 +994,7 @@ namespace vireo {
         const Image& source,
         const Buffer& destination,
         const uint32_t destinationOffset,
-        const uint32_t firstMipLevel) {
+        const uint32_t firstMipLevel) const {
         const auto& image = static_cast<const DXImage&>(source);
         const auto& buffer = static_cast<const DXBuffer&>(destination);
 

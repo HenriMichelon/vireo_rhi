@@ -164,25 +164,25 @@ export namespace vireo {
             const Buffer& source,
             const Image& destination,
             uint32_t sourceOffset,
-            uint32_t firstMipLevel) override;
+            uint32_t firstMipLevel) const override;
 
         void copy(
-            const Image& destination,
-            const Buffer& source,
+            const Image& source,
+            const Buffer& destination,
             uint32_t destinationOffset,
-            uint32_t firstMipLevel) override;
+            uint32_t firstMipLevel) const override;
 
         void copy(
             const Buffer& source,
             const Buffer& destination,
             size_t size,
             uint32_t sourceOffset,
-            uint32_t destinationOffset) override;
+            uint32_t destinationOffset) const override;
 
         void copy(
             const Buffer& source,
             const Buffer& destination,
-            const std::vector<BufferCopyRegion>& regions) override;
+            const std::vector<BufferCopyRegion>& regions) const override;
 
         void uploadArray(
             const Image& destination,

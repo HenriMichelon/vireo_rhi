@@ -1134,8 +1134,8 @@ namespace vireo {
         const Buffer& destination,
         const size_t size,
         const uint32_t sourceOffset,
-        const uint32_t destinationOffset) {
-        const auto copySize = size == Buffer::WHOLE_SIZE ? destination.getSize() : size;
+        const uint32_t destinationOffset) const {
+        const auto copySize = size == Buffer::WHOLE_SIZE ? min(source.getSize(), destination.getSize()) : size;
         assert(source.getSize() >= (copySize + sourceOffset));
         assert(destination.getSize() >= (copySize + destinationOffset));
         const auto copyRegion = VkBufferCopy{
@@ -1154,7 +1154,7 @@ namespace vireo {
     void VKCommandList::copy(
         const Buffer& source,
         const Buffer& destination,
-        const std::vector<BufferCopyRegion>& regions) {
+        const std::vector<BufferCopyRegion>& regions) const {
         std::vector<VkBufferCopy> copyRegions(regions.size());
         for (int i = 0; i < regions.size(); i++) {
             copyRegions[i].srcOffset = regions[i].srcOffset;
@@ -1225,7 +1225,7 @@ namespace vireo {
         const Buffer& source,
         const Image& destination,
         const uint32_t sourceOffset,
-        const uint32_t firstMipLevel) {
+        const uint32_t firstMipLevel) const {
         assert(firstMipLevel < destination.getMipLevels());
         const auto& image = static_cast<const VKImage&>(destination);
         const auto& buffer = static_cast<const VKBuffer&>(source);
@@ -1255,7 +1255,7 @@ namespace vireo {
         const Image& source,
         const Buffer& destination,
         const uint32_t destinationOffset,
-        const uint32_t firstMipLevel) {
+        const uint32_t firstMipLevel) const {
         assert(firstMipLevel < source.getMipLevels());
         const auto& image = static_cast<const VKImage&>(source);
         const auto& buffer = static_cast<const VKBuffer&>(destination);

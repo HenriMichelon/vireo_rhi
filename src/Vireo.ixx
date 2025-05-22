@@ -1552,7 +1552,7 @@ export namespace vireo {
             const std::shared_ptr<Buffer>& source,
             const std::shared_ptr<const Image>& destination,
             const uint32_t sourceOffset = 0,
-            const uint32_t firstMipLevel = 0) {
+            const uint32_t firstMipLevel = 0) const {
             copy(*source, *destination, sourceOffset, firstMipLevel);
         }
 
@@ -1563,7 +1563,7 @@ export namespace vireo {
             const Buffer& source,
             const Image& destination,
             uint32_t sourceOffset = 0,
-            uint32_t firstMipLevel = 0) = 0;
+            uint32_t firstMipLevel = 0) const = 0;
 
         /**
         * Copy an image into a buffer
@@ -1572,7 +1572,7 @@ export namespace vireo {
            const Image& source,
            const Buffer& destination,
            uint32_t destinationOffset = 0,
-           uint32_t firstMipLevel = 0) = 0;
+           uint32_t firstMipLevel = 0) const = 0;
 
         /**
         * Copy an image into a buffer
@@ -1581,7 +1581,7 @@ export namespace vireo {
             const std::shared_ptr<const Image>& source,
             const std::shared_ptr<Buffer>& destination,
             const uint32_t destinationOffset = 0,
-            const uint32_t firstMipLevel = 0) {
+            const uint32_t firstMipLevel = 0) const {
             copy(*destination, *source, destinationOffset, firstMipLevel);
         }
 
@@ -1593,7 +1593,7 @@ export namespace vireo {
             const Buffer& destination,
             size_t size = Buffer::WHOLE_SIZE,
             uint32_t sourceOffset = 0,
-            uint32_t destinationOffset = 0) = 0;
+            uint32_t destinationOffset = 0) const = 0;
 
         /**
          * Copy a buffer into another buffer
@@ -1603,19 +1603,19 @@ export namespace vireo {
             const std::shared_ptr<const Buffer>& destination,
             const size_t size = Buffer::WHOLE_SIZE,
             const uint32_t sourceOffset = 0,
-            const uint32_t destinationOffset = 0) {
+            const uint32_t destinationOffset = 0) const {
             copy(*source, *destination, size, sourceOffset, destinationOffset);
         }
 
         virtual void copy(
             const Buffer& source,
             const Buffer& destination,
-            const std::vector<BufferCopyRegion>& regions) = 0;
+            const std::vector<BufferCopyRegion>& regions) const = 0;
 
         void copy(
             const std::shared_ptr<const Buffer>& source,
             const std::shared_ptr<const Buffer>& destination,
-            const std::vector<BufferCopyRegion>& regions) {
+            const std::vector<BufferCopyRegion>& regions) const {
             copy(*source, *destination, regions);
         }
 
