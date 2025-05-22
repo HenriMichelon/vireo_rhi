@@ -125,7 +125,7 @@ export namespace vireo {
 
         void reset() const override;
 
-        std::shared_ptr<CommandList> createCommandList(const std::shared_ptr<const Pipeline>& pipeline) const override;
+        std::shared_ptr<CommandList> createCommandList(const Pipeline& pipeline) const override;
 
         std::shared_ptr<CommandList> createCommandList() const override;
 
@@ -151,45 +151,47 @@ export namespace vireo {
 
         void cleanup() override;
 
-        void upload(const std::shared_ptr<const Buffer>& destination, const void* source) override;
+        void upload(
+            const Buffer& destination,
+            const void* source) override;
 
         void upload(
-            const std::shared_ptr<const Image>& destination,
+            const Image& destination,
             const void* source,
             uint32_t firstMipLevel) override;
 
         void copy(
-            const std::shared_ptr<Buffer>& source,
-            const std::shared_ptr<const Image>& destination,
+            const Buffer& source,
+            const Image& destination,
             uint32_t sourceOffset,
             uint32_t firstMipLevel) override;
 
         void copy(
-            const std::shared_ptr<const Image>& destination,
-            const std::shared_ptr<Buffer>& source,
+            const Image& destination,
+            const Buffer& source,
             uint32_t destinationOffset,
             uint32_t firstMipLevel) override;
 
         void copy(
-            const std::shared_ptr<Buffer>& source,
-            const std::shared_ptr<Buffer>& destination,
+            const Buffer& source,
+            const Buffer& destination,
             size_t size,
             uint32_t sourceOffset,
             uint32_t destinationOffset) override;
 
         void copy(
-            const std::shared_ptr<Buffer>& source,
-            const std::shared_ptr<Buffer>& destination,
+            const Buffer& source,
+            const Buffer& destination,
             const std::vector<BufferCopyRegion>& regions) override;
 
         void uploadArray(
-            const std::shared_ptr<const Image>& destination,
+            const Image& destination,
             const std::vector<void*>& sources,
             uint32_t firstMipLevel) override;
 
         void copy(
-            const std::shared_ptr<const Image>& source,
-            const std::shared_ptr<const SwapChain>& swapChain) const override;
+            const Image& source,
+            const SwapChain& swapChain) const override;
 
         void beginRendering(const RenderingConfiguration& conf) override;
 
@@ -201,9 +203,9 @@ export namespace vireo {
             const std::vector<std::shared_ptr<const Buffer>>& buffers,
             std::vector<size_t> offsets = {}) const override;
 
-        void bindVertexBuffer(const std::shared_ptr<const Buffer>& buffer, size_t offset) const override;
+        void bindVertexBuffer(const Buffer& buffer, size_t offset) const override;
 
-        void bindIndexBuffer(const std::shared_ptr<const Buffer>& buffer, IndexType indexType, uint32_t firstIndex) const override;
+        void bindIndexBuffer(const Buffer& buffer, IndexType indexType, uint32_t firstIndex) const override;
 
         void bindPipeline(const Pipeline& pipeline) override;
 
@@ -213,13 +215,13 @@ export namespace vireo {
             uint32_t firstSet) const override;
 
         void bindDescriptor(
-            const std::shared_ptr<const Pipeline>& pipeline,
-            const std::shared_ptr<const DescriptorSet>& descriptor,
+            const Pipeline& pipeline,
+            const DescriptorSet& descriptor,
             uint32_t set) const override;
 
         void bindDescriptor(
-            const std::shared_ptr<const Pipeline>& pipeline,
-            const std::shared_ptr<const DescriptorSet>& descriptor,
+            const Pipeline& pipeline,
+            const DescriptorSet& descriptor,
             uint32_t set,
             uint32_t offset) const override;
 
@@ -230,7 +232,7 @@ export namespace vireo {
             uint32_t firstInstance = 0) const override;
 
         void drawIndirect(
-            const std::shared_ptr<Buffer>& buffer,
+            const Buffer& buffer,
             size_t offset,
             uint32_t drawCount,
             uint32_t stride) override;
@@ -243,15 +245,15 @@ export namespace vireo {
             uint32_t firstInstance = 0) const override;
 
         void drawIndexedIndirect(
-            const std::shared_ptr<Buffer>& buffer,
+            const Buffer& buffer,
             size_t offset,
             uint32_t drawCount,
             uint32_t stride) override;
 
         void drawIndexedIndirectCount(
-            const std::shared_ptr<Buffer>& buffer,
+            Buffer& buffer,
             size_t offset,
-            const std::shared_ptr<Buffer>& countBuffer,
+            Buffer& countBuffer,
             size_t countOffset,
             uint32_t maxDrawCount,
             uint32_t stride) override;

@@ -325,7 +325,7 @@ namespace vireo {
         vkDestroyCommandPool(device->getDevice(), commandPool, nullptr);
     }
 
-    std::shared_ptr<CommandList> VKCommandAllocator::createCommandList(const std::shared_ptr<const Pipeline>&) const {
+    std::shared_ptr<CommandList> VKCommandAllocator::createCommandList(const Pipeline&) const {
         return createCommandList();
     }
 
@@ -360,19 +360,17 @@ namespace vireo {
         vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), vkBuffers.data(), vkOffsets.data());
     }
 
-    void VKCommandList::bindVertexBuffer(const std::shared_ptr<const Buffer>& buffer, const size_t offset) const {
-        assert(buffer != nullptr);
-        const auto vkBuffer = static_pointer_cast<const VKBuffer>(buffer);
-        const VkBuffer     buffers[] = {vkBuffer->getBuffer()};
+    void VKCommandList::bindVertexBuffer(const Buffer& buffer, const size_t offset) const {
+        const auto& vkBuffer = static_cast<const VKBuffer&>(buffer);
+        const VkBuffer     buffers[] = {vkBuffer.getBuffer()};
         const VkDeviceSize offsets[] = {offset};
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
     }
 
-    void VKCommandList::bindIndexBuffer(const std::shared_ptr<const Buffer>& buffer, IndexType indexType, const uint32_t firstIndex) const {
-        assert(buffer != nullptr);
-        const auto vkBuffer = static_pointer_cast<const VKBuffer>(buffer);
+    void VKCommandList::bindIndexBuffer(const Buffer& buffer, IndexType indexType, const uint32_t firstIndex) const {
+        const auto& vkBuffer = static_cast<const VKBuffer&>(buffer);
         vkCmdBindIndexBuffer(commandBuffer,
-            vkBuffer->getBuffer(),
+            vkBuffer.getBuffer(),
             firstIndex * indexTypeSize[static_cast<int>(indexType)],
             vkIndexTypes[static_cast<int>(indexType)]);
     }
@@ -386,12 +384,12 @@ namespace vireo {
     }
 
     void VKCommandList::drawIndirect(
-        const std::shared_ptr<Buffer>& buffer,
+        const Buffer& buffer,
         const size_t offset,
         const uint32_t drawCount,
         const uint32_t stride) {
-        const auto vkBuffer = static_pointer_cast<const VKBuffer>(buffer);
-        vkCmdDrawIndirect(commandBuffer, vkBuffer->getBuffer(), offset, drawCount, stride);
+        const auto& vkBuffer = static_cast<const VKBuffer&>(buffer);
+        vkCmdDrawIndirect(commandBuffer, vkBuffer.getBuffer(), offset, drawCount, stride);
     }
 
     void VKCommandList::drawIndexed(
@@ -404,24 +402,24 @@ namespace vireo {
     }
 
     void VKCommandList::drawIndexedIndirect(
-        const std::shared_ptr<Buffer>& buffer,
+        const Buffer& buffer,
         const size_t offset,
         const uint32_t drawCount,
         const uint32_t stride) {
-        const auto vkBuffer = static_pointer_cast<const VKBuffer>(buffer);
-        vkCmdDrawIndexedIndirect(commandBuffer, vkBuffer->getBuffer(), offset, drawCount, stride);
+        const auto& vkBuffer = static_cast<const VKBuffer&>(buffer);
+        vkCmdDrawIndexedIndirect(commandBuffer, vkBuffer.getBuffer(), offset, drawCount, stride);
     }
 
     void VKCommandList::drawIndexedIndirectCount(
-        const std::shared_ptr<Buffer>& buffer,
+        Buffer& buffer,
         const size_t offset,
-        const std::shared_ptr<Buffer>& countBuffer,
+        Buffer& countBuffer,
         const size_t countOffset,
         const uint32_t maxDrawCount,
         const uint32_t stride) {
-        const auto vkBuffer = static_pointer_cast<const VKBuffer>(buffer);
-        const auto vkCountBuffer = static_pointer_cast<const VKBuffer>(countBuffer);
-        vkCmdDrawIndexedIndirectCount(commandBuffer, vkBuffer->getBuffer(), offset, vkCountBuffer->getBuffer(), countOffset, maxDrawCount, stride);
+        const auto& vkBuffer = static_cast<const VKBuffer&>(buffer);
+        const auto& vkCountBuffer = static_cast<const VKBuffer&>(countBuffer);
+        vkCmdDrawIndexedIndirectCount(commandBuffer, vkBuffer.getBuffer(), offset, vkCountBuffer.getBuffer(), countOffset, maxDrawCount, stride);
     }
 
     void VKCommandList::bindPipeline(const Pipeline& pipeline) {
@@ -461,15 +459,13 @@ namespace vireo {
     }
 
     void VKCommandList::bindDescriptor(
-        const std::shared_ptr<const Pipeline>& pipeline,
-        const std::shared_ptr<const DescriptorSet>& descriptor,
+        const Pipeline& pipeline,
+        const DescriptorSet& descriptor,
         const uint32_t set) const {
-        assert(pipeline != nullptr);
-        assert(descriptor != nullptr);
-        const auto vkLayout = static_pointer_cast<const VKPipelineResources>(pipeline->getResources())->getPipelineLayout();
-        const auto& descriptorSet = static_pointer_cast<const VKDescriptorSet>(descriptor)->getSet();
+        const auto vkLayout = static_pointer_cast<const VKPipelineResources>(pipeline.getResources())->getPipelineLayout();
+        const auto& descriptorSet = static_cast<const VKDescriptorSet&>(descriptor).getSet();
         vkCmdBindDescriptorSets(commandBuffer,
-                                pipeline->getType() == PipelineType::COMPUTE ?
+                                pipeline.getType() == PipelineType::COMPUTE ?
                                     VK_PIPELINE_BIND_POINT_COMPUTE :
                                     VK_PIPELINE_BIND_POINT_GRAPHICS,
                                 vkLayout,
@@ -481,17 +477,15 @@ namespace vireo {
     }
 
     void VKCommandList::bindDescriptor(
-        const std::shared_ptr<const Pipeline>& pipeline,
-        const std::shared_ptr<const DescriptorSet>& descriptor,
+        const Pipeline& pipeline,
+        const DescriptorSet& descriptor,
         const uint32_t set,
         const uint32_t offset) const {
-        assert(pipeline != nullptr);
-        assert(descriptor != nullptr);
-        assert(descriptor->getLayout()->isDynamicUniform());
-        const auto vkLayout = static_pointer_cast<const VKPipelineResources>(pipeline->getResources())->getPipelineLayout();
-        const auto& descriptorSet = static_pointer_cast<const VKDescriptorSet>(descriptor)->getSet();
+        assert(descriptor.getLayout()->isDynamicUniform());
+        const auto vkLayout = static_pointer_cast<const VKPipelineResources>(pipeline.getResources())->getPipelineLayout();
+        const auto& descriptorSet = static_cast<const VKDescriptorSet&>(descriptor).getSet();
         vkCmdBindDescriptorSets(commandBuffer,
-                                pipeline->getType() == PipelineType::COMPUTE ?
+                                pipeline.getType() == PipelineType::COMPUTE ?
                                     VK_PIPELINE_BIND_POINT_COMPUTE :
                                     VK_PIPELINE_BIND_POINT_GRAPHICS,
                                 vkLayout,
@@ -1098,25 +1092,24 @@ namespace vireo {
         stagingBuffers.clear();
     }
 
-    void VKCommandList::upload(const std::shared_ptr<const Buffer>& destination, const void* source) {
-        assert(destination != nullptr);
+    void VKCommandList::upload(const Buffer& destination, const void* source) {
         assert(source != nullptr);
-        const auto buffer = static_pointer_cast<const VKBuffer>(destination);
+        const auto& buffer = static_cast<const VKBuffer&>(destination);
         const auto stagingBuffer = std::make_shared<VKBuffer>(
             device,
             BufferType::BUFFER_UPLOAD,
-            buffer->getInstanceSize(),
-            buffer->getInstanceCount(),
+            buffer.getInstanceSize(),
+            buffer.getInstanceCount(),
             L"StagingBuffer for buffer");
         stagingBuffer->map();
-        if ((buffer->getInstanceSizeAligned() == 1) || (buffer->getInstanceCount() == 1)) {
+        if ((buffer.getInstanceSizeAligned() == 1) || (buffer.getInstanceCount() == 1)) {
             stagingBuffer->write(source);
         } else {
-            for (int i = 0; i < buffer->getInstanceCount(); i++) {
+            for (int i = 0; i < buffer.getInstanceCount(); i++) {
                 stagingBuffer->write(
-                    static_cast<const unsigned char*>(source) + i * buffer->getInstanceSize(),
-                    buffer->getInstanceSize(),
-                    buffer->getInstanceSizeAligned() * i);
+                    static_cast<const unsigned char*>(source) + i * buffer.getInstanceSize(),
+                    buffer.getInstanceSize(),
+                    buffer.getInstanceSizeAligned() * i);
             }
         }
         stagingBuffer->unmap();
@@ -1124,12 +1117,12 @@ namespace vireo {
         const auto copyRegion = VkBufferCopy{
             .srcOffset = 0,
             .dstOffset = 0,
-            .size = buffer->getSize(),
+            .size = buffer.getSize(),
         };
         vkCmdCopyBuffer(
             commandBuffer,
             stagingBuffer->getBuffer(),
-            buffer->getBuffer(),
+            buffer.getBuffer(),
             1,
             &copyRegion);
 
@@ -1137,16 +1130,14 @@ namespace vireo {
     }
 
     void VKCommandList::copy(
-            const std::shared_ptr<Buffer>& source,
-            const std::shared_ptr<Buffer>& destination,
-            const size_t size,
-            const uint32_t sourceOffset,
-            const uint32_t destinationOffset) {
-        assert(source != nullptr);
-        assert(destination != nullptr);
-        const auto copySize = size == Buffer::WHOLE_SIZE ? destination->getSize() : size;
-        assert(source->getSize() >= (copySize + sourceOffset));
-        assert(destination->getSize() >= (copySize + destinationOffset));
+        const Buffer& source,
+        const Buffer& destination,
+        const size_t size,
+        const uint32_t sourceOffset,
+        const uint32_t destinationOffset) {
+        const auto copySize = size == Buffer::WHOLE_SIZE ? destination.getSize() : size;
+        assert(source.getSize() >= (copySize + sourceOffset));
+        assert(destination.getSize() >= (copySize + destinationOffset));
         const auto copyRegion = VkBufferCopy{
             .srcOffset = sourceOffset,
             .dstOffset = destinationOffset,
@@ -1154,18 +1145,16 @@ namespace vireo {
         };
         vkCmdCopyBuffer(
             commandBuffer,
-            static_pointer_cast<VKBuffer>(source)->getBuffer(),
-            static_pointer_cast<VKBuffer>(destination)->getBuffer(),
+            static_cast<const VKBuffer&>(source).getBuffer(),
+            static_cast<const VKBuffer&>(destination).getBuffer(),
             1,
             &copyRegion);
     }
 
     void VKCommandList::copy(
-            const std::shared_ptr<Buffer>& source,
-            const std::shared_ptr<Buffer>& destination,
-            const std::vector<BufferCopyRegion>& regions) {
-        assert(source != nullptr);
-        assert(destination != nullptr);
+        const Buffer& source,
+        const Buffer& destination,
+        const std::vector<BufferCopyRegion>& regions) {
         std::vector<VkBufferCopy> copyRegions(regions.size());
         for (int i = 0; i < regions.size(); i++) {
             copyRegions[i].srcOffset = regions[i].srcOffset;
@@ -1174,34 +1163,33 @@ namespace vireo {
         }
         vkCmdCopyBuffer(
             commandBuffer,
-            static_pointer_cast<VKBuffer>(source)->getBuffer(),
-            static_pointer_cast<VKBuffer>(destination)->getBuffer(),
+            static_cast<const VKBuffer&>(source).getBuffer(),
+            static_cast<const VKBuffer&>(destination).getBuffer(),
             copyRegions.size(),
             copyRegions.data());
     }
 
     void VKCommandList::upload(
-        const std::shared_ptr<const Image>& destination,
+        const Image& destination,
         const void* source,
         const uint32_t firstMipLevel) {
-        assert(destination != nullptr);
         assert(source != nullptr);
-        assert(firstMipLevel < destination->getMipLevels());
-        const auto image = static_pointer_cast<const VKImage>(destination);
+        assert(firstMipLevel < destination.getMipLevels());
+        const auto& image = static_cast<const VKImage&>(destination);
         const auto stagingBuffer = std::make_shared<VKBuffer>(
            device,
            BufferType::IMAGE_UPLOAD,
-           image->getImageSize(),
-           image->getArraySize(),
+           image.getImageSize(),
+           image.getArraySize(),
            L"StagingBuffer for image");
         stagingBuffer->map();
-        if (image->getArraySize() == 1) {
+        if (image.getArraySize() == 1) {
             stagingBuffer->write(source);
         } else {
-            for (int i = 0; i < image->getArraySize(); i++) {
+            for (int i = 0; i < image.getArraySize(); i++) {
                 stagingBuffer->write(
-                    static_cast<const unsigned char*>(source) + i * image->getImageSize(),
-                    image->getImageSize(),
+                    static_cast<const unsigned char*>(source) + i * image.getImageSize(),
+                    image.getImageSize(),
                     stagingBuffer->getInstanceSizeAligned() * i);
             }
         }
@@ -1216,16 +1204,16 @@ namespace vireo {
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                 .mipLevel = firstMipLevel,
                 .baseArrayLayer = 0,
-                .layerCount = destination->getArraySize(),
+                .layerCount = destination.getArraySize(),
             },
             .imageOffset = {0, 0, 0},
-            .imageExtent = {image->getWidth(), image->getHeight(), 1},
+            .imageExtent = {image.getWidth(), image.getHeight(), 1},
         };
 
         vkCmdCopyBufferToImage(
                 commandBuffer,
                 stagingBuffer->getBuffer(),
-                image->getImage(),
+                image.getImage(),
                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                 1,
                 &region);
@@ -1234,15 +1222,13 @@ namespace vireo {
     }
 
     void VKCommandList::copy(
-        const std::shared_ptr<Buffer>& source,
-        const std::shared_ptr<const Image>& destination,
+        const Buffer& source,
+        const Image& destination,
         const uint32_t sourceOffset,
         const uint32_t firstMipLevel) {
-        assert(source != nullptr);
-        assert(destination != nullptr);
-        assert(firstMipLevel < destination->getMipLevels());
-        const auto image = static_pointer_cast<const VKImage>(destination);
-        const auto buffer = static_pointer_cast<VKBuffer>(source);
+        assert(firstMipLevel < destination.getMipLevels());
+        const auto& image = static_cast<const VKImage&>(destination);
+        const auto& buffer = static_cast<const VKBuffer&>(source);
         const auto region = VkBufferImageCopy {
             .bufferOffset = sourceOffset,
             .bufferRowLength = 0,
@@ -1251,30 +1237,28 @@ namespace vireo {
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                 .mipLevel = firstMipLevel,
                 .baseArrayLayer = 0,
-                .layerCount = destination->getArraySize(),
+                .layerCount = destination.getArraySize(),
             },
             .imageOffset = {0, 0, 0},
-            .imageExtent = {image->getWidth() >> firstMipLevel, image->getHeight() >> firstMipLevel, 1},
+            .imageExtent = {image.getWidth() >> firstMipLevel, image.getHeight() >> firstMipLevel, 1},
         };
         vkCmdCopyBufferToImage(
                 commandBuffer,
-                buffer->getBuffer(),
-                image->getImage(),
+                buffer.getBuffer(),
+                image.getImage(),
                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                 1,
                 &region);
     }
 
     void VKCommandList::copy(
-        const std::shared_ptr<const Image>& source,
-        const std::shared_ptr<Buffer>& destination,
+        const Image& source,
+        const Buffer& destination,
         const uint32_t destinationOffset,
         const uint32_t firstMipLevel) {
-        assert(source != nullptr);
-        assert(destination != nullptr);
-        assert(firstMipLevel < source->getMipLevels());
-        const auto image = static_pointer_cast<const VKImage>(source);
-        const auto buffer = static_pointer_cast<VKBuffer>(destination);
+        assert(firstMipLevel < source.getMipLevels());
+        const auto& image = static_cast<const VKImage&>(source);
+        const auto& buffer = static_cast<const VKBuffer&>(destination);
         const auto region = VkBufferImageCopy {
             .bufferOffset = destinationOffset,
             .bufferRowLength = 0,
@@ -1283,39 +1267,38 @@ namespace vireo {
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                 .mipLevel = firstMipLevel,
                 .baseArrayLayer = 0,
-                .layerCount = source->getArraySize(),
+                .layerCount = source.getArraySize(),
             },
             .imageOffset = {0, 0, 0},
-            .imageExtent = {image->getWidth() >> firstMipLevel, image->getHeight() >> firstMipLevel, 1},
+            .imageExtent = {image.getWidth() >> firstMipLevel, image.getHeight() >> firstMipLevel, 1},
         };
         vkCmdCopyImageToBuffer(
                 commandBuffer,
-                image->getImage(),
+                image.getImage(),
                 VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                buffer->getBuffer(),
+                buffer.getBuffer(),
                 1,
                 &region);
     }
 
     void VKCommandList::uploadArray(
-        const std::shared_ptr<const Image>& destination,
+        const Image& destination,
         const std::vector<void*>& sources,
         const uint32_t firstMipLevel) {
-        assert(destination != nullptr);
-        assert(sources.size() == destination->getArraySize());
-        assert(firstMipLevel < destination->getMipLevels());
-        const auto image = static_pointer_cast<const VKImage>(destination);
+        assert(sources.size() == destination.getArraySize());
+        assert(firstMipLevel < destination.getMipLevels());
+        const auto& image = static_cast<const VKImage&>(destination);
         const auto stagingBuffer = std::make_shared<VKBuffer>(
            device,
            BufferType::IMAGE_UPLOAD,
-           image->getImageSize(),
-           image->getArraySize(),
+           image.getImageSize(),
+           image.getArraySize(),
            L"StagingBuffer for image array");
         stagingBuffer->map();
-        for (int i = 0; i < image->getArraySize(); i++) {
+        for (int i = 0; i < image.getArraySize(); i++) {
             stagingBuffer->write(
                 sources[i],
-                image->getImageSize(),
+                image.getImageSize(),
                 stagingBuffer->getInstanceSizeAligned() * i);
         }
         stagingBuffer->unmap();
@@ -1328,15 +1311,15 @@ namespace vireo {
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                 .mipLevel = firstMipLevel,
                 .baseArrayLayer = 0,
-                .layerCount = destination->getArraySize(),
+                .layerCount = destination.getArraySize(),
             },
             .imageOffset = {0, 0, 0},
-            .imageExtent = {image->getWidth() >> firstMipLevel, image->getHeight() >> firstMipLevel, 1},
+            .imageExtent = {image.getWidth() >> firstMipLevel, image.getHeight() >> firstMipLevel, 1},
         };
         vkCmdCopyBufferToImage(
                 commandBuffer,
                 stagingBuffer->getBuffer(),
-                image->getImage(),
+                image.getImage(),
                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                 1,
                 &region);
@@ -1344,12 +1327,10 @@ namespace vireo {
     }
 
     void VKCommandList::copy(
-        const std::shared_ptr<const Image>& source,
-        const std::shared_ptr<const SwapChain>& swapChain) const {
-        assert(source != nullptr);
-        assert(swapChain != nullptr);
-        const auto vkSource = static_pointer_cast<const VKImage>(source);
-        const auto vkSwapChain = static_pointer_cast<const VKSwapChain>(swapChain);
+        const Image& source,
+        const SwapChain& swapChain) const {
+        const auto& vkSource = static_cast<const VKImage&>(source);
+        const auto& vkSwapChain = static_cast<const VKSwapChain&>(swapChain);
         auto copyRegion = VkImageCopy {
             .srcSubresource = {
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
@@ -1361,11 +1342,11 @@ namespace vireo {
         };
         copyRegion.dstSubresource = copyRegion.srcSubresource;
         copyRegion.dstOffset = {0, 0, 0};
-        copyRegion.extent = {source->getWidth(), source->getHeight(), 1};
+        copyRegion.extent = {source.getWidth(), source.getHeight(), 1};
 
         vkCmdCopyImage(commandBuffer,
-                       vkSource->getImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                       vkSwapChain->getCurrentImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                       vkSource.getImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                       vkSwapChain.getCurrentImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                        1, &copyRegion);
     }
 

@@ -156,13 +156,12 @@ namespace vireo {
         dxCheck(commandAllocator->Reset());
     }
 
-    std::shared_ptr<CommandList> DXCommandAllocator::createCommandList(const std::shared_ptr<const Pipeline>& pipeline) const {
-        assert(pipeline != nullptr);
+    std::shared_ptr<CommandList> DXCommandAllocator::createCommandList(const Pipeline& pipeline) const {
         return std::make_shared<DXCommandList>(
             getCommandListType(),
             device,
             commandAllocator,
-            static_pointer_cast<const DXGraphicPipeline>(pipeline)->getPipelineState());
+            static_cast<const DXGraphicPipeline&>(pipeline).getPipelineState());
     }
 
     std::shared_ptr<CommandList> DXCommandAllocator::createCommandList() const {
@@ -237,19 +236,17 @@ namespace vireo {
     }
 
     void DXCommandList::bindDescriptor(
-        const std::shared_ptr<const Pipeline>&pipeline,
-        const std::shared_ptr<const DescriptorSet>& descriptor,
+        const Pipeline&pipeline,
+        const DescriptorSet& descriptor,
         const uint32_t set) const {
-        assert(pipeline != nullptr);
-        assert(descriptor != nullptr);
-        const auto heap =  static_pointer_cast<const DXDescriptorSet>(descriptor)->getHeap().Get();
+        const auto heap = static_cast<const DXDescriptorSet&>(descriptor).getHeap().Get();
         D3D12_GPU_DESCRIPTOR_HANDLE handle;
 #ifdef _MSC_VER
         handle = heap->GetGPUDescriptorHandleForHeapStart();
 #else
         heap->GetGPUDescriptorHandleForHeapStart(&handle);
 #endif
-        if (pipeline->getType() == PipelineType::COMPUTE) {
+        if (pipeline.getType() == PipelineType::COMPUTE) {
             commandList->SetComputeRootDescriptorTable(set, handle);
         } else {
             commandList->SetGraphicsRootDescriptorTable(set, handle);
@@ -257,15 +254,13 @@ namespace vireo {
     }
 
     void DXCommandList::bindDescriptor(
-        const std::shared_ptr<const Pipeline>& pipeline,
-        const std::shared_ptr<const DescriptorSet>& descriptor,
+        const Pipeline& pipeline,
+        const DescriptorSet& descriptor,
         const uint32_t set,
         const uint32_t offset) const {
-        assert(pipeline != nullptr);
-        assert(descriptor != nullptr);
-        assert(descriptor->getLayout()->isDynamicUniform());
-        const auto dxDescriptorSet = static_pointer_cast<const DXDescriptorSet>(descriptor);
-        const auto& buffer = static_pointer_cast<const DXBuffer>(dxDescriptorSet->getDynamicBuffer());
+        assert(descriptor.getLayout()->isDynamicUniform());
+        const auto& dxDescriptorSet = static_cast<const DXDescriptorSet&>(descriptor);
+        const auto& buffer = static_pointer_cast<const DXBuffer>(dxDescriptorSet.getDynamicBuffer());
         assert(buffer->getType() == BufferType::UNIFORM);
         commandList->SetGraphicsRootConstantBufferView(
             set,
@@ -705,24 +700,22 @@ namespace vireo {
         commandList->IASetVertexBuffers(0, static_cast<UINT>(buffers.size()), bufferViews.data());
     }
 
-    void DXCommandList::bindVertexBuffer(const std::shared_ptr<const Buffer>& buffer, const size_t offset) const {
-        assert(buffer != nullptr);
-        const auto& vertexBuffer = static_pointer_cast<const DXBuffer>(buffer);
+    void DXCommandList::bindVertexBuffer(const Buffer& buffer, const size_t offset) const {
+        const auto& vertexBuffer = static_cast<const DXBuffer&>(buffer);
         const auto bufferView = D3D12_VERTEX_BUFFER_VIEW {
-            .BufferLocation = vertexBuffer->getBuffer().Get()->GetGPUVirtualAddress() + offset,
-            .SizeInBytes = static_cast<UINT>(vertexBuffer->getSize() - offset),
-            .StrideInBytes = static_cast<UINT>(vertexBuffer->getStride()),
+            .BufferLocation = vertexBuffer.getBuffer().Get()->GetGPUVirtualAddress() + offset,
+            .SizeInBytes = static_cast<UINT>(vertexBuffer.getSize() - offset),
+            .StrideInBytes = static_cast<UINT>(vertexBuffer.getStride()),
         };
         commandList->IASetVertexBuffers(0, 1, &bufferView);
     }
 
-    void DXCommandList::bindIndexBuffer(const std::shared_ptr<const Buffer>& buffer, IndexType indexType, const uint32_t firstIndex) const {
-        assert(buffer != nullptr);
-        const auto& indexBuffer = static_pointer_cast<const DXBuffer>(buffer);
+    void DXCommandList::bindIndexBuffer(const Buffer& buffer, IndexType indexType, const uint32_t firstIndex) const {
+        const auto& indexBuffer = static_cast<const DXBuffer&>(buffer);
         const auto offset = firstIndex * indexTypeSize[static_cast<int>(indexType)];
         const auto bufferView = D3D12_INDEX_BUFFER_VIEW {
-            .BufferLocation = indexBuffer->getBuffer().Get()->GetGPUVirtualAddress() + offset,
-            .SizeInBytes = static_cast<UINT>(indexBuffer->getSize() - offset),
+            .BufferLocation = indexBuffer.getBuffer().Get()->GetGPUVirtualAddress() + offset,
+            .SizeInBytes = static_cast<UINT>(indexBuffer.getSize() - offset),
             .Format = dxIndexType[static_cast<int>(indexType)]
         };
         commandList->IASetIndexBuffer(&bufferView);
@@ -746,16 +739,16 @@ namespace vireo {
     }
 
     void DXCommandList::drawIndirect(
-        const std::shared_ptr<Buffer>& buffer,
+        const Buffer& buffer,
         const size_t offset,
         const uint32_t drawCount,
         const uint32_t stride) {
         checkIndirectCommandSignature(argDesc, stride);
-        const auto dxBuffer = static_pointer_cast<const DXBuffer>(buffer);
+        const auto& dxBuffer = static_cast<const DXBuffer&>(buffer);
         commandList->ExecuteIndirect(
             drawIndirectCommandSignatures.at(stride).Get(),
             drawCount,
-            dxBuffer->getBuffer().Get(),
+            dxBuffer.getBuffer().Get(),
             offset,
             nullptr,
             0
@@ -775,16 +768,16 @@ namespace vireo {
     }
 
     void DXCommandList::drawIndexedIndirect(
-        const std::shared_ptr<Buffer>& buffer,
+        const Buffer& buffer,
         const size_t offset,
         const uint32_t drawCount,
         const uint32_t stride) {
         checkIndirectCommandSignature(argDescIndexed, stride);
-        const auto dxBuffer = static_pointer_cast<const DXBuffer>(buffer);
+        const auto& dxBuffer = static_cast<const DXBuffer&>(buffer);
         commandList->ExecuteIndirect(
             drawIndirectCommandSignatures.at(stride).Get(),
             drawCount,
-            dxBuffer->getBuffer().Get(),
+            dxBuffer.getBuffer().Get(),
             offset,
             nullptr,
             0
@@ -792,33 +785,32 @@ namespace vireo {
     }
 
     void DXCommandList::drawIndexedIndirectCount(
-        const std::shared_ptr<Buffer>& buffer,
+        Buffer& buffer,
         const size_t offset,
-        const std::shared_ptr<Buffer>& countBuffer,
+        Buffer& countBuffer,
         const size_t countOffset,
         const uint32_t maxDrawCount,
         const uint32_t stride) {
         checkIndirectCommandSignature(argDescIndexed, stride);
-        const auto dxBuffer = static_pointer_cast<const DXBuffer>(buffer);
-        const auto dxCountBuffer = static_pointer_cast<const DXBuffer>(countBuffer);
+        const auto& dxBuffer = static_cast<const DXBuffer&>(buffer);
+        const auto& dxCountBuffer = static_cast<const DXBuffer&>(countBuffer);
         commandList->ExecuteIndirect(
             drawIndirectCommandSignatures.at(stride).Get(),
             maxDrawCount,
-            dxBuffer->getBuffer().Get(),
+            dxBuffer.getBuffer().Get(),
             offset,
-            dxCountBuffer->getBuffer().Get(),
+            dxCountBuffer.getBuffer().Get(),
             countOffset
         );
     }
 
-    void DXCommandList::upload(const std::shared_ptr<const Buffer>& destination, const void* source) {
-        assert(destination != nullptr);
+    void DXCommandList::upload(const Buffer& destination, const void* source) {
         assert(source != nullptr);
-        const auto buffer = static_pointer_cast<const DXBuffer>(destination);
+        const auto& buffer = static_cast<const DXBuffer&>(destination);
 
         ComPtr<ID3D12Resource> stagingBuffer;
         {
-            const auto stagingBufferSize = GetRequiredIntermediateSize(buffer->getBuffer().Get(), 0, 1);
+            const auto stagingBufferSize = GetRequiredIntermediateSize(buffer.getBuffer().Get(), 0, 1);
             const auto stagingHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
             const auto stagingResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(stagingBufferSize);
             dxCheck(device->CreateCommittedResource(
@@ -836,12 +828,12 @@ namespace vireo {
         {
             const auto copyData = D3D12_SUBRESOURCE_DATA {
                 .pData = source,
-                .RowPitch = static_cast<LONG_PTR>(buffer->getSize()),
-                .SlicePitch = static_cast<LONG_PTR>(buffer->getSize()),
+                .RowPitch = static_cast<LONG_PTR>(buffer.getSize()),
+                .SlicePitch = static_cast<LONG_PTR>(buffer.getSize()),
             };
             UpdateSubresources(
                 commandList.Get(),
-                buffer->getBuffer().Get(),
+                buffer.getBuffer().Get(),
                 stagingBuffer.Get(),
                 0,
                 0,
@@ -851,9 +843,9 @@ namespace vireo {
 
         {
             const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-                buffer->getBuffer().Get(),
+                buffer.getBuffer().Get(),
                 D3D12_RESOURCE_STATE_COPY_DEST,
-                DXBuffer::ResourceStates[static_cast<int>(buffer->getType())]);
+                DXBuffer::ResourceStates[static_cast<int>(buffer.getType())]);
             commandList->ResourceBarrier(1, &memoryBarrier);
         }
 
@@ -861,65 +853,59 @@ namespace vireo {
     }
 
     void DXCommandList::copy(
-            const std::shared_ptr<Buffer>& source,
-            const std::shared_ptr<Buffer>& destination,
-            const size_t size,
-            const uint32_t sourceOffset,
-            const uint32_t destinationOffset) {
-        assert(source != nullptr);
-        assert(destination != nullptr);
-        const auto copySize = size == Buffer::WHOLE_SIZE ? destination->getSize() : size;
-        assert(source->getSize() >= (copySize + sourceOffset));
-        assert(destination->getSize() >= (copySize + destinationOffset));
-        const auto dxDestination = static_pointer_cast<DXBuffer>(destination);
+        const Buffer& source,
+        const Buffer& destination,
+        const size_t size,
+        const uint32_t sourceOffset,
+        const uint32_t destinationOffset) {
+        const auto copySize = size == Buffer::WHOLE_SIZE ? destination.getSize() : size;
+        assert(source.getSize() >= (copySize + sourceOffset));
+        assert(destination.getSize() >= (copySize + destinationOffset));
+        const auto& dxDestination = static_cast<const DXBuffer&>(destination);
         commandList->CopyBufferRegion(
-            dxDestination->getBuffer().Get(),
+            dxDestination.getBuffer().Get(),
             destinationOffset,
-            static_pointer_cast<DXBuffer>(source)->getBuffer().Get(),
+            static_cast<const DXBuffer&>(source).getBuffer().Get(),
             sourceOffset,
             copySize
         );
         const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            dxDestination->getBuffer().Get(),
+            dxDestination.getBuffer().Get(),
             D3D12_RESOURCE_STATE_COPY_DEST,
-            DXBuffer::ResourceStates[static_cast<int>(dxDestination->getType())]);
+            DXBuffer::ResourceStates[static_cast<int>(dxDestination.getType())]);
         commandList->ResourceBarrier(1, &memoryBarrier);
     }
 
     void DXCommandList::copy(
-        const std::shared_ptr<Buffer>& source,
-        const std::shared_ptr<Buffer>& destination,
+        const Buffer& source,
+        const Buffer& destination,
         const std::vector<BufferCopyRegion>& regions) {
-        assert(source != nullptr);
-        assert(destination != nullptr);
-        const auto dxDestination = static_pointer_cast<DXBuffer>(destination);
+        const auto& dxDestination = static_cast<const DXBuffer&>(destination);
         for (const auto& region : regions) {
             commandList->CopyBufferRegion(
-               dxDestination->getBuffer().Get(),
+               dxDestination.getBuffer().Get(),
                region.dstOffset,
-               static_pointer_cast<DXBuffer>(source)->getBuffer().Get(),
+               static_cast<const DXBuffer&>(source).getBuffer().Get(),
                region.srcOffset,
-               region.size
-       );
+               region.size);
         }
         const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            dxDestination->getBuffer().Get(),
+            dxDestination.getBuffer().Get(),
             D3D12_RESOURCE_STATE_COPY_DEST,
-            DXBuffer::ResourceStates[static_cast<int>(dxDestination->getType())]);
+            DXBuffer::ResourceStates[static_cast<int>(dxDestination.getType())]);
             commandList->ResourceBarrier(1, &memoryBarrier);
     }
 
     void DXCommandList::upload(
-        const std::shared_ptr<const Image>& destination,
+        const Image& destination,
         const void* source,
         const uint32_t firstMipLevel) {
-        assert(destination != nullptr);
         assert(source != nullptr);
-        const auto image = static_pointer_cast<const DXImage>(destination);
+        const auto& image = static_cast<const DXImage&>(destination);
         auto stagingBuffer = ComPtr<ID3D12Resource>{nullptr};
         {
             const auto stagingBufferSize = GetRequiredIntermediateSize(
-                image->getImage().Get(),
+                image.getImage().Get(),
                 0,
                 1);
             const auto stagingHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
@@ -940,16 +926,16 @@ namespace vireo {
             firstMipLevel,
             0,
             0,
-            image->getMipLevels(),
+            image.getMipLevels(),
             1);
         const auto copyData = D3D12_SUBRESOURCE_DATA {
             .pData = source,
-            .RowPitch = static_cast<LONG_PTR>(image->getRowPitch()),
-            .SlicePitch = static_cast<LONG_PTR>(image->getImageSize()),
+            .RowPitch = static_cast<LONG_PTR>(image.getRowPitch()),
+            .SlicePitch = static_cast<LONG_PTR>(image.getImageSize()),
         };
         UpdateSubresources(
             commandList.Get(),
-            image->getImage().Get(),
+            image.getImage().Get(),
             stagingBuffer.Get(),
             0,
             resourceIndex,
@@ -959,28 +945,26 @@ namespace vireo {
     }
 
     void DXCommandList::copy(
-       const std::shared_ptr<Buffer>& source,
-       const std::shared_ptr<const Image>& destination,
+       const Buffer& source,
+       const Image& destination,
        const uint32_t sourceOffset,
        const uint32_t firstMipLevel) {
-        assert(source != nullptr);
-        assert(destination != nullptr);
-        const auto image = static_pointer_cast<const DXImage>(destination);
-        const auto buffer = static_pointer_cast<DXBuffer>(source);
+        const auto& image = static_cast<const DXImage&>(destination);
+        const auto& buffer = static_cast<const DXBuffer&>(source);
 
         auto dstLocation = D3D12_TEXTURE_COPY_LOCATION{
-            .pResource = image->getImage().Get(),
+            .pResource = image.getImage().Get(),
             .Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
         };
         dstLocation.SubresourceIndex = D3D12CalcSubresource(
             firstMipLevel,
             0,
             0,
-            image->getMipLevels(),
-            image->getArraySize());
+            image.getMipLevels(),
+            image.getArraySize());
 
         const auto subresource = dstLocation.SubresourceIndex;
-        const auto texDesc = image->getImage()->GetDesc();
+        const auto texDesc = image.getImage()->GetDesc();
         auto footprint = D3D12_PLACED_SUBRESOURCE_FOOTPRINT{};
         UINT64 totalBytes{0};
         device->GetCopyableFootprints(
@@ -994,7 +978,7 @@ namespace vireo {
             &totalBytes);
 
         const auto srcLocation = D3D12_TEXTURE_COPY_LOCATION{
-            .pResource = buffer->getBuffer().Get(),
+            .pResource = buffer.getBuffer().Get(),
             .Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT,
             .PlacedFootprint = footprint,
         };
@@ -1008,28 +992,26 @@ namespace vireo {
     }
 
     void DXCommandList::copy(
-       const std::shared_ptr<const Image>& source,
-       const std::shared_ptr<Buffer>& destination,
-       const uint32_t destinationOffset,
-       const uint32_t firstMipLevel) {
-        assert(source != nullptr);
-        assert(destination != nullptr);
-        const auto image = static_pointer_cast<const DXImage>(source);
-        const auto buffer = static_pointer_cast<DXBuffer>(destination);
+        const Image& source,
+        const Buffer& destination,
+        const uint32_t destinationOffset,
+        const uint32_t firstMipLevel) {
+        const auto& image = static_cast<const DXImage&>(source);
+        const auto& buffer = static_cast<const DXBuffer&>(destination);
 
         auto srcLocation = D3D12_TEXTURE_COPY_LOCATION{
-            .pResource = image->getImage().Get(),
+            .pResource = image.getImage().Get(),
             .Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
         };
         srcLocation.SubresourceIndex = D3D12CalcSubresource(
             firstMipLevel,
             0,
             0,
-            image->getMipLevels(),
-            image->getArraySize());
+            image.getMipLevels(),
+            image.getArraySize());
 
         UINT64 totalBytes = 0;
-        const auto texDesc = image->getImage()->GetDesc();
+        const auto texDesc = image.getImage()->GetDesc();
         auto footprint = D3D12_PLACED_SUBRESOURCE_FOOTPRINT{};
         device->GetCopyableFootprints(
             &texDesc,
@@ -1042,7 +1024,7 @@ namespace vireo {
             &totalBytes);
 
         const auto dstLocation = D3D12_TEXTURE_COPY_LOCATION{
-            .pResource = buffer->getBuffer().Get(),
+            .pResource = buffer.getBuffer().Get(),
             .Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT,
             .PlacedFootprint = footprint,
         };
@@ -1056,17 +1038,16 @@ namespace vireo {
     }
 
     void DXCommandList::uploadArray(
-        const std::shared_ptr<const Image>& destination,
+        const Image& destination,
         const std::vector<void*>& sources,
         const uint32_t firstMipLevel) {
-        assert(destination != nullptr);
-        assert(sources.size() == destination->getArraySize());
-        const auto image = static_pointer_cast<const DXImage>(destination);
+        assert(sources.size() == destination.getArraySize());
+        const auto& image = static_cast<const DXImage&>(destination);
 
         auto stagingBuffer = ComPtr<ID3D12Resource>{nullptr};
         {
             const auto stagingBufferSize = GetRequiredIntermediateSize(
-                image->getImage().Get(),
+                image.getImage().Get(),
                 0,
                 sources.size());
             const auto stagingHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
@@ -1088,17 +1069,17 @@ namespace vireo {
                    firstMipLevel,
                    0,
                    0,
-                   image->getMipLevels(),
-                   image->getArraySize());
+                   image.getMipLevels(),
+                   image.getArraySize());
             auto copyData = std::vector<D3D12_SUBRESOURCE_DATA>(sources.size());
             for (int i = 0; i < sources.size(); i++) {
                 copyData[i].pData = sources[i];
-                copyData[i].RowPitch = static_cast<LONG_PTR>(image->getRowPitch());
-                copyData[i].SlicePitch = static_cast<LONG_PTR>(image->getImageSize());
+                copyData[i].RowPitch = static_cast<LONG_PTR>(image.getRowPitch());
+                copyData[i].SlicePitch = static_cast<LONG_PTR>(image.getImageSize());
             }
             UpdateSubresources(
                 commandList.Get(),
-                image->getImage().Get(),
+                image.getImage().Get(),
                 stagingBuffer.Get(),
                 0,
                 resourceIndex,
@@ -1109,20 +1090,18 @@ namespace vireo {
     }
 
     void DXCommandList::copy(
-        const std::shared_ptr<const Image>& source,
-        const std::shared_ptr<const SwapChain>& swapChain) const {
-        assert(source != nullptr);
-        assert(swapChain != nullptr);
-        const auto dxSource = static_pointer_cast<const DXImage>(source);
-        const auto dxSwapChain = static_pointer_cast<const DXSwapChain>(swapChain);
+        const Image& source,
+        const SwapChain& swapChain) const {
+        const auto& dxSource = static_cast<const DXImage&>(source);
+        const auto& dxSwapChain = static_cast<const DXSwapChain&>(swapChain);
 
         const auto srcLocation = D3D12_TEXTURE_COPY_LOCATION {
-            .pResource = dxSource->getImage().Get(),
+            .pResource = dxSource.getImage().Get(),
             .Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
             .SubresourceIndex = 0,
         };
         const auto dstLocation = D3D12_TEXTURE_COPY_LOCATION {
-            .pResource = dxSwapChain->getRenderTargets()[dxSwapChain->getCurrentFrameIndex()].Get(),
+            .pResource = dxSwapChain.getRenderTargets()[dxSwapChain.getCurrentFrameIndex()].Get(),
             .Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
             .SubresourceIndex = 0,
         };

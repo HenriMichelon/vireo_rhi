@@ -1505,8 +1505,17 @@ export namespace vireo {
          * Uploads data into a buffer using a temporary (staging) buffer.
          */
         virtual void upload(
-            const std::shared_ptr<const Buffer>& destination,
+            const Buffer& destination,
             const void* source) = 0;
+
+        /**
+         * Uploads data into a buffer using a temporary (staging) buffer.
+         */
+        void upload(
+            const std::shared_ptr<const Buffer>& destination,
+            const void* source) {
+            upload(*destination, source);
+        }
 
         /**
          * Uploads data into buffers using temporary (staging) buffers.
@@ -1517,9 +1526,19 @@ export namespace vireo {
          * Upload data into an image using a temporary (staging) buffer.
          */
         virtual void upload(
-            const std::shared_ptr<const Image>& destination,
+            const Image& destination,
             const void* source,
             uint32_t firstMipLevel = 0) = 0;
+
+        /**
+         * Upload data into an image using a temporary (staging) buffer.
+         */
+        void upload(
+            const std::shared_ptr<const Image>& destination,
+            const void* source,
+            const uint32_t firstMipLevel = 0) {
+            upload(*destination, source, firstMipLevel);
+        }
 
         /**
          * Uploads data into images using temporary (staging) buffers.
@@ -1529,9 +1548,20 @@ export namespace vireo {
         /**
         * Copy a buffer into an image
          */
-        virtual void copy(
+        void copy(
             const std::shared_ptr<Buffer>& source,
             const std::shared_ptr<const Image>& destination,
+            const uint32_t sourceOffset = 0,
+            const uint32_t firstMipLevel = 0) {
+            copy(*source, *destination, sourceOffset, firstMipLevel);
+        }
+
+        /**
+        * Copy a buffer into an image
+         */
+        virtual void copy(
+            const Buffer& source,
+            const Image& destination,
             uint32_t sourceOffset = 0,
             uint32_t firstMipLevel = 0) = 0;
 
@@ -1539,48 +1569,106 @@ export namespace vireo {
         * Copy an image into a buffer
         */
         virtual void copy(
-           const std::shared_ptr<const Image>& destination,
-           const std::shared_ptr<Buffer>& source,
+           const Image& source,
+           const Buffer& destination,
            uint32_t destinationOffset = 0,
            uint32_t firstMipLevel = 0) = 0;
+
+        /**
+        * Copy an image into a buffer
+        */
+        void copy(
+            const std::shared_ptr<const Image>& source,
+            const std::shared_ptr<Buffer>& destination,
+            const uint32_t destinationOffset = 0,
+            const uint32_t firstMipLevel = 0) {
+            copy(*destination, *source, destinationOffset, firstMipLevel);
+        }
 
         /**
          * Copy a buffer into another buffer
          */
         virtual void copy(
-            const std::shared_ptr<Buffer>& source,
-            const std::shared_ptr<Buffer>& destination,
+            const Buffer& source,
+            const Buffer& destination,
             size_t size = Buffer::WHOLE_SIZE,
             uint32_t sourceOffset = 0,
             uint32_t destinationOffset = 0) = 0;
 
+        /**
+         * Copy a buffer into another buffer
+         */
+        void copy(
+            const std::shared_ptr<const Buffer>& source,
+            const std::shared_ptr<const Buffer>& destination,
+            const size_t size = Buffer::WHOLE_SIZE,
+            const uint32_t sourceOffset = 0,
+            const uint32_t destinationOffset = 0) {
+            copy(*source, *destination, size, sourceOffset, destinationOffset);
+        }
+
         virtual void copy(
-            const std::shared_ptr<Buffer>& source,
-            const std::shared_ptr<Buffer>& destination,
+            const Buffer& source,
+            const Buffer& destination,
             const std::vector<BufferCopyRegion>& regions) = 0;
+
+        void copy(
+            const std::shared_ptr<const Buffer>& source,
+            const std::shared_ptr<const Buffer>& destination,
+            const std::vector<BufferCopyRegion>& regions) {
+            copy(*source, *destination, regions);
+        }
 
         /**
          * Upload images into an image array
          */
         virtual void uploadArray(
-            const std::shared_ptr<const Image>& destination,
+            const Image& destination,
             const std::vector<void*>& sources,
             uint32_t firstMipLevel = 0) = 0;
+
+        /**
+         * Upload images into an image array
+         */
+        void uploadArray(
+            const std::shared_ptr<const Image>& destination,
+            const std::vector<void*>& sources,
+            const uint32_t firstMipLevel = 0) {
+            uploadArray(*destination, sources, firstMipLevel);
+        }
 
         /**
          * Copy an image into the current swap chain image
          */
         virtual void copy(
-            const std::shared_ptr<const Image>& source,
-            const std::shared_ptr<const SwapChain>& swapChain) const = 0;
+            const Image& source,
+            const SwapChain& swapChain) const = 0;
 
         /**
          * Copy an image into the current swap chain image
          */
-        inline void copy(
+        void copy(
+            const std::shared_ptr<const Image>& source,
+            const std::shared_ptr<const SwapChain>& swapChain) const {
+            copy(*source, *swapChain);
+        }
+
+        /**
+         * Copy an image into the current swap chain image
+         */
+        void copy(
+            const RenderTarget& source,
+            const SwapChain& swapChain) const {
+            copy(*source.getImage(), swapChain);
+        }
+
+        /**
+         * Copy an image into the current swap chain image
+         */
+        void copy(
             const std::shared_ptr<const RenderTarget>& source,
             const std::shared_ptr<const SwapChain>& swapChain) const {
-            copy(source->getImage(), swapChain);
+            copy(*source->getImage(), *swapChain);
         }
 
         /**
@@ -1607,8 +1695,19 @@ export namespace vireo {
          * @param offset Offset in bytes
          */
         virtual void bindVertexBuffer(
-            const std::shared_ptr<const Buffer>& buffer,
+            const Buffer& buffer,
             size_t offset = 0) const = 0;
+
+        /**
+         * Bind a vertex buffer to a command list
+         * @param buffer A vertex buffer
+         * @param offset Offset in bytes
+         */
+        void bindVertexBuffer(
+            const std::shared_ptr<const Buffer>& buffer,
+            size_t offset = 0) const {
+            bindVertexBuffer(*buffer, offset);
+        }
 
         /**
          * Binds vertex buffers to a command list
@@ -1626,9 +1725,22 @@ export namespace vireo {
          * @param firstIndex First index in the buffer
          */
         virtual void bindIndexBuffer(
-            const std::shared_ptr<const Buffer>& buffer,
+            const Buffer& buffer,
             IndexType indexType = IndexType::UINT32,
             uint32_t firstIndex = 0) const = 0;
+
+        /**
+         * Binds an index buffer to a command list
+         * @param buffer An index buffer
+         * @param indexType Value specifying the size of the indices
+         * @param firstIndex First index in the buffer
+         */
+        void bindIndexBuffer(
+            const std::shared_ptr<const Buffer>& buffer,
+            IndexType indexType = IndexType::UINT32,
+            uint32_t firstIndex = 0) const {
+            bindIndexBuffer(*buffer, indexType, firstIndex);
+        }
 
         /**
          * Binds a pipeline object to a command list
@@ -1675,9 +1787,22 @@ export namespace vireo {
          * @param set The set number of the descriptor set to be bound
         */
         virtual void bindDescriptor(
+            const Pipeline& pipeline,
+            const DescriptorSet& descriptor,
+            uint32_t set) const = 0;
+
+        /**
+         * Binds descriptor set to a command list
+         * @param pipeline The pipeline that will use the descriptors
+         * @param descriptor The descriptor set to bind
+         * @param set The set number of the descriptor set to be bound
+        */
+        void bindDescriptor(
             const std::shared_ptr<const Pipeline>& pipeline,
             const std::shared_ptr<const DescriptorSet>& descriptor,
-            uint32_t set) const = 0;
+            const uint32_t set) const {
+            bindDescriptor(*pipeline, *descriptor, set);
+        }
 
         /**
          * Binds a dynamic uniform descriptor set to a command list
@@ -1687,10 +1812,25 @@ export namespace vireo {
          * @param offset Values specifying dynamic offsets for the UNIFORM_DYNAMIC resource.
         */
         virtual void bindDescriptor(
-            const std::shared_ptr<const Pipeline>& pipeline,
-            const std::shared_ptr<const DescriptorSet>& descriptor,
+            const Pipeline& pipeline,
+            const DescriptorSet& descriptor,
             uint32_t set,
             uint32_t offset) const = 0;
+
+        /**
+         * Binds a dynamic uniform descriptor set to a command list
+         * @param pipeline The pipeline that will use the descriptors
+         * @param descriptor The descriptor set to bind
+         * @param set The set number of the descriptor set to be bound
+         * @param offset Values specifying dynamic offsets for the UNIFORM_DYNAMIC resource.
+        */
+        void bindDescriptor(
+            const std::shared_ptr<const Pipeline>& pipeline,
+            const std::shared_ptr<const DescriptorSet>& descriptor,
+            const uint32_t set,
+            const uint32_t offset) const {
+            bindDescriptor(*pipeline, *descriptor, set, offset);
+        }
 
         /**
          * Draw primitives
@@ -1728,10 +1868,25 @@ export namespace vireo {
          * @param stride The byte stride between successive sets of draw parameters.
          */
         virtual void drawIndirect(
-            const std::shared_ptr<Buffer>& buffer,
+            const Buffer& buffer,
             size_t offset,
             uint32_t drawCount,
             uint32_t stride) = 0;
+
+        /**
+         * Draw primitives with indirect parameters
+         * @param buffer The buffer containing draw parameters.
+         * @param offset The byte offset into the buffer where parameters begin.
+         * @param drawCount The number of draws to execute, and can be zero.
+         * @param stride The byte stride between successive sets of draw parameters.
+         */
+        void drawIndirect(
+            const std::shared_ptr<Buffer>& buffer,
+            const size_t offset,
+            const uint32_t drawCount,
+            const uint32_t stride) {
+            drawIndirect(*buffer, offset, drawCount, stride);
+        }
 
         /**
          * Draw primitives with indirect parameters and indexed vertices
@@ -1743,10 +1898,42 @@ export namespace vireo {
          * @param stride The byte stride between successive sets of draw parameters.
          */
         virtual void drawIndexedIndirectCount(
-            const std::shared_ptr<Buffer>& buffer,
+            Buffer& buffer,
             size_t offset,
-            const std::shared_ptr<Buffer>& countBuffer,
+            Buffer& countBuffer,
             size_t countOffset,
+            uint32_t maxDrawCount,
+            uint32_t stride) = 0;
+
+        /**
+         * Draw primitives with indirect parameters and indexed vertices
+         * @param buffer The buffer containing draw parameters.
+         * @param offset The byte offset into the buffer where parameters begin.
+         * @param countBuffer The buffer containing the draw count.
+         * @param countOffset The byte offset into `countBuffer` where the draw count begins.
+         * @param maxDrawCount The maximum number of draws that will be executed. The actual number of executed draw calls is the minimum of the count specified in countBuffer and maxDrawCount
+         * @param stride The byte stride between successive sets of draw parameters.
+         */
+        void drawIndexedIndirectCount(
+            const std::shared_ptr<Buffer>& buffer,
+            const size_t offset,
+            const std::shared_ptr<Buffer>& countBuffer,
+            const size_t countOffset,
+            const uint32_t maxDrawCount,
+            const uint32_t stride) {
+            drawIndexedIndirectCount(*buffer, offset, *countBuffer, countOffset, maxDrawCount, stride);
+        }
+
+        /**
+         * Draw primitives with indirect parameters and indexed vertices
+         * @param buffer The buffer containing draw parameters.
+         * @param offset The byte offset into the buffer where parameters begin.
+         * @param maxDrawCount The maximum number of draws that will be executed. The actual number of executed draw calls is the minimum of the count specified in countBuffer and maxDrawCount
+         * @param stride The byte stride between successive sets of draw parameters.
+         */
+        virtual void drawIndexedIndirect(
+            const Buffer& buffer,
+            size_t offset,
             uint32_t maxDrawCount,
             uint32_t stride) = 0;
 
@@ -1757,11 +1944,13 @@ export namespace vireo {
          * @param maxDrawCount The maximum number of draws that will be executed. The actual number of executed draw calls is the minimum of the count specified in countBuffer and maxDrawCount
          * @param stride The byte stride between successive sets of draw parameters.
          */
-        virtual void drawIndexedIndirect(
+        void drawIndexedIndirect(
             const std::shared_ptr<Buffer>& buffer,
-            size_t offset,
-            uint32_t maxDrawCount,
-            uint32_t stride) = 0;
+            const size_t offset,
+            const uint32_t maxDrawCount,
+            const uint32_t stride) {
+            drawIndexedIndirect(*buffer, offset, maxDrawCount, stride);
+        }
 
         /**
          * Sets the viewports for a command list
@@ -1878,9 +2067,17 @@ export namespace vireo {
 
         /**
          * Returns a new graphic command list
-         * @param pipeline Associate pipeline
+         * @param pipeline Associated pipeline
          */
-        virtual std::shared_ptr<CommandList> createCommandList(const std::shared_ptr<const Pipeline>& pipeline) const  = 0;
+        virtual std::shared_ptr<CommandList> createCommandList(const Pipeline& pipeline) const  = 0;
+
+        /**
+         * Returns a new graphic command list
+         * @param pipeline Associated pipeline
+         */
+        std::shared_ptr<CommandList> createCommandList(const std::shared_ptr<const Pipeline>& pipeline) const {
+            return createCommandList(*pipeline);
+        }
 
         /**
          * Returns a new command lists
