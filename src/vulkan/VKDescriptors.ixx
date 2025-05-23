@@ -48,15 +48,15 @@ export namespace vireo {
 
         void update(DescriptorIndex index, const Buffer& buffer) override;
 
-        void update(DescriptorIndex index, const Image& image) const override;
+        void update(DescriptorIndex index, const Image& image) override;
 
-        void update(DescriptorIndex index, const Sampler& sampler) const override;
+        void update(DescriptorIndex index, const Sampler& sampler) override;
 
         void update(DescriptorIndex index, const std::vector<std::shared_ptr<Buffer>>& buffers) override;
 
-        void update(DescriptorIndex index, const std::vector<std::shared_ptr<Image>>& images) const override;
+        void update(DescriptorIndex index, const std::vector<std::shared_ptr<Image>>& images) override;
 
-        void update(DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& samplers) const override;
+        void update(DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& samplers) override;
 
         auto getSet() const { return set; }
 

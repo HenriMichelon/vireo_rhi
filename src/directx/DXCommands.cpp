@@ -144,9 +144,13 @@ namespace vireo {
         CloseHandle(inFlightFenceEvent);
     }
 
-    DXCommandAllocator::DXCommandAllocator( const ComPtr<ID3D12Device>& device, const CommandType type):
+    DXCommandAllocator::DXCommandAllocator(
+        const ComPtr<ID3D12Device>& device,
+        const CommandType type,
+        const std::vector<std::shared_ptr<DXDescriptorHeap>>& descriptorHeaps):
         CommandAllocator{type},
-        device{device} {
+        device{device},
+        descriptorHeaps{descriptorHeaps} {
         dxCheck(device->CreateCommandAllocator(
             DXCommandList::dxType[static_cast<int>(type)],
             IID_PPV_ARGS(&commandAllocator)));
@@ -161,6 +165,7 @@ namespace vireo {
             getCommandListType(),
             device,
             commandAllocator,
+            descriptorHeaps,
             static_cast<const DXGraphicPipeline&>(pipeline).getPipelineState());
     }
 
@@ -169,6 +174,7 @@ namespace vireo {
             getCommandListType(),
             device,
             commandAllocator,
+            descriptorHeaps,
             nullptr);
     }
 
@@ -176,9 +182,11 @@ namespace vireo {
         const CommandType type,
         const ComPtr<ID3D12Device>& device,
         const ComPtr<ID3D12CommandAllocator>& commandAllocator,
+        const std::vector<std::shared_ptr<DXDescriptorHeap>>& descriptorHeaps,
         const ComPtr<ID3D12PipelineState>& pipelineState):
         device{device},
-        commandAllocator{commandAllocator} {
+        commandAllocator{commandAllocator},
+        descriptorHeaps{descriptorHeaps} {
         dxCheck(device->CreateCommandList(
             0,
             dxType[static_cast<int>(type)],
@@ -193,6 +201,11 @@ namespace vireo {
     }
 
     void DXCommandList::bindPipeline(const Pipeline& pipeline) {
+        std::vector<ID3D12DescriptorHeap*> heaps(descriptorHeaps.size());
+        for (int i = 0; i < descriptorHeaps.size(); i++) {
+            heaps[i] = descriptorHeaps[i]->getHeap().Get();
+        }
+        commandList->SetDescriptorHeaps(heaps.size(), heaps.data());
         if (pipeline.getType() == PipelineType::COMPUTE) {
             commandList->SetPipelineState(static_cast<const DXComputePipeline&>(pipeline).getPipelineState().Get());
             commandList->SetComputeRootSignature(static_pointer_cast<const DXPipelineResources>(pipeline.getResources())->getRootSignature().Get());
@@ -204,33 +217,17 @@ namespace vireo {
         }
     }
 
-    void DXCommandList::setDescriptors(
-        const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors) const {
-        assert(descriptors.size() > 0);
-        std::vector<ID3D12DescriptorHeap*> heaps(descriptors.size());
-        for (int i = 0; i < descriptors.size(); i++) {
-            heaps[i] = static_pointer_cast<const DXDescriptorSet>(descriptors[i])->getHeap().Get();
-        }
-        commandList->SetDescriptorHeaps(heaps.size(), heaps.data());
-    }
-
     void DXCommandList::bindDescriptors(
         const Pipeline& pipeline,
         const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors,
         const uint32_t firstSet) const {
         assert(descriptors.size() > 0);
-        D3D12_GPU_DESCRIPTOR_HANDLE handle;
         for (int i = 0; i < descriptors.size(); i++) {
-            const auto heap =  static_pointer_cast<const DXDescriptorSet>(descriptors[i])->getHeap().Get();
-#ifdef _MSC_VER
-            handle = heap->GetGPUDescriptorHandleForHeapStart();
-#else
-            heap->GetGPUDescriptorHandleForHeapStart(&handle);
-#endif
+            const auto& dxDescriptorSet = static_pointer_cast<const DXDescriptorSet>(descriptors[i]);
             if (pipeline.getType() == PipelineType::COMPUTE) {
-                commandList->SetComputeRootDescriptorTable(firstSet + i, handle);
+                commandList->SetComputeRootDescriptorTable(firstSet + i, dxDescriptorSet->getDescriptors().gpuHandle);
             } else {
-                commandList->SetGraphicsRootDescriptorTable(firstSet + i, handle);
+                commandList->SetGraphicsRootDescriptorTable(firstSet + i, dxDescriptorSet->getDescriptors().gpuHandle);
             }
         }
     }
@@ -239,17 +236,11 @@ namespace vireo {
         const Pipeline&pipeline,
         const DescriptorSet& descriptor,
         const uint32_t set) const {
-        const auto heap = static_cast<const DXDescriptorSet&>(descriptor).getHeap().Get();
-        D3D12_GPU_DESCRIPTOR_HANDLE handle;
-#ifdef _MSC_VER
-        handle = heap->GetGPUDescriptorHandleForHeapStart();
-#else
-        heap->GetGPUDescriptorHandleForHeapStart(&handle);
-#endif
+        const auto& dxDescriptorSet = static_cast<const DXDescriptorSet&>(descriptor);
         if (pipeline.getType() == PipelineType::COMPUTE) {
-            commandList->SetComputeRootDescriptorTable(set, handle);
+            commandList->SetComputeRootDescriptorTable(set, dxDescriptorSet.getDescriptors().gpuHandle);
         } else {
-            commandList->SetGraphicsRootDescriptorTable(set, handle);
+            commandList->SetGraphicsRootDescriptorTable(set, dxDescriptorSet.getDescriptors().gpuHandle);
         }
     }
 

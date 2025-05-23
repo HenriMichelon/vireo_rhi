@@ -8,16 +8,23 @@ module;
 #include "vireo/backend/directx/Libraries.h"
 module vireo.directx;
 
-import vireo.directx.descriptors;
 import vireo.directx.pipelines;
 import vireo.directx.resources;
 
 namespace vireo {
 
-    DXVireo::DXVireo()  {
+    DXVireo::DXVireo(const uint32_t maxDescriptors, const uint32_t maxSamplers)  {
         instance = std::make_shared<DXInstance>();
         physicalDevice = std::make_shared<DXPhysicalDevice>(getDXInstance()->getFactory());
         device = std::make_shared<DXDevice>(getDXPhysicalDevice()->getHardwareAdapter());
+        cbvSrvUavDescriptorHeap = std::make_shared<DXDescriptorHeap>(
+            getDXDevice()->getDevice(),
+            D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+            maxDescriptors);
+        samplerDescriptorHeap = std::make_shared<DXDescriptorHeap>(
+            getDXDevice()->getDevice(),
+            D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,
+            maxSamplers);
     }
 
     std::shared_ptr<SwapChain> DXVireo::createSwapChain(
@@ -190,8 +197,12 @@ namespace vireo {
 
     std::shared_ptr<DescriptorSet> DXVireo::createDescriptorSet(
         const std::shared_ptr<const DescriptorLayout>& layout,
-        const std::wstring& name) const {
-        return std::make_shared<DXDescriptorSet>(layout, getDXDevice()->getDevice(), name);
+        const std::wstring&) const {
+        const auto dxLayout = static_pointer_cast<const DXDescriptorLayout>(layout);
+        return std::make_shared<DXDescriptorSet>(
+            dxLayout->isSamplers() ? samplerDescriptorHeap : cbvSrvUavDescriptorHeap,
+            layout,
+            getDXDevice()->getDevice());
     }
 
     std::shared_ptr<Sampler> DXVireo::createSampler(
@@ -220,7 +231,10 @@ namespace vireo {
     }
 
     std::shared_ptr<CommandAllocator> DXVireo::createCommandAllocator(const CommandType type) const {
-        return std::make_shared<DXCommandAllocator>(getDXDevice()->getDevice(), type);
+        return std::make_shared<DXCommandAllocator>(
+            getDXDevice()->getDevice(),
+            type,
+            std::vector{cbvSrvUavDescriptorHeap, samplerDescriptorHeap});
     }
 
 }

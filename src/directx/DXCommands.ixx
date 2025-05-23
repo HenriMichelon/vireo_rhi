@@ -10,6 +10,7 @@ export module vireo.directx.commands;
 
 import std;
 import vireo;
+import vireo.directx.descriptors;
 
 export namespace vireo {
 
@@ -99,7 +100,10 @@ export namespace vireo {
 
     class DXCommandAllocator : public CommandAllocator {
     public:
-        DXCommandAllocator(const ComPtr<ID3D12Device>& device, CommandType type);
+        DXCommandAllocator(
+            const ComPtr<ID3D12Device>& device,
+            CommandType type,
+            const std::vector<std::shared_ptr<DXDescriptorHeap>>& descriptorHeaps);
 
         void reset() const override;
 
@@ -110,6 +114,7 @@ export namespace vireo {
     private:
         ComPtr<ID3D12Device>           device;
         ComPtr<ID3D12CommandAllocator> commandAllocator;
+        std::vector<std::shared_ptr<DXDescriptorHeap>> descriptorHeaps;
     };
 
     class DXCommandList : public CommandList {
@@ -129,6 +134,7 @@ export namespace vireo {
             CommandType type,
             const ComPtr<ID3D12Device>& device,
             const ComPtr<ID3D12CommandAllocator>& commandAllocator,
+            const std::vector<std::shared_ptr<DXDescriptorHeap>>& descriptorHeaps,
             const ComPtr<ID3D12PipelineState>& pipelineState = nullptr);
 
         ~DXCommandList() override;
@@ -194,9 +200,6 @@ export namespace vireo {
         void bindIndexBuffer(const Buffer& buffer, IndexType indexType, uint32_t firstIndex) const override;
 
         void bindPipeline(const Pipeline& pipeline) override;
-
-        void setDescriptors(
-            const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors) const override;
 
         void bindDescriptors(
             const Pipeline& pipeline,
@@ -297,6 +300,7 @@ export namespace vireo {
         std::vector<ComPtr<ID3D12Resource>> resolveDestination;
         ComPtr<ID3D12Resource>              depthTargetToDiscard;
         std::vector<ComPtr<ID3D12Resource>> colorTargetsToDiscard;
+        std::vector<std::shared_ptr<DXDescriptorHeap>> descriptorHeaps;
         std::unordered_map<uint32_t, ComPtr<ID3D12CommandSignature>> drawIndirectCommandSignatures;
 
         static constexpr auto argDescIndexed = D3D12_INDIRECT_ARGUMENT_DESC{

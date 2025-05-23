@@ -141,7 +141,7 @@ namespace vireo {
         vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
     }
 
-    void VKDescriptorSet::update(const DescriptorIndex index, const Image& image) const {
+    void VKDescriptorSet::update(const DescriptorIndex index, const Image& image) {
         assert(!layout->isDynamicUniform());
         assert(!layout->isSamplers());
         const auto& vkImage = static_cast<const VKImage&>(image);
@@ -162,7 +162,7 @@ namespace vireo {
         vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
     }
 
-    void VKDescriptorSet::update(const DescriptorIndex index, const Sampler& sampler) const {
+    void VKDescriptorSet::update(const DescriptorIndex index, const Sampler& sampler) {
         assert(layout->isSamplers());
         const auto& vkSampler = static_cast<const VKSampler&>(sampler);
         const auto imageInfo = VkDescriptorImageInfo {
@@ -206,7 +206,7 @@ namespace vireo {
         vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
     }
 
-    void VKDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Image>>& images) const {
+    void VKDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Image>>& images) {
         assert(!layout->isDynamicUniform());
         assert(!layout->isSamplers());
         assert(images.size() > 0);
@@ -230,7 +230,7 @@ namespace vireo {
         vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
     }
 
-    void VKDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>&samplers) const {
+    void VKDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>&samplers) {
         assert(layout->isSamplers());
         assert(samplers.size() > 0);
         auto imagesInfo = std::vector<VkDescriptorImageInfo>(samplers.size());

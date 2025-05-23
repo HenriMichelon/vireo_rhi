@@ -46,7 +46,7 @@ namespace vireo {
     DXPipelineResources::DXPipelineResources(
         const ComPtr<ID3D12Device>& device,
         const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
-        const PushConstantsDesc& pushConstants,
+        const PushConstantsDesc& pushConstant,
         const std::wstring& name) {
 
         constexpr D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
@@ -78,17 +78,17 @@ namespace vireo {
             }
         }
 
-        if (pushConstants.size > 0) {
+        if (pushConstant.size > 0) {
             auto pushConstantRootParams = CD3DX12_ROOT_PARAMETER1 {};
             pushConstantRootParams.InitAsConstants(
-                pushConstants.size / sizeof(uint32_t),
+                pushConstant.size / sizeof(uint32_t),
                 0,
                 rootParameters.size(),
                 D3D12_SHADER_VISIBILITY_ALL
             );
-            if (pushConstants.stage == ShaderStage::VERTEX) {
+            if (pushConstant.stage == ShaderStage::VERTEX) {
                 pushConstantRootParams.ShaderVisibility  = D3D12_SHADER_VISIBILITY_VERTEX;
-            } else if (pushConstants.stage == ShaderStage::FRAGMENT) {
+            } else if (pushConstant.stage == ShaderStage::FRAGMENT) {
                 pushConstantRootParams.ShaderVisibility  = D3D12_SHADER_VISIBILITY_PIXEL;
             }
             pushConstantsRootParameterIndex = rootParameters.size();
@@ -105,7 +105,7 @@ namespace vireo {
 
         ComPtr<ID3DBlob> signature;
         ComPtr<ID3DBlob> error;
-        auto hr = D3DX12SerializeVersionedRootSignature(
+        const auto hr = D3DX12SerializeVersionedRootSignature(
             &rootSignatureDesc,
             featureData.HighestVersion,
             &signature,

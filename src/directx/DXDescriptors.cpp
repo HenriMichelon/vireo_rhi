@@ -48,32 +48,78 @@ namespace vireo {
         return *this;
     }
 
-    DXDescriptorSet::DXDescriptorSet(const std::shared_ptr<const DescriptorLayout>& layout, const ComPtr<ID3D12Device>& device, const std::wstring& name):
-        DescriptorSet{layout},
-        device{device} {
-        const auto dxLayout = static_pointer_cast<const DXDescriptorLayout>(layout);
-        const auto heapDesc = D3D12_DESCRIPTOR_HEAP_DESC {
-            .Type = dxLayout->isSamplers() ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-            .NumDescriptors = static_cast<UINT>(layout->getCapacity()),
-            .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
-        };
-        dxCheck(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&heap)));
-#ifdef _DEBUG
-        heap->SetName((L"DXDescriptorSet : " + name).c_str());
-#endif
+    DXDescriptorHeap::DXDescriptorHeap(
+        const ComPtr<ID3D12Device>& device,
+        const D3D12_DESCRIPTOR_HEAP_TYPE heapType,
+        const uint32_t maxDescriptors):
+        device{device},
+        maxDescriptors{maxDescriptors} {
 
+        const auto heapDesc = D3D12_DESCRIPTOR_HEAP_DESC{
+            .Type = heapType,
+            .NumDescriptors = maxDescriptors,
+            .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
+            .NodeMask = 0
+        };
+
+        dxCheck(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&heap)));
         descriptorSize = device->GetDescriptorHandleIncrementSize(heapDesc.Type);
-#ifdef _MSC_VER
         cpuBase = heap->GetCPUDescriptorHandleForHeapStart();
         gpuBase = heap->GetGPUDescriptorHandleForHeapStart();
-#else
-        heap->GetCPUDescriptorHandleForHeapStart(&cpuBase);
-        heap->GetGPUDescriptorHandleForHeapStart(&gpuBase);
-#endif
+
+        allocatedDescriptors.resize(maxDescriptors);
     }
 
-    DXDescriptorSet::~DXDescriptorSet() {
-        // heap->Release();
+    DXDescriptorHeap::DescriptorsArray DXDescriptorHeap::alloc(const uint32_t count) {
+        const auto lock = std::lock_guard{mutex};
+        for (uint32_t i = 0; i <= maxDescriptors - count; i++) {
+            bool available = true;
+            for (uint32_t j = 0; j < count; j++) {
+                if (allocatedDescriptors[i + j]) {
+                    available = false;
+                    break;
+                }
+            }
+            if (available) {
+                for (uint32_t j = 0; j < count; j++) {
+                    allocatedDescriptors[i + j] = true;
+                }
+                return {
+                    .index = i,
+                    .count = count,
+                    .cpuHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(cpuBase, i, descriptorSize),
+                    .gpuHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(gpuBase, i, descriptorSize),
+                };
+            }
+        }
+        throw Exception("No contiguous block available in descriptor heap");
+    }
+
+    void DXDescriptorHeap::free(const DescriptorsArray& descriptor) {
+        const auto lock = std::lock_guard{mutex};
+        retiredDescriptors.push_back({descriptor.index, TTL});
+    }
+
+    void DXDescriptorHeap::cleanup() {
+        const auto lock = std::lock_guard{mutex};
+        for (auto& descriptor : retiredDescriptors) {
+            if (descriptor.ttl-- == 0) {
+                for (int i = 0; i < descriptor.count; ++i) {
+                    allocatedDescriptors[descriptor.index + i] = false;
+                }
+                retiredDescriptors.remove(descriptor);
+            }
+        }
+    }
+
+    DXDescriptorSet::DXDescriptorSet(
+        const std::shared_ptr<DXDescriptorHeap>& heap,
+        const std::shared_ptr<const DescriptorLayout>& layout,
+        const ComPtr<ID3D12Device>& device):
+        DescriptorSet{layout},
+        heap{heap},
+        device{device},
+        descriptors{heap->alloc(layout->getCapacity())} {
     }
 
     void DXDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer) {
@@ -88,8 +134,9 @@ namespace vireo {
 
     void DXDescriptorSet::update(const DescriptorIndex index, const Buffer& buffer) {
         assert(!layout->isSamplers());
+        const auto cpuHandle = D3D12_CPU_DESCRIPTOR_HANDLE { descriptors.cpuHandle.ptr + index * heap->getDescriptorSize() };
+
         const auto& dxBuffer = static_cast<const DXBuffer&>(buffer);
-        const auto cpuHandle = D3D12_CPU_DESCRIPTOR_HANDLE { cpuBase.ptr + index * descriptorSize };
         if (buffer.getType() == BufferType::UNIFORM) {
             const auto bufferViewDesc = D3D12_CONSTANT_BUFFER_VIEW_DESC{
                 .BufferLocation = dxBuffer.getBuffer()->GetGPUVirtualAddress(),
@@ -131,11 +178,12 @@ namespace vireo {
         }
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const Image& image) const {
+    void DXDescriptorSet::update(const DescriptorIndex index, const Image& image) {
         assert(!layout->isDynamicUniform());
         assert(!layout->isSamplers());
+        const auto cpuHandle = D3D12_CPU_DESCRIPTOR_HANDLE { descriptors.cpuHandle.ptr + index * heap->getDescriptorSize() };
+
         const auto& dxImage = static_cast<const DXImage&>(image);
-        const auto cpuHandle= D3D12_CPU_DESCRIPTOR_HANDLE{ cpuBase.ptr + index * descriptorSize };
         if (image.isReadWrite()) {
             const auto viewDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC {
                 .Format = DXImage::dxFormats[static_cast<int>(image.getFormat())],
@@ -165,11 +213,12 @@ namespace vireo {
         }
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const Sampler& sampler) const {
+    void DXDescriptorSet::update(const DescriptorIndex index, const Sampler& sampler) {
         assert(layout->isSamplers());
+        const auto cpuHandle = D3D12_CPU_DESCRIPTOR_HANDLE { descriptors.cpuHandle.ptr + index * heap->getDescriptorSize() };
+
         const auto& dxSampler = static_cast<const DXSampler&>(sampler);
         const auto samplerDesc = dxSampler.getSamplerDesc();
-        const auto cpuHandle= D3D12_CPU_DESCRIPTOR_HANDLE{ cpuBase.ptr + index * descriptorSize };
         device->CreateSampler(&samplerDesc, cpuHandle);
     }
 
@@ -179,20 +228,16 @@ namespace vireo {
         }
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Image>>& images) const {
+    void DXDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Image>>& images) {
         for (int i = 0; i < images.size(); ++i) {
             update(index + i, *images[i]);
         }
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& samplers) const {
+    void DXDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& samplers) {
         for (int i = 0; i < samplers.size(); ++i) {
             update(index + i, *samplers[i]);
         }
-    }
-
-    D3D12_GPU_DESCRIPTOR_HANDLE DXDescriptorSet::getGPUHandle(const DescriptorIndex index) const {
-        return {gpuBase.ptr + index * descriptorSize};
     }
 
 }

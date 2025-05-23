@@ -10,6 +10,7 @@ export module vireo.directx;
 
 import vireo;
 import vireo.directx.commands;
+import vireo.directx.descriptors;
 import vireo.directx.devices;
 import vireo.directx.swapchains;
 
@@ -17,7 +18,7 @@ export namespace vireo {
 
     class DXVireo : public Vireo {
     public:
-        DXVireo();
+        DXVireo(uint32_t maxDescriptors, uint32_t maxSamplers);
 
         std::shared_ptr<SwapChain> createSwapChain(
             ImageFormat format,
@@ -126,6 +127,14 @@ export namespace vireo {
         auto getDXPhysicalDevice() const { return reinterpret_pointer_cast<DXPhysicalDevice>(physicalDevice); }
 
         auto getDXDevice() const { return reinterpret_pointer_cast<DXDevice>(device); }
+
+        auto getCbvSrcUavDescriptorHeap() const { return cbvSrvUavDescriptorHeap.get(); }
+
+        auto getSamplerDescriptorHeap() const { return samplerDescriptorHeap.get(); }
+
+    private:
+        std::shared_ptr<DXDescriptorHeap> cbvSrvUavDescriptorHeap;
+        std::shared_ptr<DXDescriptorHeap> samplerDescriptorHeap;
    };
 
 }

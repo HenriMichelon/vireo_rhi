@@ -1243,7 +1243,7 @@ export namespace vireo {
          * @param index Binding index
          * @param image The texture
          */
-        void update(const DescriptorIndex index, const std::shared_ptr<const Image>& image) const {
+        void update(const DescriptorIndex index, const std::shared_ptr<const Image>& image) {
             update(index, *image);
         }
 
@@ -1252,14 +1252,14 @@ export namespace vireo {
          * @param index Binding index
          * @param image The texture
          */
-        virtual void update(DescriptorIndex index, const Image& image) const = 0;
+        virtual void update(DescriptorIndex index, const Image& image) = 0;
 
         /**
          * Bind a sampler
          * @param index Binding index
          * @param sampler The sampler
          */
-        void update(const DescriptorIndex index, const std::shared_ptr<const Sampler>& sampler) const {
+        void update(const DescriptorIndex index, const std::shared_ptr<const Sampler>& sampler) {
             update(index, *sampler);
         }
 
@@ -1268,14 +1268,14 @@ export namespace vireo {
          * @param index Binding index
          * @param sampler The sampler
         */
-        virtual void update(DescriptorIndex index, const Sampler& sampler) const = 0;
+        virtual void update(DescriptorIndex index, const Sampler& sampler) = 0;
 
         /**
          * Bind an array of textures
          * @param index Binding index
          * @param images The images
          */
-        virtual void update(DescriptorIndex index, const std::vector<std::shared_ptr<Image>>& images) const = 0;
+        virtual void update(DescriptorIndex index, const std::vector<std::shared_ptr<Image>>& images) = 0;
 
         /**
          * Bind an array of buffers
@@ -1289,7 +1289,7 @@ export namespace vireo {
          * @param index Binding index
          * @param samplers The samplers
          */
-        virtual void update(DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& samplers) const = 0;
+        virtual void update(DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& samplers) = 0;
 
         const auto& getLayout() const { return layout; }
 
@@ -1712,8 +1712,7 @@ export namespace vireo {
          * @param offset Offset in bytes
          */
         void bindVertexBuffer(
-            const std::shared_ptr<const Buffer>& buffer,
-            size_t offset = 0) const {
+            const std::shared_ptr<const Buffer>& buffer, const size_t offset = 0) const {
             bindVertexBuffer(*buffer, offset);
         }
 
@@ -1759,12 +1758,6 @@ export namespace vireo {
          * Binds a pipeline object to a command list
          */
         virtual void bindPipeline(const std::shared_ptr<const Pipeline>& pipeline) { bindPipeline(*pipeline); }
-
-        /**
-         * Sets descriptor sets to bind a command list. All used descriptor sets must be sets.
-         * @param descriptors The descriptor sets to attach
-         */
-        virtual void setDescriptors(const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors) const {}
 
         /**
          * Binds descriptor sets to a command list
@@ -2411,7 +2404,10 @@ export namespace vireo {
         /**
          * Creates a new Vireo class using the given backend.
          */
-        static std::shared_ptr<Vireo> create(Backend backend);
+        static std::shared_ptr<Vireo> create(
+            Backend backend,
+            uint32_t maxDirectX12Descriptors = 1000,
+            uint32_t maxDirectX12Samplers = 100);
 
         virtual void waitIdle() {}
 
@@ -2657,9 +2653,9 @@ export namespace vireo {
         Vireo& operator = (const Vireo&) = delete;
 
     protected:
-        std::shared_ptr<Instance>        instance;
-        std::shared_ptr<PhysicalDevice>  physicalDevice;
-        std::shared_ptr<Device>          device;
+        std::shared_ptr<Instance>       instance;
+        std::shared_ptr<PhysicalDevice> physicalDevice;
+        std::shared_ptr<Device>         device;
 
         virtual std::shared_ptr<DescriptorLayout> _createDynamicUniformDescriptorLayout(
             const std::wstring& name = L"DynamicUniformDescriptorLayout") const = 0;
