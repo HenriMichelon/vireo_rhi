@@ -132,7 +132,7 @@ if (DOXYPRESS_EXECUTABLE)
     message(STATUS "DoxyPress found: ${DOXYPRESS_EXECUTABLE}")
     set(DOCS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/docs")
 
-    add_custom_target(doxypress
+    add_custom_target(vireo_docs
             COMMAND ${DOXYPRESS_EXECUTABLE}
             COMMAND ${CMAKE_COMMAND} -E copy
                 ${DOCS_DIRECTORY}/navtree.js
