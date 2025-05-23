@@ -55,9 +55,9 @@ frame.smaaEdgeDescriptorSet->update(BINDING_INPUT, colorBuffer->getImage());
 
 ## Binding descriptor sets
 
-When recording commands during a \ref manual_100_00_renderpass "render pass" :
-- Before binding the pipeline to the  \ref manual_050_00_commands "command list" set the future descriptors sets (not the dynamic uniform ones) that will be used with \ref vireo::CommandList::setDescriptors.
-- After binding the pipeline to the \ref manual_050_00_commands "command list" bind the descriptor sets with \ref vireo::CommandList::bindDescriptor or \ref vireo::CommandList::bindDescriptors
+When recording commands during a \ref manual_100_00_renderpass "render pass", after binding the pipeline to the
+\ref manual_050_00_commands "command list" bind the descriptor sets with \ref vireo::CommandList::bindDescriptor or
+\ref vireo::CommandList::bindDescriptors
 
 If you use dynamic uniform buffer \ref vireo::CommandList::bindDescriptor let you change buffer offsets at bind time without reallocating sets.
 
@@ -73,9 +73,6 @@ static constexpr vireo::DescriptorIndex SET_MATERIALS{3};
 
 // Start a render pass
 cmdList->beginRendering(renderingConfig);
-...
-// Set the list of generic and samplers descriptor sets that will be used
-cmdList->setDescriptors({frame.descriptorSet, samplers.getDescriptorSet()});
 ...
 // Bind the pipeline
 cmdList->bindPipeline(pipeline);
