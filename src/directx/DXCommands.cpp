@@ -271,13 +271,13 @@ namespace vireo {
         commandList->RSSetViewports(dxViewports.size(), dxViewports.data());
     }
 
-    void DXCommandList::setScissors(const std::vector<Rect>& rect) const {
-        std::vector<CD3DX12_RECT> scissors(rect.size());
+    void DXCommandList::setScissors(const std::vector<Rect>& rects) const {
+        std::vector<CD3DX12_RECT> scissors(rects.size());
         for (int i = 0; i < scissors.size(); i++) {
-            scissors[i].left = rect[i].x;
-            scissors[i].top = rect[i].y;
-            scissors[i].right = rect[i].width;
-            scissors[i].bottom = rect[i].height;
+            scissors[i].left = rects[i].x;
+            scissors[i].top = rects[i].y;
+            scissors[i].right = rects[i].width + rects[i].x;
+            scissors[i].bottom = rects[i].height + rects[i].y;
         }
         commandList->RSSetScissorRects(scissors.size(), scissors.data());
     }
@@ -298,8 +298,8 @@ namespace vireo {
         const auto scissor = D3D12_RECT{
             .left = rect.x,
             .top = rect.y,
-            .right = static_cast<LONG>(rect.width),
-            .bottom = static_cast<LONG>(rect.height),
+            .right = static_cast<LONG>(rect.width + rect.x),
+            .bottom = static_cast<LONG>(rect.height + rect.y),
         };
         commandList->RSSetScissorRects(1, &scissor);
     }

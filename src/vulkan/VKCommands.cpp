@@ -516,7 +516,7 @@ namespace vireo {
     void VKCommandList::setScissors(const std::vector<Rect>& rects) const {
         std::vector<VkRect2D> scissors(rects.size());
         for (int i = 0; i < scissors.size(); i++) {
-            scissors[i].offset = {rects[i].x, rects[i].y};
+            scissors[i].offset = {max(rects[i].x, 0), max(rects[i].y, 0)};
             scissors[i].extent.width = rects[i].width;
             scissors[i].extent.height = rects[i].height;
         }
@@ -526,7 +526,7 @@ namespace vireo {
     void VKCommandList::setViewport(const Viewport& viewport) const {
         const auto vkViewport = VkViewport {
             .x = viewport.x,
-            .y = viewport.height - viewport.y,
+            .y = viewport.y + viewport.height,
             .width = viewport.width,
             .height = -viewport.height,
             .minDepth = viewport.minDepth,
@@ -537,7 +537,7 @@ namespace vireo {
 
     void VKCommandList::setScissors(const Rect& rect) const {
         const auto scissor = VkRect2D{
-            .offset = {rect.x, rect.y},
+            .offset = { max(rect.x, 0), max(rect.y, 0)},
             .extent = { rect.width, rect.height },
         };
         vkCmdSetScissorWithCount(commandBuffer, 1, &scissor);
