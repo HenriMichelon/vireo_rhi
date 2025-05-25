@@ -878,11 +878,13 @@ namespace vireo {
                        D3D12_RESOURCE_STATE_COPY_DEST);
             commandList->ResourceBarrier(1, &memoryBarrier);
         }
+        const auto dst = dxDestination.getBuffer().Get();
+        const auto src = static_cast<const DXBuffer&>(source).getBuffer().Get();
         for (const auto& region : regions) {
             commandList->CopyBufferRegion(
-               dxDestination.getBuffer().Get(),
+               dst,
                region.dstOffset,
-               static_cast<const DXBuffer&>(source).getBuffer().Get(),
+               src,
                region.srcOffset,
                region.size);
         }
