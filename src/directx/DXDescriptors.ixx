@@ -25,9 +25,12 @@ export namespace vireo {
 
     private:
         std::vector<CD3DX12_DESCRIPTOR_RANGE1> ranges;
+        // List of global samplers for SAMPLER-only layouts
         std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplersDesc;
     };
 
+    // Class to manage global descriptor heaps
+    // since DirectX allow only one type of heap at a time
     class DXDescriptorHeap  {
     public:
         struct DescriptorsArray {
@@ -97,9 +100,12 @@ export namespace vireo {
         const auto& getDescriptors() const { return descriptors; }
 
     private:
+        // Associated heap
         std::shared_ptr<DXDescriptorHeap>  heap;
         ComPtr<ID3D12Device>               device;
+        // Buffer for UNIFORM_DYNAMIC descriptor sets
         std::shared_ptr<const Buffer>      dynamicBuffer{nullptr};
+        // Allocated descriptor from the associated heap
         DXDescriptorHeap::DescriptorsArray descriptors;
     };
 

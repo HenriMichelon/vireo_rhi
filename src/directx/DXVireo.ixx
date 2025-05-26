@@ -133,7 +133,9 @@ export namespace vireo {
         auto getSamplerDescriptorHeap() const { return samplerDescriptorHeap.get(); }
 
     private:
+        // D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV  global heap
         std::shared_ptr<DXDescriptorHeap> cbvSrvUavDescriptorHeap;
+        // D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER global heap
         std::shared_ptr<DXDescriptorHeap> samplerDescriptorHeap;
    };
 

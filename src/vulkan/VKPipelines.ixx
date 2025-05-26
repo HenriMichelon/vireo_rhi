@@ -39,7 +39,7 @@ export namespace vireo {
         const auto& getVertexAttributeDescription() const { return vertexAttributeDescriptions; }
 
     private:
-        VkVertexInputBindingDescription           vertexBindingDescription;
+        VkVertexInputBindingDescription                vertexBindingDescription;
         std::vector<VkVertexInputAttributeDescription> vertexAttributeDescriptions;
     };
 
@@ -185,7 +185,7 @@ export namespace vireo {
 
     private:
         const std::shared_ptr<VKDevice> device;
-        VkPipeline   pipeline;
+        VkPipeline pipeline;
     };
 
 }

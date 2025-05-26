@@ -33,8 +33,8 @@ export namespace vireo {
 
     private:
         const std::shared_ptr<const VKDevice> device;
-        VkBuffer        buffer{VK_NULL_HANDLE};
-        VkDeviceMemory  bufferMemory{VK_NULL_HANDLE};
+        VkBuffer       buffer{VK_NULL_HANDLE};
+        VkDeviceMemory bufferMemory{VK_NULL_HANDLE};
 
         static void createBuffer(
             const std::shared_ptr<const VKDevice>& device,
@@ -173,9 +173,9 @@ export namespace vireo {
 
     private:
         const std::shared_ptr<const VKDevice> device;
-        VkImage         image{VK_NULL_HANDLE};
-        VkDeviceMemory  imageMemory{VK_NULL_HANDLE};
-        VkImageView     imageView{VK_NULL_HANDLE};
+        VkImage        image{VK_NULL_HANDLE};
+        VkDeviceMemory imageMemory{VK_NULL_HANDLE};
+        VkImageView    imageView{VK_NULL_HANDLE};
     };
 
 }

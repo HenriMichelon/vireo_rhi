@@ -31,9 +31,9 @@ export namespace vireo {
         ~DXFence() override;
 
     private:
-        ComPtr<ID3D12Fence>  fence;
-        UINT64               fenceValue{0};
-        HANDLE               fenceEvent{nullptr};
+        ComPtr<ID3D12Fence> fence;
+        UINT64              fenceValue{0};
+        HANDLE              fenceEvent{nullptr};
     };
 
     class DXSemaphore : public Semaphore {
@@ -43,7 +43,7 @@ export namespace vireo {
         auto getFence() const { return fence; }
 
     private:
-        ComPtr<ID3D12Fence>  fence;
+        ComPtr<ID3D12Fence> fence;
     };
 
     class DXSubmitQueue : public SubmitQueue{
@@ -114,6 +114,7 @@ export namespace vireo {
     private:
         ComPtr<ID3D12Device>           device;
         ComPtr<ID3D12CommandAllocator> commandAllocator;
+        //List of current heaps to pass to the command lists
         std::vector<std::shared_ptr<DXDescriptorHeap>> descriptorHeaps;
     };
 
@@ -295,12 +296,19 @@ export namespace vireo {
         ComPtr<ID3D12Device>                device;
         ComPtr<ID3D12GraphicsCommandList>   commandList;
         ComPtr<ID3D12CommandAllocator>      commandAllocator;
+        // Staging buffers used by the upload() methods
         std::vector<ComPtr<ID3D12Resource>> stagingBuffers{};
+        // Source image for MSAA resolve
         std::vector<std::shared_ptr<Image>> resolveSource;
+        // Destination image for MSAA resolve
         std::vector<ComPtr<ID3D12Resource>> resolveDestination;
+        // Depth frame buffer to discard if needed by the current pipeline
         ComPtr<ID3D12Resource>              depthTargetToDiscard;
+        // Color frame buffer to discard if needed by the current pipeline
         std::vector<ComPtr<ID3D12Resource>> colorTargetsToDiscard;
+        // Current allocated heaps
         std::vector<std::shared_ptr<DXDescriptorHeap>> descriptorHeaps;
+        // Automatically allocated command signatures by stride size
         std::unordered_map<uint32_t, ComPtr<ID3D12CommandSignature>> drawIndirectCommandSignatures;
 
         static constexpr auto argDescIndexed = D3D12_INDIRECT_ARGUMENT_DESC{
@@ -311,6 +319,7 @@ export namespace vireo {
             .Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW,
         };
 
+        // Automatically allocate command signatures by stride size if needed
         void checkIndirectCommandSignature(const D3D12_INDIRECT_ARGUMENT_DESC& argDesc, uint32_t stride);
 
         static void convertState(

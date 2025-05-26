@@ -76,8 +76,10 @@ export namespace vireo {
         // Find a dedicated compute & transfer queue
         uint32_t findComputeQueueFamily() const;
 
+        // Find a specific memory type for buffers
         uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
 
+        // Returns the MSAA sample count
         auto getSampleCount() const { return sampleCount; }
 
         const PhysicalDeviceDesc getDescription() const override;
@@ -85,7 +87,7 @@ export namespace vireo {
     private:
         VkInstance                   instance{VK_NULL_HANDLE};
         VkPhysicalDevice             physicalDevice{VK_NULL_HANDLE};
-        std::vector<const char*>          deviceExtensions;
+        std::vector<const char*>     deviceExtensions;
         VkPhysicalDeviceFeatures     deviceFeatures {};
         VkPhysicalDeviceProperties2  deviceProperties{
             VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2

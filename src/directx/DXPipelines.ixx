@@ -49,7 +49,6 @@ export namespace vireo {
 
     class DXPipelineResources : public PipelineResources {
     public:
-        // static constexpr auto PUSH_CONSTANTS_SHADER_REGISTER{20};
         DXPipelineResources(
             const ComPtr<ID3D12Device>& device,
             const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
@@ -62,6 +61,7 @@ export namespace vireo {
 
     private:
         ComPtr<ID3D12RootSignature> rootSignature;
+        // Used to simulate a vulkan push constant
         UINT pushConstantsRootParameterIndex{0};
     };
 

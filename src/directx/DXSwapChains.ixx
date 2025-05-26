@@ -51,13 +51,17 @@ export namespace vireo {
         const std::shared_ptr<DXDevice>device;
         const ComPtr<IDXGIFactory4>    factory;
         ComPtr<IDXGISwapChain3>        swapChain;
+        // Submission queue to present the frame buffers on the rendering surface
         ComPtr<ID3D12CommandQueue>     presentCommandQueue;
+        // Frame buffers
         std::vector<ComPtr<ID3D12Resource>> renderTargets;
+        // D3D12_DESCRIPTOR_HEAP_TYPE_RTV heap for the frame buffers
         ComPtr<ID3D12DescriptorHeap>   rtvHeap;
         UINT                           rtvDescriptorSize{0};
         HWND                           hWnd;
         const UINT                     syncInterval;
         const UINT                     presentFlags;
+        // Fences used to wait for the previous presentation to be finished before acquiring the frame buffer
         ComPtr<ID3D12Fence>            fence;
         HANDLE                         fenceEvent;
         UINT64                         fenceValue{0};

@@ -63,9 +63,9 @@ export namespace vireo {
         auto getPool() const { return pool; }
 
     private:
-        VkDevice              device;
-        VkDescriptorSet       set;
-        VkDescriptorPool      pool;
+        VkDevice         device;
+        VkDescriptorSet  set;
+        VkDescriptorPool pool;
     };
 
 }

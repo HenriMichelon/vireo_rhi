@@ -58,15 +58,24 @@ export namespace vireo {
         };
 
         const std::shared_ptr<const VKDevice> device;
-        VkSurfaceKHR            surface;
-        VkSwapchainKHR          swapChain{VK_NULL_HANDLE};
-        std::vector<VkImage>         swapChainImages;
-        VkFormat                swapChainImageFormat;
-        VkExtent2D              swapChainExtent;
-        std::vector<VkImageView>     swapChainImageViews;
-        VkQueue                 presentQueue;
+        // Rendering window drawing surface
+        VkSurfaceKHR             surface;
+        VkSwapchainKHR           swapChain{VK_NULL_HANDLE};
+        // Frame buffers
+        std::vector<VkImage>     swapChainImages;
+        // Frame buffers image format
+        VkFormat                 swapChainImageFormat;
+        // Current surface size
+        VkExtent2D               swapChainExtent;
+        // Frame buffer vulkan image view
+        std::vector<VkImageView> swapChainImageViews;
+        // Submission queue used to present images on the surface
+        VkQueue                  presentQueue;
+        // Frame buffer index by frame index
         std::vector<uint32_t>        imageIndex;
+        // Semaphore to wait the frame buffers to be ready to be used
         std::vector<VkSemaphore>     imageAvailableSemaphore;
+        // Semaphore to wait for all the commands to be executed by the GPU
         std::vector<VkSemaphore>     renderFinishedSemaphore;
         std::vector<VkSemaphoreSubmitInfo> imageAvailableSemaphoreInfo;
         std::vector<VkSemaphoreSubmitInfo> renderFinishedSemaphoreInfo;

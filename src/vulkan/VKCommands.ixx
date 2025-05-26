@@ -300,8 +300,10 @@ export namespace vireo {
     private:
         const std::shared_ptr<const VKDevice>   device;
         VkCommandBuffer                         commandBuffer;
+        // Staging buffers used by the upload() methods
         std::vector<std::shared_ptr<VKBuffer>>  stagingBuffers{};
 
+        // Convert Vireo states to Vulkan state while trying to match pipeline stages (like DirectX)
         static void convertState(
             ResourceState oldState,
             ResourceState newState,

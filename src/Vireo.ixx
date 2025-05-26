@@ -1201,8 +1201,11 @@ export namespace vireo {
         DescriptorLayout& operator = (const DescriptorLayout&) = delete;
 
     protected:
+        // Total number of all resources types
         size_t capacity{0};
+        // true for SAMPLER-only layout
         bool   samplers{false};
+        // true for UNIFORM_DYNAMIC only layout
         bool   dynamic{false};
 
         DescriptorLayout(const bool samplers, const bool dynamic): samplers{samplers}, dynamic{dynamic} {}
@@ -2319,8 +2322,8 @@ export namespace vireo {
         uint32_t    currentFrameIndex{0};
 
         SwapChain(const ImageFormat format, const PresentMode presentMode, const uint32_t framesInFlight) :
-            format{format},
             presentMode{presentMode},
+            format{format},
             framesInFlight{framesInFlight} {}
     };
 
