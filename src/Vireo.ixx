@@ -7,6 +7,7 @@
 export module vireo;
 #undef DOMAIN
 export import vireo.tools;
+#include <mutex>
 
 export namespace vireo {
 
@@ -746,6 +747,36 @@ export namespace vireo {
     } ClearValue;
 
     /**
+     * Enable this to collect memory usage for buffers & images
+     */
+    constexpr bool ENABLE_VRAM_USAGE = true;
+
+    /**
+     * Returns `true` if memory usage collection is enabled
+     */
+    consteval bool isMemoryUsageEnabled() {
+        return ENABLE_VRAM_USAGE;
+    }
+
+    /**
+     * Use of memory allocation
+     */
+    enum class VideoMemoryAllocationUsage {
+        BUFFER,
+        IMAGE
+    };
+
+    /**
+     * Description of a memory allocation
+     */
+    struct VideoMemoryAllocationDesc {
+        VideoMemoryAllocationUsage usage;
+        std::wstring name;
+        size_t size;
+        void* ref;
+    };
+
+    /**
      * A fence object. Fences are a synchronization primitive that can be used to insert a dependency from a queue to
      * the host (CPU/GPU synchronization).
      *
@@ -922,6 +953,12 @@ export namespace vireo {
          */
         void write(const void* data, size_t size = WHOLE_SIZE, size_t offset = 0) const;
 
+        /**
+         * Returns the currently allocated buffers.
+         * Only available if isMemoryUsageEnabled() is `true`
+         */
+        static auto getMemoryAllocations() { return memoryAllocations; }
+
         virtual ~Buffer() = default;
         Buffer (const Buffer&) = delete;
         Buffer& operator= (const Buffer&) = delete;
@@ -932,9 +969,10 @@ export namespace vireo {
         uint32_t instanceCount{0};
         uint32_t instanceSizeAligned{0};
         void*  mappedAddress{nullptr};
-
         Buffer(const BufferType type): type{type} {}
 
+        static std::mutex memoryAllocationsMutex;
+        static std::list<VideoMemoryAllocationDesc> memoryAllocations;
     private:
         const BufferType type;
     };
@@ -1101,6 +1139,14 @@ export namespace vireo {
          */
         static auto getPixelSize(const ImageFormat format) { return pixelSize[static_cast<int>(format)]; }
 
+
+        /**
+         * Returns the currently allocated images.
+         * Only available if isMemoryUsageEnabled() is `true`
+         */
+        static auto getMemoryAllocations() { return memoryAllocations; }
+
+
         Image (Image&) = delete;
         Image& operator = (const Image&) = delete;
 
@@ -1119,6 +1165,9 @@ export namespace vireo {
             arraySize{arraySize},
             readWrite{isReadWrite} {}
 
+
+        static std::mutex memoryAllocationsMutex;
+        static std::list<VideoMemoryAllocationDesc> memoryAllocations;
     private:
         const ImageFormat format;
         const uint32_t    width;

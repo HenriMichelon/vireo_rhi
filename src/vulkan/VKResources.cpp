@@ -51,6 +51,14 @@ namespace vireo {
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT :
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
         createBuffer(device, bufferSize, usage, memType, buffer, bufferMemory);
+        if constexpr (isMemoryUsageEnabled()) {
+            auto lock = std::lock_guard(memoryAllocationsMutex);
+            memoryAllocations.push_back({
+                VideoMemoryAllocationUsage::BUFFER,
+                name,
+                bufferSize,
+                buffer });
+        }
 #ifdef _DEBUG
         vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(buffer), VK_OBJECT_TYPE_BUFFER,
             "VKBuffer : " + to_string(name));
@@ -98,6 +106,12 @@ namespace vireo {
     VKBuffer::~VKBuffer() {
         if (mappedAddress) {
             VKBuffer::unmap();
+        }
+        if constexpr(isMemoryUsageEnabled()) {
+            auto lock = std::lock_guard(memoryAllocationsMutex);
+            memoryAllocations.remove_if([&](const VideoMemoryAllocationDesc& usage) {
+                return usage.ref == buffer;
+            });
         }
         vkDestroyBuffer(device->getDevice(), buffer, nullptr);
         vkFreeMemory(device->getDevice(), bufferMemory, nullptr);
@@ -198,7 +212,14 @@ namespace vireo {
         };
         vkCheck(vkAllocateMemory(device->getDevice(), &allocInfo, nullptr, &imageMemory));
         vkCheck(vkBindImageMemory(device->getDevice(), image, imageMemory, 0));
-
+        if constexpr (isMemoryUsageEnabled()) {
+            auto lock = std::lock_guard(memoryAllocationsMutex);
+            memoryAllocations.push_back({
+                VideoMemoryAllocationUsage::IMAGE,
+                name,
+                allocInfo.allocationSize,
+                image });
+        }
 #ifdef _DEBUG
         vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(imageMemory), VK_OBJECT_TYPE_DEVICE_MEMORY,
         "VKImage Memory : " + to_string(name));
@@ -230,6 +251,12 @@ namespace vireo {
     }
 
     VKImage::~VKImage() {
+        if constexpr(isMemoryUsageEnabled()) {
+            auto lock = std::lock_guard(memoryAllocationsMutex);
+            memoryAllocations.remove_if([&](const VideoMemoryAllocationDesc& usage) {
+                return usage.ref == image;
+            });
+        }
         vkDestroyImage(device->getDevice(), image, nullptr);
         vkFreeMemory(device->getDevice(), imageMemory, nullptr);
         vkDestroyImageView(device->getDevice(), imageView, nullptr);

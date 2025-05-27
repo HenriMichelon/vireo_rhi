@@ -15,6 +15,12 @@ import vireo.directx;
 
 namespace vireo {
 
+    std::mutex Buffer::memoryAllocationsMutex;
+    std::list<VideoMemoryAllocationDesc> Buffer::memoryAllocations{};
+
+    std::mutex Image::memoryAllocationsMutex;
+    std::list<VideoMemoryAllocationDesc> Image::memoryAllocations{};
+
     std::shared_ptr<Vireo> Vireo::create(
         const Backend backend,
         const uint32_t maxDirectX12Descriptors,
