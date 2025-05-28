@@ -49,6 +49,14 @@ export namespace vireo {
 
         std::shared_ptr<ShaderModule> createShaderModule(const std::string& fileName) const override;
 
+        // std::shared_ptr<ShaderModule> createShaderModule(
+            // std::ifstream input,
+            // size_t size) const override;
+
+        std::shared_ptr<ShaderModule> createShaderModule(
+            const std::vector<char>& data) const override;
+
+
         std::shared_ptr<PipelineResources> createPipelineResources(
             const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
             const PushConstantsDesc& pushConstant,
@@ -123,6 +131,10 @@ export namespace vireo {
            float maxLod,
            bool anisotropyEnable,
            MipMapMode mipMapMode) const override;
+
+        constexpr std::wstring getShaderFileExtension() const override {
+            return L".spv";
+        }
 
         auto getVKInstance() const { return reinterpret_pointer_cast<VKInstance>(instance); }
 

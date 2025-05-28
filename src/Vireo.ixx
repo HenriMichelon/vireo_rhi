@@ -1379,6 +1379,7 @@ export namespace vireo {
         virtual ~ShaderModule() = default;
         ShaderModule (ShaderModule&) = delete;
         ShaderModule& operator = (const ShaderModule&) = delete;
+
     protected:
         ShaderModule() = default;
     };
@@ -2529,6 +2530,19 @@ export namespace vireo {
             const std::string& fileName) const = 0;
 
         /**
+         * Load a compiled shader and creates a shader module from an input stream
+         */
+        // virtual std::shared_ptr<ShaderModule> createShaderModule(
+            // std::ifstream input,
+            // size_t size) const = 0;
+
+        /**
+         * Creates a shader module
+         */
+        virtual std::shared_ptr<ShaderModule> createShaderModule(
+            const std::vector<char>& data) const = 0;
+
+        /**
          * Creates a pipeline resources description. Describe resources that can be accessed by
          * the shaders associated with the future pipelines.
          * @param descriptorLayouts Descriptions of the resources (can be empty)
@@ -2689,6 +2703,8 @@ export namespace vireo {
          * Returns `true` if the backend API is supported
          */
         static bool isBackendSupported(Backend backend);
+
+        virtual std::wstring getShaderFileExtension() const = 0;
 
         /**
          * Returns the physical device/adapter object

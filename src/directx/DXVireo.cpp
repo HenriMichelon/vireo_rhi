@@ -86,6 +86,17 @@ namespace vireo {
         return std::make_shared<DXShaderModule>(fileName);
     }
 
+    // std::shared_ptr<ShaderModule> DXVireo::createShaderModule(
+        // std::ifstream input,
+        // size_t size) const {
+        // return std::make_shared<DXShaderModule>(input, size);
+    // }
+
+    std::shared_ptr<ShaderModule> DXVireo::createShaderModule(
+        const std::vector<char>& data) const {
+        return std::make_shared<DXShaderModule>(data);
+    }
+
     std::shared_ptr<Buffer> DXVireo::createBuffer(
         const BufferType type,
         const size_t size,

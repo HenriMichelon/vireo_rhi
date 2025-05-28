@@ -65,6 +65,20 @@ namespace vireo {
 #endif
     }
 
+    VKShaderModule::VKShaderModule(const VkDevice device, const std::vector<char>& data) :
+        device{device} {
+        const auto createInfo = VkShaderModuleCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+            .codeSize = data.size(),
+            .pCode = reinterpret_cast<const uint32_t*>(data.data()),
+        };
+        vkCheck(vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule));
+#ifdef _DEBUG
+        vkSetObjectName(device, reinterpret_cast<uint64_t>(shaderModule), VK_OBJECT_TYPE_SHADER_MODULE,
+            "VKShaderModule");
+#endif
+    }
+
 
     VKShaderModule::~VKShaderModule() {
         vkDestroyShaderModule(device, shaderModule, nullptr);
@@ -73,7 +87,7 @@ namespace vireo {
     VKPipelineResources::VKPipelineResources(
         const VkDevice device,
         const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
-        const PushConstantsDesc& pushConstants,
+        const PushConstantsDesc& pushConstant,
         const std::wstring& name):
         device{device} {
         assert(device != VK_NULL_HANDLE);
@@ -87,19 +101,19 @@ namespace vireo {
             .pSetLayouts = setLayouts.empty() ? nullptr : setLayouts.data(),
         };
         auto pushConstantRange = VkPushConstantRange {};
-        if (pushConstants.size == 0) {
+        if (pushConstant.size == 0) {
             pipelineLayoutInfo.pushConstantRangeCount = 0;
             pipelineLayoutInfo.pPushConstantRanges = nullptr;
         } else {
-            if (pushConstants.stage == ShaderStage::VERTEX) {
+            if (pushConstant.stage == ShaderStage::VERTEX) {
                 pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-            } else if (pushConstants.stage == ShaderStage::FRAGMENT) {
+            } else if (pushConstant.stage == ShaderStage::FRAGMENT) {
                 pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
             }  else {
                 pushConstantRange.stageFlags = VK_SHADER_STAGE_ALL_GRAPHICS;
             }
-            pushConstantRange.offset = pushConstants.offset;
-            pushConstantRange.size = pushConstants.size;
+            pushConstantRange.offset = pushConstant.offset;
+            pushConstantRange.size = pushConstant.size;
             pipelineLayoutInfo.pushConstantRangeCount = 1;
             pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
         }

@@ -49,6 +49,8 @@ export namespace vireo {
 
         VKShaderModule(VkDevice device, std::ifstream inputStream, size_t size);
 
+        VKShaderModule(const VkDevice device, const std::vector<char>& data);
+
         ~VKShaderModule() override;
 
         auto getShaderModule() const { return shaderModule; }

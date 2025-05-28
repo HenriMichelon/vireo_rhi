@@ -47,6 +47,11 @@ namespace vireo {
         load(inputStream, size);
     }
 
+    DXShaderModule::DXShaderModule(const std::vector<char>& data) {
+        dxCheck(D3DCreateBlob(data.size(), &shader), "Error creating blob for  shader ");
+        memcpy(shader->GetBufferPointer(), data.data(), data.size());
+    }
+
     void DXShaderModule::load(std::ifstream& inputStream, const size_t size) {
         dxCheck(D3DCreateBlob(size, &shader), "Error creating blob for  shader ");
         inputStream.read(static_cast<char*>(shader->GetBufferPointer()), size);

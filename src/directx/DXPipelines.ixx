@@ -40,7 +40,10 @@ export namespace vireo {
     class DXShaderModule: public ShaderModule {
     public:
         DXShaderModule(const std::string& fileName);
+
         DXShaderModule(std::ifstream& inputStream, size_t size);
+
+        DXShaderModule(const std::vector<char>& data);
 
         auto getShader() const { return shader; }
 
