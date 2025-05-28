@@ -57,6 +57,14 @@ namespace vireo {
             D3D12_RESOURCE_STATE_COMMON,
             nullptr,
             IID_PPV_ARGS(&buffer)));
+        if constexpr (isMemoryUsageEnabled()) {
+            auto lock = std::lock_guard(memoryAllocationsMutex);
+            memoryAllocations.push_back({
+                VideoMemoryAllocationUsage::BUFFER,
+                name,
+                bufferSize,
+                buffer.Get() });
+        }
 #ifdef _DEBUG
         buffer->SetName((L"DXBuffer : " + name).c_str());
 #endif
@@ -148,6 +156,16 @@ namespace vireo {
             isRenderTarget ? &dxClearValue : nullptr,
             IID_PPV_ARGS(&image)));
 
+        if constexpr (isMemoryUsageEnabled()) {
+            const auto allocInfo = device->GetResourceAllocationInfo(
+                0,1, &imageDesc);
+            auto lock = std::lock_guard(memoryAllocationsMutex);
+            memoryAllocations.push_back({
+                VideoMemoryAllocationUsage::IMAGE,
+                name,
+                allocInfo.SizeInBytes,
+                image.Get() });
+        }
 #ifdef _DEBUG
         image->SetName((L"DXIMage : " + name).c_str());
 #endif
