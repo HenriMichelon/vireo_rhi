@@ -47,6 +47,8 @@ export namespace vireo {
     public:
         VKShaderModule(VkDevice device, const std::string& fileName);
 
+        VKShaderModule(VkDevice device, std::ifstream inputStream, size_t size);
+
         ~VKShaderModule() override;
 
         auto getShaderModule() const { return shaderModule; }
@@ -54,6 +56,8 @@ export namespace vireo {
     private:
         VkDevice       device;
         VkShaderModule shaderModule;
+
+        void load(std::ifstream& inputStream, size_t size, const std::string& fileName);
     };
 
     class VKPipelineResources : public PipelineResources {

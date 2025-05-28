@@ -39,10 +39,20 @@ namespace vireo {
             throw Exception("failed to open shader file ", fileName);
         }
         const auto fileSize = static_cast<size_t>(file.tellg());
-        std::vector<char> buffer(fileSize);
         file.seekg(0);
-        file.read(buffer.data(), fileSize);
+        load(file, fileSize, fileName);
         file.close();
+    }
+
+    VKShaderModule::VKShaderModule(const VkDevice device, std::ifstream inputStream, const size_t size) :
+        device{device} {
+        assert(device != VK_NULL_HANDLE);
+        load(inputStream, size, "");
+    }
+
+    void VKShaderModule::load(std::ifstream& inputStream, const size_t size, const std::string& fileName) {
+        std::vector<char> buffer(size);
+        inputStream.read(buffer.data(), size);
         const auto createInfo = VkShaderModuleCreateInfo {
             .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
             .codeSize = buffer.size(),
@@ -54,6 +64,7 @@ namespace vireo {
             "VKShaderModule : " + fileName);
 #endif
     }
+
 
     VKShaderModule::~VKShaderModule() {
         vkDestroyShaderModule(device, shaderModule, nullptr);

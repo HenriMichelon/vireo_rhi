@@ -40,11 +40,14 @@ export namespace vireo {
     class DXShaderModule: public ShaderModule {
     public:
         DXShaderModule(const std::string& fileName);
+        DXShaderModule(std::ifstream& inputStream, size_t size);
 
         auto getShader() const { return shader; }
 
     private:
         ComPtr<ID3DBlob> shader;
+
+        void load(std::ifstream& inputStream, size_t size);
     };
 
     class DXPipelineResources : public PipelineResources {

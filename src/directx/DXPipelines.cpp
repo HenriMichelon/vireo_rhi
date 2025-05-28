@@ -39,8 +39,17 @@ namespace vireo {
         }
         const std::streamsize size = shaderFile.tellg();
         shaderFile.seekg(0, std::ios::beg);
+        load(shaderFile, size);
+        shaderFile.close();
+    }
+
+    DXShaderModule::DXShaderModule(std::ifstream& inputStream, const size_t size) {
+        load(inputStream, size);
+    }
+
+    void DXShaderModule::load(std::ifstream& inputStream, const size_t size) {
         dxCheck(D3DCreateBlob(size, &shader), "Error creating blob for  shader ");
-        shaderFile.read(static_cast<char*>(shader->GetBufferPointer()), size);
+        inputStream.read(static_cast<char*>(shader->GetBufferPointer()), size);
     }
 
     DXPipelineResources::DXPipelineResources(
