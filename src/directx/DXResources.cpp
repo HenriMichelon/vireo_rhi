@@ -74,6 +74,12 @@ namespace vireo {
         if (mappedAddress) {
             DXBuffer::unmap();
         }
+        if constexpr(isMemoryUsageEnabled()) {
+            auto lock = std::lock_guard(memoryAllocationsMutex);
+            memoryAllocations.remove_if([&](const VideoMemoryAllocationDesc& usage) {
+                return usage.ref == buffer.Get();
+            });
+        }
     }
 
     void DXBuffer::map() {
@@ -169,6 +175,15 @@ namespace vireo {
 #ifdef _DEBUG
         image->SetName((L"DXIMage : " + name).c_str());
 #endif
+    }
+
+    DXImage::~DXImage() {
+        if constexpr(isMemoryUsageEnabled()) {
+            auto lock = std::lock_guard(memoryAllocationsMutex);
+            memoryAllocations.remove_if([&](const VideoMemoryAllocationDesc& usage) {
+                return usage.ref == image.Get();
+            });
+        }
     }
 
     uint32_t DXImage::getAlignedRowPitch() const {

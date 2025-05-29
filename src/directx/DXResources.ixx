@@ -178,6 +178,8 @@ export namespace vireo {
 
         uint32_t getAlignedRowPitch() const override;
 
+        ~DXImage() override;
+
     private:
         ComPtr<ID3D12Device>   device;
         ComPtr<ID3D12Resource> image;

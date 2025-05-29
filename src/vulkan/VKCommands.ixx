@@ -164,7 +164,8 @@ export namespace vireo {
             const Buffer& source,
             const Image& destination,
             uint32_t sourceOffset,
-            uint32_t firstMipLevel) const override;
+            uint32_t firstMipLevel,
+            uint32_t mipLevelCount) const override;
 
         void copy(
             const Image& source,

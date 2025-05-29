@@ -946,10 +946,11 @@ namespace vireo {
     }
 
     void DXCommandList::copy(
-       const Buffer& source,
-       const Image& destination,
-       const uint32_t sourceOffset,
-       const uint32_t firstMipLevel) const {
+        const Buffer& source,
+        const Image& destination,
+        const uint32_t sourceOffset,
+        const uint32_t firstMipLevel,
+        const uint32_t mipLevelCount) const {
         const auto& image = static_cast<const DXImage&>(destination);
         const auto& buffer = static_cast<const DXBuffer&>(source);
 
@@ -961,7 +962,7 @@ namespace vireo {
             firstMipLevel,
             0,
             0,
-            image.getMipLevels(),
+            mipLevelCount,
             image.getArraySize());
 
         const auto subresource = dstLocation.SubresourceIndex;

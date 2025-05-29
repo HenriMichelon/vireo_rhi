@@ -1225,30 +1225,33 @@ namespace vireo {
         const Buffer& source,
         const Image& destination,
         const uint32_t sourceOffset,
-        const uint32_t firstMipLevel) const {
+        const uint32_t firstMipLevel,
+        const uint32_t mipLevelCount) const {
         assert(firstMipLevel < destination.getMipLevels());
         const auto& image = static_cast<const VKImage&>(destination);
         const auto& buffer = static_cast<const VKBuffer&>(source);
-        const auto region = VkBufferImageCopy {
-            .bufferOffset = sourceOffset,
-            .bufferRowLength = 0,
-            .bufferImageHeight = 0,
-            .imageSubresource = {
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .mipLevel = firstMipLevel,
-                .baseArrayLayer = 0,
-                .layerCount = destination.getArraySize(),
-            },
-            .imageOffset = {0, 0, 0},
-            .imageExtent = {image.getWidth() >> firstMipLevel, image.getHeight() >> firstMipLevel, 1},
-        };
+        auto regions = std::vector<VkBufferImageCopy>(mipLevelCount);
+        for (int mipLevel = 0; mipLevel < mipLevelCount; mipLevel++) {
+            const auto level = firstMipLevel+ mipLevel;
+            regions[mipLevel].bufferOffset = sourceOffset;
+            regions[mipLevel].bufferRowLength = 0;
+            regions[mipLevel].bufferImageHeight = 0;
+            regions[mipLevel].imageSubresource = {
+                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                    .mipLevel = level,
+                    .baseArrayLayer = 0,
+                    .layerCount = destination.getArraySize(),
+                };
+            regions[mipLevel].imageOffset = {0, 0, 0};
+            regions[mipLevel].imageExtent = {image.getWidth() >> level, image.getHeight() >> level, 1};
+        }
         vkCmdCopyBufferToImage(
                 commandBuffer,
                 buffer.getBuffer(),
                 image.getImage(),
                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                1,
-                &region);
+                regions.size(),
+                regions.data());
     }
 
     void VKCommandList::copy(
