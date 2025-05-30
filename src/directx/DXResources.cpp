@@ -186,10 +186,6 @@ namespace vireo {
         }
     }
 
-    uint32_t DXImage::getAlignedRowPitch() const {
-        return (getWidth() * getPixelSize(getFormat()) + (D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1)) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1);
-    }
-
     DXSampler::DXSampler(
         const Filter minFilter,
         const Filter magFilter,

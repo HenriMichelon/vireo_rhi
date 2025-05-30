@@ -1082,6 +1082,9 @@ export namespace vireo {
             16, // BC7_UNORM_SRGB
         };
 
+        static constexpr uint32_t IMAGE_ROW_PITCH_ALIGNMENT{256};
+        static constexpr uint32_t IMAGE_ROW_LENGTH_ALIGNMENT{IMAGE_ROW_PITCH_ALIGNMENT/4};
+
         virtual ~Image() = default;
 
         /**
@@ -1110,9 +1113,19 @@ export namespace vireo {
         auto getArraySize() const { return arraySize; }
 
         /**
-         * Return the size in bytes of each row
+         * Return the size in bytes of each row for the first mip level
          */
-        auto getRowPitch() const { return width * pixelSize[static_cast<int>(format)]; }
+        uint32_t getRowPitch() const;
+
+        /**
+         * Return the size in bytes of each row for a mip level
+         */
+        uint32_t getRowPitch(uint32_t mipLevel) const;
+
+        /**
+         * Return the size in pixels of each row for a mip level
+         */
+        uint32_t getRowLength(uint32_t mipLevel) const;
 
         /**
          * Return the size in bytes of the first layer
@@ -1120,14 +1133,37 @@ export namespace vireo {
         auto getImageSize() const { return getRowPitch() * height; }
 
         /**
-         * Return the size in bytes of the first layer, with aligned rows
+         * Return the aligned size in bytes of the first level
          */
         auto getAlignedImageSize() const { return getAlignedRowPitch() * height; }
 
         /**
-         * Return the size in bytes of aligned rows
+         * Return the aligned size in bytes for a level
          */
-        virtual uint32_t getAlignedRowPitch() const { return getRowPitch(); }
+        auto getAlignedImageSize(const uint32_t mipLevel) const {
+            return getAlignedRowPitch(mipLevel) * height;
+        }
+
+        /**
+         * Return the size in bytes of aligned rows for the first mip level
+         */
+        uint32_t getAlignedRowPitch() const {
+            return (getRowPitch() + (IMAGE_ROW_PITCH_ALIGNMENT - 1)) & ~(IMAGE_ROW_PITCH_ALIGNMENT - 1);
+        }
+
+        /**
+         * Return the size in bytes of aligned rows for a mip level
+         */
+        uint32_t getAlignedRowPitch(const uint32_t mipLevel) const {
+            return (getRowPitch(mipLevel) + (IMAGE_ROW_PITCH_ALIGNMENT - 1)) & ~(IMAGE_ROW_PITCH_ALIGNMENT - 1);
+        }
+
+        /**
+         * Return the size in pixels of aligned rows for a mip level
+         */
+        uint32_t getAlignedRowLength(const uint32_t mipLevel) const {
+            return (getRowLength(mipLevel) + (IMAGE_ROW_LENGTH_ALIGNMENT - 1)) & ~(IMAGE_ROW_LENGTH_ALIGNMENT - 1);
+        }
 
         /**
          * Return `true` if the image have read/write access
@@ -1138,7 +1174,6 @@ export namespace vireo {
          * Returns the number of bytes for one pixel
          */
         static auto getPixelSize(const ImageFormat format) { return pixelSize[static_cast<int>(format)]; }
-
 
         /**
          * Returns the currently allocated images.

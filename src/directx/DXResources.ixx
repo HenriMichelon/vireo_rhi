@@ -176,8 +176,6 @@ export namespace vireo {
 
         auto getImage() const { return image; }
 
-        uint32_t getAlignedRowPitch() const override;
-
         ~DXImage() override;
 
     private:
