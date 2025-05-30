@@ -949,8 +949,7 @@ namespace vireo {
         const Buffer& source,
         const Image& destination,
         const uint32_t sourceOffset,
-        const uint32_t firstMipLevel,
-        const uint32_t mipLevelCount) const {
+        const uint32_t firstMipLevel) const {
         const auto& image = static_cast<const DXImage&>(destination);
         const auto& buffer = static_cast<const DXBuffer&>(source);
 
@@ -962,7 +961,7 @@ namespace vireo {
             firstMipLevel,
             0,
             0,
-            mipLevelCount,
+            image.getMipLevels(),
             image.getArraySize());
 
         const auto subresource = dstLocation.SubresourceIndex;
@@ -991,6 +990,47 @@ namespace vireo {
             &srcLocation,
             nullptr
         );
+    }
+
+    void DXCommandList::copy(
+        const Buffer& source,
+        const Image& destination,
+        const std::vector<size_t>& sourceOffsets) const {
+        const auto& image = static_cast<const DXImage&>(destination);
+        const auto& buffer = static_cast<const DXBuffer&>(source);
+        const auto texDesc = image.getImage()->GetDesc();
+        for (UINT mip = 0; mip < image.getMipLevels(); mip++) {
+            auto dstLoc = D3D12_TEXTURE_COPY_LOCATION{
+                .pResource = image.getImage().Get(),
+                .Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
+            };
+            dstLoc.SubresourceIndex = D3D12CalcSubresource(
+               mip,
+               0,
+               0,
+               image.getMipLevels(),
+               image.getArraySize());
+
+            auto footprint = D3D12_PLACED_SUBRESOURCE_FOOTPRINT{};
+            UINT64 totalBytes{0};
+            device->GetCopyableFootprints(
+                &texDesc,
+                 dstLoc.SubresourceIndex,
+                1,
+                sourceOffsets[mip],
+                &footprint,
+                nullptr,
+                nullptr,
+                &totalBytes);
+
+            const auto srcLoc = D3D12_TEXTURE_COPY_LOCATION{
+                .pResource = buffer.getBuffer().Get(),
+                .Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT,
+                .PlacedFootprint = footprint,
+            };
+
+            commandList->CopyTextureRegion(&dstLoc, 0, 0, 0, &srcLoc, nullptr);
+        }
     }
 
     void DXCommandList::copy(

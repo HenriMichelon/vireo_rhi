@@ -1225,33 +1225,62 @@ namespace vireo {
         const Buffer& source,
         const Image& destination,
         const uint32_t sourceOffset,
-        const uint32_t firstMipLevel,
-        const uint32_t mipLevelCount) const {
-        assert(firstMipLevel < destination.getMipLevels());
+        const uint32_t mipLevel) const {
+        assert(mipLevel < destination.getMipLevels());
         const auto& image = static_cast<const VKImage&>(destination);
         const auto& buffer = static_cast<const VKBuffer&>(source);
-        auto regions = std::vector<VkBufferImageCopy>(mipLevelCount);
-        for (int mipLevel = 0; mipLevel < mipLevelCount; mipLevel++) {
-            const auto level = firstMipLevel+ mipLevel;
-            regions[mipLevel].bufferOffset = sourceOffset;
-            regions[mipLevel].bufferRowLength = 0;
-            regions[mipLevel].bufferImageHeight = 0;
-            regions[mipLevel].imageSubresource = {
-                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                    .mipLevel = level,
-                    .baseArrayLayer = 0,
-                    .layerCount = destination.getArraySize(),
-                };
-            regions[mipLevel].imageOffset = {0, 0, 0};
-            regions[mipLevel].imageExtent = {image.getWidth() >> level, image.getHeight() >> level, 1};
-        }
+        const auto region = VkBufferImageCopy {
+            .bufferOffset = sourceOffset,
+            .bufferRowLength = 0,
+            .bufferImageHeight = 0,
+            .imageSubresource = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .mipLevel = mipLevel,
+                .baseArrayLayer = 0,
+                .layerCount = destination.getArraySize(),
+            },
+            .imageOffset = {0, 0, 0},
+            .imageExtent = {image.getWidth() >> mipLevel, image.getHeight() >> mipLevel, 1},
+        };
         vkCmdCopyBufferToImage(
                 commandBuffer,
                 buffer.getBuffer(),
                 image.getImage(),
                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                regions.size(),
-                regions.data());
+                1,
+                &region);
+    }
+
+    void VKCommandList::copy(
+        const Buffer& source,
+        const Image& destination,
+        const std::vector<size_t>& sourceOffsets) const {
+        const auto& buffer = static_cast<const VKBuffer&>(source);
+        const auto& image = static_cast<const VKImage&>(destination);
+        auto copyRegions = std::vector<VkBufferImageCopy>{destination.getMipLevels()};
+        for (uint32_t mip_level = 0; mip_level < image.getMipLevels(); mip_level++) {
+            const auto buffer_copy_region = VkBufferImageCopy{
+                .bufferOffset       = sourceOffsets[mip_level],
+                .imageSubresource {
+                    .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+                    .mipLevel       = mip_level,
+                    .layerCount     = 1,
+                },
+                .imageExtent {
+                    .width          = image.getWidth() >> mip_level,
+                    .height         = image.getHeight() >> mip_level,
+                    .depth          = 1,
+                },
+            };
+            copyRegions.push_back(buffer_copy_region);
+        }
+        vkCmdCopyBufferToImage(
+                       commandBuffer,
+                       buffer.getBuffer(),
+                       image.getImage(),
+                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                       copyRegions.size(),
+                       copyRegions.data());
     }
 
     void VKCommandList::copy(

@@ -1613,9 +1613,8 @@ export namespace vireo {
             const std::shared_ptr<Buffer>& source,
             const std::shared_ptr<const Image>& destination,
             const uint32_t sourceOffset = 0,
-            const uint32_t firstMipLevel = 0,
-            const uint32_t mipLevelCount = 1) const {
-            copy(*source, *destination, sourceOffset, firstMipLevel, mipLevelCount);
+            const uint32_t mipLevel = 0) const {
+            copy(*source, *destination, sourceOffset, mipLevel);
         }
 
         /**
@@ -1625,8 +1624,25 @@ export namespace vireo {
             const Buffer& source,
             const Image& destination,
             uint32_t sourceOffset = 0,
-            uint32_t firstMipLevel = 0,
-            uint32_t mipLevelCount = 1) const = 0;
+            uint32_t firstMipLevel = 0) const = 0;
+
+        /**
+         * Copy a buffer into a multi-level image
+         */
+        virtual void copy(
+            const std::shared_ptr<Buffer>& source,
+            const std::shared_ptr<Image>& destination,
+            const std::vector<size_t>& sourceOffsets) const {
+            copy(*source, *destination, sourceOffsets);
+        }
+
+        /**
+         * Copy a buffer into a multi-level image
+         */
+        virtual void copy(
+            const Buffer& source,
+            const Image& destination,
+            const std::vector<size_t>& sourceOffsets) const = 0;
 
         /**
         * Copy an image into a buffer
