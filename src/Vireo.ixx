@@ -1156,7 +1156,7 @@ export namespace vireo {
         auto isReadWrite() const { return readWrite; }
 
         /**
-         * Returns the number of bytes for one pixel
+         * Returns the number of bytes for one pixel, or the block size in bytes pour BCn compressed formats
          */
         static auto getPixelSize(const ImageFormat format) { return pixelSize[static_cast<int>(format)]; }
 
