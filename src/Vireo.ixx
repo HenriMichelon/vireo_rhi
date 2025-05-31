@@ -1132,7 +1132,7 @@ export namespace vireo {
          * Return the size in bytes
          */
         auto getImageSize(const uint32_t mipLevel = 0) const {
-            return getRowPitch(mipLevel) * height;
+            return getRowPiRtch(mipLevel) * height;
         }
 
         /**
