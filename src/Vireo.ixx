@@ -1113,55 +1113,40 @@ export namespace vireo {
         auto getArraySize() const { return arraySize; }
 
         /**
-         * Return the size in bytes of each row for the first mip level
-         */
-        uint32_t getRowPitch() const;
-
-        /**
          * Return the size in bytes of each row for a mip level
          */
-        uint32_t getRowPitch(uint32_t mipLevel) const;
+        uint32_t getRowPitch(uint32_t mipLevel = 0) const;
 
         /**
          * Return the size in pixels of each row for a mip level
          */
-        uint32_t getRowLength(uint32_t mipLevel) const;
+        uint32_t getRowLength(uint32_t mipLevel = 0) const;
 
         /**
-         * Return the size in bytes of the first layer
+         * Return the size in bytes
          */
-        auto getImageSize() const { return getRowPitch() * height; }
-
-        /**
-         * Return the aligned size in bytes of the first level
-         */
-        auto getAlignedImageSize() const { return getAlignedRowPitch() * height; }
+        auto getImageSize(const uint32_t mipLevel = 0) const {
+            return getRowPitch(mipLevel) * height;
+        }
 
         /**
          * Return the aligned size in bytes for a level
          */
-        auto getAlignedImageSize(const uint32_t mipLevel) const {
+        auto getAlignedImageSize(const uint32_t mipLevel = 0) const {
             return getAlignedRowPitch(mipLevel) * height;
-        }
-
-        /**
-         * Return the size in bytes of aligned rows for the first mip level
-         */
-        uint32_t getAlignedRowPitch() const {
-            return (getRowPitch() + (IMAGE_ROW_PITCH_ALIGNMENT - 1)) & ~(IMAGE_ROW_PITCH_ALIGNMENT - 1);
         }
 
         /**
          * Return the size in bytes of aligned rows for a mip level
          */
-        uint32_t getAlignedRowPitch(const uint32_t mipLevel) const {
+        uint32_t getAlignedRowPitch(const uint32_t mipLevel = 0) const {
             return (getRowPitch(mipLevel) + (IMAGE_ROW_PITCH_ALIGNMENT - 1)) & ~(IMAGE_ROW_PITCH_ALIGNMENT - 1);
         }
 
         /**
          * Return the size in pixels of aligned rows for a mip level
          */
-        uint32_t getAlignedRowLength(const uint32_t mipLevel) const {
+        uint32_t getAlignedRowLength(const uint32_t mipLevel = 0) const {
             return (getRowLength(mipLevel) + (IMAGE_ROW_LENGTH_ALIGNMENT - 1)) & ~(IMAGE_ROW_LENGTH_ALIGNMENT - 1);
         }
 
@@ -1181,7 +1166,6 @@ export namespace vireo {
          */
         static auto getMemoryAllocations() { return memoryAllocations; }
 
-
         Image (Image&) = delete;
         Image& operator = (const Image&) = delete;
 
@@ -1200,9 +1184,9 @@ export namespace vireo {
             arraySize{arraySize},
             readWrite{isReadWrite} {}
 
-
         static std::mutex memoryAllocationsMutex;
         static std::list<VideoMemoryAllocationDesc> memoryAllocations;
+
     private:
         const ImageFormat format;
         const uint32_t    width;

@@ -80,13 +80,6 @@ namespace vireo {
         }
     }
 
-    uint32_t Image::getRowPitch() const {
-        if (format >= ImageFormat::BC1_UNORM) {
-            return ((width + 3) / 4) * pixelSize[static_cast<int>(format)];
-        }
-        return width * pixelSize[static_cast<int>(format)];
-    }
-
     uint32_t Image::getRowPitch(const uint32_t mipLevel) const {
         if (format >= ImageFormat::BC1_UNORM) {
             return (((width >> mipLevel) + 3) / 4) * pixelSize[static_cast<int>(format)];
