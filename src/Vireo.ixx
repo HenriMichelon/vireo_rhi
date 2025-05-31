@@ -137,6 +137,7 @@ export namespace vireo {
         D32_SFLOAT,
         D32_SFLOAT_S8_UINT,
 
+        // BCn compressed formats, keep them at the end of the list for correct pixel-size calculation
         BC1_UNORM,
         BC1_UNORM_SRGB,
         BC2_UNORM,
@@ -791,6 +792,7 @@ export namespace vireo {
         virtual void reset() = 0;
 
         virtual ~Fence() = default;
+
         Fence () = default;
         Fence (const Fence&) = delete;
         Fence& operator= (const Fence&) = delete;
@@ -961,18 +963,20 @@ export namespace vireo {
 
         virtual ~Buffer() = default;
         Buffer (const Buffer&) = delete;
-        Buffer& operator= (const Buffer&) = delete;
+        Buffer& operator = (const Buffer&) = delete;
 
     protected:
-        size_t bufferSize{0};
+        size_t   bufferSize{0};
         uint32_t instanceSize{0};
         uint32_t instanceCount{0};
         uint32_t instanceSizeAligned{0};
-        void*  mappedAddress{nullptr};
+        void*    mappedAddress{nullptr};
+
         Buffer(const BufferType type): type{type} {}
 
         static std::mutex memoryAllocationsMutex;
         static std::list<VideoMemoryAllocationDesc> memoryAllocations;
+
     private:
         const BufferType type;
     };
@@ -1082,10 +1086,12 @@ export namespace vireo {
             16, // BC7_UNORM_SRGB
         };
 
+        /**
+         * Row pitch alignment in bytes for cross-API compatibility.
+         * Always use this alignment before using `copy` methods to have the
+         * same alignment with DirectX and Vulkan.
+         */
         static constexpr uint32_t IMAGE_ROW_PITCH_ALIGNMENT{256};
-        static constexpr uint32_t IMAGE_ROW_LENGTH_ALIGNMENT{IMAGE_ROW_PITCH_ALIGNMENT/4};
-
-        virtual ~Image() = default;
 
         /**
          * Returns the pixel format
@@ -1147,7 +1153,9 @@ export namespace vireo {
          * Return the size in pixels of aligned rows for a mip level
          */
         uint32_t getAlignedRowLength(const uint32_t mipLevel = 0) const {
-            return (getRowLength(mipLevel) + (IMAGE_ROW_LENGTH_ALIGNMENT - 1)) & ~(IMAGE_ROW_LENGTH_ALIGNMENT - 1);
+            const auto texelSize = IMAGE_ROW_PITCH_ALIGNMENT / (
+                format >= ImageFormat::BC1_UNORM ? 4 : getPixelSize(format));
+            return (getRowLength(mipLevel) + (texelSize - 1)) & ~(texelSize - 1);
         }
 
         /**
@@ -1166,6 +1174,7 @@ export namespace vireo {
          */
         static auto getMemoryAllocations() { return memoryAllocations; }
 
+        virtual ~Image() = default;
         Image (Image&) = delete;
         Image& operator = (const Image&) = delete;
 
@@ -1626,7 +1635,8 @@ export namespace vireo {
         virtual void upload(const std::vector<ImageUploadInfo>& infos);
 
         /**
-        * Copy a buffer into an image
+        * Copy data from a buffer into an image level.
+        * The data in the buffer must have row-aligned data (cf. `Image::IMAGE_ROW_PITCH_ALIGNMENT`) for cross-API compatibility.
          */
         void copy(
             const std::shared_ptr<Buffer>& source,
@@ -1637,16 +1647,19 @@ export namespace vireo {
         }
 
         /**
-        * Copy a buffer into an image
-         */
+        * Copy data from a buffer into an image level.
+        * The data in the buffer must have row-aligned data (cf. `Image::IMAGE_ROW_PITCH_ALIGNMENT`) for cross-API compatibility.
+        */
         virtual void copy(
             const Buffer& source,
             const Image& destination,
             uint32_t sourceOffset = 0,
-            uint32_t firstMipLevel = 0) const = 0;
+            uint32_t mipLevel = 0) const = 0;
 
         /**
-         * Copy a buffer into a multi-level image
+         * Copy data from a buffer into a multi-level image.
+         * One `sourceOffset` offset in bytes for each level.
+         * The data in the buffer must have row-aligned data (cf. `Image::IMAGE_ROW_PITCH_ALIGNMENT`) for cross-API compatibility.
          */
         virtual void copy(
             const std::shared_ptr<Buffer>& source,
@@ -1656,7 +1669,9 @@ export namespace vireo {
         }
 
         /**
-         * Copy a buffer into a multi-level image
+         * Copy data from a buffer into a multi-level image.
+         * One `sourceOffset` offset in bytes for each level.
+         * The data in the buffer must have row-aligned data (cf. `Image::IMAGE_ROW_PITCH_ALIGNMENT`) for cross-API compatibility.
          */
         virtual void copy(
             const Buffer& source,
@@ -1664,13 +1679,13 @@ export namespace vireo {
             const std::vector<size_t>& sourceOffsets) const = 0;
 
         /**
-        * Copy an image into a buffer
+        * Copy a level of an image into a buffer
         */
         virtual void copy(
            const Image& source,
            const Buffer& destination,
            uint32_t destinationOffset = 0,
-           uint32_t firstMipLevel = 0) const = 0;
+           uint32_t mipLevel = 0) const = 0;
 
         /**
         * Copy an image into a buffer
@@ -1684,7 +1699,7 @@ export namespace vireo {
         }
 
         /**
-         * Copy a buffer into another buffer
+         * Copy data from a buffer into another buffer
          */
         virtual void copy(
             const Buffer& source,
@@ -1694,7 +1709,7 @@ export namespace vireo {
             uint32_t destinationOffset = 0) const = 0;
 
         /**
-         * Copy a buffer into another buffer
+         * Copy data from a buffer into another buffer
          */
         void copy(
             const std::shared_ptr<const Buffer>& source,
@@ -1705,11 +1720,17 @@ export namespace vireo {
             copy(*source, *destination, size, sourceOffset, destinationOffset);
         }
 
+        /**
+         * Copy multiple regions of a buffer into another buffer
+         */
         virtual void copy(
             const Buffer& source,
             const Buffer& destination,
             const std::vector<BufferCopyRegion>& regions) const = 0;
 
+        /**
+         * Copy multiple regions of a buffer into another buffer
+         */
         void copy(
             const std::shared_ptr<const Buffer>& source,
             const std::shared_ptr<const Buffer>& destination,
