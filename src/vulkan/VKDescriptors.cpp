@@ -213,6 +213,7 @@ namespace vireo {
         auto imagesInfo = std::vector<VkDescriptorImageInfo>(images.size());
         bool isStorage = false;
         for (int i = 0; i < images.size(); i++) {
+            assert(images[i] != nullptr);
             imagesInfo[i].sampler = VK_NULL_HANDLE;
             imagesInfo[i].imageView = static_pointer_cast<const VKImage>(images[i])->getImageView();
             imagesInfo[i].imageLayout = images[i]->isReadWrite() ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
