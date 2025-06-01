@@ -750,7 +750,7 @@ export namespace vireo {
     /**
      * Enable this to collect memory usage for buffers & images
      */
-    constexpr bool ENABLE_VRAM_USAGE = false;
+    constexpr bool ENABLE_VRAM_USAGE = true;
 
     /**
      * Returns `true` if memory usage collection is enabled
