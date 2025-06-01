@@ -1225,13 +1225,14 @@ namespace vireo {
         const Buffer& source,
         const Image& destination,
         const uint32_t sourceOffset,
-        const uint32_t mipLevel) const {
+        const uint32_t mipLevel,
+        const bool rowPitchAlignment) const {
         assert(mipLevel < destination.getMipLevels());
         const auto& image = static_cast<const VKImage&>(destination);
         const auto& buffer = static_cast<const VKBuffer&>(source);
         const auto region = VkBufferImageCopy {
             .bufferOffset = sourceOffset,
-            .bufferRowLength = image.getAlignedRowLength(mipLevel),
+            .bufferRowLength = rowPitchAlignment ? image.getAlignedRowLength(mipLevel) : 0,
             .bufferImageHeight = 0,
             .imageSubresource = {
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
@@ -1254,7 +1255,8 @@ namespace vireo {
     void VKCommandList::copy(
         const Buffer& source,
         const Image& destination,
-        const std::vector<size_t>& sourceOffsets) const {
+        const std::vector<size_t>& sourceOffsets,
+        const bool rowPitchAlignment) const {
         const auto& buffer = static_cast<const VKBuffer&>(source);
         const auto& image = static_cast<const VKImage&>(destination);
         auto copyRegions = std::vector<VkBufferImageCopy>{};
@@ -1262,7 +1264,7 @@ namespace vireo {
         for (uint32_t mip_level = 0; mip_level < image.getMipLevels(); mip_level++) {
             const auto buffer_copy_region = VkBufferImageCopy{
                 .bufferOffset       = sourceOffsets[mip_level],
-                .bufferRowLength    = image.getAlignedRowLength(mip_level),
+                .bufferRowLength    = rowPitchAlignment ? image.getAlignedRowLength(mip_level) : 0,
                 .imageSubresource {
                     .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
                     .mipLevel       = mip_level,

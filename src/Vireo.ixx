@@ -1636,47 +1636,51 @@ export namespace vireo {
 
         /**
         * Copy data from a buffer into an image level.
-        * The data in the buffer must have row-aligned data (cf. `Image::IMAGE_ROW_PITCH_ALIGNMENT`) for cross-API compatibility.
+        * If `rowPitchAlignment` is `true` (for Vulkan), the data in the buffer must have row-aligned data (cf. `Image::IMAGE_ROW_PITCH_ALIGNMENT`) for cross-API compatibility.
          */
         void copy(
             const std::shared_ptr<Buffer>& source,
             const std::shared_ptr<const Image>& destination,
             const uint32_t sourceOffset = 0,
-            const uint32_t mipLevel = 0) const {
-            copy(*source, *destination, sourceOffset, mipLevel);
+            const uint32_t mipLevel = 0,
+            const bool rowPitchAlignment = true) const {
+            copy(*source, *destination, sourceOffset, mipLevel, rowPitchAlignment);
         }
 
         /**
         * Copy data from a buffer into an image level.
-        * The data in the buffer must have row-aligned data (cf. `Image::IMAGE_ROW_PITCH_ALIGNMENT`) for cross-API compatibility.
+        * If `rowPitchAlignment` is `true` (for Vulkan), the data in the buffer must have row-aligned data (cf. `Image::IMAGE_ROW_PITCH_ALIGNMENT`) for cross-API compatibility.
         */
         virtual void copy(
             const Buffer& source,
             const Image& destination,
             uint32_t sourceOffset = 0,
-            uint32_t mipLevel = 0) const = 0;
+            uint32_t mipLevel = 0,
+            bool rowPitchAlignment = true) const = 0;
 
         /**
          * Copy data from a buffer into a multi-level image.
          * One `sourceOffset` offset in bytes for each level.
-         * The data in the buffer must have row-aligned data (cf. `Image::IMAGE_ROW_PITCH_ALIGNMENT`) for cross-API compatibility.
+        * If `rowPitchAlignment` is `true` (for Vulkan), the data in the buffer must have row-aligned data (cf. `Image::IMAGE_ROW_PITCH_ALIGNMENT`) for cross-API compatibility.
          */
         virtual void copy(
             const std::shared_ptr<Buffer>& source,
             const std::shared_ptr<Image>& destination,
-            const std::vector<size_t>& sourceOffsets) const {
-            copy(*source, *destination, sourceOffsets);
+            const std::vector<size_t>& sourceOffsets,
+            bool rowPitchAlignment = true) const {
+            copy(*source, *destination, sourceOffsets, rowPitchAlignment);
         }
 
         /**
          * Copy data from a buffer into a multi-level image.
          * One `sourceOffset` offset in bytes for each level.
-         * The data in the buffer must have row-aligned data (cf. `Image::IMAGE_ROW_PITCH_ALIGNMENT`) for cross-API compatibility.
+        * If `rowPitchAlignment` is `true` (for Vulkan), the data in the buffer must have row-aligned data (cf. `Image::IMAGE_ROW_PITCH_ALIGNMENT`) for cross-API compatibility.
          */
         virtual void copy(
             const Buffer& source,
             const Image& destination,
-            const std::vector<size_t>& sourceOffsets) const = 0;
+            const std::vector<size_t>& sourceOffsets,
+            bool rowPitchAlignment = true) const = 0;
 
         /**
         * Copy a level of an image into a buffer

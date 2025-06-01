@@ -949,7 +949,8 @@ namespace vireo {
         const Buffer& source,
         const Image& destination,
         const uint32_t sourceOffset,
-        const uint32_t firstMipLevel) const {
+        const uint32_t firstMipLevel,
+        const bool rowPitchAlignment) const {
         const auto& image = static_cast<const DXImage&>(destination);
         const auto& buffer = static_cast<const DXBuffer&>(source);
 
@@ -995,7 +996,8 @@ namespace vireo {
     void DXCommandList::copy(
         const Buffer& source,
         const Image& destination,
-        const std::vector<size_t>& sourceOffsets) const {
+        const std::vector<size_t>& sourceOffsets,
+        const bool) const {
         const auto& image = static_cast<const DXImage&>(destination);
         const auto& buffer = static_cast<const DXBuffer&>(source);
         const auto texDesc = image.getImage()->GetDesc();
