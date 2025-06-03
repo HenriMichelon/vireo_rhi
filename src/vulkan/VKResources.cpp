@@ -107,12 +107,12 @@ namespace vireo {
         if (mappedAddress) {
             VKBuffer::unmap();
         }
-        if constexpr(isMemoryUsageEnabled()) {
-            auto lock = std::lock_guard(memoryAllocationsMutex);
-            memoryAllocations.remove_if([&](const VideoMemoryAllocationDesc& usage) {
-                return usage.ref == buffer;
-            });
-        }
+        // if constexpr(isMemoryUsageEnabled()) {
+            // auto lock = std::lock_guard(memoryAllocationsMutex);
+            // memoryAllocations.remove_if([&](const VideoMemoryAllocationDesc& usage) {
+                // return usage.ref == buffer;
+            // });
+        // }
         vkDestroyBuffer(device->getDevice(), buffer, nullptr);
         vkFreeMemory(device->getDevice(), bufferMemory, nullptr);
     }
@@ -251,12 +251,12 @@ namespace vireo {
     }
 
     VKImage::~VKImage() {
-        if constexpr(isMemoryUsageEnabled()) {
-            auto lock = std::lock_guard(memoryAllocationsMutex);
-            memoryAllocations.remove_if([&](const VideoMemoryAllocationDesc& usage) {
-                return usage.ref == image;
-            });
-        }
+        // if constexpr(isMemoryUsageEnabled()) {
+            // auto lock = std::lock_guard(memoryAllocationsMutex);
+            // memoryAllocations.remove_if([&](const VideoMemoryAllocationDesc& usage) {
+                // return usage.ref == image;
+            // });
+        // }
         vkDestroyImage(device->getDevice(), image, nullptr);
         vkFreeMemory(device->getDevice(), imageMemory, nullptr);
         vkDestroyImageView(device->getDevice(), imageView, nullptr);

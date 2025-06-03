@@ -74,12 +74,12 @@ namespace vireo {
         if (mappedAddress) {
             DXBuffer::unmap();
         }
-        if constexpr(isMemoryUsageEnabled()) {
-            auto lock = std::lock_guard(memoryAllocationsMutex);
-            memoryAllocations.remove_if([&](const VideoMemoryAllocationDesc& usage) {
-                return usage.ref == buffer.Get();
-            });
-        }
+        // if constexpr(isMemoryUsageEnabled()) {
+            // auto lock = std::lock_guard(memoryAllocationsMutex);
+            // memoryAllocations.remove_if([&](const VideoMemoryAllocationDesc& usage) {
+                // return usage.ref == buffer.Get();
+            // });
+        // }
     }
 
     void DXBuffer::map() {
@@ -178,12 +178,12 @@ namespace vireo {
     }
 
     DXImage::~DXImage() {
-        if constexpr(isMemoryUsageEnabled()) {
-            auto lock = std::lock_guard(memoryAllocationsMutex);
-            memoryAllocations.remove_if([&](const VideoMemoryAllocationDesc& usage) {
-                return usage.ref == image.Get();
-            });
-        }
+        // if constexpr(isMemoryUsageEnabled()) {
+            // auto lock = std::lock_guard(memoryAllocationsMutex);
+            // memoryAllocations.remove_if([&](const VideoMemoryAllocationDesc& usage) {
+                // return usage.ref == image.Get();
+            // });
+        // }
     }
 
     DXSampler::DXSampler(
