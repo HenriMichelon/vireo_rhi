@@ -27,6 +27,7 @@ namespace vireo {
         if ((!isDynamicUniform()) && type == DescriptorType::UNIFORM_DYNAMIC) {
             throw Exception("Use uniform dynamic descriptor layout for UNIFORM_DYNAMIC resources");
         }
+        auto unbounded = type == DescriptorType::SAMPLED_IMAGE && count > 1 ;
         CD3DX12_DESCRIPTOR_RANGE1 range;
         range.Init(
                 type == DescriptorType::UNIFORM ? D3D12_DESCRIPTOR_RANGE_TYPE_CBV :
@@ -37,11 +38,12 @@ namespace vireo {
                 type == DescriptorType::READWRITE_STORAGE ? D3D12_DESCRIPTOR_RANGE_TYPE_UAV :
                 type == DescriptorType::READWRITE_IMAGE ? D3D12_DESCRIPTOR_RANGE_TYPE_UAV :
                 D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,
-                count,
+                unbounded ? -1 : count,
                 index,
                 0, // set when binding
                 type == DescriptorType::UNIFORM ? D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC :
                 type == DescriptorType::UNIFORM_DYNAMIC ? D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC :
+                unbounded ? D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE :
                 D3D12_DESCRIPTOR_RANGE_FLAG_NONE);
         ranges.push_back(range);
         capacity += count;

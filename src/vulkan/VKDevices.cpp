@@ -376,14 +376,9 @@ namespace vireo {
 
         // Initialize device extensions and create a logical device
         {
-            VkPhysicalDeviceTimelineSemaphoreFeatures timelineSemaphoreFeatures{
-                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES,
-                .pNext = nullptr,
-                .timelineSemaphore = VK_TRUE
-            };
             VkPhysicalDeviceSynchronization2FeaturesKHR sync2Features{
                 .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES,
-                .pNext = &timelineSemaphoreFeatures,
+                .pNext = nullptr,
                 .synchronization2 = VK_TRUE
             };
             VkPhysicalDeviceFeatures2 deviceFeatures2 {
@@ -393,6 +388,7 @@ namespace vireo {
                     .independentBlend = VK_TRUE,
                     .multiDrawIndirect = VK_TRUE,
                     .samplerAnisotropy = VK_TRUE,
+                    .vertexPipelineStoresAndAtomics = VK_TRUE,
                 }
             };
             VkPhysicalDeviceVulkan11Features deviceVulkan11Features {
@@ -400,9 +396,15 @@ namespace vireo {
                 .pNext = &deviceFeatures2,
                 .shaderDrawParameters = VK_TRUE,
             };
+            VkPhysicalDeviceVulkan12Features deviceVulkan12Features {
+                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
+                .pNext = &deviceVulkan11Features,
+                .runtimeDescriptorArray = VK_TRUE,
+                .timelineSemaphore = VK_TRUE,
+            };
             const VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature{
                 .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR,
-                .pNext = &deviceVulkan11Features,
+                .pNext = &deviceVulkan12Features,
                 .dynamicRendering = VK_TRUE,
             };
             const VkDeviceCreateInfo createInfo{
