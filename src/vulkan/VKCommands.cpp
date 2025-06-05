@@ -739,8 +739,8 @@ namespace vireo {
     }
 
     void VKCommandList::convertState(
-            ResourceState oldState,
-            ResourceState newState,
+            const ResourceState oldState,
+            const ResourceState newState,
             VkPipelineStageFlags& srcStage,
             VkPipelineStageFlags& dstStage,
             VkAccessFlags& srcAccess,
@@ -1013,6 +1013,76 @@ namespace vireo {
         } else {
             throw Exception("Not implemented");
         }
+    }
+
+    void VKCommandList::convertState(
+        const ResourceState oldState,
+        const ResourceState newState,
+        VkPipelineStageFlags& srcStage,
+        VkPipelineStageFlags& dstStage,
+        VkAccessFlags& srcAccess,
+        VkAccessFlags& dstAccess) {
+        if (oldState == ResourceState::INDIRECT_DRAW && newState == ResourceState::COMPUTE_WRITE) {
+            srcStage = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
+            dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            srcAccess = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
+            dstAccess = VK_ACCESS_SHADER_WRITE_BIT;
+        }else if (oldState == ResourceState::INDIRECT_DRAW && newState == ResourceState::COPY_DST) {
+            srcStage = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
+            dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            srcAccess = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
+            dstAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
+        } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::INDIRECT_DRAW){
+            srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            dstStage = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
+            srcAccess = VK_ACCESS_SHADER_WRITE_BIT;
+            dstAccess = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
+        } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::COMPUTE_WRITE) {
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            srcAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
+            dstAccess = VK_ACCESS_SHADER_WRITE_BIT;
+        } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::SHADER_READ) {
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+            srcAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
+            dstAccess = VK_ACCESS_SHADER_READ_BIT;
+        } else if (oldState == ResourceState::SHADER_READ && newState == ResourceState::COPY_DST) {
+            srcStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+            dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            srcAccess = 0;
+            dstAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
+        } else {
+            throw Exception("Not implemented");
+        }
+    }
+
+    void VKCommandList::barrier(
+        const Buffer& buffer,
+        const ResourceState oldState,
+        const ResourceState newState) const {
+        VkPipelineStageFlags srcStage, dstStage;
+        VkAccessFlags srcAccess, dstAccess;
+        convertState(oldState, newState, srcStage, dstStage, srcAccess, dstAccess);
+        const auto bufferBarrier = VkBufferMemoryBarrier {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+            .srcAccessMask = srcAccess,
+            .dstAccessMask = dstAccess,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .buffer = static_cast<const VKBuffer&>(buffer).getBuffer(),
+            .offset = 0,
+            .size = VK_WHOLE_SIZE,
+        };
+        vkCmdPipelineBarrier(
+            commandBuffer,
+            srcStage,
+            dstStage,
+            0,
+            0, nullptr,
+            1, &bufferBarrier,
+            0, nullptr
+        );
     }
 
     void VKCommandList::barrier(

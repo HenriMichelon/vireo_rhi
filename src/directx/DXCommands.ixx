@@ -290,6 +290,11 @@ export namespace vireo {
             ResourceState oldState,
             ResourceState newState) const override;
 
+        void barrier(
+           const Buffer& buffer,
+           ResourceState oldState,
+           ResourceState newState) const override;
+
         void pushConstants(
             const std::shared_ptr<const PipelineResources>& pipelineResources,
             const PushConstantsDesc& pushConstants,

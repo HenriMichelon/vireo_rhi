@@ -567,14 +567,18 @@ export namespace vireo {
         DISPATCH_TARGET,
         //! Used for presenting a presentable image for display.
         PRESENT,
-        //! Used as a source image of a transfer/copy/blit command
+        //! Used as a source of a transfer/copy/blit command
         COPY_SRC,
-        //! Used as a destination image of a transfer/copy/blit command
+        //! Used as a destination of a transfer/copy/blit command
         COPY_DST,
-        //! Read-only access as an attachment or in shaders as a sampled image
+        //! Read-only access for images and buffers
         SHADER_READ,
         //! Read-only access in a compute  shader
         COMPUTE_READ,
+        //! Read-write  access in a compute  shader
+        COMPUTE_WRITE,
+        //! Buffer used as indirect draw datas
+        INDIRECT_DRAW,
     };
 
     /**
@@ -2157,6 +2161,11 @@ export namespace vireo {
             const std::shared_ptr<const PipelineResources>& pipelineResources,
             const PushConstantsDesc& pushConstants,
             const void* data) const = 0;
+
+        virtual void barrier(
+            const Buffer& buffer,
+            ResourceState oldState,
+            ResourceState newState) const = 0;
 
         /**
          * Cleanup staging buffers used by `upload` functions

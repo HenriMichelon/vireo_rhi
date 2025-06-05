@@ -649,6 +649,34 @@ namespace vireo {
         commandList->ResourceBarrier(barriers.size(), barriers.data());
     }
 
+    void DXCommandList::barrier(
+        const Buffer& buffer,
+        const ResourceState oldState,
+        const ResourceState newState) const {
+        D3D12_RESOURCE_STATES srcState, dstState;
+        const auto& dxBuffer = static_cast<const DXBuffer&>(buffer).getBuffer().Get();
+        if (oldState == ResourceState::INDIRECT_DRAW && newState == ResourceState::COPY_DST) {
+            srcState = D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
+            dstState = D3D12_RESOURCE_STATE_COPY_DEST;
+        } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::COMPUTE_WRITE) {
+            srcState = D3D12_RESOURCE_STATE_COPY_DEST;
+            dstState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+        } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::SHADER_READ) {
+            srcState = D3D12_RESOURCE_STATE_COPY_DEST;
+            dstState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+        } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::INDIRECT_DRAW) {
+            srcState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+            dstState = D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
+        } else {
+            throw Exception("Not implemented");
+        }
+        const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+             dxBuffer,
+             srcState,
+             dstState);
+        commandList->ResourceBarrier(1, &memoryBarrier);
+    }
+
     void DXCommandList::pushConstants(
         const std::shared_ptr<const PipelineResources>& pipelineResources,
         const PushConstantsDesc& pushConstants,
@@ -831,13 +859,13 @@ namespace vireo {
                 &copyData);
         }
 
-        {
-            const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-                buffer.getBuffer().Get(),
-                D3D12_RESOURCE_STATE_COPY_DEST,
-                DXBuffer::resourceStates[static_cast<int>(buffer.getType())]);
-            commandList->ResourceBarrier(1, &memoryBarrier);
-        }
+        // {
+        //     const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+        //         buffer.getBuffer().Get(),
+        //         D3D12_RESOURCE_STATE_COPY_DEST,
+        //         DXBuffer::resourceStates[static_cast<int>(buffer.getType())]);
+        //     commandList->ResourceBarrier(1, &memoryBarrier);
+        // }
 
         stagingBuffers.push_back(stagingBuffer);
     }
@@ -859,11 +887,11 @@ namespace vireo {
             sourceOffset,
             copySize
         );
-        const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            dxDestination.getBuffer().Get(),
-            D3D12_RESOURCE_STATE_COPY_DEST,
-            DXBuffer::resourceStates[static_cast<int>(dxDestination.getType())]);
-        commandList->ResourceBarrier(1, &memoryBarrier);
+        // const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+        //     dxDestination.getBuffer().Get(),
+        //     D3D12_RESOURCE_STATE_COPY_DEST,
+        //     DXBuffer::resourceStates[static_cast<int>(dxDestination.getType())]);
+        // commandList->ResourceBarrier(1, &memoryBarrier);
     }
 
     void DXCommandList::copy(
@@ -871,13 +899,13 @@ namespace vireo {
         const Buffer& destination,
         const std::vector<BufferCopyRegion>& regions) const {
         const auto& dxDestination = static_cast<const DXBuffer&>(destination);
-        {
-            const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-                       dxDestination.getBuffer().Get(),
-                       DXBuffer::resourceStates[static_cast<int>(dxDestination.getType())],
-                       D3D12_RESOURCE_STATE_COPY_DEST);
-            commandList->ResourceBarrier(1, &memoryBarrier);
-        }
+        // {
+        //     const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+        //                dxDestination.getBuffer().Get(),
+        //                DXBuffer::resourceStates[static_cast<int>(dxDestination.getType())],
+        //                D3D12_RESOURCE_STATE_COPY_DEST);
+        //     commandList->ResourceBarrier(1, &memoryBarrier);
+        // }
         const auto dst = dxDestination.getBuffer().Get();
         const auto src = static_cast<const DXBuffer&>(source).getBuffer().Get();
         for (const auto& region : regions) {
@@ -888,13 +916,13 @@ namespace vireo {
                region.srcOffset,
                region.size);
         }
-        {
-            const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-                dxDestination.getBuffer().Get(),
-                D3D12_RESOURCE_STATE_COPY_DEST,
-                DXBuffer::resourceStates[static_cast<int>(dxDestination.getType())]);
-                commandList->ResourceBarrier(1, &memoryBarrier);
-        }
+        // {
+        //     const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+        //         dxDestination.getBuffer().Get(),
+        //         D3D12_RESOURCE_STATE_COPY_DEST,
+        //         DXBuffer::resourceStates[static_cast<int>(dxDestination.getType())]);
+        //         commandList->ResourceBarrier(1, &memoryBarrier);
+        // }
     }
 
     void DXCommandList::upload(

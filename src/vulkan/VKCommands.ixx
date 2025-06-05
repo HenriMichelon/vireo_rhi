@@ -297,6 +297,11 @@ export namespace vireo {
             ResourceState oldState,
             ResourceState newState) const override;
 
+        void barrier(
+            const Buffer& buffer,
+            ResourceState oldState,
+            ResourceState newState) const override;
+
         void pushConstants(
             const std::shared_ptr<const PipelineResources>& pipelineResources,
             const PushConstantsDesc& pushConstants,
@@ -310,7 +315,7 @@ export namespace vireo {
         // Staging buffers used by the upload() methods
         std::vector<std::shared_ptr<VKBuffer>>  stagingBuffers{};
 
-        // Convert Vireo states to Vulkan state while trying to match pipeline stages (like DirectX)
+        // Convert Vireo states to Vulkan state while trying to match pipeline stages
         static void convertState(
             ResourceState oldState,
             ResourceState newState,
@@ -321,6 +326,14 @@ export namespace vireo {
             VkImageLayout& srcLayout,
             VkImageLayout& dstLayout,
             VkImageAspectFlagBits& aspectFlag);
+
+        static void convertState(
+            ResourceState oldState,
+            ResourceState newState,
+            VkPipelineStageFlags& srcStage,
+            VkPipelineStageFlags& dstStage,
+            VkAccessFlags& srcAccess,
+            VkAccessFlags& dstAccess);
 
         void barrier(const std::vector<VkImage>& images,
            ResourceState oldState,
