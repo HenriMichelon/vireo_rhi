@@ -37,6 +37,7 @@ PFN_vkCmdDrawIndexed vkCmdDrawIndexed;
 PFN_vkCmdDrawIndexedIndirect vkCmdDrawIndexedIndirect;
 PFN_vkCmdDrawIndirect vkCmdDrawIndirect;
 PFN_vkCmdDrawIndexedIndirectCount vkCmdDrawIndexedIndirectCount;
+PFN_vkCmdFillBuffer vkCmdFillBuffer;
 PFN_vkCmdEndRendering vkCmdEndRendering;
 PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier;
 PFN_vkCmdSetDepthBias vkCmdSetDepthBias;
@@ -202,6 +203,7 @@ void vulkanInitializeDevice(VkDevice device) {
 	vkCmdDrawIndexedIndirect = (PFN_vkCmdDrawIndexedIndirect)vkGetDeviceProcAddr(device, "vkCmdDrawIndexedIndirect");
 	vkCmdDrawIndirect = (PFN_vkCmdDrawIndirect)vkGetDeviceProcAddr(device, "vkCmdDrawIndirect");
 	vkCmdDrawIndexedIndirectCount = (PFN_vkCmdDrawIndexedIndirectCount)vkGetDeviceProcAddr(device, "vkCmdDrawIndexedIndirectCount");
+	vkCmdFillBuffer = (PFN_vkCmdFillBuffer)vkGetDeviceProcAddr(device, "vkCmdFillBuffer");
 	vkCmdPipelineBarrier = (PFN_vkCmdPipelineBarrier)vkGetDeviceProcAddr(device, "vkCmdPipelineBarrier");
 	vkCmdPushConstants = (PFN_vkCmdPushConstants)vkGetDeviceProcAddr(device, "vkCmdPushConstants");
 	vkCmdSetDepthBias = (PFN_vkCmdSetDepthBias)vkGetDeviceProcAddr(device, "vkCmdSetDepthBias");

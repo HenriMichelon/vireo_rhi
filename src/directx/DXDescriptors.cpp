@@ -143,7 +143,8 @@ namespace vireo {
                 .SizeInBytes = dxBuffer.getInstanceSizeAligned(),
             };
             device->CreateConstantBufferView(&bufferViewDesc, cpuHandle);
-        } else if (buffer.getType() == BufferType::READWRITE_STORAGE) {
+        } else if (buffer.getType() == BufferType::READWRITE_STORAGE ||
+                   buffer.getType() == BufferType::INDIRECT) {
             const auto uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC{
                 .ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
                 .Buffer = {
@@ -157,7 +158,9 @@ namespace vireo {
                 &uavDesc,
                 cpuHandle
             );
-        } else if (buffer.getType() == BufferType::STORAGE || buffer.getType() == BufferType::DEVICE_STORAGE) {
+        } else if (
+            buffer.getType() == BufferType::STORAGE ||
+            buffer.getType() == BufferType::DEVICE_STORAGE) {
             const auto srvDesc = D3D12_SHADER_RESOURCE_VIEW_DESC {
                 .Format = DXGI_FORMAT_UNKNOWN,
                 .ViewDimension = D3D12_SRV_DIMENSION_BUFFER,

@@ -41,12 +41,13 @@ namespace vireo {
             type == BufferType::IMAGE_UPLOAD ||
             type == BufferType::BUFFER_UPLOAD ?
             D3D12_HEAP_TYPE_UPLOAD :
-            type == BufferType::IMAGE_DOWNLOAD ?
+            type == BufferType::IMAGE_DOWNLOAD ||
+            type == BufferType::BUFFER_DOWNLOAD ?
             D3D12_HEAP_TYPE_READBACK :
             D3D12_HEAP_TYPE_DEFAULT
         );
         int flag =
-            type == BufferType::READWRITE_STORAGE ?
+            type == BufferType::READWRITE_STORAGE || type == BufferType::INDIRECT ?
             D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS :
             D3D12_RESOURCE_FLAG_NONE;
         const auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize, static_cast<D3D12_RESOURCE_FLAGS >(flag));

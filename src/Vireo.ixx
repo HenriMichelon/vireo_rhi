@@ -174,8 +174,10 @@ export namespace vireo {
         DEVICE_STORAGE,
         //! Used for read/write shader storage (in GPU memory)
         READWRITE_STORAGE,
-        //! Used for vertex and index buffers copy operations (from host visible memory to GPU memory)
+        //! Used to copy data into the VRAM (from host visible memory to GPU memory)
         BUFFER_UPLOAD,
+        //! Used to copy from the VRAM (from host visible memory to GPU memory)
+        BUFFER_DOWNLOAD,
         //! Used for image copy operations (from host visible memory to GPU memory)
         IMAGE_UPLOAD,
         //! Used for image copy operations (from GPU memory to host visible)
@@ -1555,7 +1557,7 @@ export namespace vireo {
      * Structure specifying an indexed indirect drawing command
      */
     struct DrawIndexedIndirectCommand {
-        uint32_t indexCount;
+        uint32_t indexCount{0};
         uint32_t instanceCount{1};
         uint32_t firstIndex{0};
         int32_t  vertexOffset{0};

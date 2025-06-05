@@ -70,6 +70,7 @@ extern PFN_vkCmdDrawIndexed vkCmdDrawIndexed;
 extern PFN_vkCmdDrawIndirect vkCmdDrawIndirect;
 extern PFN_vkCmdDrawIndexedIndirect vkCmdDrawIndexedIndirect;
 extern PFN_vkCmdDrawIndexedIndirectCount vkCmdDrawIndexedIndirectCount;
+extern PFN_vkCmdFillBuffer vkCmdFillBuffer;
 extern PFN_vkCmdEndRendering vkCmdEndRendering;
 extern PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier;
 extern PFN_vkCmdSetDepthBias vkCmdSetDepthBias;
