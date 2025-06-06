@@ -1048,10 +1048,35 @@ namespace vireo {
             srcAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
             dstAccess = VK_ACCESS_SHADER_READ_BIT;
         } else if (oldState == ResourceState::SHADER_READ && newState == ResourceState::COPY_DST) {
-            srcStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+            srcStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
             dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-            srcAccess = 0;
+            srcAccess = VK_ACCESS_SHADER_READ_BIT;
             dstAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
+        } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::COMPUTE_WRITE) {
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            srcAccess = VK_ACCESS_TRANSFER_READ_BIT;
+            dstAccess = VK_ACCESS_SHADER_WRITE_BIT;
+        } else if (oldState == ResourceState::SHADER_READ && newState == ResourceState::COMPUTE_WRITE) {
+            srcStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+            dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            srcAccess = VK_ACCESS_TRANSFER_READ_BIT;
+            dstAccess = VK_ACCESS_SHADER_WRITE_BIT;
+        } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::COPY_SRC) {
+            srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            srcAccess = VK_ACCESS_SHADER_WRITE_BIT;
+            dstAccess = VK_ACCESS_TRANSFER_READ_BIT;
+        } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::SHADER_READ) {
+            srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            dstStage = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+            srcAccess = VK_ACCESS_SHADER_WRITE_BIT;
+            dstAccess = VK_ACCESS_SHADER_READ_BIT;
+        } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::SHADER_READ) {
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            srcAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
+            dstAccess = VK_ACCESS_SHADER_READ_BIT;
         } else {
             throw Exception("Not implemented");
         }
