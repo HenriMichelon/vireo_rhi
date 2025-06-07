@@ -1551,7 +1551,7 @@ export namespace vireo {
      * Structure specifying an indirect drawing command
      */
     struct DrawIndirectCommand {
-        uint32_t vertexCount;
+        uint32_t vertexCount{0};
         uint32_t instanceCount{1};
         uint32_t firstVertex{0};
         uint32_t firstInstance{0};
