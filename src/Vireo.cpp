@@ -4,6 +4,9 @@
 * This software is released under the MIT License.
 * https://opensource.org/licenses/MIT
 */
+module;
+#include <cstring>
+#include <cassert>
 module vireo;
 
 import std;
@@ -58,8 +61,8 @@ namespace vireo {
                type == BufferType::BUFFER_UPLOAD);
         if (size == WHOLE_SIZE) {
             for (int y = 0; y < instanceCount; y++) {
-                auto *pScan = static_cast<UINT8*>(mappedAddress) + y * instanceSizeAligned;
-                auto *pSource = static_cast<const UINT8*>(data) + y * instanceSize;
+                auto *pScan = static_cast<uint8_t*>(mappedAddress) + y * instanceSizeAligned;
+                auto *pSource = static_cast<const uint8_t*>(data) + y * instanceSize;
                 memcpy(pScan, pSource, instanceSize);
             }
         } else {

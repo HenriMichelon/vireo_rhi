@@ -4,6 +4,10 @@
  * This software is released under the MIT License.
  * https://opensource.org/licenses/MIT
 */
+module;
+#ifdef _WIN32
+#include <windows.h>
+#endif
 export module vireo.tools;
 
 import std;

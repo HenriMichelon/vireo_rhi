@@ -8,8 +8,10 @@ module;
 #include "vireo/backend/directx/Libraries.h"
 module vireo.directx;
 
+import vireo.directx.commands;
 import vireo.directx.pipelines;
 import vireo.directx.resources;
+import vireo.directx.swapchains;
 
 namespace vireo {
 

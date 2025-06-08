@@ -5,9 +5,9 @@
 * https://opensource.org/licenses/MIT
 */
 export module vireo;
-#undef DOMAIN
+
+import std;
 export import vireo.tools;
-#include <mutex>
 
 export namespace vireo {
 
@@ -496,6 +496,7 @@ export namespace vireo {
         uint32_t  writeMask{0xFFFFFFFF};
     };
 
+#undef DOMAIN
     /**
      * Pipeline stage
      *

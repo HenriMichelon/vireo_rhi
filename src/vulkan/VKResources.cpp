@@ -6,6 +6,7 @@
 */
 module;
 #include "vireo/backend/vulkan/Libraries.h"
+#include <cassert>
 module vireo.vulkan.resources;
 
 import vireo.tools;

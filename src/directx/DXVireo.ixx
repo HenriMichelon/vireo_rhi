@@ -9,10 +9,8 @@ module;
 export module vireo.directx;
 
 import vireo;
-import vireo.directx.commands;
 import vireo.directx.descriptors;
 import vireo.directx.devices;
-import vireo.directx.swapchains;
 
 export namespace vireo {
 

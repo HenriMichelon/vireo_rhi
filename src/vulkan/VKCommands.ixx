@@ -8,6 +8,7 @@ module;
 #include "vireo/backend/vulkan/Libraries.h"
 export module vireo.vulkan.commands;
 
+import std;
 import vireo;
 
 import vireo.vulkan.devices;

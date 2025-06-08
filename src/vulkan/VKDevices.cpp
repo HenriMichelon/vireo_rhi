@@ -6,6 +6,11 @@
 */
 module;
 #include "vireo/backend/vulkan/Libraries.h"
+#ifdef _WIN32
+#include <Windows.h>
+#include <dxgi1_6.h>
+#include <d3d12.h>
+#endif
 module vireo.vulkan.devices;
 
 import vireo.tools;

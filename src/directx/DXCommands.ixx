@@ -323,11 +323,11 @@ export namespace vireo {
         // Automatically allocated command signatures by stride size
         std::unordered_map<uint32_t, ComPtr<ID3D12CommandSignature>> drawIndirectCommandSignatures;
 
-        static constexpr auto argDescIndexed = D3D12_INDIRECT_ARGUMENT_DESC{
+        inline static auto argDescIndexed = D3D12_INDIRECT_ARGUMENT_DESC{
             .Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED,
         };
 
-        static constexpr auto argDesc = D3D12_INDIRECT_ARGUMENT_DESC{
+        inline static auto argDesc = D3D12_INDIRECT_ARGUMENT_DESC{
             .Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW,
         };
 
@@ -352,6 +352,7 @@ export namespace vireo {
             const std::vector<ID3D12Resource*>& resources,
             ResourceState oldState,
             ResourceState newState) const;
+
         };
 
 }

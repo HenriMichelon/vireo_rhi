@@ -102,26 +102,13 @@ endif ()
 target_link_libraries(${VIREO_TARGET} std-cxx-modules)
 if(MSVC)
 target_precompile_headers(${VIREO_TARGET} PRIVATE
-        "<vulkan/vulkan.h>"
-        "<vulkan/vk_enum_string_helper.h>"
+        "<cstdint>"
 )
 endif ()
 if(WIN32)
-    target_precompile_headers(${VIREO_TARGET} PRIVATE
-            "<windows.h>"
-            "<cstdint>"
-    )
     set_target_properties(${VIREO_TARGET} PROPERTIES WIN32_EXECUTABLE TRUE)
 endif ()
 if (DIRECTX_BACKEND)
-    target_precompile_headers(${VIREO_TARGET} PRIVATE
-            "<d3d12.h>"
-            "<d3dx12.h>"
-            "<dxgi1_6.h>"
-            "<D3Dcompiler.h>"
-            "<DirectXMath.h>"
-            "<wrl.h>"
-    )
     target_link_libraries(${VIREO_TARGET} DirectX-Headers dxgi d3d12)
 endif()
 
