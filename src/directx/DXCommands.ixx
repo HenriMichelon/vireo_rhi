@@ -332,7 +332,10 @@ export namespace vireo {
         };
 
         // Automatically allocate command signatures by stride size if needed
-        void checkIndirectCommandSignature(const D3D12_INDIRECT_ARGUMENT_DESC& argDesc, uint32_t stride);
+        void checkIndirectCommandSignature(
+            const D3D12_INDIRECT_ARGUMENT_DESC& argDesc,
+            uint32_t stride,
+            uint32_t commandStride);
 
         static void convertState(
             ResourceState oldState,

@@ -778,7 +778,7 @@ namespace vireo {
         const size_t offset,
         const uint32_t drawCount,
         const uint32_t stride) {
-        checkIndirectCommandSignature(argDesc, stride);
+        checkIndirectCommandSignature(argDesc, stride, sizeof(D3D12_DRAW_ARGUMENTS ));
         const auto& dxBuffer = static_cast<const DXBuffer&>(buffer);
         commandList->ExecuteIndirect(
             drawIndirectCommandSignatures.at(stride).Get(),
@@ -789,13 +789,27 @@ namespace vireo {
             0
         );
     }
-    void DXCommandList::checkIndirectCommandSignature(const D3D12_INDIRECT_ARGUMENT_DESC& argDesc, const uint32_t stride) {
+    void DXCommandList::checkIndirectCommandSignature(
+        const D3D12_INDIRECT_ARGUMENT_DESC& argDesc,
+        const uint32_t stride,
+        const uint32_t commandStride) {
         if (!drawIndirectCommandSignatures.contains(stride)) {
-            const D3D12_COMMAND_SIGNATURE_DESC sigDesc {
+            D3D12_INDIRECT_ARGUMENT_DESC args[2] = {};
+            auto sigDesc = D3D12_COMMAND_SIGNATURE_DESC {
                 .ByteStride = stride,
-                .NumArgumentDescs = 1,
-                .pArgumentDescs = &argDesc,
             };
+            if (commandStride != stride) {
+                const int num32BitValuesToSet = (stride - commandStride)/sizeof(uint32_t);
+                args[0].Type = argDesc.Type;
+                args[0].Constant.RootParameterIndex = 0;
+                args[0].Constant.DestOffsetIn32BitValues = 0;
+                args[0].Constant.Num32BitValuesToSet = num32BitValuesToSet;
+                sigDesc.NumArgumentDescs = 2;
+                sigDesc.pArgumentDescs = args;
+            } else {
+                sigDesc.NumArgumentDescs = 1;
+                sigDesc.pArgumentDescs = &argDesc;
+            }
             auto commandSignature = ComPtr<ID3D12CommandSignature>{};
             dxCheck(device->CreateCommandSignature(&sigDesc, nullptr, IID_PPV_ARGS(&commandSignature)));
             drawIndirectCommandSignatures[stride] = commandSignature;
@@ -807,7 +821,7 @@ namespace vireo {
         const size_t offset,
         const uint32_t drawCount,
         const uint32_t stride) {
-        checkIndirectCommandSignature(argDescIndexed, stride);
+        checkIndirectCommandSignature(argDescIndexed, stride, sizeof(D3D12_DRAW_INDEXED_ARGUMENTS));
         const auto& dxBuffer = static_cast<const DXBuffer&>(buffer);
         commandList->ExecuteIndirect(
             drawIndirectCommandSignatures.at(stride).Get(),
@@ -826,7 +840,7 @@ namespace vireo {
         const size_t countOffset,
         const uint32_t maxDrawCount,
         const uint32_t stride) {
-        checkIndirectCommandSignature(argDescIndexed, stride);
+        checkIndirectCommandSignature(argDescIndexed, stride, sizeof(D3D12_DRAW_INDEXED_ARGUMENTS));
         const auto& dxBuffer = static_cast<const DXBuffer&>(buffer);
         const auto& dxCountBuffer = static_cast<const DXBuffer&>(countBuffer);
         commandList->ExecuteIndirect(
