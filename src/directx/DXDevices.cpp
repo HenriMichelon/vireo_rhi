@@ -40,7 +40,7 @@ namespace vireo {
             // is favored.
             if ((dxgiAdapterDesc1.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) == 0 &&
                 SUCCEEDED(D3D12CreateDevice(hardwareAdapter.Get(),
-                    D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device), nullptr)) &&
+                    D3D_FEATURE_LEVEL_12_0, __uuidof(ID3D12Device), nullptr)) &&
                 dxgiAdapterDesc1.DedicatedVideoMemory > maxDedicatedVideoMemory) {
                 maxDedicatedVideoMemory = dxgiAdapterDesc1.DedicatedVideoMemory;
                 dxCheck(hardwareAdapter.As(&hardwareAdapter4));
