@@ -435,20 +435,21 @@ namespace vireo {
                 VK_PIPELINE_BIND_POINT_GRAPHICS ,
                 static_cast<const VKGraphicPipeline&>(pipeline).getPipeline());
         }
+        currentlyBoundPipeline = &pipeline;
     }
 
     void VKCommandList::bindDescriptors(
-        const Pipeline& pipeline,
         const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors,
         const uint32_t firstSet) const {
         assert(!descriptors.empty());
-        const auto vkLayout = static_pointer_cast<const VKPipelineResources>(pipeline.getResources())->getPipelineLayout();
+        assert(currentlyBoundPipeline != nullptr);
+        const auto vkLayout = static_pointer_cast<const VKPipelineResources>(currentlyBoundPipeline->getResources())->getPipelineLayout();
         std::vector<VkDescriptorSet> descriptorSets(descriptors.size());
         for (int i = 0; i < descriptors.size(); i++) {
             descriptorSets[i] = static_pointer_cast<const VKDescriptorSet>(descriptors[i])->getSet();
         }
         vkCmdBindDescriptorSets(commandBuffer,
-                                pipeline.getType() == PipelineType::COMPUTE ?
+                                currentlyBoundPipeline->getType() == PipelineType::COMPUTE ?
                                     VK_PIPELINE_BIND_POINT_COMPUTE :
                                     VK_PIPELINE_BIND_POINT_GRAPHICS,
                                 vkLayout,
@@ -460,13 +461,13 @@ namespace vireo {
     }
 
     void VKCommandList::bindDescriptor(
-        const Pipeline& pipeline,
         const DescriptorSet& descriptor,
         const uint32_t set) const {
-        const auto vkLayout = static_pointer_cast<const VKPipelineResources>(pipeline.getResources())->getPipelineLayout();
+        assert(currentlyBoundPipeline != nullptr);
+        const auto vkLayout = static_pointer_cast<const VKPipelineResources>(currentlyBoundPipeline->getResources())->getPipelineLayout();
         const auto& descriptorSet = static_cast<const VKDescriptorSet&>(descriptor).getSet();
         vkCmdBindDescriptorSets(commandBuffer,
-                                pipeline.getType() == PipelineType::COMPUTE ?
+                                currentlyBoundPipeline->getType() == PipelineType::COMPUTE ?
                                     VK_PIPELINE_BIND_POINT_COMPUTE :
                                     VK_PIPELINE_BIND_POINT_GRAPHICS,
                                 vkLayout,
@@ -478,15 +479,15 @@ namespace vireo {
     }
 
     void VKCommandList::bindDescriptor(
-        const Pipeline& pipeline,
         const DescriptorSet& descriptor,
         const uint32_t set,
         const uint32_t offset) const {
         assert(descriptor.getLayout()->isDynamicUniform());
-        const auto vkLayout = static_pointer_cast<const VKPipelineResources>(pipeline.getResources())->getPipelineLayout();
+        assert(currentlyBoundPipeline != nullptr);
+        const auto vkLayout = static_pointer_cast<const VKPipelineResources>(currentlyBoundPipeline->getResources())->getPipelineLayout();
         const auto& descriptorSet = static_cast<const VKDescriptorSet&>(descriptor).getSet();
         vkCmdBindDescriptorSets(commandBuffer,
-                                pipeline.getType() == PipelineType::COMPUTE ?
+                                currentlyBoundPipeline->getType() == PipelineType::COMPUTE ?
                                     VK_PIPELINE_BIND_POINT_COMPUTE :
                                     VK_PIPELINE_BIND_POINT_GRAPHICS,
                                 vkLayout,

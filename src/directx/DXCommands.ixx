@@ -211,17 +211,14 @@ export namespace vireo {
         void bindPipeline(Pipeline& pipeline) override;
 
         void bindDescriptors(
-            const Pipeline& pipeline,
             const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors,
             uint32_t firstSet) const override;
 
         void bindDescriptor(
-            const Pipeline& pipeline,
             const DescriptorSet& descriptor,
             uint32_t set) const override;
 
         void bindDescriptor(
-            const Pipeline& pipeline,
             const DescriptorSet& descriptor,
             uint32_t set,
             uint32_t offset) const override;
@@ -323,8 +320,6 @@ export namespace vireo {
         std::vector<std::shared_ptr<DXDescriptorHeap>> descriptorHeaps;
         // Automatically allocated command signatures by stride size
         std::unordered_map<uint32_t, ComPtr<ID3D12CommandSignature>> drawIndirectCommandSignatures;
-        // Currently bound pipeline for CreateCommandSignature
-        Pipeline* boundPipeline;
 
         inline static auto argDescIndexed = D3D12_INDIRECT_ARGUMENT_DESC{
             .Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED,

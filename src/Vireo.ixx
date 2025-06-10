@@ -1866,8 +1866,8 @@ export namespace vireo {
          */
         void bindIndexBuffer(
             const std::shared_ptr<const Buffer>& buffer,
-            IndexType indexType = IndexType::UINT32,
-            uint32_t firstIndex = 0) const {
+            const IndexType indexType = IndexType::UINT32,
+            const uint32_t firstIndex = 0) const {
             bindIndexBuffer(*buffer, indexType, firstIndex);
         }
 
@@ -1882,77 +1882,56 @@ export namespace vireo {
         virtual void bindPipeline(const std::shared_ptr<Pipeline>& pipeline) { bindPipeline(*pipeline); }
 
         /**
-         * Binds descriptor sets to a command list
-         * @param pipeline The pipeline that will use the descriptors
+         * Bind descriptor sets to a command list
          * @param descriptors The descriptor sets to bind
          * @param firstSet The set number of the first descriptor set to be bound
          */
         virtual void bindDescriptors(
-            const std::shared_ptr<const Pipeline>& pipeline,
-            const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors,
-            uint32_t firstSet = 0) const { bindDescriptors(*pipeline, descriptors); }
-
-        /**
-         * Binds descriptor sets to a command list
-         * @param pipeline The pipeline that will use the descriptors
-         * @param descriptors The descriptor sets to bind
-         * @param firstSet The set number of the first descriptor set to be bound
-         */
-        virtual void bindDescriptors(
-            const Pipeline& pipeline,
             const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors,
             uint32_t firstSet = 0) const = 0;
 
         /**
-         * Binds descriptor set to a command list
-         * @param pipeline The pipeline that will use the descriptors
+         * Bind descriptor set to a command list
          * @param descriptor The descriptor set to bind
          * @param set The set number of the descriptor set to be bound
         */
         virtual void bindDescriptor(
-            const Pipeline& pipeline,
             const DescriptorSet& descriptor,
             uint32_t set) const = 0;
 
         /**
          * Binds descriptor set to a command list
-         * @param pipeline The pipeline that will use the descriptors
          * @param descriptor The descriptor set to bind
          * @param set The set number of the descriptor set to be bound
         */
         void bindDescriptor(
-            const std::shared_ptr<const Pipeline>& pipeline,
             const std::shared_ptr<const DescriptorSet>& descriptor,
             const uint32_t set) const {
-            bindDescriptor(*pipeline, *descriptor, set);
+            bindDescriptor(*descriptor, set);
         }
 
         /**
          * Binds a dynamic uniform descriptor set to a command list
-         * @param pipeline The pipeline that will use the descriptors
          * @param descriptor The descriptor set to bind
          * @param set The set number of the descriptor set to be bound
          * @param offset Values specifying dynamic offsets for the UNIFORM_DYNAMIC resource.
         */
         virtual void bindDescriptor(
-            const Pipeline& pipeline,
             const DescriptorSet& descriptor,
             uint32_t set,
             uint32_t offset) const = 0;
 
         /**
          * Binds a dynamic uniform descriptor set to a command list
-         * @param pipeline The pipeline that will use the descriptors
          * @param descriptor The descriptor set to bind
          * @param set The set number of the descriptor set to be bound
          * @param offset Values specifying dynamic offsets for the UNIFORM_DYNAMIC resource.
         */
         void bindDescriptor(
-            const std::shared_ptr<const Pipeline>& pipeline,
             const std::shared_ptr<const DescriptorSet>& descriptor,
             const uint32_t set,
             const uint32_t offset) const {
-            bindDescriptor(*pipeline, *descriptor, set, offset);
+            bindDescriptor(*descriptor, set, offset);
         }
 
         /**
@@ -2179,6 +2158,8 @@ export namespace vireo {
 
     protected:
         CommandList() = default;
+        // Last bound pipeline
+        Pipeline* currentlyBoundPipeline{nullptr};
     };
 
     /**
