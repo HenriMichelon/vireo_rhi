@@ -215,7 +215,7 @@ export namespace vireo {
 
         void bindIndexBuffer(const Buffer& buffer, IndexType indexType, uint32_t firstIndex) const override;
 
-        void bindPipeline(const Pipeline& pipeline) override;
+        void bindPipeline(Pipeline& pipeline) override;
 
         void bindDescriptors(
             const Pipeline& pipeline,

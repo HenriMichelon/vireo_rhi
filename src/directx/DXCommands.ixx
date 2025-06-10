@@ -11,6 +11,7 @@ export module vireo.directx.commands;
 import std;
 import vireo;
 import vireo.directx.descriptors;
+import vireo.directx.pipelines;
 
 export namespace vireo {
 
@@ -207,7 +208,7 @@ export namespace vireo {
 
         void bindIndexBuffer(const Buffer& buffer, IndexType indexType, uint32_t firstIndex) const override;
 
-        void bindPipeline(const Pipeline& pipeline) override;
+        void bindPipeline(Pipeline& pipeline) override;
 
         void bindDescriptors(
             const Pipeline& pipeline,
@@ -322,6 +323,8 @@ export namespace vireo {
         std::vector<std::shared_ptr<DXDescriptorHeap>> descriptorHeaps;
         // Automatically allocated command signatures by stride size
         std::unordered_map<uint32_t, ComPtr<ID3D12CommandSignature>> drawIndirectCommandSignatures;
+        // Currently bound pipeline for CreateCommandSignature
+        Pipeline* boundPipeline;
 
         inline static auto argDescIndexed = D3D12_INDIRECT_ARGUMENT_DESC{
             .Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED,

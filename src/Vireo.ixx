@@ -1874,12 +1874,12 @@ export namespace vireo {
         /**
          * Binds a pipeline object to a command list
          */
-        virtual void bindPipeline(const Pipeline& pipeline) = 0;
+        virtual void bindPipeline(Pipeline& pipeline) = 0;
 
         /**
          * Binds a pipeline object to a command list
          */
-        virtual void bindPipeline(const std::shared_ptr<const Pipeline>& pipeline) { bindPipeline(*pipeline); }
+        virtual void bindPipeline(const std::shared_ptr<Pipeline>& pipeline) { bindPipeline(*pipeline); }
 
         /**
          * Binds descriptor sets to a command list

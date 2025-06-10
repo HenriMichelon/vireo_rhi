@@ -197,7 +197,7 @@ namespace vireo {
         DXCommandList::cleanup();
     }
 
-    void DXCommandList::bindPipeline(const Pipeline& pipeline) {
+    void DXCommandList::bindPipeline(Pipeline& pipeline) {
         std::vector<ID3D12DescriptorHeap*> heaps(descriptorHeaps.size());
         for (int i = 0; i < descriptorHeaps.size(); i++) {
             heaps[i] = descriptorHeaps[i]->getHeap().Get();
@@ -212,6 +212,7 @@ namespace vireo {
             commandList->SetGraphicsRootSignature(static_pointer_cast<const DXPipelineResources>(pipeline.getResources())->getRootSignature().Get());
             commandList->IASetPrimitiveTopology(dxPipeline.getPrimitiveTopology());
         }
+        boundPipeline = &pipeline;
     }
 
     void DXCommandList::bindDescriptors(
@@ -794,24 +795,57 @@ namespace vireo {
         const uint32_t stride,
         const uint32_t commandStride) {
         if (!drawIndirectCommandSignatures.contains(stride)) {
-            D3D12_INDIRECT_ARGUMENT_DESC args[2] = {};
             auto sigDesc = D3D12_COMMAND_SIGNATURE_DESC {
                 .ByteStride = stride,
             };
+            auto commandSignature = ComPtr<ID3D12CommandSignature>{};
             if (commandStride != stride) {
                 const int num32BitValuesToSet = (stride - commandStride)/sizeof(uint32_t);
-                args[0].Type = argDesc.Type;
+                // auto rootParam = CD3DX12_ROOT_PARAMETER1{};
+                // rootParam.InitAsConstants(
+                //     num32BitValuesToSet,
+                //     0, // b0
+                //     0,
+                //     D3D12_SHADER_VISIBILITY_ALL);
+                // auto rootSigDesc = D3D12_VERSIONED_ROOT_SIGNATURE_DESC{
+                //     .Version = D3D_ROOT_SIGNATURE_VERSION_1_1,
+                //     .Desc_1_1 = {
+                //         .NumParameters = 1,
+                //         .pParameters = &rootParam,
+                //         .NumStaticSamplers = 0,
+                //         .pStaticSamplers = nullptr,
+                //         .Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT,
+                //     }
+                // };
+                // ComPtr<ID3DBlob> sigBlob;
+                // ComPtr<ID3DBlob> errorBlob;
+                // dxCheck(D3DX12SerializeVersionedRootSignature(
+                //     &rootSigDesc, D3D_ROOT_SIGNATURE_VERSION_1_1, &sigBlob, &errorBlob));
+                // ComPtr<ID3D12RootSignature> rootSignature;
+                // dxCheck(device->CreateRootSignature(
+                // 0, sigBlob->GetBufferPointer(), sigBlob->GetBufferSize(),
+                //     IID_PPV_ARGS(&rootSignature)));
+
+                D3D12_INDIRECT_ARGUMENT_DESC args[2] = {};
+                args[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_CONSTANT;
                 args[0].Constant.RootParameterIndex = 0;
                 args[0].Constant.DestOffsetIn32BitValues = 0;
                 args[0].Constant.Num32BitValuesToSet = num32BitValuesToSet;
+                args[1].Type = argDesc.Type;
                 sigDesc.NumArgumentDescs = 2;
                 sigDesc.pArgumentDescs = args;
+
+                const auto resources =
+                    std::static_pointer_cast<DXPipelineResources>(boundPipeline->getResources());
+                dxCheck(device->CreateCommandSignature(
+                    &sigDesc,
+                    resources->getRootSignature().Get(),
+                    IID_PPV_ARGS(&commandSignature)));
             } else {
                 sigDesc.NumArgumentDescs = 1;
                 sigDesc.pArgumentDescs = &argDesc;
+                dxCheck(device->CreateCommandSignature(&sigDesc, nullptr, IID_PPV_ARGS(&commandSignature)));
             }
-            auto commandSignature = ComPtr<ID3D12CommandSignature>{};
-            dxCheck(device->CreateCommandSignature(&sigDesc, nullptr, IID_PPV_ARGS(&commandSignature)));
             drawIndirectCommandSignatures[stride] = commandSignature;
         }
     }

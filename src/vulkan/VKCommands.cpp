@@ -423,7 +423,7 @@ namespace vireo {
         vkCmdDrawIndexedIndirectCount(commandBuffer, vkBuffer.getBuffer(), offset, vkCountBuffer.getBuffer(), countOffset, maxDrawCount, stride);
     }
 
-    void VKCommandList::bindPipeline(const Pipeline& pipeline) {
+    void VKCommandList::bindPipeline(Pipeline& pipeline) {
         if (pipeline.getType() == PipelineType::COMPUTE) {
             vkCmdBindPipeline(
                 commandBuffer,
