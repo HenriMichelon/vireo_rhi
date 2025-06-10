@@ -1973,7 +1973,8 @@ export namespace vireo {
             const Buffer& buffer,
             size_t offset,
             uint32_t drawCount,
-            uint32_t stride) = 0;
+            uint32_t stride,
+            uint32_t firstCommandOffset = 0) = 0;
 
         /**
          * Draw primitives with indirect parameters
@@ -1986,8 +1987,9 @@ export namespace vireo {
             const std::shared_ptr<Buffer>& buffer,
             const size_t offset,
             const uint32_t drawCount,
-            const uint32_t stride) {
-            drawIndirect(*buffer, offset, drawCount, stride);
+            const uint32_t stride,
+            const uint32_t firstCommandOffset = 0) {
+            drawIndirect(*buffer, offset, drawCount, stride, firstCommandOffset);
         }
 
         /**
@@ -2005,7 +2007,8 @@ export namespace vireo {
             Buffer& countBuffer,
             size_t countOffset,
             uint32_t maxDrawCount,
-            uint32_t stride) = 0;
+            uint32_t stride,
+            uint32_t firstCommandOffset = 0) = 0;
 
         /**
          * Draw primitives with indirect parameters and indexed vertices
@@ -2022,7 +2025,8 @@ export namespace vireo {
             const std::shared_ptr<Buffer>& countBuffer,
             const size_t countOffset,
             const uint32_t maxDrawCount,
-            const uint32_t stride) {
+            const uint32_t stride,
+            uint32_t firstCommandOffset = 0) {
             drawIndexedIndirectCount(*buffer, offset, *countBuffer, countOffset, maxDrawCount, stride);
         }
 
@@ -2037,7 +2041,8 @@ export namespace vireo {
             const Buffer& buffer,
             size_t offset,
             uint32_t maxDrawCount,
-            uint32_t stride) = 0;
+            uint32_t stride,
+            uint32_t firstCommandOffset = 0) = 0;
 
         /**
          * Draw primitives with indirect parameters and indexed vertices
@@ -2050,8 +2055,9 @@ export namespace vireo {
             const std::shared_ptr<Buffer>& buffer,
             const size_t offset,
             const uint32_t maxDrawCount,
-            const uint32_t stride) {
-            drawIndexedIndirect(*buffer, offset, maxDrawCount, stride);
+            const uint32_t stride,
+            const uint32_t firstCommandOffset = 0) {
+            drawIndexedIndirect(*buffer, offset, maxDrawCount, stride, firstCommandOffset);
         }
 
         /**

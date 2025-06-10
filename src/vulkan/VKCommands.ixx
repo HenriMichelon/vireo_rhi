@@ -240,7 +240,8 @@ export namespace vireo {
             const Buffer& buffer,
             size_t offset,
             uint32_t drawCount,
-            uint32_t stride) override;
+            uint32_t stride,
+            uint32_t firstCommandOffset) override;
 
         void drawIndexed(
             uint32_t indexCountPerInstance,
@@ -253,7 +254,8 @@ export namespace vireo {
             const Buffer& buffer,
             size_t offset,
             uint32_t drawCount,
-            uint32_t stride) override;
+            uint32_t stride,
+            uint32_t firstCommandOffset) override;
 
         void drawIndexedIndirectCount(
             Buffer& buffer,
@@ -261,7 +263,8 @@ export namespace vireo {
             Buffer& countBuffer,
             size_t countOffset,
             uint32_t maxDrawCount,
-            uint32_t stride) override;
+            uint32_t stride,
+            uint32_t firstCommandOffset) override;
 
         void setViewports(const std::vector<Viewport>& viewports) const override;
 
