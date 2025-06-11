@@ -404,6 +404,7 @@ namespace vireo {
             VkPhysicalDeviceVulkan12Features deviceVulkan12Features {
                 .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
                 .pNext = &deviceVulkan11Features,
+                .drawIndirectCount = VK_TRUE,
                 .runtimeDescriptorArray = VK_TRUE,
                 .timelineSemaphore = VK_TRUE,
             };

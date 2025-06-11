@@ -42,8 +42,22 @@ export namespace vireo {
 
         ~VKDescriptorSet() override;
 
-        void update(DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer) override {
+        void update(const DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer) override {
             update(index, *buffer);
+        }
+
+        void update(
+            const DescriptorIndex index,
+            const std::shared_ptr<const Buffer>& buffer,
+            const std::shared_ptr<const Buffer>&) override {
+            update(index, *buffer);
+        }
+
+        void update(
+            const DescriptorIndex index,
+            const Buffer& buffer,
+            const Buffer&) override {
+            update(index, buffer);
         }
 
         void update(DescriptorIndex index, const Buffer& buffer) override;

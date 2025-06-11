@@ -668,6 +668,9 @@ namespace vireo {
         } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::INDIRECT_DRAW) {
             srcState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
             dstState = D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
+        } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::INDIRECT_DRAW) {
+            srcState = D3D12_RESOURCE_STATE_COPY_DEST;
+            dstState = D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
         } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::SHADER_READ) {
             srcState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
             dstState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
@@ -677,15 +680,18 @@ namespace vireo {
         } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::COMPUTE_WRITE) {
             srcState = D3D12_RESOURCE_STATE_COPY_SOURCE;
             dstState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+        } else if (oldState == ResourceState::INDIRECT_DRAW && newState == ResourceState::COMPUTE_WRITE) {
+            srcState = D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
+            dstState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
         } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::COPY_SRC) {
             srcState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
             dstState = D3D12_RESOURCE_STATE_COPY_SOURCE;
+        } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::INDIRECT_DRAW) {
+            srcState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+            dstState = D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
         } else if (oldState == ResourceState::SHADER_READ && newState == ResourceState::COPY_DST) {
             srcState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
             dstState = D3D12_RESOURCE_STATE_COPY_DEST;
-        } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::SHADER_READ) {
-            srcState = D3D12_RESOURCE_STATE_COPY_DEST;
-            dstState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
         } else {
             throw Exception("Not implemented");
         }

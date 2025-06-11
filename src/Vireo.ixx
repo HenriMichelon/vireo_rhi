@@ -1308,7 +1308,19 @@ export namespace vireo {
          * @param index Binding index
          * @param buffer The buffer
          */
-        virtual void update(DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer) = 0;
+        virtual void update(
+            DescriptorIndex index,
+            const std::shared_ptr<const Buffer>& buffer) = 0;
+
+        virtual void update(
+            DescriptorIndex index,
+            const std::shared_ptr<const Buffer>& buffer,
+            const std::shared_ptr<const Buffer>& counterBuffer) = 0;
+
+        virtual void update(
+            DescriptorIndex index,
+            const Buffer& buffer,
+            const Buffer& counterBuffer) = 0;
 
         /**
          * Bind an uniform buffer
@@ -2026,8 +2038,8 @@ export namespace vireo {
             const size_t countOffset,
             const uint32_t maxDrawCount,
             const uint32_t stride,
-            uint32_t firstCommandOffset = 0) {
-            drawIndexedIndirectCount(*buffer, offset, *countBuffer, countOffset, maxDrawCount, stride);
+            const uint32_t firstCommandOffset = 0) {
+            drawIndexedIndirectCount(*buffer, offset, *countBuffer, countOffset, maxDrawCount, stride, firstCommandOffset);
         }
 
         /**

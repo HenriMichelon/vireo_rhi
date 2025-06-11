@@ -134,6 +134,28 @@ namespace vireo {
         update(index, *buffer);
     }
 
+        void DXDescriptorSet::update(const DescriptorIndex index, const Buffer& buffer, const Buffer& counterBuffer) {
+        assert(!layout->isSamplers());
+        assert(buffer.getType() == BufferType::READWRITE_STORAGE || buffer.getType() == BufferType::INDIRECT);
+        const auto cpuHandle = D3D12_CPU_DESCRIPTOR_HANDLE { descriptors.cpuHandle.ptr + index * heap->getDescriptorSize() };
+        const auto& dxBuffer = static_cast<const DXBuffer&>(buffer);
+        const auto& dxCounterBuffer = static_cast<const DXBuffer&>(counterBuffer);
+        const auto uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC{
+            .ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
+            .Buffer = {
+                .NumElements = buffer.getInstanceCount(),
+                .StructureByteStride = buffer.getInstanceSizeAligned(),
+            }
+        };
+        device->CreateUnorderedAccessView(
+            dxBuffer.getBuffer().Get(),
+            dxCounterBuffer.getBuffer().Get(),
+            &uavDesc,
+            cpuHandle
+        );
+    }
+
+
     void DXDescriptorSet::update(const DescriptorIndex index, const Buffer& buffer) {
         assert(!layout->isSamplers());
         const auto cpuHandle = D3D12_CPU_DESCRIPTOR_HANDLE { descriptors.cpuHandle.ptr + index * heap->getDescriptorSize() };

@@ -81,6 +81,18 @@ export namespace vireo {
             const std::shared_ptr<const DescriptorLayout>& layout,
             const ComPtr<ID3D12Device>& device);
 
+        void update(
+            DescriptorIndex index,
+            const std::shared_ptr<const Buffer>& buffer,
+            const std::shared_ptr<const Buffer>& counterBuffer) override {
+            update(index, *buffer, *counterBuffer);
+        }
+
+        void update(
+            DescriptorIndex index,
+            const Buffer& buffer,
+            const Buffer& counterBuffer) override;
+
         void update(DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer) override;
 
         void update(DescriptorIndex index, const Buffer& buffer) override;
