@@ -43,7 +43,7 @@ export namespace vireo {
             size_t size,
             const std::vector<VertexAttributeDesc>& attributesDescriptions) const override;
 
-        // std::shared_ptr<ShaderModule> createShaderModule(const std::string& fileName) const override;
+        std::shared_ptr<ShaderModule> createShaderModule(const std::string& fileName) const override;
 
         // std::shared_ptr<ShaderModule> createShaderModule(
             // std::ifstream input,
