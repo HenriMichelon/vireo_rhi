@@ -84,9 +84,9 @@ namespace vireo {
         return std::make_shared<DXVertexInputLayout>(attributesDescriptions);
     }
 
-    std::shared_ptr<ShaderModule> DXVireo::createShaderModule(const std::string& fileName) const {
-        return std::make_shared<DXShaderModule>(fileName);
-    }
+    // std::shared_ptr<ShaderModule> DXVireo::createShaderModule(const std::string& fileName) const {
+        // return std::make_shared<DXShaderModule>(fileName);
+    // }
 
     // std::shared_ptr<ShaderModule> DXVireo::createShaderModule(
         // std::ifstream input,

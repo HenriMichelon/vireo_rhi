@@ -61,9 +61,9 @@ namespace vireo {
         return std::make_shared<VKCommandAllocator>(getVKDevice(), type);
     }
 
-    std::shared_ptr<ShaderModule> VKVireo::createShaderModule(const std::string& fileName) const {
-        return std::make_shared<VKShaderModule>(getVKDevice()->getDevice(), fileName);
-    }
+    // std::shared_ptr<ShaderModule> VKVireo::createShaderModule(const std::string& fileName) const {
+    //     return std::make_shared<VKShaderModule>(getVKDevice()->getDevice(), fileName);
+    // }
 
     // std::shared_ptr<ShaderModule> VKVireo::createShaderModule(
         // std::ifstream input,

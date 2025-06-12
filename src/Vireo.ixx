@@ -2595,21 +2595,6 @@ export namespace vireo {
             const std::vector<VertexAttributeDesc>& attributesDescriptions) const = 0;
 
         /**
-         * Load a compiled shader and creates a shader module
-         * @param fileName File name without the extension. The file name extension must be `.spv`for Vulkan et `.dxil`
-         * for DirectX
-         */
-        virtual std::shared_ptr<ShaderModule> createShaderModule(
-            const std::string& fileName) const = 0;
-
-        /**
-         * Load a compiled shader and creates a shader module from an input stream
-         */
-        // virtual std::shared_ptr<ShaderModule> createShaderModule(
-            // std::ifstream input,
-            // size_t size) const = 0;
-
-        /**
          * Creates a shader module
          */
         virtual std::shared_ptr<ShaderModule> createShaderModule(
