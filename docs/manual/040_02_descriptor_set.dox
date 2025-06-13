@@ -55,7 +55,7 @@ frame.smaaEdgeDescriptorSet->update(BINDING_INPUT, colorBuffer->getImage());
 
 ## Binding descriptor sets
 
-When recording commands during a \ref manual_100_00_renderpass "render pass", after binding the pipeline to the
+When recording commands during a \ref manual_100_00_renderpass "render pass", *after* binding the pipeline to the
 \ref manual_050_00_commands "command list" bind the descriptor sets with \ref vireo::CommandList::bindDescriptor or
 \ref vireo::CommandList::bindDescriptors
 
@@ -78,11 +78,11 @@ cmdList->beginRendering(renderingConfig);
 cmdList->bindPipeline(pipeline);
 ...
 // Bind the generic and samplers descriptor sets to the pipeline
-cmdList->bindDescriptor(pipeline, frame.descriptorSet, SET_GLOBAL);
-cmdList->bindDescriptor(pipeline, samplers.getDescriptorSet(), SET_SAMPLERS);
+cmdList->bindDescriptor(frame.descriptorSet, SET_GLOBAL);
+cmdList->bindDescriptor(samplers.getDescriptorSet(), SET_SAMPLERS);
 
 // Bind a specific buffer in a uniform dynamic descriptor set
-cmdList->bindDescriptor(pipeline,
+cmdList->bindDescriptor(
     frame.materialsDescriptorSet,
     SET_MATERIALS,
     frame.materialUniform->getInstanceSizeAligned() * Scene::MATERIAL_ROCKS);
@@ -95,7 +95,7 @@ scene.drawCube(cmdList);
 If you don't need dynamic uniform descriptor set you can bind the sets using one command :
 
 \code{.cpp}
-cmdList->bindDescriptors(pipeline, {frame.descriptorSet, samplers.getDescriptorSet()});
+cmdList->bindDescriptors({frame.descriptorSet, samplers.getDescriptorSet()});
 \endcode
 
 The sets/spaces numbers will be calculated from the vector index.
