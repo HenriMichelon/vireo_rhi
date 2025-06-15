@@ -22,10 +22,12 @@ function(compile_options TARGET_NAME )
                     /GS
                     /Ob0
                     /RTC1
-                    /MDd
+                    /MTd
                     /Wv:18
             )
             add_definitions(-D_DEBUG)
+            set_property(TARGET ${TARGET_NAME} PROPERTY
+                    MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
         else()
             target_compile_options(${TARGET_NAME} PRIVATE
                     /O2
@@ -33,8 +35,10 @@ function(compile_options TARGET_NAME )
                     /Gy
                     /Oi
                     /Ot
-                    /MD
+                    /MT
                     /Wv:18
+                set_property(TARGET ${TARGET_NAME} PROPERTY
+                    MSVC_RUNTIME_LIBRARY "MultiThreaded")
             )
         endif()
     else()

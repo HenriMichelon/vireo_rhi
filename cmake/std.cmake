@@ -41,12 +41,12 @@ if(MSVC)
         target_compile_options(std-cxx-modules PRIVATE
                 /Od
                 /D_DEBUG
-                /MDd
+                /MTd
         )
     else()
         target_compile_options(std-cxx-modules PRIVATE
                 /O2
-                /MD
+                /MT
         )
     endif()
 else()
