@@ -580,6 +580,10 @@ export namespace vireo {
         COMPUTE_WRITE,
         //! Buffer used as indirect draw datas
         INDIRECT_DRAW,
+        //! Buffer used as vertex input
+        VERTEX_INPUT,
+        //! Buffer used as uniform
+        UNIFORM,
     };
 
     /**

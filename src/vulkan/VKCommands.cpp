@@ -1098,6 +1098,16 @@ namespace vireo {
             dstStage = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
             srcAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
             dstAccess = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
+        } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::VERTEX_INPUT) {
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+            srcAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
+            dstAccess = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+        } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::UNIFORM) {
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            srcAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
+            dstAccess = VK_ACCESS_UNIFORM_READ_BIT;
         } else {
             throw Exception("Not implemented");
         }
