@@ -866,6 +866,7 @@ namespace vireo {
         const uint32_t maxDrawCount,
         const uint32_t stride,
         const uint32_t) {
+        if (maxDrawCount == 0) { return; }
         checkIndirectCommandSignature(argDescIndexed, stride, sizeof(D3D12_DRAW_INDEXED_ARGUMENTS));
         const auto& dxBuffer = static_cast<const DXBuffer&>(buffer);
         const auto& dxCountBuffer = static_cast<const DXBuffer&>(countBuffer);
