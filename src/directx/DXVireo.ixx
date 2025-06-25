@@ -94,6 +94,7 @@ export namespace vireo {
             uint32_t height,
             RenderTargetType type,
             ClearValue clearValue,
+            uint32_t arraySize,
             MSAA msaa,
             const std::wstring& name) const override;
 

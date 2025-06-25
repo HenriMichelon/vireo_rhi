@@ -160,7 +160,8 @@ namespace vireo {
             const uint32_t width,
             const uint32_t height,
             const RenderTargetType type,
-            const ClearValue clearValue,
+            const ClearValue,
+            const uint32_t arraySize,
             const MSAA msaa,
             const std::wstring& name) const {
         return std::make_shared<RenderTarget>(
@@ -171,7 +172,7 @@ namespace vireo {
                 width,
                 height,
                 1,
-                1,
+                arraySize,
                 name,
                 false,
                 true,

@@ -2707,6 +2707,7 @@ export namespace vireo {
          * @param height Height in pixels
          * @param type Type of render target use
          * @param clearValue A clear value used for optimized clearing. Must be the same as the clear value used when rendering.
+         * @param layers Number of layers of the image
          * @param msaa Number of samples for MSAA. A value of 1 disables MSAA.
          * @param name Object name for debug
          */
@@ -2716,6 +2717,7 @@ export namespace vireo {
             uint32_t height,
             RenderTargetType type = RenderTargetType::COLOR,
             ClearValue clearValue = {},
+            uint32_t arraySize = 1,
             MSAA msaa = MSAA::NONE,
             const std::wstring& name = L"RenderTarget") const = 0;
 
