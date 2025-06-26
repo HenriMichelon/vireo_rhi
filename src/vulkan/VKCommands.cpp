@@ -1020,17 +1020,17 @@ namespace vireo {
             srcLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
         } else if (oldState == ResourceState::SHADER_READ && newState == ResourceState::RENDER_TARGET_DEPTH) {
-            srcStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
             dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-            srcAccess = VK_ACCESS_SHADER_READ_BIT;
+            srcAccess = 0;
             dstAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
             srcLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
             aspectFlag = VK_IMAGE_ASPECT_DEPTH_BIT;
         } else if (oldState == ResourceState::RENDER_TARGET_DEPTH && newState == ResourceState::SHADER_READ) {
-            srcStage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-            srcAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+            srcAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
             dstAccess = VK_ACCESS_SHADER_READ_BIT;
             srcLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
