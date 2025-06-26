@@ -223,7 +223,7 @@ namespace vireo {
             };
             device->CreateUnorderedAccessView(dxImage.getImage().Get(), nullptr, &viewDesc, cpuHandle);
         } else {
-            const auto viewDesc = D3D12_SHADER_RESOURCE_VIEW_DESC {
+            auto viewDesc = D3D12_SHADER_RESOURCE_VIEW_DESC {
                 .Format = DXImage::dxFormats[static_cast<int>(image.getFormat())],
                 .ViewDimension =
                     image.getArraySize() > 1 ?
@@ -236,6 +236,9 @@ namespace vireo {
                     .MipLevels = image.getMipLevels()
                 },
             };
+            if (viewDesc.Format == DXGI_FORMAT_D32_FLOAT) {
+                viewDesc.Format = DXGI_FORMAT_R32_FLOAT;
+            }
             device->CreateShaderResourceView(dxImage.getImage().Get(), &viewDesc, cpuHandle);
         }
     }

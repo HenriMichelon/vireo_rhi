@@ -800,7 +800,7 @@ namespace vireo {
         checkIndirectCommandSignature(argDesc, stride, sizeof(D3D12_DRAW_ARGUMENTS ));
         const auto& dxBuffer = static_cast<const DXBuffer&>(buffer);
         commandList->ExecuteIndirect(
-            drawIndirectCommandSignatures.at(stride).Get(),
+            drawIndirectCommandSignatures.at(currentlyBoundPipeline).at(stride).Get(),
             drawCount,
             dxBuffer.getBuffer().Get(),
             offset,
@@ -814,7 +814,10 @@ namespace vireo {
         const uint32_t stride,
         const uint32_t commandStride) {
         assert(currentlyBoundPipeline != nullptr);
-        if (!drawIndirectCommandSignatures.contains(stride)) {
+        if (!drawIndirectCommandSignatures.contains(currentlyBoundPipeline)) {
+            drawIndirectCommandSignatures[currentlyBoundPipeline] = std::unordered_map<uint32_t, ComPtr<ID3D12CommandSignature>>();
+        }
+        if  (!drawIndirectCommandSignatures[currentlyBoundPipeline].contains(stride)) {
             auto sigDesc = D3D12_COMMAND_SIGNATURE_DESC {
                 .ByteStride = stride,
             };
@@ -842,7 +845,7 @@ namespace vireo {
                 sigDesc.pArgumentDescs = &argDesc;
                 dxCheck(device->CreateCommandSignature(&sigDesc, nullptr, IID_PPV_ARGS(&commandSignature)));
             }
-            drawIndirectCommandSignatures[stride] = commandSignature;
+            drawIndirectCommandSignatures[currentlyBoundPipeline][stride] = commandSignature;
         }
     }
 
@@ -855,7 +858,7 @@ namespace vireo {
         checkIndirectCommandSignature(argDescIndexed, stride, sizeof(D3D12_DRAW_INDEXED_ARGUMENTS));
         const auto& dxBuffer = static_cast<const DXBuffer&>(buffer);
         commandList->ExecuteIndirect(
-            drawIndirectCommandSignatures.at(stride).Get(),
+            drawIndirectCommandSignatures.at(currentlyBoundPipeline).at(stride).Get(),
             drawCount,
             dxBuffer.getBuffer().Get(),
             offset,
@@ -877,7 +880,7 @@ namespace vireo {
         const auto& dxBuffer = static_cast<const DXBuffer&>(buffer);
         const auto& dxCountBuffer = static_cast<const DXBuffer&>(countBuffer);
         commandList->ExecuteIndirect(
-            drawIndirectCommandSignatures.at(stride).Get(),
+            drawIndirectCommandSignatures.at(currentlyBoundPipeline).at(stride).Get(),
             maxDrawCount,
             dxBuffer.getBuffer().Get(),
             offset,

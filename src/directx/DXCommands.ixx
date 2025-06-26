@@ -322,7 +322,7 @@ export namespace vireo {
         // Current allocated heaps
         std::vector<std::shared_ptr<DXDescriptorHeap>> descriptorHeaps;
         // Automatically allocated command signatures by stride size
-        std::unordered_map<uint32_t, ComPtr<ID3D12CommandSignature>> drawIndirectCommandSignatures;
+        std::unordered_map<Pipeline*, std::unordered_map<uint32_t, ComPtr<ID3D12CommandSignature>>> drawIndirectCommandSignatures;
 
         inline static auto argDescIndexed = D3D12_INDIRECT_ARGUMENT_DESC{
             .Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED,
