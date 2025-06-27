@@ -118,15 +118,16 @@ export namespace vireo {
             const std::wstring& name) const override;
 
         std::shared_ptr<Sampler> createSampler(
-               Filter minFilter,
-               Filter magFilter,
-               AddressMode addressModeU,
-               AddressMode addressModeV,
-               AddressMode addressModeW,
-               float minLod,
-               float maxLod,
-               bool anisotropyEnable,
-               MipMapMode mipMapMode) const override;
+           Filter minFilter,
+           Filter magFilter,
+           AddressMode addressModeU,
+           AddressMode addressModeV,
+           AddressMode addressModeW,
+           float minLod,
+           float maxLod,
+           bool anisotropyEnable,
+           MipMapMode mipMapMode,
+           CompareOp compareOp) const override;
 
         constexpr std::wstring getShaderFileExtension() const override {
             return L".dxil";

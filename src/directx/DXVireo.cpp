@@ -228,10 +228,11 @@ namespace vireo {
            float minLod,
            float maxLod,
            bool anisotropyEnable,
-           MipMapMode mipMapMode) const {
+           MipMapMode mipMapMode,
+           CompareOp compareOp) const {
         return std::make_shared<DXSampler>(
             minFilter, magFilter, addressModeU, addressModeV, addressModeW,
-            minLod, maxLod, anisotropyEnable, mipMapMode);
+            minLod, maxLod, anisotropyEnable, mipMapMode, compareOp);
     }
 
     std::shared_ptr<Fence> DXVireo::createFence(const bool, const std::wstring& name) const {

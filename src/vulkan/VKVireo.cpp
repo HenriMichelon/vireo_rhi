@@ -237,11 +237,12 @@ namespace vireo {
            float minLod,
            float maxLod,
            bool anisotropyEnable,
-           MipMapMode mipMapMode) const {
+           MipMapMode mipMapMode,
+           CompareOp compareOp) const {
         return std::make_shared<VKSampler>(
             getVKDevice(),
             minFilter, magFilter, addressModeU, addressModeV, addressModeW,
-            minLod, maxLod, anisotropyEnable, mipMapMode);
+            minLod, maxLod, anisotropyEnable, mipMapMode, compareOp);
     }
 
 }

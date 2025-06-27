@@ -10,6 +10,7 @@ module vireo.directx.resources;
 
 import std;
 import vireo.directx.devices;
+import vireo.directx.pipelines;
 import vireo.directx.tools;
 
 namespace vireo {
@@ -196,7 +197,8 @@ namespace vireo {
         const float minLod,
         const float maxLod,
         const bool anisotropyEnable,
-        const MipMapMode mipMapMode) {
+        const MipMapMode mipMapMode,
+        CompareOp compareOp) {
 
         int filter = anisotropyEnable ? D3D12_FILTER_ANISOTROPIC : 0;
         if ((minFilter == Filter::LINEAR) && (magFilter == Filter::LINEAR)) {
@@ -216,7 +218,7 @@ namespace vireo {
             .AddressW = addressModes[static_cast<int>(addressModeW)],
             .MipLODBias = 0,
             .MaxAnisotropy = D3D12_REQ_MAXANISOTROPY ,
-            .ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER,
+            .ComparisonFunc = DXGraphicPipeline::dxCompareOp[static_cast<int>(compareOp)],
             .BorderColor = {0.0f, 0.0f, 0.0f, 0.0f},
             .MinLOD = minLod,
             .MaxLOD = maxLod == LOD_CLAMP_NONE ? D3D12_FLOAT32_MAX : maxLod,

@@ -11,6 +11,7 @@ module vireo.vulkan.resources;
 
 import vireo.tools;
 
+import vireo.vulkan.pipelines;
 import vireo.vulkan.tools;
 
 namespace vireo {
@@ -129,7 +130,8 @@ namespace vireo {
         const float minLod,
         const float maxLod,
         const bool anisotropyEnable,
-        const MipMapMode mipMapMode) :
+        const MipMapMode mipMapMode,
+        CompareOp compareOp) :
         device{device->getDevice()} {
         // https://vulkan-tutorial.com/Texture_mapping/Image_view_and_sampler#page_Samplers
         const auto samplerInfo = VkSamplerCreateInfo {
@@ -144,8 +146,8 @@ namespace vireo {
             .anisotropyEnable = anisotropyEnable,
             // https://vulkan-tutorial.com/Texture_mapping/Image_view_and_sampler#page_Anisotropy-device-feature
             .maxAnisotropy = device->getPhysicalDevice().getDeviceProperties().limits.maxSamplerAnisotropy,
-            .compareEnable = VK_FALSE,
-            .compareOp = VK_COMPARE_OP_ALWAYS,
+            .compareEnable = compareOp == CompareOp::NEVER ? VK_FALSE : VK_TRUE,
+            .compareOp = VKGraphicPipeline::vkCompareOp[static_cast<int>(compareOp)],
             .minLod = minLod,
             .maxLod = maxLod == LOD_CLAMP_NONE ? VK_LOD_CLAMP_NONE : maxLod,
             .borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK,

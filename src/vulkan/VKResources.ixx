@@ -57,7 +57,8 @@ export namespace vireo {
             float minLod,
             float maxLod,
             bool anisotropyEnable,
-            MipMapMode mipMapMode);
+            MipMapMode mipMapMode,
+            CompareOp compareOp);
 
         ~VKSampler() override;
 

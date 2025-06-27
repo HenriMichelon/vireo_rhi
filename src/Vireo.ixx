@@ -2776,7 +2776,8 @@ export namespace vireo {
                                                   float minLod = 0.0f,
                                                   float maxLod = Sampler::LOD_CLAMP_NONE,
                                                   bool anisotropyEnable = true,
-                                                  MipMapMode mipMapMode = MipMapMode::LINEAR) const = 0;
+                                                  MipMapMode mipMapMode = MipMapMode::LINEAR,
+                                                  CompareOp compareOp = CompareOp::NEVER) const = 0;
 
         /**
          * Returns `true` if the backend API is supported
