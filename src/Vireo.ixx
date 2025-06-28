@@ -1175,7 +1175,7 @@ export namespace vireo {
         auto isReadWrite() const { return readWrite; }
 
         /**
-         * Returns the number of bytes for one pixel, or the block size in bytes pour BCn compressed formats
+         * Returns the number of bytes for one pixel, or the block size in bytes for BCn compressed formats
          */
         static auto getPixelSize(const ImageFormat format) { return pixelSize[static_cast<int>(format)]; }
 
@@ -1722,7 +1722,7 @@ export namespace vireo {
             const std::shared_ptr<Buffer>& destination,
             const uint32_t destinationOffset = 0,
             const uint32_t firstMipLevel = 0) const {
-            copy(*destination, *source, destinationOffset, firstMipLevel);
+            copy(*source, *destination, destinationOffset, firstMipLevel);
         }
 
         /**

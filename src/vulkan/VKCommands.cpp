@@ -1437,12 +1437,17 @@ namespace vireo {
         assert(firstMipLevel < source.getMipLevels());
         const auto& image = static_cast<const VKImage&>(source);
         const auto& buffer = static_cast<const VKBuffer&>(destination);
+        const VkImageAspectFlags aspectMask =
+            source.getFormat() == ImageFormat::D32_SFLOAT ||
+            source.getFormat() == ImageFormat::D32_SFLOAT_S8_UINT ||
+            source.getFormat() == ImageFormat::D24_UNORM_S8_UINT ?
+            VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
         const auto region = VkBufferImageCopy {
             .bufferOffset = destinationOffset,
             .bufferRowLength = 0,
             .bufferImageHeight = 0,
             .imageSubresource = {
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .aspectMask = aspectMask,
                 .mipLevel = firstMipLevel,
                 .baseArrayLayer = 0,
                 .layerCount = source.getArraySize(),
