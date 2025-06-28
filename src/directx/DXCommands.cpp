@@ -698,9 +698,15 @@ namespace vireo {
         } else if (oldState == ResourceState::SHADER_READ && newState == ResourceState::INDIRECT_DRAW) {
             srcState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
             dstState = D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
+        } else if (oldState == ResourceState::COMPUTE_READ && newState == ResourceState::INDIRECT_DRAW) {
+            srcState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+            dstState = D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
         } else if (oldState == ResourceState::INDIRECT_DRAW && newState == ResourceState::SHADER_READ) {
             srcState = D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
             dstState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+        } else if (oldState == ResourceState::INDIRECT_DRAW && newState == ResourceState::COMPUTE_READ) {
+            srcState = D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
+            dstState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
         } else if (oldState == ResourceState::SHADER_READ && newState == ResourceState::COPY_DST) {
             srcState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
             dstState = D3D12_RESOURCE_STATE_COPY_DEST;
