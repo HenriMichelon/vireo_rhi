@@ -1187,8 +1187,14 @@ export namespace vireo {
 
         static bool isDepthFormat(ImageFormat format);
 
-        bool isDepthStencil() const {
+        static bool isDepthStencilFormat(ImageFormat format);
+
+        bool isDepthFormat() const {
             return isDepthFormat(format);
+        }
+
+        bool isDepthStencilFormat() const {
+            return isDepthStencilFormat(format);
         }
 
         virtual ~Image() = default;

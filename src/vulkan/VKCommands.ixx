@@ -345,6 +345,7 @@ export namespace vireo {
             ResourceState oldState,
             ResourceState newState,
             bool isDepth,
+            bool isStencil,
             uint32_t firstMipLevel,
             uint32_t levelCount) const;
 

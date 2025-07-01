@@ -99,9 +99,12 @@ namespace vireo {
 
     bool Image::isDepthFormat(const ImageFormat format) {
         return format == ImageFormat::D16_UNORM ||
-            format == ImageFormat::D24_UNORM_S8_UINT ||
-            format == ImageFormat::D32_SFLOAT ||
-            format == ImageFormat::D32_SFLOAT_S8_UINT;
+            format == ImageFormat::D32_SFLOAT;
+    }
+
+    bool Image::isDepthStencilFormat(const ImageFormat format) {
+        return format == ImageFormat::D16_UNORM ||
+            format == ImageFormat::D32_SFLOAT;
     }
 
 }
