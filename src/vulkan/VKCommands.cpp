@@ -637,7 +637,12 @@ namespace vireo {
             if (conf.colorRenderTargets[i].multisampledRenderTarget) {
                 const auto msaaColor =
                     static_pointer_cast<VKImage>(conf.colorRenderTargets[i].multisampledRenderTarget->getImage());
-                barrier(msaaColor->getImage(), ResourceState::UNDEFINED, ResourceState::RENDER_TARGET_COLOR, 1, 1);
+                barrier(
+                    msaaColor->getImage(),
+                    ResourceState::UNDEFINED,
+                    ResourceState::RENDER_TARGET_COLOR,
+                    false,
+                    1, 1);
                 colorAttachmentsInfo[i].imageView = msaaColor->getImageView(),
                 colorAttachmentsInfo[i].resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
                 colorAttachmentsInfo[i].resolveImageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
@@ -674,12 +679,13 @@ namespace vireo {
         const VkImage image,
         const ResourceState oldState,
         const ResourceState newState,
+        const bool isDepth,
         const uint32_t firstMipLevel,
         const uint32_t levelCount) const {
         VkPipelineStageFlags srcStage, dstStage;
         VkAccessFlags srcAccess, dstAccess;
         VkImageLayout srcLayout, dstLayout;
-        VkImageAspectFlagBits aspectFlag = VK_IMAGE_ASPECT_COLOR_BIT;
+        VkImageAspectFlagBits aspectFlag = isDepth ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
         convertState(oldState, newState, srcStage, dstStage, srcAccess, dstAccess, srcLayout, dstLayout, aspectFlag);
         const auto barrier = VkImageMemoryBarrier {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -1134,6 +1140,11 @@ namespace vireo {
             dstStage = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
             srcAccess = VK_ACCESS_SHADER_READ_BIT;
             dstAccess = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
+        } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::INDIRECT_DRAW) {
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
+            srcAccess = VK_ACCESS_TRANSFER_READ_BIT;
+            dstAccess = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
         } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::VERTEX_INPUT) {
             srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             dstStage = VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
@@ -1184,15 +1195,24 @@ namespace vireo {
         const uint32_t firstMipLevel,
         const uint32_t levelCount) const {
         assert(image != nullptr);
-        barrier(static_pointer_cast<const VKImage>(image)->getImage(), oldState, newState, firstMipLevel, levelCount);
+        barrier(
+            static_pointer_cast<const VKImage>(image)->getImage(),
+            oldState, newState,
+            image->isDepthStencil(),
+            firstMipLevel, levelCount);
     }
 
     void VKCommandList::barrier(
         const std::shared_ptr<const RenderTarget>& renderTarget,
         const ResourceState oldState,
         const ResourceState newState) const {
-        assert(renderTarget != nullptr);
-        barrier(static_pointer_cast<const VKImage>(renderTarget->getImage())->getImage(), oldState, newState);
+        assert(
+        renderTarget != nullptr);
+        barrier(
+        static_pointer_cast<const VKImage>(renderTarget->getImage())->getImage(),
+        oldState, newState,
+        renderTarget->getImage()->isDepthStencil(),
+        0, 1);
     }
 
     void VKCommandList::barrier(
@@ -1200,7 +1220,10 @@ namespace vireo {
         const ResourceState oldState,
         const ResourceState newState) const {
         assert(swapChain != nullptr);
-        barrier(static_pointer_cast<const VKSwapChain>(swapChain)->getCurrentImage(), oldState, newState);
+        barrier(
+            static_pointer_cast<const VKSwapChain>(swapChain)->getCurrentImage(),
+            oldState, newState,
+            false, 0, 1);
     }
 
     void VKCommandList::barrier(
@@ -1457,10 +1480,7 @@ namespace vireo {
         assert(firstMipLevel < source.getMipLevels());
         const auto& image = static_cast<const VKImage&>(source);
         const auto& buffer = static_cast<const VKBuffer&>(destination);
-        const VkImageAspectFlags aspectMask =
-            source.getFormat() == ImageFormat::D32_SFLOAT ||
-            source.getFormat() == ImageFormat::D32_SFLOAT_S8_UINT ||
-            source.getFormat() == ImageFormat::D24_UNORM_S8_UINT ?
+        const VkImageAspectFlags aspectMask = source.isDepthStencil() ?
             VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
         const auto region = VkBufferImageCopy {
             .bufferOffset = destinationOffset,

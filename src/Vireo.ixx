@@ -1185,6 +1185,12 @@ export namespace vireo {
          */
         static auto getMemoryAllocations() { return memoryAllocations; }
 
+        static bool isDepthFormat(ImageFormat format);
+
+        bool isDepthStencil() const {
+            return isDepthFormat(format);
+        }
+
         virtual ~Image() = default;
         Image (Image&) = delete;
         Image& operator = (const Image&) = delete;

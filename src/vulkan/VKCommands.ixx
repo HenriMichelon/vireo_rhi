@@ -344,8 +344,9 @@ export namespace vireo {
             VkImage image,
             ResourceState oldState,
             ResourceState newState,
-            uint32_t firstMipLevel = 0,
-            uint32_t levelCount = 1) const;
+            bool isDepth,
+            uint32_t firstMipLevel,
+            uint32_t levelCount) const;
 
     };
 
