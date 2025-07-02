@@ -2548,7 +2548,7 @@ export namespace vireo {
          */
         static std::shared_ptr<Vireo> create(
             Backend backend,
-            uint32_t maxDirectX12Descriptors = 1000,
+            uint32_t maxDirectX12Descriptors = 2000,
             uint32_t maxDirectX12Samplers = 100);
 
         virtual void waitIdle() {}
