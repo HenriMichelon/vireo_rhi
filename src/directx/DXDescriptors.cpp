@@ -230,14 +230,26 @@ namespace vireo {
                         image.getArraySize() == 6 ?
                         D3D12_SRV_DIMENSION_TEXTURECUBE :
                         D3D12_SRV_DIMENSION_TEXTURE2DARRAY :
-                    D3D12_SRV_DIMENSION_TEXTURE2D,
+                        D3D12_SRV_DIMENSION_TEXTURE2D,
                 .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
                 .Texture2D= {
                     .MipLevels = image.getMipLevels()
                 },
             };
-            if (viewDesc.Format == DXGI_FORMAT_D32_FLOAT) {
-                viewDesc.Format = DXGI_FORMAT_R32_FLOAT;
+            if (image.isDepthFormat()) {
+                if (image.getFormat() == ImageFormat::D32_SFLOAT) {
+                    viewDesc.Format = DXGI_FORMAT_R32_FLOAT;
+                } else if (image.getFormat() == ImageFormat::D16_UNORM) {
+                    viewDesc.Format = DXGI_FORMAT_R16_FLOAT;
+                } else {
+                    throw Exception("Unsupported depth format");
+                }
+            } else if (image.isDepthStencilFormat()) {
+                if (image.getFormat() == ImageFormat::D24_UNORM_S8_UINT) {
+                    viewDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+                } else {
+                    throw Exception("Unsupported depth format");
+                }
             }
             device->CreateShaderResourceView(dxImage.getImage().Get(), &viewDesc, cpuHandle);
         }

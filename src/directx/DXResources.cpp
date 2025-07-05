@@ -129,7 +129,12 @@ namespace vireo {
             .Height = height,
             .DepthOrArraySize = static_cast<UINT16>(arraySize),
             .MipLevels = static_cast<UINT16>(mipLevels),
-            .Format = dxFormat,
+            .Format =
+                format == ImageFormat::D32_SFLOAT_S8_UINT ?
+                DXGI_FORMAT_R32G8X24_TYPELESS :
+                format == ImageFormat::D24_UNORM_S8_UINT ?
+                DXGI_FORMAT_R24G8_TYPELESS :
+                dxFormat,
             .SampleDesc = {
                 samples,
                 quality
@@ -143,7 +148,7 @@ namespace vireo {
         };
         auto dxClearValue = D3D12_CLEAR_VALUE{};
         if (isRenderTarget) {
-            dxClearValue.Format = imageDesc.Format;
+            dxClearValue.Format = dxFormat;
             if (isDepthBuffer) {
                 dxClearValue.DepthStencil = {
                     clearValue.depthStencil.depth,
@@ -244,7 +249,11 @@ namespace vireo {
         if (type == RenderTargetType::COLOR) {
             device->CreateRenderTargetView(image->getImage().Get(), nullptr, handle);
         } else {
-            device->CreateDepthStencilView(image->getImage().Get(), nullptr, handle);
+            D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+            dsvDesc.Format = DXImage::dxFormats[static_cast<int>(image->getFormat())];
+            dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+            dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+            device->CreateDepthStencilView(image->getImage().Get(), &dsvDesc, handle);
         }
     }
 
