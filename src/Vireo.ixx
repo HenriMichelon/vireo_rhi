@@ -2548,7 +2548,7 @@ export namespace vireo {
          */
         static std::shared_ptr<Vireo> create(
             Backend backend,
-            uint32_t maxDirectX12Descriptors = 2000,
+            uint32_t maxDirectX12Descriptors = 3000,
             uint32_t maxDirectX12Samplers = 100);
 
         virtual void waitIdle() {}
@@ -2719,7 +2719,7 @@ export namespace vireo {
          * @param height Height in pixels
          * @param type Type of render target use
          * @param clearValue A clear value used for optimized clearing. Must be the same as the clear value used when rendering.
-         * @param layers Number of layers of the image
+         * @param arraySize Number of layers of the image
          * @param msaa Number of samples for MSAA. A value of 1 disables MSAA.
          * @param name Object name for debug
          */

@@ -176,11 +176,14 @@ export namespace vireo {
 
         auto getImage() const { return image; }
 
+        const auto& getClearValue() const { return dxClearValue; }
+
         ~DXImage() override;
 
     private:
-        ComPtr<ID3D12Device>   device;
+        ComPtr<ID3D12Device> device;
         ComPtr<ID3D12Resource> image;
+        D3D12_CLEAR_VALUE dxClearValue;
     };
 
     class DXRenderTarget : public RenderTarget {

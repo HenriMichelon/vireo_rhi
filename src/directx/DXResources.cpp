@@ -146,14 +146,12 @@ namespace vireo {
                 useByComputeShader ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS :
                 D3D12_RESOURCE_FLAG_NONE,
         };
-        auto dxClearValue = D3D12_CLEAR_VALUE{};
         if (isRenderTarget) {
             dxClearValue.Format = dxFormat;
             if (isDepthBuffer) {
                 dxClearValue.DepthStencil = {
                     clearValue.depthStencil.depth,
-                    static_cast<UINT8>(clearValue.depthStencil.stencil)
-                };
+                    static_cast<UINT8>(clearValue.depthStencil.stencil)};
             } else {
                 dxClearValue.Color[0] = clearValue.color[0];
                 dxClearValue.Color[1] = clearValue.color[1];

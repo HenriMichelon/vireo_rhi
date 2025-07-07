@@ -302,24 +302,25 @@ namespace vireo {
     }
 
     void DXCommandList::beginRendering(const RenderingConfiguration& conf) {
-        const auto dxDepthImage =
+        const auto dxDepthRenderTarget =
             conf.depthStencilRenderTarget ? static_pointer_cast<DXRenderTarget>(conf.depthStencilRenderTarget) : nullptr;
         D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle{};
         if (conf.multisampledDepthStencilRenderTarget) {
             const auto dxMsaaTarget = static_pointer_cast<DXRenderTarget>(conf.multisampledDepthStencilRenderTarget);
             dsvHandle = dxMsaaTarget->getHandle();
-        } else if (dxDepthImage) {
-            dsvHandle = dxDepthImage->getHandle();
+        } else if (dxDepthRenderTarget) {
+            dsvHandle = dxDepthRenderTarget->getHandle();
         }
-        const bool haveDepthResource = dxDepthImage || conf.multisampledDepthStencilRenderTarget;
+        const bool haveDepthResource = dxDepthRenderTarget || conf.multisampledDepthStencilRenderTarget;
         if (conf.clearDepthStencil && haveDepthResource) {
+            const auto dxImage = std::static_pointer_cast<DXImage>(dxDepthRenderTarget->getImage());
             commandList->ClearDepthStencilView(
                 dsvHandle,
                 D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
-                conf.depthStencilClearValue.depthStencil.depth, conf.depthStencilClearValue.depthStencil.stencil,
+                dxImage->getClearValue().DepthStencil.Depth, dxImage->getClearValue().DepthStencil.Stencil,
                 0, nullptr);
             if (conf.discardDepthStencilAfterRender) {
-                depthTargetToDiscard = static_pointer_cast<DXImage>(dxDepthImage->getImage())->getImage();
+                depthTargetToDiscard = static_pointer_cast<DXImage>(dxDepthRenderTarget->getImage())->getImage();
             }
         }
 
