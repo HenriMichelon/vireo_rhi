@@ -899,7 +899,7 @@ export namespace vireo {
      */
     class Device {
     public:
-        virtual bool haveDedicatedTransferQueue() const { return false; }
+        virtual bool haveDedicatedTransferQueue() const = 0;
 
         virtual ~Device() = default;
         Device (Device&) = delete;

@@ -50,6 +50,8 @@ export namespace vireo {
 
         auto getDevice() { return device; }
 
+        bool haveDedicatedTransferQueue() const override { return true;}
+
     private:
         ComPtr<ID3D12Device> device;
     };
