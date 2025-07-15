@@ -899,6 +899,8 @@ export namespace vireo {
      */
     class Device {
     public:
+        virtual bool haveDedicatedTransferQueue() const { return false; }
+
         virtual ~Device() = default;
         Device (Device&) = delete;
         Device& operator= (const Device&) = delete;

@@ -201,8 +201,8 @@ namespace vireo {
         return indices;
     }
 
-    uint32_t VKPhysicalDevice::findTransferQueueFamily() const {
-        uint32_t           queueFamilyCount = 0;
+    int32_t VKPhysicalDevice::findTransferQueueFamily() const {
+        uint32_t queueFamilyCount = 0;
         vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
         std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
         vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies.data());
@@ -215,11 +215,11 @@ namespace vireo {
                 }
             i++;
         }
-        throw Exception("Could not find dedicated transfer queue family");
+        return -1;
     }
 
-    uint32_t VKPhysicalDevice::findComputeQueueFamily() const {
-        uint32_t           queueFamilyCount = 0;
+    int32_t VKPhysicalDevice::findComputeQueueFamily() const {
+        uint32_t queueFamilyCount = 0;
         vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
         std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
         vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies.data());
@@ -232,10 +232,7 @@ namespace vireo {
                 }
             i++;
         }
-        throw Exception("Could not find dedicated compute queue family");
-    }
-
-    VKPhysicalDevice::~VKPhysicalDevice() {
+        return -1;
     }
 
     uint32_t VKPhysicalDevice::findMemoryType(const uint32_t typeFilter, const VkMemoryPropertyFlags properties) const {
@@ -358,18 +355,22 @@ namespace vireo {
         }
         // Use a compute command queue if different from the graphical queue
         computeQueueFamilyIndex = physicalDevice.findComputeQueueFamily();
-        if (computeQueueFamilyIndex != graphicsQueueFamilyIndex) {
-            const VkDeviceQueueCreateInfo queueCreateInfo{
-                .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-                .queueFamilyIndex = computeQueueFamilyIndex,
-                .queueCount = 1,
-                .pQueuePriorities = queuePriority.data(),
-            };
-            queueCreateInfos.push_back(queueCreateInfo);
+        if (computeQueueFamilyIndex != -1) {
+            if (computeQueueFamilyIndex != graphicsQueueFamilyIndex) {
+                const VkDeviceQueueCreateInfo queueCreateInfo{
+                    .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+                    .queueFamilyIndex = computeQueueFamilyIndex,
+                    .queueCount = 1,
+                    .pQueuePriorities = queuePriority.data(),
+                };
+                queueCreateInfos.push_back(queueCreateInfo);
+            }
+        } else {
+            computeQueueFamilyIndex = graphicsQueueFamilyIndex;
         }
         // Use a dedicated transfer queue for DMA transfers
         transferQueueFamilyIndex = physicalDevice.findTransferQueueFamily();
-        {
+        if (transferQueueFamilyIndex != -1) {
             const VkDeviceQueueCreateInfo queueCreateInfo{
                 .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
                 .queueFamilyIndex = transferQueueFamilyIndex,
@@ -377,6 +378,8 @@ namespace vireo {
                 .pQueuePriorities = queuePriority.data(),
             };
             queueCreateInfos.push_back(queueCreateInfo);
+        } else {
+            transferQueueFamilyIndex = graphicsQueueFamilyIndex;
         }
 
         // Initialize device extensions and create a logical device

@@ -45,8 +45,6 @@ export namespace vireo {
 
         VKPhysicalDevice(VkInstance instance);
 
-        ~VKPhysicalDevice() override;
-
         auto getPhysicalDevice() const { return physicalDevice; }
 
         auto getInstance() const { return instance; }
@@ -71,10 +69,10 @@ export namespace vireo {
         static QueueFamilyIndices findQueueFamilies(VkPhysicalDevice vkPhysicalDevice);
 
         // Find a dedicated transfer queue
-        uint32_t findTransferQueueFamily() const;
+        int32_t findTransferQueueFamily() const;
 
         // Find a dedicated compute & transfer queue
-        uint32_t findComputeQueueFamily() const;
+        int32_t findComputeQueueFamily() const;
 
         // Find a specific memory type for buffers
         uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
@@ -129,6 +127,10 @@ export namespace vireo {
         auto getComputeQueueFamilyIndex() const { return computeQueueFamilyIndex; }
 
         auto getTransferQueueFamilyIndex() const { return transferQueueFamilyIndex; }
+
+        bool haveDedicatedTransferQueue() const override {
+            return transferQueueFamilyIndex != graphicsQueueFamilyIndex;
+        }
 
         VkImageView createImageView(VkImage            image,
                                     VkFormat           format,
