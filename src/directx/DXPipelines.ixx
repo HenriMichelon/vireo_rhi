@@ -59,7 +59,7 @@ export namespace vireo {
             const ComPtr<ID3D12Device>& device,
             const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
             const PushConstantsDesc& pushConstant,
-            const std::wstring& name);
+            const std::string& name);
 
         auto getRootSignature() const { return rootSignature; }
 
@@ -77,7 +77,7 @@ export namespace vireo {
             const ComPtr<ID3D12Device>& device,
             const std::shared_ptr<PipelineResources>& pipelineResources,
             const std::shared_ptr<const ShaderModule>& shader,
-            const std::wstring& name);
+            const std::string& name);
 
         auto getPipelineState() const { return pipelineState; }
 
@@ -176,7 +176,7 @@ export namespace vireo {
         DXGraphicPipeline(
             const ComPtr<ID3D12Device>& device,
             const GraphicPipelineConfiguration& configuration,
-            const std::wstring& name);
+            const std::string& name);
 
         auto getPipelineState() const { return pipelineState; }
 

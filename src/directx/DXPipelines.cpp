@@ -61,7 +61,7 @@ namespace vireo {
         const ComPtr<ID3D12Device>& device,
         const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
         const PushConstantsDesc& pushConstant,
-        const std::wstring& name) {
+        const std::string& name) {
 
         constexpr D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
                D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
@@ -134,7 +134,7 @@ namespace vireo {
             signature->GetBufferSize(),
             IID_PPV_ARGS(&rootSignature)));
 #ifdef _DEBUG
-        rootSignature->SetName((L"DXPipelineResources : " + name).c_str());
+        //rootSignature->SetName(("DXPipelineResources : " + name).c_str());
 #endif
     }
 
@@ -142,7 +142,7 @@ namespace vireo {
         const ComPtr<ID3D12Device>& device,
         const std::shared_ptr<PipelineResources>& pipelineResources,
         const std::shared_ptr<const ShaderModule>& shader,
-        const std::wstring& name):
+        const std::string& name):
         ComputePipeline{pipelineResources} {
         assert(shader != nullptr);
         const auto dxPipelineResources = static_pointer_cast<const DXPipelineResources>(pipelineResources);
@@ -154,14 +154,14 @@ namespace vireo {
 
         dxCheck(device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)));
 #ifdef _DEBUG
-        pipelineState->SetName((L"DXComputePipeline : " + name).c_str());
+        //pipelineState->SetName(("DXComputePipeline : " + name).c_str());
 #endif
     }
 
     DXGraphicPipeline::DXGraphicPipeline(
         const ComPtr<ID3D12Device>& device,
         const GraphicPipelineConfiguration& configuration,
-        const std::wstring& name):
+        const std::string& name):
         GraphicPipeline{configuration.resources},
         primitiveTopology{dxPrimitives[static_cast<int>(configuration.primitiveTopology)]} {
         assert(configuration.resources != nullptr);
@@ -258,7 +258,7 @@ namespace vireo {
         psoDesc.BlendState.AlphaToCoverageEnable = configuration.alphaToCoverageEnable;
         dxCheck(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)));
 #ifdef _DEBUG
-        pipelineState->SetName((L"DXGraphicPipeline : " + name).c_str());
+        //pipelineState->SetName(("DXGraphicPipeline : " + name).c_str());
 #endif
     }
 

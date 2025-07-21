@@ -52,7 +52,7 @@ namespace vireo {
         DXGI_ADAPTER_DESC3 desc;
         dxCheck(hardwareAdapter4->GetDesc3(&desc));
         return {
-            desc.Description,
+            std::to_string(desc.Description),
             desc.DedicatedVideoMemory,
             desc.DedicatedSystemMemory,
             desc.SharedSystemMemory,

@@ -15,7 +15,7 @@ export namespace vireo {
 
     class VKDescriptorLayout : public DescriptorLayout {
     public:
-        VKDescriptorLayout(VkDevice device, bool samplers, bool dynamic, const std::wstring& name);
+        VKDescriptorLayout(VkDevice device, bool samplers, bool dynamic, const std::string& name);
 
         ~VKDescriptorLayout() override;
 
@@ -32,13 +32,13 @@ export namespace vireo {
     private:
         VkDevice device;
         VkDescriptorSetLayout setLayout{nullptr};
-        const std::wstring name;
+        const std::string name;
         std::map<DescriptorIndex, VkDescriptorPoolSize> poolSizes;
     };
 
     class VKDescriptorSet : public DescriptorSet {
     public:
-        VKDescriptorSet(const std::shared_ptr<const DescriptorLayout>& layout, const std::wstring& name);
+        VKDescriptorSet(const std::shared_ptr<const DescriptorLayout>& layout, const std::string& name);
 
         ~VKDescriptorSet() override;
 

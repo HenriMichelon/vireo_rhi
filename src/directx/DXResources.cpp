@@ -20,7 +20,7 @@ namespace vireo {
         const BufferType type,
         const size_t size,
         const size_t count,
-        const std::wstring& name):
+        const std::string& name):
         Buffer{type},
         size{size} {
         auto minOffsetAlignment = 0;
@@ -68,7 +68,7 @@ namespace vireo {
                 buffer.Get() });
         }
 #ifdef _DEBUG
-        buffer->SetName((L"DXBuffer : " + name).c_str());
+        //buffer->SetName(L"DXBuffer : " + std::to_wstring(name));
 #endif
     }
 
@@ -103,7 +103,7 @@ namespace vireo {
             const uint32_t    height,
             const uint32_t    mipLevels,
             const uint32_t    arraySize,
-            const std::wstring&    name,
+            const std::string&    name,
             const bool        useByComputeShader,
             const bool        isRenderTarget,
             const bool        isDepthBuffer,
@@ -178,7 +178,7 @@ namespace vireo {
                 image.Get() });
         }
 #ifdef _DEBUG
-        image->SetName((L"DXIMage : " + name).c_str());
+        //image->SetName(("DXIMage : " + name).c_str());
 #endif
     }
 

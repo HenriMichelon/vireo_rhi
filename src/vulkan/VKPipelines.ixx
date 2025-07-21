@@ -69,7 +69,7 @@ export namespace vireo {
             VkDevice device,
             const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
             const PushConstantsDesc& pushConstant,
-            const std::wstring& name);
+            const std::string& name);
 
         ~VKPipelineResources() override;
 
@@ -89,7 +89,7 @@ export namespace vireo {
            VkDevice device,
            const std::shared_ptr<PipelineResources>& pipelineResources,
            const std::shared_ptr<const ShaderModule>& shader,
-           const std::wstring& name);
+           const std::string& name);
 
         auto getPipeline() const { return pipeline; }
 
@@ -184,7 +184,7 @@ export namespace vireo {
         VKGraphicPipeline(
            const std::shared_ptr<VKDevice>& device,
            const GraphicPipelineConfiguration& configuration,
-           const std::wstring& name);
+           const std::string& name);
 
         auto getPipeline() const { return pipeline; }
 

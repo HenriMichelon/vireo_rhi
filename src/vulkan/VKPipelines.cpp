@@ -89,7 +89,7 @@ namespace vireo {
         const VkDevice device,
         const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
         const PushConstantsDesc& pushConstant,
-        const std::wstring& name):
+        const std::string& name):
         device{device} {
         assert(device != VK_NULL_HANDLE);
         for (const auto& descriptorLayout : descriptorLayouts) {
@@ -121,7 +121,7 @@ namespace vireo {
         vkCheck(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout));
 #ifdef _DEBUG
         vkSetObjectName(device, reinterpret_cast<uint64_t>(pipelineLayout), VK_OBJECT_TYPE_PIPELINE_LAYOUT,
-            to_string(L"VKPipelineResources : " + name));
+            "VKPipelineResources : " + name);
 #endif
     }
 
@@ -133,7 +133,7 @@ namespace vireo {
           const VkDevice device,
           const std::shared_ptr<PipelineResources>& pipelineResources,
           const std::shared_ptr<const ShaderModule>& shader,
-          const std::wstring& name) :
+          const std::string& name) :
         ComputePipeline{pipelineResources},
         device{device} {
         assert(device != VK_NULL_HANDLE);
@@ -158,7 +158,7 @@ namespace vireo {
         vkCheck(vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &pipeline));
 #ifdef _DEBUG
         vkSetObjectName(device, reinterpret_cast<uint64_t>(pipeline), VK_OBJECT_TYPE_PIPELINE,
-            to_string(L"VKComputePipeline : " + name));
+            "VKComputePipeline : " + name);
 #endif
     }
 
@@ -169,7 +169,7 @@ namespace vireo {
     VKGraphicPipeline::VKGraphicPipeline(
            const std::shared_ptr<VKDevice>& device,
            const GraphicPipelineConfiguration& configuration,
-           const std::wstring& name):
+           const std::string& name):
         GraphicPipeline{configuration.resources},
         device{device} {
         assert(configuration.resources != nullptr);
@@ -345,7 +345,7 @@ namespace vireo {
         vkCheck(vkCreateGraphicsPipelines(device->getDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline));
 #ifdef _DEBUG
         vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(pipeline), VK_OBJECT_TYPE_PIPELINE,
-            to_string(L"VKGraphicPipeline : " + name));
+            "VKGraphicPipeline : " + name);
 #endif
     }
 

@@ -21,7 +21,7 @@ namespace vireo {
     VKSubmitQueue::VKSubmitQueue(
         const std::shared_ptr<const VKDevice>& device,
         const CommandType type,
-        const std::wstring& name) {
+        const std::string& name) {
         vkGetDeviceQueue(
             device->getDevice(),
             type == CommandType::COMPUTE ? device->getComputeQueueFamilyIndex() :
@@ -31,7 +31,7 @@ namespace vireo {
             &commandQueue);
 #ifdef _DEBUG
         vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(commandQueue), VK_OBJECT_TYPE_QUEUE,
-            "VKSubmitQueue : " + to_string(name));
+            "VKSubmitQueue : " + name);
 #endif
     }
 
@@ -1306,7 +1306,7 @@ namespace vireo {
             BufferType::BUFFER_UPLOAD,
             buffer.getInstanceSize(),
             buffer.getInstanceCount(),
-            L"StagingBuffer for buffer");
+            "StagingBuffer for buffer");
         stagingBuffer->map();
         if ((buffer.getInstanceSizeAligned() == 1) || (buffer.getInstanceCount() == 1)) {
             stagingBuffer->write(source);
@@ -1387,7 +1387,7 @@ namespace vireo {
            BufferType::IMAGE_UPLOAD,
            image.getImageSize(),
            image.getArraySize(),
-           L"StagingBuffer for image");
+           "StagingBuffer for image");
         stagingBuffer->map();
         if (image.getArraySize() == 1) {
             stagingBuffer->write(source);
@@ -1539,7 +1539,7 @@ namespace vireo {
            BufferType::IMAGE_UPLOAD,
            image.getImageSize(),
            image.getArraySize(),
-           L"StagingBuffer for image array");
+           "StagingBuffer for image array");
         stagingBuffer->map();
         for (int i = 0; i < image.getArraySize(); i++) {
             stagingBuffer->write(
@@ -1596,7 +1596,7 @@ namespace vireo {
                        1, &copyRegion);
     }
 
-    VKFence::VKFence(const bool createSignaled, const std::shared_ptr<const VKDevice>& device, const std::wstring& name):
+    VKFence::VKFence(const bool createSignaled, const std::shared_ptr<const VKDevice>& device, const std::string& name):
         device{device->getDevice()} {
         const auto fenceInfo = VkFenceCreateInfo {
             .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
@@ -1605,7 +1605,7 @@ namespace vireo {
         vkCheck(vkCreateFence(device->getDevice(), &fenceInfo, nullptr, &fence));
 #ifdef _DEBUG
         vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(fence), VK_OBJECT_TYPE_FENCE,
-    "VKFence : " + to_string(name));
+    "VKFence : " + name);
 #endif
     }
 
@@ -1623,7 +1623,7 @@ namespace vireo {
 
      VKSemaphore::VKSemaphore(const std::shared_ptr<const VKDevice>& device,
                              const SemaphoreType type,
-                             const std::wstring& name):
+                             const std::string& name):
         Semaphore{type},
         device{device->getDevice()} {
         const auto createInfo = VkSemaphoreTypeCreateInfo {
@@ -1638,7 +1638,7 @@ namespace vireo {
         vkCreateSemaphore(this->device, &semaphoreInfo, nullptr, &semaphore);
 #ifdef _DEBUG
         vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(semaphore), VK_OBJECT_TYPE_SEMAPHORE,
-    "VKSemaphore : " + to_string(name));
+    "VKSemaphore : " + name);
 #endif
     }
 

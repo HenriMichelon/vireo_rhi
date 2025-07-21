@@ -21,7 +21,7 @@ namespace vireo {
             const BufferType type,
             const size_t size,
             const size_t count,
-            const std::wstring& name) : Buffer{type},device{device} {
+            const std::string& name) : Buffer{type},device{device} {
         auto minOffsetAlignment = 0;
         if (type == BufferType::UNIFORM) {
             minOffsetAlignment = device->getPhysicalDevice().getDeviceProperties().limits.minUniformBufferOffsetAlignment;
@@ -64,9 +64,9 @@ namespace vireo {
         }
 #ifdef _DEBUG
         vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(buffer), VK_OBJECT_TYPE_BUFFER,
-            "VKBuffer : " + to_string(name));
+            "VKBuffer : " + name);
         vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(bufferMemory), VK_OBJECT_TYPE_DEVICE_MEMORY,
-        "VKBuffer Memory : " + to_string(name));
+        "VKBuffer Memory : " + name);
 #endif
     }
 
@@ -167,7 +167,7 @@ namespace vireo {
         const uint32_t    height,
         const uint32_t    mipLevels,
         const uint32_t    arraySize,
-        const std::wstring&    name,
+        const std::string&    name,
         const bool        useByComputeShader,
         const bool        isRenderTarget,
         const bool        isDepthBuffer,
@@ -200,7 +200,7 @@ namespace vireo {
         vkCheck(vkCreateImage(device->getDevice(), &imageInfo, nullptr, &image));
 #ifdef _DEBUG
         vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(image), VK_OBJECT_TYPE_IMAGE,
-            to_string((L"VKImage : " + name)));
+            "VKImage : " + name);
 #endif
 
         VkMemoryRequirements memRequirements;
@@ -225,7 +225,7 @@ namespace vireo {
         }
 #ifdef _DEBUG
         vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(imageMemory), VK_OBJECT_TYPE_DEVICE_MEMORY,
-        "VKImage Memory : " + to_string(name));
+        "VKImage Memory : " + name);
 #endif
 
         const auto aspect = isDepthBuffer ?
@@ -249,7 +249,7 @@ namespace vireo {
         vkCheck(vkCreateImageView(device->getDevice(), &viewInfo, nullptr, &imageView));
 #ifdef _DEBUG
         vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(imageView), VK_OBJECT_TYPE_IMAGE_VIEW,
-            to_string((L"VKImage view : " + name)));
+            "VKImage view : " + name);
 #endif
     }
 

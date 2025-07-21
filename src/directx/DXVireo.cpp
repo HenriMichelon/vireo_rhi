@@ -47,20 +47,20 @@ namespace vireo {
 
     std::shared_ptr<SubmitQueue> DXVireo::createSubmitQueue(
             CommandType commandType,
-            const std::wstring& name) const {
+            const std::string& name) const {
         return std::make_shared<DXSubmitQueue>(getDXDevice()->getDevice(), commandType);
     }
 
     std::shared_ptr<PipelineResources> DXVireo::createPipelineResources(
         const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
         const PushConstantsDesc& pushConstant,
-        const std::wstring& name ) const {
+        const std::string& name ) const {
         return std::make_shared<DXPipelineResources>(getDXDevice()->getDevice(), descriptorLayouts, pushConstant, name);
     }
 
     std::shared_ptr<GraphicPipeline> DXVireo::createGraphicPipeline(
         const GraphicPipelineConfiguration& configuration,
-        const std::wstring& name) const {
+        const std::string& name) const {
         return std::make_shared<DXGraphicPipeline>(
             getDXDevice()->getDevice(),
             configuration,
@@ -70,7 +70,7 @@ namespace vireo {
     std::shared_ptr<ComputePipeline> DXVireo::createComputePipeline(
         const std::shared_ptr<PipelineResources>& pipelineResources,
         const std::shared_ptr<const ShaderModule>& shader,
-        const std::wstring& name) const {
+        const std::string& name) const {
             return std::make_shared<DXComputePipeline>(
                 getDXDevice()->getDevice(),
                 pipelineResources,
@@ -103,7 +103,7 @@ namespace vireo {
         const BufferType type,
         const size_t size,
         const size_t count,
-        const std::wstring& name) const {
+        const std::string& name) const {
         return std::make_shared<DXBuffer>(getDXDevice()->getDevice(), type, size, count, name);
     }
 
@@ -113,7 +113,7 @@ namespace vireo {
         const uint32_t height,
         const uint32_t mipLevels,
         const uint32_t arraySize,
-        const std::wstring& name) const {
+        const std::string& name) const {
         return std::make_shared<DXImage>(
             getDXDevice()->getDevice(),
             format,
@@ -132,7 +132,7 @@ namespace vireo {
         const uint32_t height,
         const uint32_t mipLevels,
         const uint32_t arraySize,
-        const std::wstring& name) const {
+        const std::string& name) const {
             return std::make_shared<DXImage>(
                 getDXDevice()->getDevice(),
                 format,
@@ -153,7 +153,7 @@ namespace vireo {
            const ClearValue clearValue,
            const uint32_t arraySize,
            const MSAA msaa,
-           const std::wstring& name) const {
+           const std::string& name) const {
         return std::make_shared<DXRenderTarget>(
             getDXDevice()->getDevice(),
             std::make_shared<DXImage>(
@@ -176,7 +176,7 @@ namespace vireo {
            const std::shared_ptr<const SwapChain>& swapChain,
            const ClearValue clearValue,
            const MSAA msaa,
-           const std::wstring& name) const {
+           const std::string& name) const {
         return std::make_shared<DXRenderTarget>(
             getDXDevice()->getDevice(),
             std::make_shared<DXImage>(
@@ -195,23 +195,23 @@ namespace vireo {
             RenderTargetType::COLOR);
     }
     std::shared_ptr<DescriptorLayout> DXVireo::createDescriptorLayout(
-        const std::wstring& name) const {
+        const std::string& name) const {
         return std::make_shared<DXDescriptorLayout>(false, false);
     }
 
     std::shared_ptr<DescriptorLayout> DXVireo::createSamplerDescriptorLayout(
-        const std::wstring& name) const {
+        const std::string& name) const {
         return std::make_shared<DXDescriptorLayout>(true, false);
     }
 
     std::shared_ptr<DescriptorLayout> DXVireo::_createDynamicUniformDescriptorLayout(
-    const std::wstring& name) const {
+    const std::string& name) const {
         return std::make_shared<DXDescriptorLayout>(false, true);
     }
 
     std::shared_ptr<DescriptorSet> DXVireo::createDescriptorSet(
         const std::shared_ptr<const DescriptorLayout>& layout,
-        const std::wstring&) const {
+        const std::string&) const {
         const auto dxLayout = static_pointer_cast<const DXDescriptorLayout>(layout);
         return std::make_shared<DXDescriptorSet>(
             dxLayout->isSamplers() ? samplerDescriptorHeap : cbvSrvUavDescriptorHeap,
@@ -235,13 +235,13 @@ namespace vireo {
             minLod, maxLod, anisotropyEnable, mipMapMode, compareOp);
     }
 
-    std::shared_ptr<Fence> DXVireo::createFence(const bool, const std::wstring& name) const {
+    std::shared_ptr<Fence> DXVireo::createFence(const bool, const std::string& name) const {
         return std::make_shared<DXFence>(getDXDevice()->getDevice());
     }
 
     std::shared_ptr<Semaphore> DXVireo::createSemaphore(
         SemaphoreType type,
-        const std::wstring& name) const {
+        const std::string& name) const {
         return std::make_shared<DXSemaphore>(getDXDevice()->getDevice(), type);
     }
 

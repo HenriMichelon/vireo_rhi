@@ -31,15 +31,15 @@ export namespace vireo {
 
         std::shared_ptr<SubmitQueue> createSubmitQueue(
             CommandType commandType,
-            const std::wstring& name) const override;
+            const std::string& name) const override;
 
         std::shared_ptr<Fence> createFence(
             bool createSignaled,
-            const std::wstring& name) const override;
+            const std::string& name) const override;
 
         std::shared_ptr<Semaphore> createSemaphore(
             SemaphoreType type,
-            const std::wstring& name) const override;
+            const std::string& name) const override;
 
         std::shared_ptr<CommandAllocator> createCommandAllocator(CommandType type) const override;
 
@@ -60,22 +60,22 @@ export namespace vireo {
         std::shared_ptr<PipelineResources> createPipelineResources(
             const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
             const PushConstantsDesc& pushConstant,
-            const std::wstring& name) const override;
+            const std::string& name) const override;
 
         std::shared_ptr<ComputePipeline> createComputePipeline(
             const std::shared_ptr<PipelineResources>& pipelineResources,
             const std::shared_ptr<const ShaderModule>& shader,
-            const std::wstring& name) const override;
+            const std::string& name) const override;
 
         std::shared_ptr<GraphicPipeline> createGraphicPipeline(
             const GraphicPipelineConfiguration& configuration,
-            const std::wstring& name) const override;
+            const std::string& name) const override;
 
         std::shared_ptr<Buffer> createBuffer(
             BufferType type,
             size_t size,
             size_t count,
-            const std::wstring& name) const override;
+            const std::string& name) const override;
 
         std::shared_ptr<Image> createImage(
             ImageFormat format,
@@ -83,7 +83,7 @@ export namespace vireo {
             uint32_t height,
             uint32_t mipLevels,
             uint32_t arraySize,
-            const std::wstring& name) const override;
+            const std::string& name) const override;
 
         std::shared_ptr<Image> createReadWriteImage(
             ImageFormat format,
@@ -91,7 +91,7 @@ export namespace vireo {
             uint32_t height,
             uint32_t mipLevels,
             uint32_t arraySize,
-            const std::wstring& name) const override;
+            const std::string& name) const override;
 
         std::shared_ptr<RenderTarget> createRenderTarget(
             ImageFormat format,
@@ -101,26 +101,26 @@ export namespace vireo {
             ClearValue clearValue,
             uint32_t arraySize,
             MSAA msaa,
-            const std::wstring& name) const override;
+            const std::string& name) const override;
 
         std::shared_ptr<RenderTarget> createRenderTarget(
             const std::shared_ptr<const SwapChain>& swapChain,
             ClearValue clearValue,
             MSAA msaa,
-            const std::wstring& name) const override;
+            const std::string& name) const override;
 
         std::shared_ptr<DescriptorLayout> createDescriptorLayout(
-            const std::wstring& name) const override;
+            const std::string& name) const override;
 
         std::shared_ptr<DescriptorLayout> createSamplerDescriptorLayout(
-            const std::wstring& name) const override;
+            const std::string& name) const override;
 
         std::shared_ptr<DescriptorLayout> _createDynamicUniformDescriptorLayout(
-            const std::wstring& name) const override;
+            const std::string& name) const override;
 
         std::shared_ptr<DescriptorSet> createDescriptorSet(
             const std::shared_ptr<const DescriptorLayout>& layout,
-            const std::wstring& name) const override;
+            const std::string& name) const override;
 
         std::shared_ptr<Sampler> createSampler(
             Filter minFilter,
@@ -134,8 +134,8 @@ export namespace vireo {
             MipMapMode mipMapMode,
             CompareOp compareOp) const override;
 
-        constexpr std::wstring getShaderFileExtension() const override {
-            return L".spv";
+        constexpr std::string getShaderFileExtension() const override {
+            return ".spv";
         }
 
         auto getVKInstance() const { return reinterpret_pointer_cast<VKInstance>(instance); }

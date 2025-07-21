@@ -16,7 +16,7 @@ import vireo.vulkan.tools;
 
 namespace vireo {
 
-    VKDescriptorLayout::VKDescriptorLayout(const VkDevice device, const bool samplers, const bool dynamic, const std::wstring& name):
+    VKDescriptorLayout::VKDescriptorLayout(const VkDevice device, const bool samplers, const bool dynamic, const std::string& name):
         DescriptorLayout{samplers, dynamic}, device{device}, name{name} {
     }
 
@@ -69,7 +69,7 @@ namespace vireo {
         vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &setLayout);
 #ifdef _DEBUG
         vkSetObjectName(device, reinterpret_cast<uint64_t>(setLayout), VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT,
-            to_string(L"VKDescriptorLayout : " + name).c_str());
+            "VKDescriptorLayout : " + name);
 #endif
     }
 
@@ -79,7 +79,7 @@ namespace vireo {
 
     VKDescriptorSet::VKDescriptorSet(
         const std::shared_ptr<const DescriptorLayout>& layout,
-        const std::wstring& name):
+        const std::string& name):
         DescriptorSet {layout} {
         const auto vkLayout = static_pointer_cast<const VKDescriptorLayout>(layout);
         const auto setLayout = vkLayout->getSetLayout();
@@ -107,9 +107,9 @@ namespace vireo {
 
 #ifdef _DEBUG
         vkSetObjectName(device, reinterpret_cast<uint64_t>(pool), VK_OBJECT_TYPE_DESCRIPTOR_POOL,
-             to_string(L"VKDescriptorSet Pool : " + name).c_str());
+             "VKDescriptorSet Pool : " + name);
         vkSetObjectName(device, reinterpret_cast<uint64_t>(set), VK_OBJECT_TYPE_DESCRIPTOR_SET,
-            to_string(L"VKDescriptorSet : " + name).c_str());
+            "VKDescriptorSet : " + name);
 #endif
     }
 

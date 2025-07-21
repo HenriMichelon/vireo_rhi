@@ -324,7 +324,7 @@ namespace vireo {
             if (FAILED(tmpDxgiAdapter->GetDesc1(&desc))) { return result; }
             if (memcmp(&desc.AdapterLuid, physDeviceIDProps.deviceLUID, VK_LUID_SIZE) == 0) {
                 if (FAILED(tmpDxgiAdapter->QueryInterface(IID_PPV_ARGS(&dxgiAdapter)))) { return result; }
-                result.name = desc.Description;
+                result.name = std::to_string(desc.Description);
                 result.dedicatedVideoMemory = desc.DedicatedVideoMemory;
                 result.dedicatedSystemMemory = desc.DedicatedSystemMemory;
                 result.sharedSystemMemory = desc.SharedSystemMemory;

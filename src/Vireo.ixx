@@ -655,7 +655,7 @@ export namespace vireo {
      */
     struct PhysicalDeviceDesc {
         //! Adapter name
-        std::wstring name{L"Unknown"};
+        std::string name{"Unknown"};
         //! The number of bytes of dedicated video memory that are not shared with the CPU.
         size_t  dedicatedVideoMemory{0};
         //! The number of bytes of dedicated system memory that are not shared with the CPU
@@ -783,7 +783,7 @@ export namespace vireo {
      */
     struct VideoMemoryAllocationDesc {
         VideoMemoryAllocationUsage usage;
-        std::wstring name;
+        std::string name;
         size_t size;
         void* ref;
     };
@@ -2577,7 +2577,7 @@ export namespace vireo {
          */
         virtual std::shared_ptr<SubmitQueue> createSubmitQueue(
             CommandType commandType,
-            const std::wstring& name = L"SubmitQueue") const = 0;
+            const std::string& name = "SubmitQueue") const = 0;
 
         /**
          * Creates a fence for CPU/GPU synchronization
@@ -2586,7 +2586,7 @@ export namespace vireo {
          */
         virtual std::shared_ptr<Fence> createFence(
             bool createSignaled = false,
-            const std::wstring& name = L"Fence") const = 0;
+            const std::string& name = "Fence") const = 0;
 
         /**
          * Creates a semaphore for GPU/GPU synchronization
@@ -2595,7 +2595,7 @@ export namespace vireo {
          */
         virtual std::shared_ptr<Semaphore> createSemaphore(
             SemaphoreType type,
-            const std::wstring& name = L"Semaphore") const = 0;
+            const std::string& name = "Semaphore") const = 0;
 
         /**
          * Creates a command allocator (command pool) for a given command type
@@ -2643,7 +2643,7 @@ export namespace vireo {
         virtual std::shared_ptr<PipelineResources> createPipelineResources(
             const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts = {},
             const PushConstantsDesc& pushConstant = {},
-            const std::wstring& name = L"PipelineResource") const = 0;
+            const std::string& name = "PipelineResource") const = 0;
 
         /**
          * Creates a compute pipeline
@@ -2654,7 +2654,7 @@ export namespace vireo {
         virtual std::shared_ptr<ComputePipeline> createComputePipeline(
             const std::shared_ptr<PipelineResources>& pipelineResources,
             const std::shared_ptr<const ShaderModule>& shader,
-            const std::wstring& name = L"ComputePipeline") const = 0;
+            const std::string& name = "ComputePipeline") const = 0;
 
         /**
          * Creates a graphic pipeline. At least one shader must be used.
@@ -2663,7 +2663,7 @@ export namespace vireo {
          */
         virtual std::shared_ptr<GraphicPipeline> createGraphicPipeline(
             const GraphicPipelineConfiguration& configuration,
-            const std::wstring& name = L"GraphicPipeline") const = 0;
+            const std::string& name = "GraphicPipeline") const = 0;
 
         /**
          * Creates a data buffer in VRAM.
@@ -2678,7 +2678,7 @@ export namespace vireo {
             BufferType type,
             size_t size,
             size_t count = 1,
-            const std::wstring& name = L"Buffer") const = 0;
+            const std::string& name = "Buffer") const = 0;
 
         /**
          * Creates a read-only image in VRAM
@@ -2695,7 +2695,7 @@ export namespace vireo {
             uint32_t height,
             uint32_t mipLevels = 1,
             uint32_t arraySize = 1,
-            const std::wstring& name = L"Image") const = 0;
+            const std::string& name = "Image") const = 0;
 
         /**
          * Creates a read/write image in VRAM
@@ -2712,7 +2712,7 @@ export namespace vireo {
             uint32_t height,
             uint32_t mipLevels = 1,
             uint32_t arraySize = 1,
-            const std::wstring& name = L"RWImage") const = 0;
+            const std::string& name = "RWImage") const = 0;
 
         /**
          * Creates a read/write image in VRAM for use as a render target
@@ -2733,7 +2733,7 @@ export namespace vireo {
             ClearValue clearValue = {},
             uint32_t arraySize = 1,
             MSAA msaa = MSAA::NONE,
-            const std::wstring& name = L"RenderTarget") const = 0;
+            const std::string& name = "RenderTarget") const = 0;
 
         /**
          * Creates a read/write image in VRAM for use as a render target with a similar format as a swap chain.
@@ -2747,28 +2747,28 @@ export namespace vireo {
             const std::shared_ptr<const SwapChain>& swapChain,
             ClearValue clearValue = {},
             MSAA msaa = MSAA::NONE,
-            const std::wstring& name = L"RenderTarget") const = 0;
+            const std::string& name = "RenderTarget") const = 0;
 
         /**
          * Creates an empty description layout.
          * @param name Object name for debug
          */
         virtual std::shared_ptr<DescriptorLayout> createDescriptorLayout(
-            const std::wstring& name = L"DescriptorLayout") const = 0;
+            const std::string& name = "DescriptorLayout") const = 0;
 
         /**
          * Creates an empty description layout for SAMPLER resources types
          * @param name Object name for debug
          */
         virtual std::shared_ptr<DescriptorLayout> createSamplerDescriptorLayout(
-            const std::wstring& name = L"createSamplerDescriptorLayout") const = 0;
+            const std::string& name = "createSamplerDescriptorLayout") const = 0;
 
         /**
          * Creates an empty description layout for UNIFORM_DYNAMIX resources types
          * @param name Object name for debug
          */
         std::shared_ptr<DescriptorLayout> createDynamicUniformDescriptorLayout(
-            const std::wstring& name = L"createDynamicUniformDescriptorLayout") const;
+            const std::string& name = "createDynamicUniformDescriptorLayout") const;
 
         /**
          * Creates an empty descriptor set
@@ -2777,7 +2777,7 @@ export namespace vireo {
          */
         virtual std::shared_ptr<DescriptorSet> createDescriptorSet(
             const std::shared_ptr<const DescriptorLayout>& layout,
-            const std::wstring& name = L"DescriptorSet") const = 0;
+            const std::string& name = "DescriptorSet") const = 0;
 
         /**
          * Creates a texture sampler.
@@ -2798,7 +2798,7 @@ export namespace vireo {
          */
         static bool isBackendSupported(Backend backend);
 
-        virtual std::wstring getShaderFileExtension() const = 0;
+        virtual std::string getShaderFileExtension() const = 0;
 
         /**
          * Returns the physical device/adapter object
@@ -2820,7 +2820,7 @@ export namespace vireo {
         std::shared_ptr<Device>         device;
 
         virtual std::shared_ptr<DescriptorLayout> _createDynamicUniformDescriptorLayout(
-            const std::wstring& name = L"DynamicUniformDescriptorLayout") const = 0;
+            const std::string& name = "DynamicUniformDescriptorLayout") const = 0;
 
     };
 

@@ -32,7 +32,7 @@ export namespace vireo {
             BufferType type,
             size_t size,
             size_t count,
-            const std::wstring& name);
+            const std::string& name);
 
         ~DXBuffer() override;
 
@@ -167,7 +167,7 @@ export namespace vireo {
             uint32_t    height,
             uint32_t    mipLevels,
             uint32_t    arraySize,
-            const std::wstring& name,
+            const std::string& name,
             bool        useByComputeShader,
             bool        isRenderTarget,
             bool        isDepthBuffer,

@@ -19,7 +19,7 @@ export namespace vireo {
 
     class VKFence : public Fence {
     public:
-        VKFence(bool createSignaled, const std::shared_ptr<const VKDevice>& device, const std::wstring& name);
+        VKFence(bool createSignaled, const std::shared_ptr<const VKDevice>& device, const std::string& name);
 
         void wait() const override;
 
@@ -55,7 +55,7 @@ export namespace vireo {
             VK_PIPELINE_STAGE_2_BLIT_BIT ,
             VK_PIPELINE_STAGE_2_CLEAR_BIT ,
         };
-        VKSemaphore(const std::shared_ptr<const VKDevice>& device, SemaphoreType type, const std::wstring& name);
+        VKSemaphore(const std::shared_ptr<const VKDevice>& device, SemaphoreType type, const std::string& name);
 
         auto getSemaphore() const { return semaphore; }
 
@@ -68,7 +68,7 @@ export namespace vireo {
 
     class VKSubmitQueue : public SubmitQueue {
     public:
-        VKSubmitQueue(const std::shared_ptr<const VKDevice>& device, CommandType type, const std::wstring& name);
+        VKSubmitQueue(const std::shared_ptr<const VKDevice>& device, CommandType type, const std::string& name);
 
         auto getCommandQueue() const { return commandQueue; }
 
