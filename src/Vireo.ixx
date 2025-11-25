@@ -794,7 +794,7 @@ export namespace vireo {
      *
      * Manual page : \ref manual_090_01_fences
      */
-    class Fence {
+    class Fence : public std::enable_shared_from_this<Fence> {
     public:
         //! Wait for the fences to become signaled
         virtual void wait() const = 0;
@@ -816,7 +816,7 @@ export namespace vireo {
      *
      * Manual page : \ref manual_090_02_semaphores
      */
-    class Semaphore {
+    class Semaphore : public std::enable_shared_from_this<Semaphore> {
     public:
         Semaphore(const SemaphoreType type) : type{type} {}
 
@@ -863,7 +863,7 @@ export namespace vireo {
      *
      * Manual page : \ref manual_020_devices
      */
-    class Instance {
+    class Instance : public std::enable_shared_from_this<Instance> {
     public:
         virtual ~Instance() = default;
         Instance (Instance&) = delete;
@@ -877,7 +877,7 @@ export namespace vireo {
      *
      * Manual page : \ref manual_020_devices
      */
-    class PhysicalDevice {
+    class PhysicalDevice : public std::enable_shared_from_this<PhysicalDevice> {
     public:
         /**
          * Returns the graphic adapter description
@@ -897,7 +897,7 @@ export namespace vireo {
      *
      * Manual page : \ref manual_020_devices
      */
-    class Device {
+    class Device : public std::enable_shared_from_this<Device> {
     public:
         virtual bool haveDedicatedTransferQueue() const = 0;
 
@@ -916,7 +916,7 @@ export namespace vireo {
      *
      * Manual page : \ref manual_030_01_resources
      */
-    class Buffer {
+    class Buffer : public std::enable_shared_from_this<Buffer> {
     public:
         static constexpr size_t WHOLE_SIZE = ~0ULL;
 
@@ -999,7 +999,7 @@ export namespace vireo {
      *
      * Manual page : \ref manual_030_03_resources
      */
-    class Sampler {
+    class Sampler : public std::enable_shared_from_this<Sampler> {
     public:
         static constexpr float LOD_CLAMP_NONE = 3.402823466e+38f;
 
@@ -1016,7 +1016,7 @@ export namespace vireo {
      *
      * Manual page : \ref manual_030_02_resources
      */
-    class Image {
+    class Image : public std::enable_shared_from_this<Image> {
     public:
         static constexpr uint8_t pixelSize[] = {
             1,  // R8_UNORM
@@ -1235,7 +1235,7 @@ export namespace vireo {
      *
      * Manual page : \ref manual_100_00_renderpass
      */
-    class RenderTarget {
+    class RenderTarget : public std::enable_shared_from_this<RenderTarget> {
     public:
         /**
          * Return the associated image
@@ -1268,7 +1268,7 @@ export namespace vireo {
      *
      * Manual page : \ref manual_040_01_descriptor_layout
      */
-    class DescriptorLayout {
+    class DescriptorLayout : public std::enable_shared_from_this<DescriptorLayout> {
     public:
         /**
          * Add a resource to the layout
@@ -1319,7 +1319,7 @@ export namespace vireo {
      *
      * Manual page : \ref manual_040_02_descriptor_set
      */
-    class DescriptorSet {
+    class DescriptorSet : public std::enable_shared_from_this<DescriptorSet> {
     public:
         /**
          * Bind an uniform buffer
@@ -1425,7 +1425,7 @@ export namespace vireo {
      *
      * Manual page : \ref manual_080_01_graphic_pipelines
      */
-    class VertexInputLayout {
+    class VertexInputLayout : public std::enable_shared_from_this<VertexInputLayout> {
     public:
         virtual ~VertexInputLayout() = default;
         VertexInputLayout (VertexInputLayout&) = delete;
@@ -1439,7 +1439,7 @@ export namespace vireo {
      *
      * Manual page : \ref manual_070_00_shaders
      */
-    class ShaderModule {
+    class ShaderModule : public std::enable_shared_from_this<ShaderModule> {
     public:
         virtual ~ShaderModule() = default;
         ShaderModule (ShaderModule&) = delete;
@@ -1454,7 +1454,7 @@ export namespace vireo {
      *
      * Manual page : \ref manual_040_04_pipeline_resources
      */
-    class PipelineResources {
+    class PipelineResources : public std::enable_shared_from_this<PipelineResources> {
     public:
         virtual ~PipelineResources() = default;
         PipelineResources (PipelineResources&) = delete;
@@ -1468,7 +1468,7 @@ export namespace vireo {
      *
      * Manual page : \ref manual_080_00_pipelines
      */
-    class Pipeline {
+    class Pipeline : public std::enable_shared_from_this<Pipeline> {
     public:
         /**
          * Returns the pipeline resources
@@ -1610,7 +1610,7 @@ export namespace vireo {
      *
      * Manual page : \ref manual_050_00_commands
      */
-    class CommandList {
+    class CommandList : public std::enable_shared_from_this<CommandList> {
     public:
         static constexpr uint32_t indexTypeSize[] = {
             2,
@@ -2203,7 +2203,7 @@ export namespace vireo {
      *
      * Manual page : \ref manual_050_00_commands
      */
-    class CommandAllocator {
+    class CommandAllocator : public std::enable_shared_from_this<CommandAllocator> {
     public:
         /**
          * Resets the command allocator and of the associated command lists
@@ -2250,7 +2250,7 @@ export namespace vireo {
      *
      * Manual page : \ref manual_060_00_queues
      */
-    class SubmitQueue {
+    class SubmitQueue : public std::enable_shared_from_this<SubmitQueue> {
     public:
         /**
          * Submit graphics commands and synchronize the host & the device with a fence
@@ -2397,7 +2397,7 @@ export namespace vireo {
      *
      * Manual page : \ref manual_110_00_swapchain
      */
-    class SwapChain {
+    class SwapChain : public std::enable_shared_from_this<SwapChain> {
     public:
         /**
          * Returns the swap chain extent
@@ -2543,7 +2543,7 @@ export namespace vireo {
      *
      * Manual page : \ref manual_010_vireo_class
      */
-    class Vireo {
+    class Vireo : public std::enable_shared_from_this<Vireo> {
     public:
         /**
          * Creates a new Vireo class using the given backend.
