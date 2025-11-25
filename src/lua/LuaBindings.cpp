@@ -15,28 +15,190 @@ module vireo.lua;
 import std;
 
 namespace vireo {
+    float getClearColorR(const ClearValue* v) { return v->color[0]; }
+    void setClearColorR(ClearValue* v, float r) { v->color[0] = r; }
+
+    float getClearColorG(const ClearValue* v) { return v->color[1]; }
+    void setClearColorG(ClearValue* v, float g) { v->color[1] = g; }
+
+    float getClearColorB(const ClearValue* v) { return v->color[2]; }
+    void setClearColorB(ClearValue* v, float b) { v->color[2] = b; }
+
+    float getClearColorA(const ClearValue* v) { return v->color[3]; }
+    void setClearColorA(ClearValue* v, float a) { v->color[3] = a; }
+
+    float getClearDepth(const ClearValue* v) { return v->depthStencil.depth; }
+    void setClearDepth(ClearValue* v, float d) { v->depthStencil.depth = d; }
+
+    std::uint32_t getClearStencil(const ClearValue* v) { return v->depthStencil.stencil; }
+    void setClearStencil(ClearValue* v, std::uint32_t s) { v->depthStencil.stencil = s; }
+
+    void DS_updateBufferByIndex(DescriptorSet& self,
+                                const DescriptorIndex index,
+                                const std::shared_ptr<const Buffer>& buffer) {
+        self.update(index, buffer);
+    }
+
+    void DS_updateBufferDynamic(DescriptorSet& self, const std::shared_ptr<const Buffer>& buffer) {
+        self.update(buffer);
+    }
+
+    void DS_updateImageByIndex(DescriptorSet& self, DescriptorIndex index, const std::shared_ptr<const Image>& image) {
+        self.update(index, image);
+    }
+
+    void DS_updateImageByRef(DescriptorSet& self, DescriptorIndex index, const Image& image) {
+        self.update(index, image);
+    }
+
+    void DS_updateSamplerByIndex(DescriptorSet& self,
+                                 const DescriptorIndex index,
+                                 const std::shared_ptr<const Sampler>& sampler) {
+        self.update(index, sampler);
+    }
+
+    void DS_updateSamplerByRef(DescriptorSet& self,const  DescriptorIndex index, const Sampler& sampler) {
+        self.update(index, sampler);
+    }
+
+    void DS_updateImageArray(
+        DescriptorSet& self,
+        const DescriptorIndex index,
+        const std::vector<std::shared_ptr<Image>>& images) {
+        self.update(index, images);
+    }
+
+    void DS_updateBufferArray(
+        DescriptorSet& self,
+        const DescriptorIndex index,
+        const std::vector<std::shared_ptr<Buffer>>& buffers) {
+        self.update(index, buffers);
+    }
+
+    void DS_updateSamplerArray(
+        DescriptorSet& self,
+        const DescriptorIndex index,
+        const std::vector<std::shared_ptr<Sampler>>& samplers) {
+        self.update(index, samplers);
+    }
+
+    std::shared_ptr<CommandList> CA_createCL(CommandAllocator& self) {
+        return self.createCommandList();
+    }
+
+    std::shared_ptr<CommandList> CA_createCLWithPipeline(CommandAllocator& self,
+                                                         const std::shared_ptr<const Pipeline>& p) {
+        return self.createCommandList(p);
+    }
+
+    void SQ_submitFenceSwap(
+        const SubmitQueue& self,
+        const std::shared_ptr<Fence>& fence,
+        const std::shared_ptr<const SwapChain>& swapChain,
+        const std::vector<std::shared_ptr<const CommandList>>& cls) {
+        self.submit(fence, swapChain, cls);
+    }
+
+    void SQ_submitNoSync(
+        const SubmitQueue& self,
+        const std::vector<std::shared_ptr<const CommandList>>& cls) {
+        self.submit(cls);
+    }
+
+    void SQ_submitFenceOnly(
+        const SubmitQueue& self,
+        const std::shared_ptr<Fence>& fence,
+        const std::vector<std::shared_ptr<const CommandList>>& cls) {
+        self.submit(fence, cls);
+    }
+
+    void SQ_submitWaitFenceSwap(
+        const SubmitQueue& self,
+        const std::shared_ptr<Semaphore>& waitSemaphore,
+        const WaitStage waitStage,
+        const std::shared_ptr<Fence>& fence,
+        const std::shared_ptr<const SwapChain>& swapChain,
+        const std::vector<std::shared_ptr<const CommandList>>& cls) {
+        self.submit(waitSemaphore, waitStage, fence, swapChain, cls);
+    }
+
+    void SQ_submitWaitSignal(
+        const SubmitQueue& self,
+        const std::shared_ptr<Semaphore>& waitSemaphore,
+        const WaitStage waitStage,
+        const WaitStage signalStage,
+        const std::shared_ptr<Semaphore>& signalSemaphore,
+        const std::vector<std::shared_ptr<const CommandList>>& cls) {
+        self.submit(waitSemaphore, waitStage, signalStage, signalSemaphore, cls);
+    }
+
+    void SQ_submitWaitOnly(
+        const SubmitQueue& self,
+        const std::shared_ptr<Semaphore>& waitSemaphore,
+        const WaitStage waitStage,
+        const std::vector<std::shared_ptr<const CommandList>>& cls) {
+        self.submit(waitSemaphore, waitStage, cls);
+    }
+
+    void SQ_submitSignalOnly(
+        const SubmitQueue& self,
+        const WaitStage signalStage,
+        const std::shared_ptr<Semaphore>& signalSemaphore,
+        const std::vector<std::shared_ptr<const CommandList>>& cls) {
+        self.submit(signalStage, signalSemaphore, cls);
+    }
+
+    std::shared_ptr<RenderTarget> Vireo_createRTBasic(
+        const Vireo& self,
+        const ImageFormat format,
+        const std::uint32_t width,
+        const std::uint32_t height,
+        const RenderTargetType type,
+        const ClearValue clearValue,
+        const std::uint32_t arraySize,
+        const MSAA msaa,
+        const std::string& name) {
+        return self.createRenderTarget(format, width, height, type, clearValue, arraySize, msaa, name);
+    }
+
+    std::shared_ptr<RenderTarget> Vireo_createRTFromSwap(
+        const Vireo& self,
+        const std::shared_ptr<const SwapChain>& swapChain,
+        const ClearValue clearValue,
+        const MSAA msaa,
+        const std::string& name) {
+        return self.createRenderTarget(swapChain, clearValue, msaa, name);
+    }
+
+    std::shared_ptr<Vireo> Vireo_createDefault(const Backend backend) {
+        return Vireo::create(backend);
+    }
+
+    std::shared_ptr<Vireo> Vireo_createFull(
+        const Backend backend,
+        const std::uint32_t maxDirectX12Descriptors,
+        const std::uint32_t maxDirectX12Samplers) {
+        return Vireo::create(backend, maxDirectX12Descriptors, maxDirectX12Samplers);
+    }
 
     void LuaBindings::_register(lua_State* L) {
         luabridge::getGlobalNamespace(L).beginNamespace("vireo")
-            // Backend
+        // enum classes
             .beginNamespace("Backend")
                 .addProperty("UNDEFINED", []{ return (int)Backend::UNDEFINED; })
                 .addProperty("DIRECTX",   []{ return (int)Backend::DIRECTX; })
                 .addProperty("VULKAN",    []{ return (int)Backend::VULKAN; })
             .endNamespace()
-            // Filter
             .beginNamespace("Filter")
                 .addProperty("NEAREST", []{ return (int)Filter::NEAREST; })
                 .addProperty("LINEAR",  []{ return (int)Filter::LINEAR; })
             .endNamespace()
-            // AddressMode
             .beginNamespace("AddressMode")
                 .addProperty("REPEAT",          []{ return (int)AddressMode::REPEAT; })
                 .addProperty("MIRRORED_REPEAT", []{ return (int)AddressMode::MIRRORED_REPEAT; })
                 .addProperty("CLAMP_TO_EDGE",   []{ return (int)AddressMode::CLAMP_TO_EDGE; })
                 .addProperty("CLAMP_TO_BORDER", []{ return (int)AddressMode::CLAMP_TO_BORDER; })
             .endNamespace()
-            // MipMapMode
             .beginNamespace("MipMapMode")
                 .addProperty("NEAREST", []{ return (int)MipMapMode::NEAREST; })
                 .addProperty("LINEAR",  []{ return (int)MipMapMode::LINEAR; })
@@ -120,7 +282,6 @@ namespace vireo {
                 .addProperty("BC7_UNORM",              []{ return (int)ImageFormat::BC7_UNORM; })
                 .addProperty("BC7_UNORM_SRGB",         []{ return (int)ImageFormat::BC7_UNORM_SRGB; })
             .endNamespace()
-            // BufferType
             .beginNamespace("BufferType")
                 .addProperty("VERTEX",           []{ return (int)BufferType::VERTEX; })
                 .addProperty("INDEX",            []{ return (int)BufferType::INDEX; })
@@ -134,12 +295,10 @@ namespace vireo {
                 .addProperty("IMAGE_UPLOAD",     []{ return (int)BufferType::IMAGE_UPLOAD; })
                 .addProperty("IMAGE_DOWNLOAD",   []{ return (int)BufferType::IMAGE_DOWNLOAD; })
             .endNamespace()
-            // IndexType
             .beginNamespace("IndexType")
                 .addProperty("UINT16", []{ return (int)IndexType::UINT16; })
                 .addProperty("UINT32", []{ return (int)IndexType::UINT32; })
             .endNamespace()
-            // DescriptorType
             .beginNamespace("DescriptorType")
                 .addProperty("UNIFORM",           []{ return (int)DescriptorType::UNIFORM; })
                 .addProperty("UNIFORM_DYNAMIC",   []{ return (int)DescriptorType::UNIFORM_DYNAMIC; })
@@ -150,13 +309,11 @@ namespace vireo {
                 .addProperty("SAMPLER",           []{ return (int)DescriptorType::SAMPLER; })
                 .addProperty("READWRITE_IMAGE",   []{ return (int)DescriptorType::READWRITE_IMAGE; })
             .endNamespace()
-            // CommandType
             .beginNamespace("CommandType")
                 .addProperty("GRAPHIC",  []{ return (int)CommandType::GRAPHIC; })
                 .addProperty("TRANSFER", []{ return (int)CommandType::TRANSFER; })
                 .addProperty("COMPUTE",  []{ return (int)CommandType::COMPUTE; })
             .endNamespace()
-            // AttributeFormat
             .beginNamespace("AttributeFormat")
                 .addProperty("R32_FLOAT",          []{ return (int)AttributeFormat::R32_FLOAT; })
                 .addProperty("R32G32_FLOAT",       []{ return (int)AttributeFormat::R32G32_FLOAT; })
@@ -171,19 +328,16 @@ namespace vireo {
                 .addProperty("R32G32B32_UINT",     []{ return (int)AttributeFormat::R32G32B32_UINT; })
                 .addProperty("R32G32B32A32_UINT",  []{ return (int)AttributeFormat::R32G32B32A32_UINT; })
             .endNamespace()
-            // RenderTargetType
             .beginNamespace("RenderTargetType")
                 .addProperty("COLOR",          []{ return (int)RenderTargetType::COLOR; })
                 .addProperty("DEPTH",          []{ return (int)RenderTargetType::DEPTH; })
                 .addProperty("DEPTH_STENCIL",  []{ return (int)RenderTargetType::DEPTH_STENCIL; })
             .endNamespace()
-            // CullMode
             .beginNamespace("CullMode")
                 .addProperty("NONE",  []{ return (int)CullMode::NONE; })
                 .addProperty("FRONT", []{ return (int)CullMode::FRONT; })
                 .addProperty("BACK",  []{ return (int)CullMode::BACK; })
             .endNamespace()
-            // PrimitiveTopology
             .beginNamespace("PrimitiveTopology")
                 .addProperty("POINT_LIST",     []{ return (int)PrimitiveTopology::POINT_LIST; })
                 .addProperty("LINE_LIST",      []{ return (int)PrimitiveTopology::LINE_LIST; })
@@ -191,12 +345,10 @@ namespace vireo {
                 .addProperty("TRIANGLE_LIST",  []{ return (int)PrimitiveTopology::TRIANGLE_LIST; })
                 .addProperty("TRIANGLE_STRIP", []{ return (int)PrimitiveTopology::TRIANGLE_STRIP; })
             .endNamespace()
-            // PolygonMode
             .beginNamespace("PolygonMode")
                 .addProperty("FILL",      []{ return (int)PolygonMode::FILL; })
                 .addProperty("WIREFRAME", []{ return (int)PolygonMode::WIREFRAME; })
             .endNamespace()
-            // CompareOp
             .beginNamespace("CompareOp")
                 .addProperty("NEVER",            []{ return (int)CompareOp::NEVER; })
                 .addProperty("LESS",             []{ return (int)CompareOp::LESS; })
@@ -207,7 +359,6 @@ namespace vireo {
                 .addProperty("GREATER_OR_EQUAL", []{ return (int)CompareOp::GREATER_OR_EQUAL; })
                 .addProperty("ALWAYS",           []{ return (int)CompareOp::ALWAYS; })
             .endNamespace()
-            // StencilOp
             .beginNamespace("StencilOp")
                 .addProperty("KEEP",                 []{ return (int)StencilOp::KEEP; })
                 .addProperty("ZERO",                 []{ return (int)StencilOp::ZERO; })
@@ -218,7 +369,6 @@ namespace vireo {
                 .addProperty("INCREMENT_AND_WRAP",   []{ return (int)StencilOp::INCREMENT_AND_WRAP; })
                 .addProperty("DECREMENT_AND_WRAP",   []{ return (int)StencilOp::DECREMENT_AND_WRAP; })
             .endNamespace()
-            // BlendFactor
             .beginNamespace("BlendFactor")
                 .addProperty("ZERO",                    []{ return (int)BlendFactor::ZERO; })
                 .addProperty("ONE",                     []{ return (int)BlendFactor::ONE; })
@@ -240,7 +390,6 @@ namespace vireo {
                 .addProperty("SRC1_ALPHA",              []{ return (int)BlendFactor::SRC1_ALPHA; })
                 .addProperty("ONE_MINUS_SRC1_ALPHA",    []{ return (int)BlendFactor::ONE_MINUS_SRC1_ALPHA; })
             .endNamespace()
-            // BlendOp
             .beginNamespace("BlendOp")
                 .addProperty("ADD",              []{ return (int)BlendOp::ADD; })
                 .addProperty("SUBTRACT",         []{ return (int)BlendOp::SUBTRACT; })
@@ -248,7 +397,6 @@ namespace vireo {
                 .addProperty("MIN",              []{ return (int)BlendOp::MIN; })
                 .addProperty("MAX",              []{ return (int)BlendOp::MAX; })
             .endNamespace()
-            // LogicOp
             .beginNamespace("LogicOp")
                 .addProperty("CLEAR",         []{ return (int)LogicOp::CLEAR; })
                 .addProperty("SET",           []{ return (int)LogicOp::SET; })
@@ -267,7 +415,6 @@ namespace vireo {
                 .addProperty("OR_REVERSE",    []{ return (int)LogicOp::OR_REVERSE; })
                 .addProperty("OR_INVERTED",   []{ return (int)LogicOp::OR_INVERTED; })
             .endNamespace()
-            // ColorWriteMask
             .beginNamespace("ColorWriteMask")
                 .addProperty("RED",   []{ return (int)ColorWriteMask::RED; })
                 .addProperty("GREEN", []{ return (int)ColorWriteMask::GREEN; })
@@ -275,7 +422,6 @@ namespace vireo {
                 .addProperty("ALPHA", []{ return (int)ColorWriteMask::ALPHA; })
                 .addProperty("ALL",   []{ return (int)ColorWriteMask::ALL; })
             .endNamespace()
-            // ShaderStage
             .beginNamespace("ShaderStage")
                 .addProperty("ALL",      []{ return (int)ShaderStage::ALL; })
                 .addProperty("VERTEX",   []{ return (int)ShaderStage::VERTEX; })
@@ -285,7 +431,6 @@ namespace vireo {
                 .addProperty("GEOMETRY", []{ return (int)ShaderStage::GEOMETRY; })
                 .addProperty("COMPUTE",  []{ return (int)ShaderStage::COMPUTE; })
             .endNamespace()
-            // WaitStage
             .beginNamespace("WaitStage")
                 .addProperty("NONE",                                  []{ return (int)WaitStage::NONE; })
                 .addProperty("PIPELINE_TOP",                          []{ return (int)WaitStage::PIPELINE_TOP; })
@@ -305,7 +450,6 @@ namespace vireo {
                 .addProperty("BLIT",                                   []{ return (int)WaitStage::BLIT; })
                 .addProperty("CLEAR",                                  []{ return (int)WaitStage::CLEAR; })
             .endNamespace()
-            // ResourceState
             .beginNamespace("ResourceState")
                 .addProperty("UNDEFINED",                    []{ return (int)ResourceState::UNDEFINED; })
                 .addProperty("GENERAL",                      []{ return (int)ResourceState::GENERAL; })
@@ -325,7 +469,6 @@ namespace vireo {
                 .addProperty("VERTEX_INPUT",                 []{ return (int)ResourceState::VERTEX_INPUT; })
                 .addProperty("UNIFORM",                      []{ return (int)ResourceState::UNIFORM; })
             .endNamespace()
-            // MSAA
             .beginNamespace("MSAA")
                 .addProperty("NONE", []{ return (int)MSAA::NONE; })
                 .addProperty("X2",   []{ return (int)MSAA::X2; })
@@ -339,16 +482,371 @@ namespace vireo {
                 .addProperty("IMMEDIATE", []{ return (int)PresentMode::IMMEDIATE; })
                 .addProperty("VSYNC",     []{ return (int)PresentMode::VSYNC; })
             .endNamespace()
-            // PipelineType
             .beginNamespace("PipelineType")
                 .addProperty("GRAPHIC", []{ return (int)PipelineType::GRAPHIC; })
                 .addProperty("COMPUTE", []{ return (int)PipelineType::COMPUTE; })
             .endNamespace()
-            // SemaphoreType
             .beginNamespace("SemaphoreType")
                 .addProperty("BINARY",   []{ return (int)SemaphoreType::BINARY; })
                 .addProperty("TIMELINE", []{ return (int)SemaphoreType::TIMELINE; })
             .endNamespace()
+
+        // structs
+            .beginClass<ColorBlendDesc>("ColorBlendDesc")
+                .addConstructor<void(*)()>()
+                .addProperty("blendEnable", &ColorBlendDesc::blendEnable)
+                .addProperty("srcColorBlendFactor", &ColorBlendDesc::srcColorBlendFactor)
+                .addProperty("dstColorBlendFactor", &ColorBlendDesc::dstColorBlendFactor)
+                .addProperty("colorBlendOp", &ColorBlendDesc::colorBlendOp)
+                .addProperty("srcAlphaBlendFactor", &ColorBlendDesc::srcAlphaBlendFactor)
+                .addProperty("dstAlphaBlendFactor", &ColorBlendDesc::dstAlphaBlendFactor)
+                .addProperty("alphaBlendOp", &ColorBlendDesc::alphaBlendOp)
+                .addProperty("colorWriteMask", &ColorBlendDesc::colorWriteMask)
+            .endClass()
+            .beginClass<StencilOpState>("StencilOpState")
+                .addConstructor<void(*)()>()
+                .addProperty("failOp", &StencilOpState::failOp)
+                .addProperty("passOp", &StencilOpState::passOp)
+                .addProperty("depthFailOp", &StencilOpState::depthFailOp)
+                .addProperty("compareOp", &StencilOpState::compareOp)
+                .addProperty("compareMask", &StencilOpState::compareMask)
+                .addProperty("writeMask", &StencilOpState::writeMask)
+            .endClass()
+            .beginClass<PhysicalDeviceDesc>("PhysicalDeviceDesc")
+                .addConstructor<void(*)()>()
+                .addProperty("name", &PhysicalDeviceDesc::name)
+                .addProperty("dedicatedVideoMemory", &PhysicalDeviceDesc::dedicatedVideoMemory)
+                .addProperty("dedicatedSystemMemory", &PhysicalDeviceDesc::dedicatedSystemMemory)
+                .addProperty("sharedSystemMemory", &PhysicalDeviceDesc::sharedSystemMemory)
+            .endClass()
+            .beginClass<Extent>("Extent")
+                .addConstructor<void(*)()>()
+                .addProperty("width", &Extent::width)
+                .addProperty("height", &Extent::height)
+            .endClass()
+            .beginClass<Rect>("Rect")
+                .addConstructor<void(*)()>()
+                .addProperty("x", &Rect::x)
+                .addProperty("y", &Rect::y)
+                .addProperty("width", &Rect::width)
+                .addProperty("height", &Rect::height)
+            .endClass()
+            .beginClass<Viewport>("Viewport")
+                .addConstructor<void(*)()>()
+                .addProperty("x", &Viewport::x)
+                .addProperty("y", &Viewport::y)
+                .addProperty("width", &Viewport::width)
+                .addProperty("height", &Viewport::height)
+                .addProperty("minDepth", &Viewport::minDepth)
+                .addProperty("maxDepth", &Viewport::maxDepth)
+            .endClass()
+            .beginClass<PushConstantsDesc>("PushConstantsDesc")
+                .addConstructor<void(*)()>()
+                .addProperty("stage", &PushConstantsDesc::stage)
+                .addProperty("size", &PushConstantsDesc::size)
+                .addProperty("offset", &PushConstantsDesc::offset)
+            .endClass()
+            .beginClass<VertexAttributeDesc>("VertexAttributeDesc")
+                .addConstructor<void(*)()>()
+                .addProperty("binding", &VertexAttributeDesc::binding)
+                .addProperty("format", &VertexAttributeDesc::format)
+                .addProperty("offset", &VertexAttributeDesc::offset)
+            .endClass()
+            .beginClass<DepthClearValue>("DepthClearValue")
+                .addConstructor<void(*)()>()
+                .addProperty("depth", &DepthClearValue::depth)
+                .addProperty("stencil", &DepthClearValue::stencil)
+            .endClass()
+            .beginClass<ClearValue>("ClearValue")
+                .addConstructor<void(*)()>()
+                .addProperty("r", &getClearColorR, &setClearColorR)
+                .addProperty("g", &getClearColorG, &setClearColorG)
+                .addProperty("b", &getClearColorB, &setClearColorB)
+                .addProperty("a", &getClearColorA, &setClearColorA)
+                .addProperty("depth", &getClearDepth, &setClearDepth)
+                .addProperty("stencil", &getClearStencil, &setClearStencil)
+            .endClass()
+            .beginClass<VideoMemoryAllocationDesc>("VideoMemoryAllocationDesc")
+                .addConstructor<void(*)()>()
+                .addProperty("usage", &VideoMemoryAllocationDesc::usage)
+                .addProperty("name", &VideoMemoryAllocationDesc::name)
+                .addProperty("size", &VideoMemoryAllocationDesc::size)
+                .addProperty("ref", &VideoMemoryAllocationDesc::ref)
+            .endClass()
+            .beginClass<RenderTargetDesc>("RenderTargetDesc")
+                .addConstructor<void(*)()>()
+                .addProperty("swapChain", &RenderTargetDesc::swapChain)
+                .addProperty("renderTarget", &RenderTargetDesc::renderTarget)
+                .addProperty("multisampledRenderTarget", &RenderTargetDesc::multisampledRenderTarget)
+                .addProperty("clear", &RenderTargetDesc::clear)
+                .addProperty("clearValue", &RenderTargetDesc::clearValue)
+                .addProperty("discardAfterRender", &RenderTargetDesc::discardAfterRender)
+            .endClass()
+            .beginClass<RenderingConfiguration>("RenderingConfiguration")
+                .addConstructor<void(*)()>()
+                .addProperty("colorRenderTargets", &RenderingConfiguration::colorRenderTargets)
+                .addProperty("depthStencilRenderTarget", &RenderingConfiguration::depthStencilRenderTarget)
+                .addProperty("multisampledDepthStencilRenderTarget", &RenderingConfiguration::multisampledDepthStencilRenderTarget)
+                .addProperty("depthTestEnable", &RenderingConfiguration::depthTestEnable)
+                .addProperty("stencilTestEnable", &RenderingConfiguration::stencilTestEnable)
+                .addProperty("clearDepthStencil", &RenderingConfiguration::clearDepthStencil)
+                .addProperty("depthStencilClearValue", &RenderingConfiguration::depthStencilClearValue)
+                .addProperty("discardDepthStencilAfterRender", &RenderingConfiguration::discardDepthStencilAfterRender)
+            .endClass()
+            .beginClass<DrawIndirectCommand>("DrawIndirectCommand")
+                .addConstructor<void(*)()>()
+                .addProperty("vertexCount", &DrawIndirectCommand::vertexCount)
+                .addProperty("instanceCount", &DrawIndirectCommand::instanceCount)
+                .addProperty("firstVertex", &DrawIndirectCommand::firstVertex)
+                .addProperty("firstInstance", &DrawIndirectCommand::firstInstance)
+            .endClass()
+            .beginClass<DrawIndexedIndirectCommand>("DrawIndexedIndirectCommand")
+                .addConstructor<void(*)()>()
+                .addProperty("indexCount", &DrawIndexedIndirectCommand::indexCount)
+                .addProperty("instanceCount", &DrawIndexedIndirectCommand::instanceCount)
+                .addProperty("firstIndex", &DrawIndexedIndirectCommand::firstIndex)
+                .addProperty("vertexOffset", &DrawIndexedIndirectCommand::vertexOffset)
+                .addProperty("firstInstance", &DrawIndexedIndirectCommand::firstInstance)
+            .endClass()
+            .beginClass<BufferCopyRegion>("BufferCopyRegion")
+                .addConstructor<void(*)()>()
+                .addProperty("srcOffset", &BufferCopyRegion::srcOffset)
+                .addProperty("dstOffset", &BufferCopyRegion::dstOffset)
+                .addProperty("size", &BufferCopyRegion::size)
+            .endClass()
+            .beginClass<GraphicPipelineConfiguration>("GraphicPipelineConfiguration")
+                .addConstructor<void(*)()>()
+                .addProperty("resources", &GraphicPipelineConfiguration::resources)
+                .addProperty("colorRenderFormats", &GraphicPipelineConfiguration::colorRenderFormats)
+                .addProperty("colorBlendDesc", &GraphicPipelineConfiguration::colorBlendDesc)
+                .addProperty("vertexInputLayout", &GraphicPipelineConfiguration::vertexInputLayout)
+                .addProperty("vertexShader", &GraphicPipelineConfiguration::vertexShader)
+                .addProperty("fragmentShader", &GraphicPipelineConfiguration::fragmentShader)
+                .addProperty("hullShader", &GraphicPipelineConfiguration::hullShader)
+                .addProperty("domainShader", &GraphicPipelineConfiguration::domainShader)
+                .addProperty("geometryShader", &GraphicPipelineConfiguration::geometryShader)
+                .addProperty("primitiveTopology", &GraphicPipelineConfiguration::primitiveTopology)
+                .addProperty("msaa", &GraphicPipelineConfiguration::msaa)
+                .addProperty("cullMode", &GraphicPipelineConfiguration::cullMode)
+                .addProperty("polygonMode", &GraphicPipelineConfiguration::polygonMode)
+                .addProperty("frontFaceCounterClockwise", &GraphicPipelineConfiguration::frontFaceCounterClockwise)
+                .addProperty("depthStencilImageFormat", &GraphicPipelineConfiguration::depthStencilImageFormat)
+                .addProperty("depthTestEnable", &GraphicPipelineConfiguration::depthTestEnable)
+                .addProperty("depthWriteEnable", &GraphicPipelineConfiguration::depthWriteEnable)
+                .addProperty("depthCompareOp", &GraphicPipelineConfiguration::depthCompareOp)
+                .addProperty("depthBiasEnable", &GraphicPipelineConfiguration::depthBiasEnable)
+                .addProperty("depthBiasConstantFactor", &GraphicPipelineConfiguration::depthBiasConstantFactor)
+                .addProperty("depthBiasClamp", &GraphicPipelineConfiguration::depthBiasClamp)
+                .addProperty("depthBiasSlopeFactor", &GraphicPipelineConfiguration::depthBiasSlopeFactor)
+                .addProperty("stencilTestEnable", &GraphicPipelineConfiguration::stencilTestEnable)
+                .addProperty("frontStencilOpState", &GraphicPipelineConfiguration::frontStencilOpState)
+                .addProperty("backStencilOpState", &GraphicPipelineConfiguration::backStencilOpState)
+                .addProperty("logicOpEnable", &GraphicPipelineConfiguration::logicOpEnable)
+                .addProperty("logicOp", &GraphicPipelineConfiguration::logicOp)
+                .addProperty("alphaToCoverageEnable", &GraphicPipelineConfiguration::alphaToCoverageEnable)
+            .endClass()
+
+        // classes
+            .beginClass<Fence>("Fence")
+               .addFunction("wait", &Fence::wait)
+               .addFunction("reset", &Fence::reset)
+           .endClass()
+           .beginClass<Semaphore>("Semaphore")
+               .addFunction("getType", &Semaphore::getType)
+               .addFunction("getValue", &Semaphore::getValue)
+               .addFunction("setValue", &Semaphore::setValue)
+               .addFunction("incrementValue", &Semaphore::incrementValue)
+               .addFunction("decrementValue", &Semaphore::decrementValue)
+           .endClass()
+           .beginClass<Instance>("Instance")
+           .endClass()
+           .beginClass<PhysicalDevice>("PhysicalDevice")
+               //.addFunction("getDescription", &PhysicalDevice::getDescription)
+           .endClass()
+           .beginClass<Device>("Device")
+               .addFunction("haveDedicatedTransferQueue", &Device::haveDedicatedTransferQueue)
+           .endClass()
+            .beginClass<Buffer>("Buffer")
+                .addFunction("getSize", &Buffer::getSize)
+                .addFunction("getType", &Buffer::getType)
+                .addFunction("getInstanceSize", &Buffer::getInstanceSize)
+                .addFunction("getInstanceSizeAligned", &Buffer::getInstanceSizeAligned)
+                .addFunction("getInstanceCount", &Buffer::getInstanceCount)
+                .addFunction("getMappedAddress", &Buffer::getMappedAddress)
+                .addFunction("map", &Buffer::map)
+                .addFunction("unmap", &Buffer::unmap)
+                .addFunction("write", &Buffer::write)
+                .addStaticFunction("getMemoryAllocations", &Buffer::getMemoryAllocations)
+            .endClass()
+            .beginClass<Sampler>("Sampler")
+            .endClass()
+            .beginClass<Image>("Image")
+               .addFunction("getFormat", &Image::getFormat)
+               .addFunction("getWidth", &Image::getWidth)
+               .addFunction("getHeight", &Image::getHeight)
+               .addFunction("getMipLevels", &Image::getMipLevels)
+               .addFunction("getArraySize", &Image::getArraySize)
+               .addFunction("getRowPitch", &Image::getRowPitch)
+               .addFunction("getRowLength", &Image::getRowLength)
+               .addFunction("getImageSize", &Image::getImageSize)
+               .addFunction("getAlignedImageSize", &Image::getAlignedImageSize)
+               .addFunction("getAlignedRowPitch", &Image::getAlignedRowPitch)
+               .addFunction("getAlignedRowLength", &Image::getAlignedRowLength)
+               .addFunction("isReadWrite", &Image::isReadWrite)
+               .addStaticFunction("getPixelSize", &Image::getPixelSize)
+               //.addStaticFunction("isDepthFormat", &Image::isDepthFormat)
+               //.addStaticFunction("isDepthStencilFormat", &Image::isDepthStencilFormat)
+               .addStaticFunction("getMemoryAllocations", &Image::getMemoryAllocations)
+            .endClass()
+            .beginClass<RenderTarget>("RenderTarget")
+               .addFunction("getImage", &RenderTarget::getImage)
+               .addFunction("getType", &RenderTarget::getType)
+            .endClass()
+            .beginClass<DescriptorLayout>("DescriptorLayout")
+                .addFunction("add", &DescriptorLayout::add)
+                .addFunction("build", &DescriptorLayout::build)
+                .addFunction("getCapacity", &DescriptorLayout::getCapacity)
+                .addFunction("isDynamicUniform", &DescriptorLayout::isDynamicUniform)
+                .addFunction("isSamplers", &DescriptorLayout::isSamplers)
+            .endClass()
+            .beginClass<DescriptorSet>("DescriptorSet")
+                .addFunction("updateBuffer", &DS_updateBufferByIndex)
+                .addFunction("updateDynamicBuffer", &DS_updateBufferDynamic)
+                .addFunction("updateImage", &DS_updateImageByIndex)
+                .addFunction("updateImageByRef", &DS_updateImageByRef)
+                .addFunction("updateSampler", &DS_updateSamplerByIndex)
+                .addFunction("updateSamplerByRef", &DS_updateSamplerByRef)
+                .addFunction("updateImageArray", &DS_updateImageArray)
+                .addFunction("updateBufferArray", &DS_updateBufferArray)
+                .addFunction("updateSamplerArray", &DS_updateSamplerArray)
+                .addFunction("getLayout", &DescriptorSet::getLayout)
+            .endClass()
+            .beginClass<VertexInputLayout>("VertexInputLayout")
+                .endClass()
+                .beginClass<ShaderModule>("ShaderModule")
+                .endClass()
+                .beginClass<PipelineResources>("PipelineResources")
+                .endClass()
+            .beginClass<Pipeline>("Pipeline")
+               .addFunction("getResources", &Pipeline::getResources)
+               .addFunction("getType", &Pipeline::getType)
+           .endClass()
+           .deriveClass<ComputePipeline, Pipeline>("ComputePipeline")
+           .endClass()
+           .deriveClass<GraphicPipeline, Pipeline>("GraphicPipeline")
+           .endClass()
+            .beginClass<SwapChain>("SwapChain")
+               .addFunction("getExtent", &SwapChain::getExtent)
+               .addFunction("getAspectRatio", &SwapChain::getAspectRatio)
+               .addFunction("getCurrentFrameIndex", &SwapChain::getCurrentFrameIndex)
+               .addFunction("getFramesInFlight", &SwapChain::getFramesInFlight)
+               .addFunction("getFormat", &SwapChain::getFormat)
+               .addFunction("nextFrameIndex", &SwapChain::nextFrameIndex)
+               .addFunction("acquire", &SwapChain::acquire)
+               .addFunction("present", &SwapChain::present)
+               .addFunction("recreate", &SwapChain::recreate)
+               .addFunction("waitIdle", &SwapChain::waitIdle)
+           .endClass().beginClass<CommandList>("CommandList")
+                .addFunction("begin", &CommandList::begin)
+                .addFunction("end", &CommandList::end)
+                .addFunction("uploadBuffer", (void (CommandList::*)(const Buffer&, const void*)) &CommandList::upload)
+                .addFunction("uploadImage", (void (CommandList::*)(const Image&, const void*, std::uint32_t)) &CommandList::upload)
+                //.addFunction("uploadBuffers", &CommandList::upload)
+                //.addFunction("uploadImages", &CommandList::upload)
+                .addFunction("copyBufferToImage", (void (CommandList::*)(const Buffer&, const Image&, std::uint32_t, std::uint32_t, bool) const) &CommandList::copy)
+                .addFunction("copyBufferToImageLevels", (void (CommandList::*)(const Buffer&, const Image&, const std::vector<std::size_t>&, bool) const) &CommandList::copy)
+                //.addFunction("copyImageToBuffer", &CommandList::copy)
+                .addFunction("copyBufferToBuffer", (void (CommandList::*)(const Buffer&, const Buffer&, std::size_t, std::uint32_t, std::uint32_t) const) &CommandList::copy)
+                .addFunction("copyBufferRegions", (void (CommandList::*)(const Buffer&, const Buffer&, const std::vector<BufferCopyRegion>&) const) &CommandList::copy)
+                //.addFunction("uploadArray", &CommandList::uploadArray)
+                .addFunction("copyImageToSwapChain", (void (CommandList::*)(const Image&, const SwapChain&) const) &CommandList::copy)
+                .addFunction("beginRendering", &CommandList::beginRendering)
+                .addFunction("endRendering", &CommandList::endRendering)
+                .addFunction("dispatch", &CommandList::dispatch)
+                .addFunction("bindVertexBuffer", (void (CommandList::*)(const Buffer&, std::size_t) const) &CommandList::bindVertexBuffer)
+                .addFunction("bindVertexBuffers", &CommandList::bindVertexBuffers)
+                //.addFunction("bindIndexBuffer", &CommandList::bindIndexBuffer)
+                .addFunction("bindPipeline", (void (CommandList::*)(Pipeline&)) &CommandList::bindPipeline)
+                .addFunction("bindPipelinePtr", (void (CommandList::*)(const std::shared_ptr<Pipeline>&)) &CommandList::bindPipeline)
+                .addFunction("bindDescriptors", &CommandList::bindDescriptors)
+                .addFunction("bindDescriptor", (void (CommandList::*)(const DescriptorSet&, std::uint32_t) const) &CommandList::bindDescriptor)
+                .addFunction("bindDescriptorDynamic", (void (CommandList::*)(const DescriptorSet&, std::uint32_t, std::uint32_t) const) &CommandList::bindDescriptor)
+                .addFunction("draw", &CommandList::draw)
+                .addFunction("drawIndexed", &CommandList::drawIndexed)
+                .addFunction("drawIndirect", (void (CommandList::*)(const Buffer&, std::size_t, std::uint32_t, std::uint32_t, std::uint32_t)) &CommandList::drawIndirect)
+                .addFunction("drawIndirectPtr", (void (CommandList::*)(const std::shared_ptr<Buffer>&, std::size_t, std::uint32_t, std::uint32_t, std::uint32_t)) &CommandList::drawIndirect)
+                .addFunction("drawIndexedIndirectCount", (void (CommandList::*)(Buffer&, std::size_t, Buffer&, std::size_t, std::uint32_t, std::uint32_t, std::uint32_t)) &CommandList::drawIndexedIndirectCount)
+                .addFunction("drawIndexedIndirectCountPtr", (void (CommandList::*)(const std::shared_ptr<Buffer>&, std::size_t, const std::shared_ptr<Buffer>&, std::size_t, std::uint32_t, std::uint32_t, std::uint32_t)) &CommandList::drawIndexedIndirectCount)
+                .addFunction("drawIndexedIndirect", (void (CommandList::*)(const Buffer&, std::size_t, std::uint32_t, std::uint32_t, std::uint32_t)) &CommandList::drawIndexedIndirect)
+                .addFunction("setViewports", &CommandList::setViewports)
+                .addFunction("setScissors", (void (CommandList::*)(const std::vector<Rect>&) const) &CommandList::setScissors)
+                .addFunction("setViewport", &CommandList::setViewport)
+                .addFunction("setScissor", (void (CommandList::*)(const Rect&) const) &CommandList::setScissors)
+                .addFunction("setStencilReference", &CommandList::setStencilReference)
+                .addFunction("barrierImage", (void (CommandList::*)(const std::shared_ptr<const Image>&, ResourceState, ResourceState, std::uint32_t, std::uint32_t) const) &CommandList::barrier)
+                .addFunction("barrierRenderTarget", (void (CommandList::*)(const std::shared_ptr<const RenderTarget>&, ResourceState, ResourceState) const) &CommandList::barrier)
+                .addFunction("barrierRenderTargets", (void (CommandList::*)(const std::vector<std::shared_ptr<const RenderTarget>>&, ResourceState, ResourceState) const) &CommandList::barrier)
+                .addFunction("barrierSwapChain", (void (CommandList::*)(const std::shared_ptr<const SwapChain>&, ResourceState, ResourceState) const) &CommandList::barrier)
+                .addFunction("barrierBuffer", (void (CommandList::*)(const Buffer&, ResourceState, ResourceState) const) &CommandList::barrier)
+                .addFunction("pushConstants", &CommandList::pushConstants)
+                .addFunction("cleanup", &CommandList::cleanup)
+            .endClass()
+            .beginClass<CommandAllocator>("CommandAllocator")
+               .addFunction("reset", &CommandAllocator::reset)
+               .addFunction("createCommandList", &CA_createCL)
+               .addFunction("createCommandListWithPipeline", &CA_createCLWithPipeline)
+               .addFunction("getCommandListType", &CommandAllocator::getCommandListType)
+           .endClass()
+            .beginClass<SubmitQueue>("SubmitQueue")
+                .addFunction("submitFenceSwap", &SQ_submitFenceSwap)
+                .addFunction("submitNoSync", &SQ_submitNoSync)
+                .addFunction("submitFenceOnly", &SQ_submitFenceOnly)
+                .addFunction("submitWaitFenceSwap", &SQ_submitWaitFenceSwap)
+                .addFunction("submitWaitSignal", &SQ_submitWaitSignal)
+                .addFunction("submitWaitOnly", &SQ_submitWaitOnly)
+                .addFunction("submitSignalOnly", &SQ_submitSignalOnly)
+                .addFunction("waitIdle", &SubmitQueue::waitIdle)
+            .endClass()
+            .beginClass<Vireo>("Vireo")
+                // static factories
+                .addStaticFunction("create", &Vireo_createDefault)
+                .addStaticFunction("createFull", &Vireo_createFull)
+                .addFunction("waitIdle", &Vireo::waitIdle)
+                .addFunction("createSwapChain", &Vireo::createSwapChain)
+                .addFunction("createSubmitQueue", &Vireo::createSubmitQueue)
+                .addFunction("createFence", &Vireo::createFence)
+                .addFunction("createSemaphore", &Vireo::createSemaphore)
+                .addFunction("createCommandAllocator", &Vireo::createCommandAllocator)
+                .addFunction("createVertexLayout", &Vireo::createVertexLayout)
+                .addFunction("createShaderModuleFromFile", (std::shared_ptr<ShaderModule> (Vireo::*)(const std::string&) const) &Vireo::createShaderModule)
+                .addFunction("createShaderModuleFromData", (std::shared_ptr<ShaderModule> (Vireo::*)(const std::vector<char>&) const) &Vireo::createShaderModule)
+                .addFunction("createPipelineResources", &Vireo::createPipelineResources)
+                .addFunction("createComputePipeline", &Vireo::createComputePipeline)
+                .addFunction("createGraphicPipeline", &Vireo::createGraphicPipeline)
+                .addFunction("createBuffer", &Vireo::createBuffer)
+                .addFunction("createImage", &Vireo::createImage)
+                .addFunction("createReadWriteImage", &Vireo::createReadWriteImage)
+                .addFunction("createRenderTarget", &Vireo_createRTBasic)
+                .addFunction("createRenderTargetFromSwapChain", &Vireo_createRTFromSwap)
+                .addFunction("createDescriptorLayout", &Vireo::createDescriptorLayout)
+                .addFunction("createSamplerDescriptorLayout", &Vireo::createSamplerDescriptorLayout)
+                .addFunction("createDynamicUniformDescriptorLayout", &Vireo::createDynamicUniformDescriptorLayout)
+                .addFunction("createDescriptorSet", &Vireo::createDescriptorSet)
+                .addFunction("createSampler", &Vireo::createSampler)
+                .addStaticFunction("isBackendSupported", &Vireo::isBackendSupported)
+                .addFunction("getShaderFileExtension", &Vireo::getShaderFileExtension)
+                .addFunction("getPhysicalDevice", &Vireo::getPhysicalDevice)
+                .addFunction("getDevice", &Vireo::getDevice)
+                .addFunction("getInstance", &Vireo::getInstance)
+            .endClass()
+            // .beginClass<BufferUploadInfo>("BufferUploadInfo")
+            //     .addProperty("buffer", &BufferUploadInfo::buffer )
+            //     .addProperty("data", &BufferUploadInfo::data)
+            // .endClass()
+            // .beginClass<ImageUploadInfo>("ImageUploadInfo")
+            //     .addProperty("image", &ImageUploadInfo::image)
+            //     .addProperty("data", &ImageUploadInfo::data)
+            // .endClass()
         .endNamespace();
     }
 
