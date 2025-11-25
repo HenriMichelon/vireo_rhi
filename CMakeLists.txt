@@ -12,6 +12,7 @@ set(VIREO_TARGET ${PROJECT_NAME})
 if(NOT DEFINED DIRECTX_BACKEND)
     set(DIRECTX_BACKEND ON)
 endif()
+set(LUA_BINDINGS ON)
 
 #######################################################
 set(CMAKE_CXX_STANDARD 23)
@@ -53,6 +54,15 @@ set(DIRECTX_SOURCES
         ${SRC_DIR}/directx/DXVireo.cpp
 )
 endif ()
+if (${LUA_BINDINGS})
+    set(LUA_BINDINGS_SOURCES
+        ${SRC_DIR}/lua/LuaBindings.cpp
+    )
+    set(LUA_BINDINGS_MODULES
+        ${SRC_DIR}/lua/LuaBindings.ixx
+        ${SRC_DIR}/lua/LuaBridge.ixx
+    )
+endif ()
 add_library(${VIREO_TARGET} STATIC
         ${SRC_DIR}/Vireo.cpp
         ${DIRECTX_SOURCES}
@@ -64,6 +74,7 @@ add_library(${VIREO_TARGET} STATIC
         ${SRC_DIR}/vulkan/VKSwapChains.cpp
         ${SRC_DIR}/vulkan/VKVireo.cpp
         ${SRC_DIR}/vulkan/Vulkan.cpp
+        ${LUA_BINDINGS_SOURCES}
 )
 
 if (${DIRECTX_BACKEND})
@@ -78,10 +89,11 @@ set(DIRECTX_MODULES
         ${SRC_DIR}/directx/DXVireo.ixx
 )
 endif ()
+
 target_sources(${VIREO_TARGET}
-    PUBLIC
-    FILE_SET CXX_MODULES
-    FILES
+        PUBLIC
+        FILE_SET CXX_MODULES
+        FILES
         ${SRC_DIR}/Tools.ixx
         ${SRC_DIR}/Vireo.ixx
         ${DIRECTX_MODULES}
@@ -93,6 +105,7 @@ target_sources(${VIREO_TARGET}
         ${SRC_DIR}/vulkan/VKSwapChains.ixx
         ${SRC_DIR}/vulkan/VKTools.ixx
         ${SRC_DIR}/vulkan/VKVireo.ixx
+        ${LUA_BINDINGS_MODULES}
 )
 
 compile_options(${VIREO_TARGET})
@@ -101,6 +114,10 @@ if(DIRECTX_BACKEND)
     target_include_directories(${VIREO_TARGET} PRIVATE ${DirectXH_DIR}/include/directx)
 endif ()
 target_link_libraries(${VIREO_TARGET} std-cxx-modules)
+if (LUA_BINDINGS)
+    target_link_libraries(${VIREO_TARGET} lua)
+    target_include_directories(${VIREO_TARGET} PRIVATE ${lua_cmake_SOURCE_DIR}/upstream)
+endif ()
 target_precompile_headers(${VIREO_TARGET} PRIVATE
         "<cstdint>"
 )

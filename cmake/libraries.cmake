@@ -19,3 +19,13 @@ if (DIRECTX_BACKEND)
     FetchContent_MakeAvailable(DirectX-Headers)
     set(DirectXH_DIR ${CMAKE_BINARY_DIR}/_deps/directx-headers-src)
 endif ()
+
+if (LUA_BINDINGS)
+message(NOTICE "Fetching Lua-cmake...")
+FetchContent_Declare(
+        lua_cmake
+        GIT_REPOSITORY https://github.com/lubgr/lua-cmake.git
+        GIT_TAG        master
+)
+FetchContent_MakeAvailable(lua_cmake)
+endif()
