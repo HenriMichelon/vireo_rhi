@@ -11,34 +11,10 @@ extern "C"
 #include "lua.h"
 #include "lauxlib.h"
 }
-#include <algorithm>
-#include <array>
 #include <cassert>
-#include <cstddef>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <exception>
-#include <functional>
-#include <iostream>
-#include <limits>
-#include <list>
-#include <map>
-#include <memory>
-#include <optional>
-#include <set>
-#include <sstream>
-#include <stdexcept>
-#include <string>
-#include <string_view>
-#include <system_error>
-#include <tuple>
-#include <type_traits>
-#include <unordered_map>
-#include <utility>
-#include <variant>
-#include <vector>
 export module lua_bridge;
+
+import std;
 
 // Begin File: Source/LuaBridge/detail/Config.h
 

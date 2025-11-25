@@ -12,7 +12,6 @@ set(VIREO_TARGET ${PROJECT_NAME})
 if(NOT DEFINED DIRECTX_BACKEND)
     set(DIRECTX_BACKEND ON)
 endif()
-set(LUA_BINDINGS ON)
 
 #######################################################
 set(CMAKE_CXX_STANDARD 23)
