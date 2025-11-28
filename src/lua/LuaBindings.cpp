@@ -13,6 +13,7 @@ extern "C"
 module vireo.lua;
 
 import std;
+import vireo;
 
 namespace vireo {
     float getClearColorR(const ClearValue* v) { return v->color[0]; }
