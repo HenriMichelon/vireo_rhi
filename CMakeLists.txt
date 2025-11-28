@@ -32,6 +32,11 @@ if(WIN32)
 endif ()
 
 #######################################################
+if (LUA_BINDINGS)
+    add_compile_definitions(LUA_BINDINGS)
+endif ()
+
+#######################################################
 include(FetchContent)
 include(cmake/std.cmake)
 include(cmake/compile_options.cmake)

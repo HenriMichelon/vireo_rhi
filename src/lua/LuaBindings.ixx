@@ -17,4 +17,5 @@ export namespace vireo {
     public:
         static void _register(lua_State*L);
     };
+
 }
