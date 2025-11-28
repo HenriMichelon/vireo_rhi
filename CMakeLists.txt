@@ -32,8 +32,8 @@ if(WIN32)
 endif ()
 
 #######################################################
-if (LUA_BINDINGS)
-    add_compile_definitions(LUA_BINDINGS)
+if (LUA_BINDING)
+    add_compile_definitions(LUA_BINDING)
 endif ()
 
 #######################################################
@@ -58,7 +58,7 @@ set(DIRECTX_SOURCES
         ${SRC_DIR}/directx/DXVireo.cpp
 )
 endif ()
-if (${LUA_BINDINGS})
+if (${LUA_BINDING})
     set(LUA_BINDINGS_SOURCES
         ${SRC_DIR}/lua/LuaBindings.cpp
     )
@@ -118,7 +118,7 @@ if(DIRECTX_BACKEND)
     target_include_directories(${VIREO_TARGET} PRIVATE ${DirectXH_DIR}/include/directx)
 endif ()
 target_link_libraries(${VIREO_TARGET} std-cxx-modules)
-if (LUA_BINDINGS)
+if (LUA_BINDING)
     target_link_libraries(${VIREO_TARGET} lua)
     target_include_directories(${VIREO_TARGET} PRIVATE ${lua_cmake_SOURCE_DIR}/upstream)
 endif ()

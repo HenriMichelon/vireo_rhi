@@ -7,7 +7,7 @@
 export module vireo;
 
 import std;
-#ifdef LUA_BINDINGS
+#ifdef LUA_BINDING
 import vireo.lua;
 #endif
 export import vireo.tools;
@@ -2829,7 +2829,7 @@ export namespace vireo {
 
 }
 
-#ifdef LUA_BINDINGS
+#ifdef LUA_BINDING
 template <> struct luabridge::Stack<vireo::Backend> : Enum<vireo::Backend> {};
 template <> struct luabridge::Stack<vireo::Filter> : Enum<vireo::Filter> {};
 template <> struct luabridge::Stack<vireo::AddressMode> : Enum<vireo::AddressMode> {};

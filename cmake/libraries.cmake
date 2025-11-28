@@ -20,7 +20,7 @@ if (DIRECTX_BACKEND)
     set(DirectXH_DIR ${CMAKE_BINARY_DIR}/_deps/directx-headers-src)
 endif ()
 
-if (LUA_BINDINGS)
+if (LUA_BINDING)
 message(NOTICE "Fetching Lua-cmake...")
 FetchContent_Declare(
         lua_cmake
