@@ -1,1598 +1,688 @@
--- Vireo API for ZeroBrane Studio autocompletion
--- Put this file in: api/lua/vireo.lua and add "vireo" to your project api list.
+---@diagnostic disable: missing-return
+--EmmyLua annotations and documentation for Vireo
+
 return {
-    vireo = {
-        type = 'lib',
-        description = 'Vireo rendering abstraction layer',
-        childs = {
-            ---------------------------------------------------------------------------
-            -- Enums
-            ---------------------------------------------------------------------------
-
-            Backend = {
-                type = 'table',
-                description = 'Type of supported backends.',
-                childs = {
-                    UNDEFINED = { type = 'value', description = 'Not used.' },
-                    DIRECTX   = { type = 'value', description = 'DirectX 12 backend.' },
-                    VULKAN    = { type = 'value', description = 'Vulkan 1.3 backend.' },
-                },
-            },
-
-            Filter = {
-                type = 'table',
-                description = 'Texture filtering mode.',
-                childs = {
-                    NEAREST = { type = 'value' },
-                    LINEAR  = { type = 'value' },
-                },
-            },
-
-            AddressMode = {
-                type = 'table',
-                description = 'Sampler address modes.',
-                childs = {
-                    REPEAT          = { type = 'value' },
-                    MIRRORED_REPEAT = { type = 'value' },
-                    CLAMP_TO_EDGE   = { type = 'value' },
-                    CLAMP_TO_BORDER = { type = 'value' },
-                },
-            },
-
-            MipMapMode = {
-                type = 'table',
-                description = 'Sampler mipmap mode.',
-                childs = {
-                    NEAREST = { type = 'value' },
-                    LINEAR  = { type = 'value' },
-                },
-            },
-
-            ImageFormat = {
-                type = 'table',
-                description = 'Common image formats supported by Vireo.',
-                childs = {
-                    R8_UNORM = { type = 'value' },
-                    R8_SNORM = { type = 'value' },
-                    R8_UINT  = { type = 'value' },
-                    R8_SINT  = { type = 'value' },
-
-                    R8G8_UNORM = { type = 'value' },
-                    R8G8_SNORM = { type = 'value' },
-                    R8G8_UINT  = { type = 'value' },
-                    R8G8_SINT  = { type = 'value' },
-
-                    R8G8B8A8_UNORM = { type = 'value' },
-                    R8G8B8A8_SNORM = { type = 'value' },
-                    R8G8B8A8_UINT  = { type = 'value' },
-                    R8G8B8A8_SINT  = { type = 'value' },
-                    R8G8B8A8_SRGB  = { type = 'value' },
-
-                    B8G8R8A8_UNORM = { type = 'value' },
-                    B8G8R8A8_SRGB  = { type = 'value' },
-                    B8G8R8X8_UNORM = { type = 'value' },
-                    B8G8R8X8_SRGB  = { type = 'value' },
-
-                    A2B10G10R10_UNORM = { type = 'value' },
-                    A2B10G10R10_UINT  = { type = 'value' },
-
-                    R16_UNORM  = { type = 'value' },
-                    R16_SNORM  = { type = 'value' },
-                    R16_UINT   = { type = 'value' },
-                    R16_SINT   = { type = 'value' },
-                    R16_SFLOAT = { type = 'value' },
-
-                    R16G16_UNORM  = { type = 'value' },
-                    R16G16_SNORM  = { type = 'value' },
-                    R16G16_UINT   = { type = 'value' },
-                    R16G16_SINT   = { type = 'value' },
-                    R16G16_SFLOAT = { type = 'value' },
-
-                    R16G16B16A16_UNORM  = { type = 'value' },
-                    R16G16B16A16_SNORM  = { type = 'value' },
-                    R16G16B16A16_UINT   = { type = 'value' },
-                    R16G16B16A16_SINT   = { type = 'value' },
-                    R16G16B16A16_SFLOAT = { type = 'value' },
-
-                    R32_UINT   = { type = 'value' },
-                    R32_SINT   = { type = 'value' },
-                    R32_SFLOAT = { type = 'value' },
-
-                    R32G32_UINT   = { type = 'value' },
-                    R32G32_SINT   = { type = 'value' },
-                    R32G32_SFLOAT = { type = 'value' },
-
-                    R32G32B32_UINT   = { type = 'value' },
-                    R32G32B32_SINT   = { type = 'value' },
-                    R32G32B32_SFLOAT = { type = 'value' },
-
-                    R32G32B32A32_UINT   = { type = 'value' },
-                    R32G32B32A32_SINT   = { type = 'value' },
-                    R32G32B32A32_SFLOAT = { type = 'value' },
-
-                    D16_UNORM          = { type = 'value' },
-                    D24_UNORM_S8_UINT  = { type = 'value' },
-                    D32_SFLOAT         = { type = 'value' },
-                    D32_SFLOAT_S8_UINT = { type = 'value' },
-
-                    BC1_UNORM       = { type = 'value' },
-                    BC1_UNORM_SRGB  = { type = 'value' },
-                    BC2_UNORM       = { type = 'value' },
-                    BC2_UNORM_SRGB  = { type = 'value' },
-                    BC3_UNORM       = { type = 'value' },
-                    BC3_UNORM_SRGB  = { type = 'value' },
-                    BC4_UNORM       = { type = 'value' },
-                    BC4_SNORM       = { type = 'value' },
-                    BC5_UNORM       = { type = 'value' },
-                    BC5_SNORM       = { type = 'value' },
-                    BC6H_UFLOAT     = { type = 'value' },
-                    BC6H_SFLOAT     = { type = 'value' },
-                    BC7_UNORM       = { type = 'value' },
-                    BC7_UNORM_SRGB  = { type = 'value' },
-                },
-            },
-
-            BufferType = {
-                type = 'table',
-                description = 'VRAM buffer usage type.',
-                childs = {
-                    VERTEX           = { type = 'value' },
-                    INDEX            = { type = 'value' },
-                    INDIRECT         = { type = 'value' },
-                    UNIFORM          = { type = 'value' },
-                    STORAGE          = { type = 'value' },
-                    DEVICE_STORAGE   = { type = 'value' },
-                    READWRITE_STORAGE= { type = 'value' },
-                    BUFFER_UPLOAD    = { type = 'value' },
-                    BUFFER_DOWNLOAD  = { type = 'value' },
-                    IMAGE_UPLOAD     = { type = 'value' },
-                    IMAGE_DOWNLOAD   = { type = 'value' },
-                },
-            },
-
-            IndexType = {
-                type = 'table',
-                description = 'Index type for index buffers.',
-                childs = {
-                    UINT16 = { type = 'value' },
-                    UINT32 = { type = 'value' },
-                },
-            },
-
-            DescriptorType = {
-                type = 'table',
-                description = 'Descriptor types used in descriptor sets.',
-                childs = {
-                    UNIFORM         = { type = 'value' },
-                    UNIFORM_DYNAMIC = { type = 'value' },
-                    STORAGE         = { type = 'value' },
-                    DEVICE_STORAGE  = { type = 'value' },
-                    READWRITE_STORAGE = { type = 'value' },
-                    SAMPLED_IMAGE   = { type = 'value' },
-                    SAMPLER         = { type = 'value' },
-                    READWRITE_IMAGE = { type = 'value' },
-                },
-            },
-
-            CommandType = {
-                type = 'table',
-                description = 'Command list / queue type.',
-                childs = {
-                    GRAPHIC = { type = 'value' },
-                    TRANSFER= { type = 'value' },
-                    COMPUTE = { type = 'value' },
-                },
-            },
-
-            AttributeFormat = {
-                type = 'table',
-                description = 'Vertex attribute formats.',
-                childs = {
-                    R32_FLOAT        = { type = 'value' },
-                    R32G32_FLOAT     = { type = 'value' },
-                    R32G32B32_FLOAT  = { type = 'value' },
-                    R32G32B32A32_FLOAT = { type = 'value' },
-
-                    R32_SINT         = { type = 'value' },
-                    R32G32_SINT      = { type = 'value' },
-                    R32G32B32_SINT   = { type = 'value' },
-                    R32G32B32A32_SINT= { type = 'value' },
-
-                    R32_UINT         = { type = 'value' },
-                    R32G32_UINT      = { type = 'value' },
-                    R32G32B32_UINT   = { type = 'value' },
-                    R32G32B32A32_UINT= { type = 'value' },
-                },
-            },
-
-            RenderTargetType = {
-                type = 'table',
-                description = 'Render target attachment type.',
-                childs = {
-                    COLOR         = { type = 'value' },
-                    DEPTH         = { type = 'value' },
-                    DEPTH_STENCIL = { type = 'value' },
-                },
-            },
-
-            CullMode = {
-                type = 'table',
-                description = 'Triangle culling mode.',
-                childs = {
-                    NONE  = { type = 'value' },
-                    FRONT = { type = 'value' },
-                    BACK  = { type = 'value' },
-                },
-            },
-
-            PrimitiveTopology = {
-                type = 'table',
-                description = 'Primitive topology.',
-                childs = {
-                    POINT_LIST    = { type = 'value' },
-                    LINE_LIST     = { type = 'value' },
-                    LINE_STRIP    = { type = 'value' },
-                    TRIANGLE_LIST = { type = 'value' },
-                    TRIANGLE_STRIP= { type = 'value' },
-                },
-            },
-
-            PolygonMode = {
-                type = 'table',
-                description = 'Polygon rasterization mode.',
-                childs = {
-                    FILL      = { type = 'value' },
-                    WIREFRAME = { type = 'value' },
-                },
-            },
-
-            CompareOp = {
-                type = 'table',
-                description = 'Depth/stencil comparison operation.',
-                childs = {
-                    NEVER           = { type = 'value' },
-                    LESS            = { type = 'value' },
-                    EQUAL           = { type = 'value' },
-                    LESS_OR_EQUAL   = { type = 'value' },
-                    GREATER         = { type = 'value' },
-                    NOT_EQUAL       = { type = 'value' },
-                    GREATER_OR_EQUAL= { type = 'value' },
-                    ALWAYS          = { type = 'value' },
-                },
-            },
-
-            StencilOp = {
-                type = 'table',
-                description = 'Stencil operations.',
-                childs = {
-                    KEEP                 = { type = 'value' },
-                    ZERO                 = { type = 'value' },
-                    REPLACE              = { type = 'value' },
-                    INCREMENT_AND_CLAMP  = { type = 'value' },
-                    DECREMENT_AND_CLAMP  = { type = 'value' },
-                    INVERT               = { type = 'value' },
-                    INCREMENT_AND_WRAP   = { type = 'value' },
-                    DECREMENT_AND_WRAP   = { type = 'value' },
-                },
-            },
-
-            BlendFactor = {
-                type = 'table',
-                description = 'Framebuffer blend factors.',
-                childs = {
-                    ZERO                    = { type = 'value' },
-                    ONE                     = { type = 'value' },
-                    SRC_COLOR               = { type = 'value' },
-                    ONE_MINUS_SRC_COLOR     = { type = 'value' },
-                    DST_COLOR               = { type = 'value' },
-                    ONE_MINUS_DST_COLOR     = { type = 'value' },
-                    SRC_ALPHA               = { type = 'value' },
-                    ONE_MINUS_SRC_ALPHA     = { type = 'value' },
-                    DST_ALPHA               = { type = 'value' },
-                    ONE_MINUS_DST_ALPHA     = { type = 'value' },
-                    CONSTANT_COLOR          = { type = 'value' },
-                    ONE_MINUS_CONSTANT_COLOR= { type = 'value' },
-                    CONSTANT_ALPHA          = { type = 'value' },
-                    ONE_MINUS_CONSTANT_ALPHA= { type = 'value' },
-                    SRC_ALPHA_SATURATE      = { type = 'value' },
-                    SRC1_COLOR              = { type = 'value' },
-                    ONE_MINUS_SRC1_COLOR    = { type = 'value' },
-                    SRC1_ALPHA              = { type = 'value' },
-                    ONE_MINUS_SRC1_ALPHA    = { type = 'value' },
-                },
-            },
-
-            BlendOp = {
-                type = 'table',
-                description = 'Framebuffer blending operations.',
-                childs = {
-                    ADD             = { type = 'value' },
-                    SUBTRACT        = { type = 'value' },
-                    REVERSE_SUBTRACT= { type = 'value' },
-                    MIN             = { type = 'value' },
-                    MAX             = { type = 'value' },
-                },
-            },
-
-            LogicOp = {
-                type = 'table',
-                description = 'Framebuffer logical operations.',
-                childs = {
-                    CLEAR         = { type = 'value' },
-                    SET           = { type = 'value' },
-                    COPY          = { type = 'value' },
-                    COPY_INVERTED = { type = 'value' },
-                    NOOP          = { type = 'value' },
-                    INVERT        = { type = 'value' },
-                    AND           = { type = 'value' },
-                    NAND          = { type = 'value' },
-                    OR            = { type = 'value' },
-                    NOR           = { type = 'value' },
-                    XOR           = { type = 'value' },
-                    EQUIV         = { type = 'value' },
-                    AND_REVERSE   = { type = 'value' },
-                    AND_INVERTED  = { type = 'value' },
-                    OR_REVERSE    = { type = 'value' },
-                    OR_INVERTED   = { type = 'value' },
-                },
-            },
-
-            ColorWriteMask = {
-                type = 'table',
-                description = 'Color write mask bit flags.',
-                childs = {
-                    RED   = { type = 'value' },
-                    GREEN = { type = 'value' },
-                    BLUE  = { type = 'value' },
-                    ALPHA = { type = 'value' },
-                    ALL   = { type = 'value' },
-                },
-            },
-
-            ShaderStage = {
-                type = 'table',
-                description = 'Shader stages.',
-                childs = {
-                    ALL      = { type = 'value' },
-                    VERTEX   = { type = 'value' },
-                    FRAGMENT = { type = 'value' },
-                    HULL     = { type = 'value' },
-                    DOMAIN   = { type = 'value' },
-                    GEOMETRY = { type = 'value' },
-                    COMPUTE  = { type = 'value' },
-                },
-            },
-
-            WaitStage = {
-                type = 'table',
-                description = 'Semaphore wait pipeline stages.',
-                childs = {
-                    NONE                               = { type = 'value' },
-                    PIPELINE_TOP                       = { type = 'value' },
-                    VERTEX_INPUT                       = { type = 'value' },
-                    VERTEX_SHADER                      = { type = 'value' },
-                    DEPTH_STENCIL_TEST_BEFORE_FRAGMENT_SHADER = { type = 'value' },
-                    FRAGMENT_SHADER                    = { type = 'value' },
-                    DEPTH_STENCIL_TEST_AFTER_FRAGMENT_SHADER  = { type = 'value' },
-                    COLOR_OUTPUT                       = { type = 'value' },
-                    COMPUTE_SHADER                     = { type = 'value' },
-                    TRANSFER                           = { type = 'value' },
-                    PIPELINE_BOTTOM                    = { type = 'value' },
-                    ALL_GRAPHICS                       = { type = 'value' },
-                    ALL_COMMANDS                       = { type = 'value' },
-                    COPY                               = { type = 'value' },
-                    RESOLV                             = { type = 'value' },
-                    BLIT                               = { type = 'value' },
-                    CLEAR                              = { type = 'value' },
-                },
-            },
-
-            ResourceState = {
-                type = 'table',
-                description = 'Image/buffer resource states for barriers.',
-                childs = {
-                    UNDEFINED                     = { type = 'value' },
-                    GENERAL                       = { type = 'value' },
-                    RENDER_TARGET_COLOR           = { type = 'value' },
-                    RENDER_TARGET_DEPTH           = { type = 'value' },
-                    RENDER_TARGET_DEPTH_READ      = { type = 'value' },
-                    RENDER_TARGET_DEPTH_STENCIL   = { type = 'value' },
-                    RENDER_TARGET_DEPTH_STENCIL_READ = { type = 'value' },
-                    DISPATCH_TARGET               = { type = 'value' },
-                    PRESENT                       = { type = 'value' },
-                    COPY_SRC                      = { type = 'value' },
-                    COPY_DST                      = { type = 'value' },
-                    SHADER_READ                   = { type = 'value' },
-                    COMPUTE_READ                  = { type = 'value' },
-                    COMPUTE_WRITE                 = { type = 'value' },
-                    INDIRECT_DRAW                 = { type = 'value' },
-                    VERTEX_INPUT                  = { type = 'value' },
-                    UNIFORM                       = { type = 'value' },
-                },
-            },
-
-            MSAA = {
-                type = 'table',
-                description = 'MSAA sample count.',
-                childs = {
-                    NONE = { type = 'value' },
-                    X2   = { type = 'value' },
-                    X4   = { type = 'value' },
-                    X8   = { type = 'value' },
-                    X16  = { type = 'value' },
-                    X32  = { type = 'value' },
-                    X64  = { type = 'value' },
-                },
-            },
-
-            PresentMode = {
-                type = 'table',
-                description = 'Swapchain present mode.',
-                childs = {
-                    IMMEDIATE = { type = 'value' },
-                    VSYNC     = { type = 'value' },
-                },
-            },
-
-            PipelineType = {
-                type = 'table',
-                description = 'Pipeline type.',
-                childs = {
-                    GRAPHIC = { type = 'value' },
-                    COMPUTE = { type = 'value' },
-                },
-            },
-
-            SemaphoreType = {
-                type = 'table',
-                description = 'Semaphore type.',
-                childs = {
-                    BINARY   = { type = 'value' },
-                    TIMELINE = { type = 'value' },
-                },
-            },
-
-            VideoMemoryAllocationUsage = {
-                type = 'table',
-                description = 'Video memory allocation usage.',
-                childs = {
-                    BUFFER = { type = 'value' },
-                    IMAGE  = { type = 'value' },
-                },
-            },
-
-            ---------------------------------------------------------------------------
-            -- Simple structs / POD
-            ---------------------------------------------------------------------------
-
-            PhysicalDeviceDesc = {
-                type = 'class',
-                description = 'Video adapter description.',
-                childs = {
-                    name                 = { type = 'string', description = 'Adapter name.' },
-                    dedicatedVideoMemory = { type = 'number' },
-                    dedicatedSystemMemory= { type = 'number' },
-                    sharedSystemMemory   = { type = 'number' },
-                },
-            },
-
-            Extent = {
-                type = 'class',
-                description = 'Two-dimensional extent.',
-                childs = {
-                    width  = { type = 'number' },
-                    height = { type = 'number' },
-                },
-            },
-
-            Rect = {
-                type = 'class',
-                description = 'Rectangular region.',
-                childs = {
-                    x      = { type = 'number' },
-                    y      = { type = 'number' },
-                    width  = { type = 'number' },
-                    height = { type = 'number' },
-                },
-            },
-
-            Viewport = {
-                type = 'class',
-                description = 'Viewport parameters.',
-                childs = {
-                    x        = { type = 'number' },
-                    y        = { type = 'number' },
-                    width    = { type = 'number' },
-                    height   = { type = 'number' },
-                    minDepth = { type = 'number' },
-                    maxDepth = { type = 'number' },
-                },
-            },
-
-            PushConstantsDesc = {
-                type = 'class',
-                description = 'Push constant range description.',
-                childs = {
-                    stage  = { type = 'value', description = 'ShaderStage.' },
-                    size   = { type = 'number' },
-                    offset = { type = 'number' },
-                },
-            },
-
-            VertexAttributeDesc = {
-                type = 'class',
-                description = 'Vertex input attribute description.',
-                childs = {
-                    binding = { type = 'string' },
-                    format  = { type = 'value', description = 'AttributeFormat.' },
-                    offset  = { type = 'number' },
-                },
-            },
-
-            DepthClearValue = {
-                type = 'class',
-                description = 'Depth/stencil clear value.',
-                childs = {
-                    depth   = { type = 'number' },
-                    stencil = { type = 'number' },
-                },
-            },
-
-            ClearValue = {
-                type = 'class',
-                description = 'Clear color or depth/stencil value.',
-                childs = {
-                    color        = { type = 'table', description = 'float[4]' },
-                    depthStencil = { type = 'class', description = 'DepthClearValue' },
-                },
-            },
-
-            VideoMemoryAllocationDesc = {
-                type = 'class',
-                description = 'Video memory allocation description.',
-                childs = {
-                    usage = { type = 'value', description = 'VideoMemoryAllocationUsage.' },
-                    name  = { type = 'string' },
-                    size  = { type = 'number' },
-                    ref   = { type = 'userdata' },
-                },
-            },
-
-            ColorBlendDesc = {
-                type = 'class',
-                description = 'Color blend attachment description.',
-                childs = {
-                    blendEnable          = { type = 'boolean' },
-                    srcColorBlendFactor  = { type = 'value', description = 'BlendFactor.' },
-                    dstColorBlendFactor  = { type = 'value', description = 'BlendFactor.' },
-                    colorBlendOp         = { type = 'value', description = 'BlendOp.' },
-                    srcAlphaBlendFactor  = { type = 'value', description = 'BlendFactor.' },
-                    dstAlphaBlendFactor  = { type = 'value', description = 'BlendFactor.' },
-                    alphaBlendOp         = { type = 'value', description = 'BlendOp.' },
-                    colorWriteMask       = { type = 'value', description = 'ColorWriteMask.' },
-                },
-            },
-
-            StencilOpState = {
-                type = 'class',
-                description = 'Stencil operation state.',
-                childs = {
-                    failOp      = { type = 'value', description = 'StencilOp.' },
-                    passOp      = { type = 'value', description = 'StencilOp.' },
-                    depthFailOp = { type = 'value', description = 'StencilOp.' },
-                    compareOp   = { type = 'value', description = 'CompareOp.' },
-                    compareMask = { type = 'number' },
-                    writeMask   = { type = 'number' },
-                },
-            },
-
-            RenderTargetDesc = {
-                type = 'class',
-                description = 'Color attachment description.',
-                childs = {
-                    swapChain                = { type = 'class', description = 'SwapChain.' },
-                    renderTarget             = { type = 'class', description = 'RenderTarget.' },
-                    multisampledRenderTarget = { type = 'class', description = 'RenderTarget.' },
-                    clear                    = { type = 'boolean' },
-                    clearValue               = { type = 'class', description = 'ClearValue.' },
-                    discardAfterRender       = { type = 'boolean' },
-                },
-            },
-
-            RenderingConfiguration = {
-                type = 'class',
-                description = 'Rendering configuration (color + depth).',
-                childs = {
-                    colorRenderTargets               = { type = 'table' },
-                    depthStencilRenderTarget         = { type = 'class', description = 'RenderTarget.' },
-                    multisampledDepthStencilRenderTarget = { type = 'class', description = 'RenderTarget.' },
-                    depthTestEnable                  = { type = 'boolean' },
-                    stencilTestEnable                = { type = 'boolean' },
-                    clearDepthStencil                = { type = 'boolean' },
-                    depthStencilClearValue           = { type = 'class', description = 'ClearValue.' },
-                    discardDepthStencilAfterRender   = { type = 'boolean' },
-                },
-            },
-
-            BufferUploadInfo = {
-                type = 'class',
-                description = 'Batch buffer upload info.',
-                childs = {
-                    buffer = { type = 'class', description = 'Buffer.' },
-                    data   = { type = 'userdata' },
-                },
-            },
-
-            ImageUploadInfo = {
-                type = 'class',
-                description = 'Batch image upload info.',
-                childs = {
-                    image = { type = 'class', description = 'Image.' },
-                    data  = { type = 'userdata' },
-                },
-            },
-
-            DrawIndirectCommand = {
-                type = 'class',
-                description = 'Non-indexed indirect draw parameters.',
-                childs = {
-                    vertexCount   = { type = 'number' },
-                    instanceCount = { type = 'number' },
-                    firstVertex   = { type = 'number' },
-                    firstInstance = { type = 'number' },
-                },
-            },
-
-            DrawIndexedIndirectCommand = {
-                type = 'class',
-                description = 'Indexed indirect draw parameters.',
-                childs = {
-                    indexCount    = { type = 'number' },
-                    instanceCount = { type = 'number' },
-                    firstIndex    = { type = 'number' },
-                    vertexOffset  = { type = 'number' },
-                    firstInstance = { type = 'number' },
-                },
-            },
-
-            BufferCopyRegion = {
-                type = 'class',
-                description = 'Buffer copy region.',
-                childs = {
-                    srcOffset = { type = 'number' },
-                    dstOffset = { type = 'number' },
-                    size      = { type = 'number' },
-                },
-            },
-
-            GraphicPipelineConfiguration = {
-                type = 'class',
-                description = 'Configuration for creating a graphic pipeline.',
-                childs = {
-                    resources                    = { type = 'class', description = 'PipelineResources.' },
-                    colorRenderFormats           = { type = 'table' },
-                    colorBlendDesc               = { type = 'table' },
-                    vertexInputLayout            = { type = 'class', description = 'VertexInputLayout.' },
-                    vertexShader                 = { type = 'class', description = 'ShaderModule.' },
-                    fragmentShader               = { type = 'class', description = 'ShaderModule.' },
-                    hullShader                   = { type = 'class', description = 'ShaderModule.' },
-                    domainShader                 = { type = 'class', description = 'ShaderModule.' },
-                    geometryShader               = { type = 'class', description = 'ShaderModule.' },
-                    primitiveTopology            = { type = 'value', description = 'PrimitiveTopology.' },
-                    msaa                         = { type = 'value', description = 'MSAA.' },
-                    cullMode                     = { type = 'value', description = 'CullMode.' },
-                    polygonMode                  = { type = 'value', description = 'PolygonMode.' },
-                    frontFaceCounterClockwise    = { type = 'boolean' },
-                    depthStencilImageFormat      = { type = 'value', description = 'ImageFormat.' },
-                    depthTestEnable              = { type = 'boolean' },
-                    depthWriteEnable             = { type = 'boolean' },
-                    depthCompareOp               = { type = 'value', description = 'CompareOp.' },
-                    depthBiasEnable              = { type = 'boolean' },
-                    depthBiasConstantFactor      = { type = 'number' },
-                    depthBiasClamp               = { type = 'number' },
-                    depthBiasSlopeFactor         = { type = 'number' },
-                    stencilTestEnable            = { type = 'boolean' },
-                    frontStencilOpState          = { type = 'class', description = 'StencilOpState.' },
-                    backStencilOpState           = { type = 'class', description = 'StencilOpState.' },
-                    logicOpEnable                = { type = 'boolean' },
-                    logicOp                      = { type = 'value', description = 'LogicOp.' },
-                    alphaToCoverageEnable        = { type = 'boolean' },
-                },
-            },
-
-            ---------------------------------------------------------------------------
-            -- Core classes / objects
-            ---------------------------------------------------------------------------
-
-            Fence = {
-                type = 'class',
-                description = 'CPU/GPU synchronization fence.',
-                childs = {
-                    wait  = {
-                        type = 'function',
-                        description = 'Waits for the fence to become signaled.',
-                        args = '()',
-                    },
-                    reset = {
-                        type = 'function',
-                        description = 'Resets the fence to the unsignaled state.',
-                        args = '()',
-                    },
-                },
-            },
-
-            Semaphore = {
-                type = 'class',
-                description = 'GPU/GPU synchronization semaphore (binary or timeline).',
-                childs = {
-                    getType = {
-                        type = 'function',
-                        description = 'Returns the semaphore type.',
-                        args = '()',
-                        returns = 'vireo.SemaphoreType',
-                    },
-                    getValue = {
-                        type = 'function',
-                        description = 'Returns current integer value (timeline).',
-                        args = '()',
-                        returns = 'number',
-                    },
-                    setValue = {
-                        type = 'function',
-                        description = 'Sets current integer value (timeline).',
-                        args = '(number value)',
-                    },
-                    incrementValue = {
-                        type = 'function',
-                        description = 'Increments current integer value.',
-                        args = '()',
-                    },
-                    decrementValue = {
-                        type = 'function',
-                        description = 'Decrements current integer value.',
-                        args = '()',
-                    },
-                },
-            },
-
-            Instance = {
-                type = 'class',
-                description = 'Backend instance object (internal).',
-            },
-
-            PhysicalDevice = {
-                type = 'class',
-                description = 'Physical device (GPU adapter).',
-                childs = {
-                    getDescription = {
-                        type = 'function',
-                        description = 'Returns a PhysicalDeviceDesc.',
-                        args = '()',
-                        returns = 'vireo.PhysicalDeviceDesc',
-                    },
-                },
-            },
-
-            Device = {
-                type = 'class',
-                description = 'Logical device.',
-                childs = {
-                    haveDedicatedTransferQueue = {
-                        type = 'function',
-                        description = 'Returns true if a dedicated transfer queue is available.',
-                        args = '()',
-                        returns = 'boolean',
-                    },
-                },
-            },
-
-            Buffer = {
-                type = 'class',
-                description = 'VRAM buffer.',
-                childs = {
-                    WHOLE_SIZE = { type = 'value', description = 'Constant: use entire buffer size.' },
-
-                    getSize = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'number',
-                    },
-                    getType = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'vireo.BufferType',
-                    },
-                    getInstanceSize = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'number',
-                    },
-                    getInstanceSizeAligned = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'number',
-                    },
-                    getInstanceCount = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'number',
-                    },
-                    getMappedAddress = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'userdata',
-                    },
-                    map = {
-                        type = 'function',
-                        description = 'Maps the buffer memory.',
-                        args = '()',
-                    },
-                    unmap = {
-                        type = 'function',
-                        description = 'Unmaps the buffer memory.',
-                        args = '()',
-                    },
-                    write = {
-                        type = 'function',
-                        description = 'Writes data to the mapped buffer.',
-                        args = '(userdata data[, number size[, number offset]])',
-                    },
-                    getMemoryAllocations = {
-                        type = 'function',
-                        description = 'Returns the list of current VideoMemoryAllocationDesc entries.',
-                        args = '()',
-                        returns = 'table',
-                    },
-                },
-            },
-
-            Sampler = {
-                type = 'class',
-                description = 'Texture sampler object.',
-                childs = {
-                    LOD_CLAMP_NONE = { type = 'value', description = 'No LOD clamp.' },
-                },
-            },
-
-            Image = {
-                type = 'class',
-                description = 'Image/texture object.',
-                childs = {
-                    IMAGE_ROW_PITCH_ALIGNMENT = {
-                        type = 'value',
-                        description = 'Row pitch alignment (bytes).',
-                    },
-
-                    getFormat = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'vireo.ImageFormat',
-                    },
-                    getWidth = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'number',
-                    },
-                    getHeight = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'number',
-                    },
-                    getMipLevels = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'number',
-                    },
-                    getArraySize = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'number',
-                    },
-                    getRowPitch = {
-                        type = 'function',
-                        args = '([number mipLevel])',
-                        returns = 'number',
-                    },
-                    getRowLength = {
-                        type = 'function',
-                        args = '([number mipLevel])',
-                        returns = 'number',
-                    },
-                    getImageSize = {
-                        type = 'function',
-                        args = '([number mipLevel])',
-                        returns = 'number',
-                    },
-                    getAlignedImageSize = {
-                        type = 'function',
-                        args = '([number mipLevel])',
-                        returns = 'number',
-                    },
-                    getAlignedRowPitch = {
-                        type = 'function',
-                        args = '([number mipLevel])',
-                        returns = 'number',
-                    },
-                    getAlignedRowLength = {
-                        type = 'function',
-                        args = '([number mipLevel])',
-                        returns = 'number',
-                    },
-                    isReadWrite = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'boolean',
-                    },
-                    getPixelSize = {
-                        type = 'function',
-                        description = 'Returns pixel or block size for a given format.',
-                        args = '(vireo.ImageFormat format)',
-                        returns = 'number',
-                    },
-                    getMemoryAllocations = {
-                        type = 'function',
-                        description = 'Returns current image memory allocations.',
-                        args = '()',
-                        returns = 'table',
-                    },
-                    isDepthFormat = {
-                        type = 'function',
-                        args = '(vireo.ImageFormat format)',
-                        returns = 'boolean',
-                    },
-                    isDepthStencilFormat = {
-                        type = 'function',
-                        args = '(vireo.ImageFormat format)',
-                        returns = 'boolean',
-                    },
-                    isDepthFormatInstance = {
-                        type = 'function',
-                        description = 'Instance variant of isDepthFormat().',
-                        args = '()',
-                        returns = 'boolean',
-                    },
-                    isDepthStencilFormatInstance = {
-                        type = 'function',
-                        description = 'Instance variant of isDepthStencilFormat().',
-                        args = '()',
-                        returns = 'boolean',
-                    },
-                },
-            },
-
-            RenderTarget = {
-                type = 'class',
-                description = 'Color or depth render attachment.',
-                childs = {
-                    getImage = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'vireo.Image',
-                    },
-                    getType = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'vireo.RenderTargetType',
-                    },
-                },
-            },
-
-            DescriptorLayout = {
-                type = 'class',
-                description = 'Descriptor set layout.',
-                childs = {
-                    add = {
-                        type = 'function',
-                        description = 'Adds a descriptor binding.',
-                        args = '(number index, vireo.DescriptorType type[, number count])',
-                        returns = 'vireo.DescriptorLayout',
-                    },
-                    build = {
-                        type = 'function',
-                        description = 'Builds the layout after add().',
-                        args = '()',
-                    },
-                    getCapacity = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'number',
-                    },
-                    isDynamicUniform = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'boolean',
-                    },
-                    isSamplers = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'boolean',
-                    },
-                },
-            },
-
-            DescriptorSet = {
-                type = 'class',
-                description = 'Descriptor set (resources for shaders).',
-                childs = {
-                    updateBuffer = {
-                        type = 'function',
-                        description = 'Binds a buffer to a binding index.',
-                        args = '(number index, vireo.Buffer buffer)',
-                    },
-                    updateImage = {
-                        type = 'function',
-                        description = 'Binds an image to a binding index.',
-                        args = '(number index, vireo.Image image)',
-                    },
-                    updateSampler = {
-                        type = 'function',
-                        description = 'Binds a sampler to a binding index.',
-                        args = '(number index, vireo.Sampler sampler)',
-                    },
-                    updateImageArray = {
-                        type = 'function',
-                        description = 'Binds an array of images.',
-                        args = '(number index, table images)',
-                    },
-                    updateBufferArray = {
-                        type = 'function',
-                        description = 'Binds an array of buffers.',
-                        args = '(number index, table buffers)',
-                    },
-                    updateSamplerArray = {
-                        type = 'function',
-                        description = 'Binds an array of samplers.',
-                        args = '(number index, table samplers)',
-                    },
-                    getLayout = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'vireo.DescriptorLayout',
-                    },
-                },
-            },
-
-            VertexInputLayout = {
-                type = 'class',
-                description = 'Vertex input layout.',
-            },
-
-            ShaderModule = {
-                type = 'class',
-                description = 'Shader module.',
-            },
-
-            PipelineResources = {
-                type = 'class',
-                description = 'Pipeline resources (descriptor layouts + push constants).',
-            },
-
-            Pipeline = {
-                type = 'class',
-                description = 'Base class for pipelines.',
-                childs = {
-                    getResources = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'vireo.PipelineResources',
-                    },
-                    getType = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'vireo.PipelineType',
-                    },
-                },
-            },
-
-            ComputePipeline = {
-                type = 'class',
-                description = 'Compute pipeline.',
-            },
-
-            GraphicPipeline = {
-                type = 'class',
-                description = 'Graphic pipeline.',
-            },
-
-            CommandList = {
-                type = 'class',
-                description = 'Command list (recorded GPU commands).',
-                childs = {
-                    begin_ = {
-                        type = 'function',
-                        description = 'Begin recording commands.',
-                        args = '()',
-                    },
-                    end_ = {
-                        type = 'function',
-                        description = 'End recording commands.',
-                        args = '()',
-                    },
-                    uploadBuffer = {
-                        type = 'function',
-                        description = 'Upload data into a buffer using staging.',
-                        args = '(vireo.Buffer destination, userdata source)',
-                    },
-                    uploadImage = {
-                        type = 'function',
-                        description = 'Upload data into an image using staging.',
-                        args = '(vireo.Image destination, userdata source[, number firstMipLevel])',
-                    },
-                    upload = {
-                        type = 'function',
-                        description = 'Batch upload for buffers or images (implementation-dependent).',
-                        args = '(table infos)',
-                    },
-
-                    copyBufferToImage = {
-                        type = 'function',
-                        description = 'Copy buffer data to an image level.',
-                        args = '(vireo.Buffer source, vireo.Image destination[, number sourceOffset[, number mipLevel[, boolean rowPitchAlignment]]])',
-                    },
-                    copyImageToBuffer = {
-                        type = 'function',
-                        description = 'Copy image level to buffer.',
-                        args = '(vireo.Image source, vireo.Buffer destination[, number destinationOffset[, number mipLevel]])',
-                    },
-                    copyBufferToBuffer = {
-                        type = 'function',
-                        description = 'Copy data between buffers.',
-                        args = '(vireo.Buffer source, vireo.Buffer destination[, number size[, number sourceOffset[, number destinationOffset]]])',
-                    },
-                    copyBufferRegions = {
-                        type = 'function',
-                        description = 'Copy multiple buffer regions.',
-                        args = '(vireo.Buffer source, vireo.Buffer destination, table regions)',
-                    },
-                    uploadArray = {
-                        type = 'function',
-                        description = 'Upload multiple images into an image array.',
-                        args = '(vireo.Image destination, table sources[, number firstMipLevel])',
-                    },
-                    copyToSwapChain = {
-                        type = 'function',
-                        description = 'Copy an image to the current swapchain image.',
-                        args = '(vireo.Image source, vireo.SwapChain swapChain)',
-                    },
-
-                    beginRendering = {
-                        type = 'function',
-                        description = 'Begin rendering with a RenderingConfiguration.',
-                        args = '(vireo.RenderingConfiguration config)',
-                    },
-                    endRendering = {
-                        type = 'function',
-                        description = 'End rendering.',
-                        args = '()',
-                    },
-
-                    dispatch = {
-                        type = 'function',
-                        description = 'Dispatch compute work.',
-                        args = '(number x, number y, number z)',
-                    },
-
-                    bindVertexBuffer = {
-                        type = 'function',
-                        description = 'Bind a single vertex buffer.',
-                        args = '(vireo.Buffer buffer[, number offset])',
-                    },
-                    bindVertexBuffers = {
-                        type = 'function',
-                        description = 'Bind multiple vertex buffers.',
-                        args = '(table buffers[, table offsets])',
-                    },
-                    bindIndexBuffer = {
-                        type = 'function',
-                        description = 'Bind an index buffer.',
-                        args = '(vireo.Buffer buffer[, vireo.IndexType indexType[, number firstIndex]])',
-                    },
-
-                    bindPipeline = {
-                        type = 'function',
-                        description = 'Bind a pipeline.',
-                        args = '(vireo.Pipeline pipeline)',
-                    },
-
-                    bindDescriptors = {
-                        type = 'function',
-                        description = 'Bind multiple descriptor sets.',
-                        args = '(table descriptors[, number firstSet])',
-                    },
-                    bindDescriptor = {
-                        type = 'function',
-                        description = 'Bind a descriptor set with optional dynamic offset.',
-                        args = '(vireo.DescriptorSet descriptor, number set[, number offset])',
-                    },
-
-                    draw = {
-                        type = 'function',
-                        description = 'Draw non-indexed primitives.',
-                        args = '(number vertexCountPerInstance[, number instanceCount[, number firstVertex[, number firstInstance]]])',
-                    },
-                    drawIndexed = {
-                        type = 'function',
-                        description = 'Draw indexed primitives.',
-                        args = '(number indexCountPerInstance[, number instanceCount[, number firstIndex[, number firstVertex[, number firstInstance]]]])',
-                    },
-                    drawIndirect = {
-                        type = 'function',
-                        description = 'Draw from buffer with indirect parameters.',
-                        args = '(vireo.Buffer buffer, number offset, number drawCount, number stride[, number firstCommandOffset])',
-                    },
-                    drawIndexedIndirect = {
-                        type = 'function',
-                        description = 'Draw indexed from buffer with indirect parameters.',
-                        args = '(vireo.Buffer buffer, number offset, number maxDrawCount, number stride[, number firstCommandOffset])',
-                    },
-                    drawIndexedIndirectCount = {
-                        type = 'function',
-                        description = 'Draw indexed from buffer with count in another buffer.',
-                        args = '(vireo.Buffer buffer, number offset, vireo.Buffer countBuffer, number countOffset, number maxDrawCount, number stride[, number firstCommandOffset])',
-                    },
-
-                    setViewports = {
-                        type = 'function',
-                        description = 'Set multiple viewports.',
-                        args = '(table viewports)',
-                    },
-                    setScissors = {
-                        type = 'function',
-                        description = 'Set multiple scissors.',
-                        args = '(table rects)',
-                    },
-                    setViewport = {
-                        type = 'function',
-                        description = 'Set a single viewport.',
-                        args = '(vireo.Viewport viewport)',
-                    },
-                    setScissor = {
-                        type = 'function',
-                        description = 'Set a single scissor rect.',
-                        args = '(vireo.Rect rect)',
-                    },
-                    setStencilReference = {
-                        type = 'function',
-                        description = 'Set stencil reference value.',
-                        args = '(number reference)',
-                    },
-
-                    barrierImage = {
-                        type = 'function',
-                        description = 'Insert barrier for image state transition.',
-                        args = '(vireo.Image image, vireo.ResourceState oldState, vireo.ResourceState newState[, number firstMipLevel[, number levelCount]])',
-                    },
-                    barrierRenderTarget = {
-                        type = 'function',
-                        description = 'Insert barrier for a single render target.',
-                        args = '(vireo.RenderTarget rt, vireo.ResourceState oldState, vireo.ResourceState newState)',
-                    },
-                    barrierRenderTargets = {
-                        type = 'function',
-                        description = 'Insert barrier for multiple render targets.',
-                        args = '(table renderTargets, vireo.ResourceState oldState, vireo.ResourceState newState)',
-                    },
-                    barrierSwapChain = {
-                        type = 'function',
-                        description = 'Insert barrier for swapchain.',
-                        args = '(vireo.SwapChain swapChain, vireo.ResourceState oldState, vireo.ResourceState newState)',
-                    },
-                    barrierBuffer = {
-                        type = 'function',
-                        description = 'Insert barrier for buffer state transition.',
-                        args = '(vireo.Buffer buffer, vireo.ResourceState oldState, vireo.ResourceState newState)',
-                    },
-
-                    pushConstants = {
-                        type = 'function',
-                        description = 'Update push constants.',
-                        args = '(vireo.PipelineResources resources, vireo.PushConstantsDesc desc, userdata data)',
-                    },
-
-                    cleanup = {
-                        type = 'function',
-                        description = 'Cleanup staging resources used by upload().',
-                        args = '()',
-                    },
-                },
-            },
-
-            CommandAllocator = {
-                type = 'class',
-                description = 'Command allocator (pool) for command lists.',
-                childs = {
-                    reset = {
-                        type = 'function',
-                        description = 'Reset allocator and associated command lists.',
-                        args = '()',
-                    },
-                    createCommandList = {
-                        type = 'function',
-                        description = 'Create a command list (with or without pipeline).',
-                        args = '([vireo.Pipeline pipeline])',
-                        returns = 'vireo.CommandList',
-                    },
-                    getCommandListType = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'vireo.CommandType',
-                    },
-                },
-            },
-
-            SubmitQueue = {
-                type = 'class',
-                description = 'Command submission queue.',
-                childs = {
-                    submit = {
-                        type = 'function',
-                        description = 'Submits command lists (several overloads in C++; here represented generically).',
-                        args = '(... commandLists)',
-                    },
-                    waitIdle = {
-                        type = 'function',
-                        description = 'Wait for all submitted work to finish.',
-                        args = '()',
-                    },
-                },
-            },
-
-            SwapChain = {
-                type = 'class',
-                description = 'Swapchain for presenting images.',
-                childs = {
-                    getExtent = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'vireo.Extent',
-                    },
-                    getAspectRatio = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'number',
-                    },
-                    getCurrentFrameIndex = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'number',
-                    },
-                    getFramesInFlight = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'number',
-                    },
-                    getFormat = {
-                        type = 'function',
-                        args = '()',
-                        returns = 'vireo.ImageFormat',
-                    },
-                    nextFrameIndex = {
-                        type = 'function',
-                        args = '()',
-                    },
-                    acquire = {
-                        type = 'function',
-                        description = 'Acquire next frame buffer.',
-                        args = '(vireo.Fence fence)',
-                        returns = 'boolean',
-                    },
-                    present = {
-                        type = 'function',
-                        description = 'Present the current frame.',
-                        args = '()',
-                    },
-                    recreate = {
-                        type = 'function',
-                        description = 'Recreate swapchain on resize.',
-                        args = '()',
-                    },
-                    waitIdle = {
-                        type = 'function',
-                        description = 'Wait for last present to finish.',
-                        args = '()',
-                    },
-                },
-            },
-
-            ---------------------------------------------------------------------------
-            -- Main Vireo class
-            ---------------------------------------------------------------------------
-
-            Vireo = {
-                type = 'class',
-                description = 'Main Vireo abstraction class.',
-                childs = {
-                    create = {
-                        type = 'function',
-                        description = 'Creates a new Vireo instance.',
-                        args = '(vireo.Backend backend[, number maxDirectX12Descriptors[, number maxDirectX12Samplers]])',
-                        returns = 'vireo.Vireo',
-                    },
-
-                    waitIdle = {
-                        type = 'function',
-                        description = 'Waits for all device work to finish.',
-                        args = '()',
-                    },
-
-                    createSwapChain = {
-                        type = 'function',
-                        description = 'Creates a swapchain.',
-                        args = '(vireo.ImageFormat format, vireo.SubmitQueue presentQueue, userdata windowHandle[, vireo.PresentMode presentMode[, number framesInFlight]])',
-                        returns = 'vireo.SwapChain',
-                    },
-
-                    createSubmitQueue = {
-                        type = 'function',
-                        description = 'Creates a submit queue.',
-                        args = '(vireo.CommandType commandType[, string name])',
-                        returns = 'vireo.SubmitQueue',
-                    },
-
-                    createFence = {
-                        type = 'function',
-                        description = 'Creates a CPU/GPU fence.',
-                        args = '([boolean createSignaled[, string name]])',
-                        returns = 'vireo.Fence',
-                    },
-
-                    createSemaphore = {
-                        type = 'function',
-                        description = 'Creates a GPU/GPU semaphore.',
-                        args = '(vireo.SemaphoreType type[, string name])',
-                        returns = 'vireo.Semaphore',
-                    },
-
-                    createCommandAllocator = {
-                        type = 'function',
-                        description = 'Creates a command allocator for a given command type.',
-                        args = '(vireo.CommandType type)',
-                        returns = 'vireo.CommandAllocator',
-                    },
-
-                    createVertexLayout = {
-                        type = 'function',
-                        description = 'Creates a vertex input layout.',
-                        args = '(number size, table attributesDescriptions)',
-                        returns = 'vireo.VertexInputLayout',
-                    },
-
-                    createShaderModuleFromFile = {
-                        type = 'function',
-                        description = 'Creates a shader module from a compiled file.',
-                        args = '(string fileName)',
-                        returns = 'vireo.ShaderModule',
-                    },
-
-                    createShaderModuleFromData = {
-                        type = 'function',
-                        description = 'Creates a shader module from a byte array.',
-                        args = '(table data)',
-                        returns = 'vireo.ShaderModule',
-                    },
-
-                    createPipelineResources = {
-                        type = 'function',
-                        description = 'Creates pipeline resources description.',
-                        args = '([table descriptorLayouts[, vireo.PushConstantsDesc pushConstant[, string name]]])',
-                        returns = 'vireo.PipelineResources',
-                    },
-
-                    createComputePipeline = {
-                        type = 'function',
-                        description = 'Creates a compute pipeline.',
-                        args = '(vireo.PipelineResources resources, vireo.ShaderModule shader[, string name])',
-                        returns = 'vireo.ComputePipeline',
-                    },
-
-                    createGraphicPipeline = {
-                        type = 'function',
-                        description = 'Creates a graphic pipeline.',
-                        args = '(vireo.GraphicPipelineConfiguration configuration[, string name])',
-                        returns = 'vireo.GraphicPipeline',
-                    },
-
-                    createBuffer = {
-                        type = 'function',
-                        description = 'Creates a buffer in VRAM.',
-                        args = '(vireo.BufferType type, number size[, number count[, string name]])',
-                        returns = 'vireo.Buffer',
-                    },
-
-                    createImage = {
-                        type = 'function',
-                        description = 'Creates a read-only image in VRAM.',
-                        args = '(vireo.ImageFormat format, number width, number height[, number mipLevels[, number arraySize[, string name]]])',
-                        returns = 'vireo.Image',
-                    },
-
-                    createReadWriteImage = {
-                        type = 'function',
-                        description = 'Creates a read/write image in VRAM.',
-                        args = '(vireo.ImageFormat format, number width, number height[, number mipLevels[, number arraySize[, string name]]])',
-                        returns = 'vireo.Image',
-                    },
-
-                    createRenderTarget = {
-                        type = 'function',
-                        description = 'Creates a render target from explicit parameters or from a swapchain.',
-                        args = '(... )',
-                        returns = 'vireo.RenderTarget',
-                    },
-
-                    createDescriptorLayout = {
-                        type = 'function',
-                        description = 'Creates an empty descriptor layout.',
-                        args = '([string name])',
-                        returns = 'vireo.DescriptorLayout',
-                    },
-
-                    createSamplerDescriptorLayout = {
-                        type = 'function',
-                        description = 'Creates a sampler-only descriptor layout.',
-                        args = '([string name])',
-                        returns = 'vireo.DescriptorLayout',
-                    },
-
-                    createDynamicUniformDescriptorLayout = {
-                        type = 'function',
-                        description = 'Creates a dynamic uniform descriptor layout.',
-                        args = '([string name])',
-                        returns = 'vireo.DescriptorLayout',
-                    },
-
-                    createDescriptorSet = {
-                        type = 'function',
-                        description = 'Creates a descriptor set for a given layout.',
-                        args = '(vireo.DescriptorLayout layout[, string name])',
-                        returns = 'vireo.DescriptorSet',
-                    },
-
-                    createSampler = {
-                        type = 'function',
-                        description = 'Creates a texture sampler.',
-                        args = '(vireo.Filter minFilter, vireo.Filter magFilter, vireo.AddressMode addressModeU, vireo.AddressMode addressModeV, vireo.AddressMode addressModeW[, number minLod[, number maxLod[, boolean anisotropyEnable[, vireo.MipMapMode mipMapMode[, vireo.CompareOp compareOp]]]]])',
-                        returns = 'vireo.Sampler',
-                    },
-
-                    isBackendSupported = {
-                        type = 'function',
-                        description = 'Returns true if the backend is supported.',
-                        args = '(vireo.Backend backend)',
-                        returns = 'boolean',
-                    },
-
-                    getShaderFileExtension = {
-                        type = 'function',
-                        description = 'Returns the compiled shader file extension for this backend.',
-                        args = '()',
-                        returns = 'string',
-                    },
-
-                    getPhysicalDevice = {
-                        type = 'function',
-                        description = 'Returns underlying PhysicalDevice.',
-                        args = '()',
-                        returns = 'vireo.PhysicalDevice',
-                    },
-
-                    getDevice = {
-                        type = 'function',
-                        description = 'Returns underlying Device.',
-                        args = '()',
-                        returns = 'vireo.Device',
-                    },
-
-                    getInstance = {
-                        type = 'function',
-                        description = 'Returns underlying Instance.',
-                        args = '()',
-                        returns = 'vireo.Instance',
-                    },
-                },
-            },
-        }
-
-    }
-
-}
+           ------------------------------------------------------------------------
+           -- Enums
+           ------------------------------------------------------------------------
+
+           ---@class vireo.Backend
+           ---@field UNDEFINED integer
+           ---@field DIRECTX integer
+           ---@field VULKAN integer
+           Backend = vireo.Backend,
+
+           ---@class vireo.Filter
+           ---@field NEAREST integer
+           ---@field LINEAR integer
+           Filter = vireo.Filter,
+
+           ---@class vireo.AddressMode
+           ---@field REPEAT integer
+           ---@field MIRRORED_REPEAT integer
+           ---@field CLAMP_TO_EDGE integer
+           ---@field CLAMP_TO_BORDER integer
+           AddressMode = vireo.AddressMode,
+
+           ---@class vireo.MipMapMode
+           ---@field NEAREST integer
+           ---@field LINEAR integer
+           MipMapMode = vireo.MipMapMode,
+
+           ---@class vireo.ImageFormat
+           ---@field R8_UNORM integer
+           ---@field R8_SNORM integer
+           ---@field R8_UINT integer
+           ---@field R8_SINT integer
+           ---@field R8G8_UNORM integer
+           ---@field R8G8_SNORM integer
+           ---@field R8G8_UINT integer
+           ---@field R8G8_SINT integer
+           ---@field R8G8B8A8_UNORM integer
+           ---@field R8G8B8A8_SNORM integer
+           ---@field R8G8B8A8_UINT integer
+           ---@field R8G8B8A8_SINT integer
+           ---@field R8G8B8A8_SRGB integer
+           ---@field B8G8R8A8_UNORM integer
+           ---@field B8G8R8A8_SRGB integer
+           ---@field B8G8R8X8_UNORM integer
+           ---@field B8G8R8X8_SRGB integer
+           ---@field A2B10G10R10_UNORM integer
+           ---@field A2B10G10R10_UINT integer
+           ---@field R16_UNORM integer
+           ---@field R16_SNORM integer
+           ---@field R16_UINT integer
+           ---@field R16_SINT integer
+           ---@field R16_SFLOAT integer
+           ---@field R16G16_UNORM integer
+           ---@field R16G16_SNORM integer
+           ---@field R16G16_UINT integer
+           ---@field R16G16_SINT integer
+           ---@field R16G16_SFLOAT integer
+           ---@field R16G16B16A16_UNORM integer
+           ---@field R16G16B16A16_SNORM integer
+           ---@field R16G16B16A16_UINT integer
+           ---@field R16G16B16A16_SINT integer
+           ---@field R16G16B16A16_SFLOAT integer
+           ---@field R32_UINT integer
+           ---@field R32_SINT integer
+           ---@field R32_SFLOAT integer
+           ---@field R32G32_UINT integer
+           ---@field R32G32_SINT integer
+           ---@field R32G32_SFLOAT integer
+           ---@field R32G32B32_UINT integer
+           ---@field R32G32B32_SINT integer
+           ---@field R32G32B32_SFLOAT integer
+           ---@field R32G32B32A32_UINT integer
+           ---@field R32G32B32A32_SINT integer
+           ---@field R32G32B32A32_SFLOAT integer
+           ---@field D16_UNORM integer
+           ---@field D24_UNORM_S8_UINT integer
+           ---@field D32_SFLOAT integer
+           ---@field D32_SFLOAT_S8_UINT integer
+           ---@field BC1_UNORM integer
+           ---@field BC1_UNORM_SRGB integer
+           ---@field BC2_UNORM integer
+           ---@field BC2_UNORM_SRGB integer
+           ---@field BC3_UNORM integer
+           ---@field BC3_UNORM_SRGB integer
+           ---@field BC4_UNORM integer
+           ---@field BC4_SNORM integer
+           ---@field BC5_UNORM integer
+           ---@field BC5_SNORM integer
+           ---@field BC6H_UFLOAT integer
+           ---@field BC6H_SFLOAT integer
+           ---@field BC7_UNORM integer
+           ---@field BC7_UNORM_SRGB integer
+           ImageFormat = vireo.ImageFormat,
+
+           ---@class vireo.BufferType
+           ---@field VERTEX integer
+           ---@field INDEX integer
+           ---@field INDIRECT integer
+           ---@field UNIFORM integer
+           ---@field STORAGE integer
+           ---@field DEVICE_STORAGE integer
+           ---@field READWRITE_STORAGE integer
+           ---@field BUFFER_UPLOAD integer
+           ---@field BUFFER_DOWNLOAD integer
+           ---@field IMAGE_UPLOAD integer
+           ---@field IMAGE_DOWNLOAD integer
+           BufferType = vireo.BufferType,
+
+           ---@class vireo.IndexType
+           ---@field UINT16 integer
+           ---@field UINT32 integer
+           IndexType = vireo.IndexType,
+
+           ---@class vireo.DescriptorType
+           ---@field UNIFORM integer
+           ---@field UNIFORM_DYNAMIC integer
+           ---@field STORAGE integer
+           ---@field DEVICE_STORAGE integer
+           ---@field READWRITE_STORAGE integer
+           ---@field SAMPLED_IMAGE integer
+           ---@field SAMPLER integer
+           ---@field READWRITE_IMAGE integer
+           DescriptorType = vireo.DescriptorType,
+
+           ---@class vireo.CommandType
+           ---@field GRAPHIC integer
+           ---@field TRANSFER integer
+           ---@field COMPUTE integer
+           CommandType = vireo.CommandType,
+
+           ---@class vireo.AttributeFormat
+           ---@field R32_FLOAT integer
+           ---@field R32G32_FLOAT integer
+           ---@field R32G32B32_FLOAT integer
+           ---@field R32G32B32A32_FLOAT integer
+           ---@field R32_SINT integer
+           ---@field R32G32_SINT integer
+           ---@field R32G32B32_SINT integer
+           ---@field R32G32B32A32_SINT integer
+           ---@field R32_UINT integer
+           ---@field R32G32_UINT integer
+           ---@field R32G32B32_UINT integer
+           ---@field R32G32B32A32_UINT integer
+           AttributeFormat = vireo.AttributeFormat,
+
+           ---@class vireo.RenderTargetType
+           ---@field COLOR integer
+           ---@field DEPTH integer
+           ---@field DEPTH_STENCIL integer
+           RenderTargetType = vireo.RenderTargetType,
+
+           ---@class vireo.CullMode
+           ---@field NONE integer
+           ---@field FRONT integer
+           ---@field BACK integer
+           CullMode = vireo.CullMode,
+
+           ---@class vireo.PrimitiveTopology
+           ---@field POINT_LIST integer
+           ---@field LINE_LIST integer
+           ---@field LINE_STRIP integer
+           ---@field TRIANGLE_LIST integer
+           ---@field TRIANGLE_STRIP integer
+           PrimitiveTopology = vireo.PrimitiveTopology,
+
+           ---@class vireo.PolygonMode
+           ---@field FILL integer
+           ---@field WIREFRAME integer
+           PolygonMode = vireo.PolygonMode,
+
+           ---@class vireo.CompareOp
+           ---@field NEVER integer
+           ---@field LESS integer
+           ---@field EQUAL integer
+           ---@field LESS_OR_EQUAL integer
+           ---@field GREATER integer
+           ---@field NOT_EQUAL integer
+           ---@field GREATER_OR_EQUAL integer
+           ---@field ALWAYS integer
+           CompareOp = vireo.CompareOp,
+
+           ---@class vireo.StencilOp
+           ---@field KEEP integer
+           ---@field ZERO integer
+           ---@field REPLACE integer
+           ---@field INCREMENT_AND_CLAMP integer
+           ---@field DECREMENT_AND_CLAMP integer
+           ---@field INVERT integer
+           ---@field INCREMENT_AND_WRAP integer
+           ---@field DECREMENT_AND_WRAP integer
+           StencilOp = vireo.StencilOp,
+
+           ---@class vireo.BlendFactor
+           ---@field ZERO integer
+           ---@field ONE integer
+           ---@field SRC_COLOR integer
+           ---@field ONE_MINUS_SRC_COLOR integer
+           ---@field DST_COLOR integer
+           ---@field ONE_MINUS_DST_COLOR integer
+           ---@field SRC_ALPHA integer
+           ---@field ONE_MINUS_SRC_ALPHA integer
+           ---@field DST_ALPHA integer
+           ---@field ONE_MINUS_DST_ALPHA integer
+           ---@field CONSTANT_COLOR integer
+           ---@field ONE_MINUS_CONSTANT_COLOR integer
+           ---@field CONSTANT_ALPHA integer
+           ---@field ONE_MINUS_CONSTANT_ALPHA integer
+           ---@field SRC_ALPHA_SATURATE integer
+           ---@field SRC1_COLOR integer
+           ---@field ONE_MINUS_SRC1_COLOR integer
+           ---@field SRC1_ALPHA integer
+           ---@field ONE_MINUS_SRC1_ALPHA integer
+           BlendFactor = vireo.BlendFactor,
+
+           ---@class vireo.BlendOp
+           ---@field ADD integer
+           ---@field SUBTRACT integer
+           ---@field REVERSE_SUBTRACT integer
+           ---@field MIN integer
+           ---@field MAX integer
+           BlendOp = vireo.BlendOp,
+
+           ---@class vireo.LogicOp
+           ---@field CLEAR integer
+           ---@field SET integer
+           ---@field COPY integer
+           ---@field COPY_INVERTED integer
+           ---@field NOOP integer
+           ---@field INVERT integer
+           ---@field AND integer
+           ---@field NAND integer
+           ---@field OR integer
+           ---@field NOR integer
+           ---@field XOR integer
+           ---@field EQUIV integer
+           ---@field AND_REVERSE integer
+           ---@field AND_INVERTED integer
+           ---@field OR_REVERSE integer
+           ---@field OR_INVERTED integer
+           LogicOp = vireo.LogicOp,
+
+           ---@class vireo.ColorWriteMask
+           ---@field RED integer
+           ---@field GREEN integer
+           ---@field BLUE integer
+           ---@field ALPHA integer
+           ---@field ALL integer
+           ColorWriteMask = vireo.ColorWriteMask,
+
+           ---@class vireo.ShaderStage
+           ---@field ALL integer
+           ---@field VERTEX integer
+           ---@field FRAGMENT integer
+           ---@field HULL integer
+           ---@field DOMAIN integer
+           ---@field GEOMETRY integer
+           ---@field COMPUTE integer
+           ShaderStage = vireo.ShaderStage,
+
+           ---@class vireo.WaitStage
+           ---@field NONE integer
+           ---@field PIPELINE_TOP integer
+           ---@field VERTEX_INPUT integer
+           ---@field VERTEX_SHADER integer
+           ---@field DEPTH_STENCIL_TEST_BEFORE_FRAGMENT_SHADER integer
+           ---@field FRAGMENT_SHADER integer
+           ---@field DEPTH_STENCIL_TEST_AFTER_FRAGMENT_SHADER integer
+           ---@field COLOR_OUTPUT integer
+           ---@field COMPUTE_SHADER integer
+           ---@field TRANSFER integer
+           ---@field PIPELINE_BOTTOM integer
+           ---@field ALL_GRAPHICS integer
+           ---@field ALL_COMMANDS integer
+           ---@field COPY integer
+           ---@field RESOLV integer
+           ---@field BLIT integer
+           ---@field CLEAR integer
+           WaitStage = vireo.WaitStage,
+
+           ---@class vireo.ResourceState
+           ---@field UNDEFINED integer
+           ---@field GENERAL integer
+           ---@field RENDER_TARGET_COLOR integer
+           ---@field RENDER_TARGET_DEPTH integer
+           ---@field RENDER_TARGET_DEPTH_READ integer
+           ---@field RENDER_TARGET_DEPTH_STENCIL integer
+           ---@field RENDER_TARGET_DEPTH_STENCIL_READ integer
+           ---@field DISPATCH_TARGET integer
+           ---@field PRESENT integer
+           ---@field COPY_SRC integer
+           ---@field COPY_DST integer
+           ---@field SHADER_READ integer
+           ---@field COMPUTE_READ integer
+           ---@field COMPUTE_WRITE integer
+           ---@field INDIRECT_DRAW integer
+           ---@field VERTEX_INPUT integer
+           ---@field UNIFORM integer
+           ResourceState = vireo.ResourceState,
+
+           ---@class vireo.MSAA
+           ---@field NONE integer
+           ---@field X2 integer
+           ---@field X4 integer
+           ---@field X8 integer
+           ---@field X16 integer
+           ---@field X32 integer
+           ---@field X64 integer
+           MSAA = vireo.MSAA,
+
+           ---@class vireo.PresentMode
+           ---@field IMMEDIATE integer
+           ---@field VSYNC integer
+           PresentMode = vireo.PresentMode,
+
+           ---@class vireo.PipelineType
+           ---@field GRAPHIC integer
+           ---@field COMPUTE integer
+           PipelineType = vireo.PipelineType,
+
+           ---@class vireo.SemaphoreType
+           ---@field BINARY integer
+           ---@field TIMELINE integer
+           SemaphoreType = vireo.SemaphoreType,
+
+           ---@class vireo.VideoMemoryAllocationUsage
+           ---@field BUFFER integer
+           ---@field IMAGE integer
+           VideoMemoryAllocationUsage = vireo.VideoMemoryAllocationUsage,
+
+           ------------------------------------------------------------------------
+           -- Aliases / typedefs
+           ------------------------------------------------------------------------
+
+           ---@alias vireo.DescriptorIndex integer
+           DescriptorIndex = nil, -- alias only, no runtime value
+
+           ------------------------------------------------------------------------
+           -- Structs
+           ------------------------------------------------------------------------
+
+           ---@class vireo.ColorBlendDesc
+           ---@field blendEnable boolean
+           ---@field srcColorBlendFactor vireo.BlendFactor
+           ---@field dstColorBlendFactor vireo.BlendFactor
+           ---@field colorBlendOp vireo.BlendOp
+           ---@field srcAlphaBlendFactor vireo.BlendFactor
+           ---@field dstAlphaBlendFactor vireo.BlendFactor
+           ---@field alphaBlendOp vireo.BlendOp
+           ---@field colorWriteMask vireo.ColorWriteMask
+           ColorBlendDesc = vireo.ColorBlendDesc,
+
+           ---@class vireo.StencilOpState
+           ---@field failOp vireo.StencilOp
+           ---@field passOp vireo.StencilOp
+           ---@field depthFailOp vireo.StencilOp
+           ---@field compareOp vireo.CompareOp
+           ---@field compareMask integer
+           ---@field writeMask integer
+           StencilOpState = vireo.StencilOpState,
+
+           ---@class vireo.PhysicalDeviceDesc
+           ---@field name string
+           ---@field dedicatedVideoMemory integer
+           ---@field dedicatedSystemMemory integer
+           ---@field sharedSystemMemory integer
+           PhysicalDeviceDesc = vireo.PhysicalDeviceDesc,
+
+           ---@class vireo.Extent
+           ---@field width integer
+           ---@field height integer
+           Extent = vireo.Extent,
+
+           ---@class vireo.Rect
+           ---@field x integer
+           ---@field y integer
+           ---@field width integer
+           ---@field height integer
+           Rect = vireo.Rect,
+
+           ---@class vireo.Viewport
+           ---@field x number
+           ---@field y number
+           ---@field width number
+           ---@field height number
+           ---@field minDepth number
+           ---@field maxDepth number
+           Viewport = vireo.Viewport,
+
+           ---@class vireo.PushConstantsDesc
+           ---@field stage vireo.ShaderStage
+           ---@field size integer
+           ---@field offset integer
+           PushConstantsDesc = vireo.PushConstantsDesc,
+
+           ---@class vireo.VertexAttributeDesc
+           ---@field binding string
+           ---@field format vireo.AttributeFormat
+           ---@field offset integer
+           VertexAttributeDesc = vireo.VertexAttributeDesc,
+
+           ---@class vireo.DepthClearValue
+           ---@field depth number
+           ---@field stencil integer
+           DepthClearValue = vireo.DepthClearValue,
+
+           ---@class vireo.ClearValue
+           ---@field color number[]            @length 4
+           ---@field depthStencil vireo.DepthClearValue
+           ClearValue = vireo.ClearValue,
+
+           ---@class vireo.VideoMemoryAllocationDesc
+           ---@field usage vireo.VideoMemoryAllocationUsage
+           ---@field name string
+           ---@field size integer
+           ---@field ref any
+           VideoMemoryAllocationDesc = vireo.VideoMemoryAllocationDesc,
+
+           ---@class vireo.RenderTargetDesc
+           ---@field swapChain vireo.SwapChain|nil
+           ---@field renderTarget vireo.RenderTarget|nil
+           ---@field multisampledRenderTarget vireo.RenderTarget|nil
+           ---@field clear boolean
+           ---@field clearValue vireo.ClearValue
+           ---@field discardAfterRender boolean
+           RenderTargetDesc = vireo.RenderTargetDesc,
+
+           ---@class vireo.RenderingConfiguration
+           ---@field colorRenderTargets vireo.RenderTargetDesc[]
+           ---@field depthStencilRenderTarget vireo.RenderTarget|nil
+           ---@field multisampledDepthStencilRenderTarget vireo.RenderTarget|nil
+           ---@field depthTestEnable boolean
+           ---@field stencilTestEnable boolean
+           ---@field clearDepthStencil boolean
+           ---@field depthStencilClearValue vireo.ClearValue
+           ---@field discardDepthStencilAfterRender boolean
+           RenderingConfiguration = vireo.RenderingConfiguration,
+
+           ---@class vireo.BufferUploadInfo
+           ---@field buffer vireo.Buffer
+           ---@field data lightuserdata|any
+           BufferUploadInfo = vireo.BufferUploadInfo,
+
+           ---@class vireo.ImageUploadInfo
+           ---@field image vireo.Image
+           ---@field data lightuserdata|any
+           ImageUploadInfo = vireo.ImageUploadInfo,
+
+           ---@class vireo.DrawIndirectCommand
+           ---@field vertexCount integer
+           ---@field instanceCount integer
+           ---@field firstVertex integer
+           ---@field firstInstance integer
+           DrawIndirectCommand = vireo.DrawIndirectCommand,
+
+           ---@class vireo.DrawIndexedIndirectCommand
+           ---@field indexCount integer
+           ---@field instanceCount integer
+           ---@field firstIndex integer
+           ---@field vertexOffset integer
+           ---@field firstInstance integer
+           DrawIndexedIndirectCommand = vireo.DrawIndexedIndirectCommand,
+
+           ---@class vireo.BufferCopyRegion
+           ---@field srcOffset integer
+           ---@field dstOffset integer
+           ---@field size integer
+           BufferCopyRegion = vireo.BufferCopyRegion,
+
+           ---@class vireo.GraphicPipelineConfiguration
+           ---@field resources vireo.PipelineResources
+           ---@field colorRenderFormats vireo.ImageFormat[]
+           ---@field colorBlendDesc vireo.ColorBlendDesc[]
+           ---@field vertexInputLayout vireo.VertexInputLayout|nil
+           ---@field vertexShader vireo.ShaderModule|nil
+           ---@field fragmentShader vireo.ShaderModule|nil
+           ---@field hullShader vireo.ShaderModule|nil
+           ---@field domainShader vireo.ShaderModule|nil
+           ---@field geometryShader vireo.ShaderModule|nil
+           ---@field primitiveTopology vireo.PrimitiveTopology
+           ---@field msaa vireo.MSAA
+           ---@field cullMode vireo.CullMode
+           ---@field polygonMode vireo.PolygonMode
+           ---@field frontFaceCounterClockwise boolean
+           ---@field depthStencilImageFormat vireo.ImageFormat
+           ---@field depthTestEnable boolean
+           ---@field depthWriteEnable boolean
+           ---@field depthCompareOp vireo.CompareOp
+           ---@field depthBiasEnable boolean
+           ---@field depthBiasConstantFactor number
+           ---@field depthBiasClamp number
+           ---@field depthBiasSlopeFactor number
+           ---@field stencilTestEnable boolean
+           ---@field frontStencilOpState vireo.StencilOpState
+           ---@field backStencilOpState vireo.StencilOpState
+           ---@field logicOpEnable boolean
+           ---@field logicOp vireo.LogicOp
+           ---@field alphaToCoverageEnable boolean
+           GraphicPipelineConfiguration = vireo.GraphicPipelineConfiguration,
+
+           ------------------------------------------------------------------------
+           -- Classes / objets
+           ------------------------------------------------------------------------
+
+           ---@class vireo.Fence
+           ---@field wait fun(self:vireo.Fence):nil
+           ---@field reset fun(self:vireo.Fence):nil
+           Fence = vireo.Fence,
+
+           ---@class vireo.Semaphore
+           ---@field getType fun(self:vireo.Semaphore):vireo.SemaphoreType
+           ---@field getValue fun(self:vireo.Semaphore):integer
+           ---@field setValue fun(self:vireo.Semaphore, value:integer):nil
+           ---@field incrementValue fun(self:vireo.Semaphore):nil
+           ---@field decrementValue fun(self:vireo.Semaphore):nil
+           Semaphore = vireo.Semaphore,
+
+           ---@class vireo.Instance
+           Instance = vireo.Instance,
+
+           ---@class vireo.PhysicalDevice
+           ---@field getDescription fun(self:vireo.PhysicalDevice):vireo.PhysicalDeviceDesc
+           PhysicalDevice = vireo.PhysicalDevice,
+
+           ---@class vireo.Device
+           ---@field haveDedicatedTransferQueue fun(self:vireo.Device):boolean
+           Device = vireo.Device,
+
+           ---@class vireo.Buffer
+           ---@field WHOLE_SIZE integer
+           ---@field getSize fun(self:vireo.Buffer):integer
+           ---@field getType fun(self:vireo.Buffer):vireo.BufferType
+           ---@field getInstanceSize fun(self:vireo.Buffer):integer
+           ---@field getInstanceSizeAligned fun(self:vireo.Buffer):integer
+           ---@field getInstanceCount fun(self:vireo.Buffer):integer
+           ---@field getMappedAddress fun(self:vireo.Buffer):lightuserdata|any
+           ---@field map fun(self:vireo.Buffer):nil
+           ---@field unmap fun(self:vireo.Buffer):nil
+           ---@field write fun(self:vireo.Buffer, data:lightuserdata|any, size:integer|nil, offset:integer|nil):nil
+           ---@field getMemoryAllocations fun():vireo.VideoMemoryAllocationDesc[]
+           Buffer = vireo.Buffer,
+
+           ---@class vireo.Sampler
+           Sampler = vireo.Sampler,
+
+           ---@class vireo.Image
+           ---@field IMAGE_ROW_PITCH_ALIGNMENT integer
+           ---@field getFormat fun(self:vireo.Image):vireo.ImageFormat
+           ---@field getWidth fun(self:vireo.Image):integer
+           ---@field getHeight fun(self:vireo.Image):integer
+           ---@field getMipLevels fun(self:vireo.Image):integer
+           ---@field getArraySize fun(self:vireo.Image):integer
+           ---@field getRowPitch fun(self:vireo.Image, mipLevel:integer|nil):integer
+           ---@field getRowLength fun(self:vireo.Image, mipLevel:integer|nil):integer
+           ---@field getImageSize fun(self:vireo.Image, mipLevel:integer|nil):integer
+           ---@field getAlignedImageSize fun(self:vireo.Image, mipLevel:integer|nil):integer
+           ---@field getAlignedRowPitch fun(self:vireo.Image, mipLevel:integer|nil):integer
+           ---@field getAlignedRowLength fun(self:vireo.Image, mipLevel:integer|nil):integer
+           ---@field isReadWrite fun(self:vireo.Image):boolean
+           ---@field isDepthFormat fun(self:vireo.Image):boolean
+           ---@field isDepthStencilFormat fun(self:vireo.Image):boolean
+           ---@field getPixelSize fun(format:vireo.ImageFormat):integer
+           ---@field getMemoryAllocations fun():vireo.VideoMemoryAllocationDesc[]
+           Image = vireo.Image,
+
+           ---@class vireo.RenderTarget
+           ---@field getImage fun(self:vireo.RenderTarget):vireo.Image
+           ---@field getType fun(self:vireo.RenderTarget):vireo.RenderTargetType
+           RenderTarget = vireo.RenderTarget,
+
+           ---@class vireo.DescriptorLayout
+           ---@field add fun(self:vireo.DescriptorLayout, index:vireo.DescriptorIndex, type:vireo.DescriptorType, count:integer|nil):vireo.DescriptorLayout
+           ---@field build fun(self:vireo.DescriptorLayout):nil
+           ---@field getCapacity fun(self:vireo.DescriptorLayout):integer
+           ---@field isDynamicUniform fun(self:vireo.DescriptorLayout):boolean
+           ---@field isSamplers fun(self:vireo.DescriptorLayout):boolean
+           DescriptorLayout = vireo.DescriptorLayout,
+
+           ---@class vireo.DescriptorSet
+           ---@field update fun(self:vireo.DescriptorSet, index:vireo.DescriptorIndex, bufferOrImageOrSampler:any, counterBuffer:any|nil):nil
+           ---@field getLayout fun(self:vireo.DescriptorSet):vireo.DescriptorLayout
+           DescriptorSet = vireo.DescriptorSet,
+
+           ---@class vireo.VertexInputLayout
+           VertexInputLayout = vireo.VertexInputLayout,
+
+           ---@class vireo.ShaderModule
+           ShaderModule = vireo.ShaderModule,
+
+           ---@class vireo.PipelineResources
+           PipelineResources = vireo.PipelineResources,
+
+           ---@class vireo.Pipeline
+           ---@field getResources fun(self:vireo.Pipeline):vireo.PipelineResources
+           ---@field getType fun(self:vireo.Pipeline):vireo.PipelineType
+           Pipeline = vireo.Pipeline,
+
+           ---@class vireo.ComputePipeline : vireo.Pipeline
+           ComputePipeline = vireo.ComputePipeline,
+
+           ---@class vireo.GraphicPipeline : vireo.Pipeline
+           GraphicPipeline = vireo.GraphicPipeline,
+
+           ---@class vireo.SwapChain
+           ---@field getExtent fun(self:vireo.SwapChain):vireo.Extent
+           ---@field getAspectRatio fun(self:vireo.SwapChain):number
+           ---@field getCurrentFrameIndex fun(self:vireo.SwapChain):integer
+           ---@field getFramesInFlight fun(self:vireo.SwapChain):integer
+           ---@field getFormat fun(self:vireo.SwapChain):vireo.ImageFormat
+           ---@field nextFrameIndex fun(self:vireo.SwapChain):nil
+           ---@field acquire fun(self:vireo.SwapChain, fence:vireo.Fence):boolean
+           ---@field present fun(self:vireo.SwapChain):nil
+           ---@field recreate fun(self:vireo.SwapChain):nil
+           ---@field waitIdle fun(self:vireo.SwapChain):nil
+           SwapChain = vireo.SwapChain,
+
+           ---@class vireo.CommandList
+           ---@field begin fun(self:vireo.CommandList):nil
+           ---@field end fun(self:vireo.CommandList):nil
+           ---@field upload fun(self:vireo.CommandList, destination:any, source:any, firstMipLevel:integer|nil):nil
+           ---@field uploadArray fun(self:vireo.CommandList, destination:vireo.Image, sources:any[], firstMipLevel:integer|nil):nil
+           ---@field copy fun(self:vireo.CommandList, ...):nil
+           ---@field beginRendering fun(self:vireo.CommandList, config:vireo.RenderingConfiguration):nil
+           ---@field endRendering fun(self:vireo.CommandList):nil
+           ---@field dispatch fun(self:vireo.CommandList, x:integer, y:integer, z:integer):nil
+           ---@field bindVertexBuffer fun(self:vireo.CommandList, buffer:vireo.Buffer, offset:integer|nil):nil
+           ---@field bindVertexBuffers fun(self:vireo.CommandList, buffers:vireo.Buffer[], offsets:integer[]|nil):nil
+           ---@field bindIndexBuffer fun(self:vireo.CommandList, buffer:vireo.Buffer, indexType:vireo.IndexType|nil, firstIndex:integer|nil):nil
+           ---@field bindPipeline fun(self:vireo.CommandList, pipeline:vireo.Pipeline):nil
+           ---@field bindDescriptors fun(self:vireo.CommandList, descriptors:vireo.DescriptorSet[], firstSet:integer|nil):nil
+           ---@field bindDescriptor fun(self:vireo.CommandList, descriptor:vireo.DescriptorSet, set:integer, offset:integer|nil):nil
+           ---@field draw fun(self:vireo.CommandList, vertexCountPerInstance:integer, instanceCount:integer|nil, firstVertex:integer|nil, firstInstance:integer|nil):nil
+           ---@field drawIndexed fun(self:vireo.CommandList, indexCountPerInstance:integer, instanceCount:integer|nil, firstIndex:integer|nil, firstVertex:integer|nil, firstInstance:integer|nil):nil
+           ---@field drawIndirect fun(self:vireo.CommandList, buffer:vireo.Buffer, offset:integer, drawCount:integer, stride:integer, firstCommandOffset:integer|nil):nil
+           ---@field drawIndexedIndirect fun(self:vireo.CommandList, buffer:vireo.Buffer, offset:integer, maxDrawCount:integer, stride:integer, firstCommandOffset:integer|nil):nil
+           ---@field drawIndexedIndirectCount fun(self:vireo.CommandList, buffer:vireo.Buffer, offset:integer, countBuffer:vireo.Buffer, countOffset:integer, maxDrawCount:integer, stride:integer, firstCommandOffset:integer|nil):nil
+           ---@field setViewports fun(self:vireo.CommandList, viewports:vireo.Viewport[]):nil
+           ---@field setScissors fun(self:vireo.CommandList, rects:vireo.Rect[]):nil
+           ---@field setViewport fun(self:vireo.CommandList, viewport:vireo.Viewport):nil
+           ---@field setScissors fun(self:vireo.CommandList, rect:vireo.Rect):nil
+           ---@field setStencilReference fun(self:vireo.CommandList, reference:integer):nil
+           ---@field barrier fun(self:vireo.CommandList, ...):nil
+           ---@field pushConstants fun(self:vireo.CommandList, resources:vireo.PipelineResources, desc:vireo.PushConstantsDesc, data:any):nil
+           ---@field cleanup fun(self:vireo.CommandList):nil
+           CommandList = vireo.CommandList,
+
+           ---@class vireo.CommandAllocator
+           ---@field reset fun(self:vireo.CommandAllocator):nil
+           ---@field createCommandList fun(self:vireo.CommandAllocator, pipelineOrNil:vireo.Pipeline|nil):vireo.CommandList
+           ---@field getCommandListType fun(self:vireo.CommandAllocator):vireo.CommandType
+           CommandAllocator = vireo.CommandAllocator,
+
+           ---@class vireo.SubmitQueue
+           ---@field submit fun(self:vireo.SubmitQueue, ...):nil
+           ---@field waitIdle fun(self:vireo.SubmitQueue):nil
+           SubmitQueue = vireo.SubmitQueue,
+
+           ---@class vireo.Vireo
+           ---@field waitIdle fun(self:vireo.Vireo):nil
+           ---@field createSwapChain fun(self:vireo.Vireo, format:vireo.ImageFormat, presentQueue:vireo.SubmitQueue, windowHandle:any, presentMode:vireo.PresentMode|nil, framesInFlight:integer|nil):vireo.SwapChain
+           ---@field createSubmitQueue fun(self:vireo.Vireo, commandType:vireo.CommandType, name:string|nil):vireo.SubmitQueue
+           ---@field createFence fun(self:vireo.Vireo, createSignaled:boolean|nil, name:string|nil):vireo.Fence
+           ---@field createSemaphore fun(self:vireo.Vireo, type:vireo.SemaphoreType, name:string|nil):vireo.Semaphore
+           ---@field createCommandAllocator fun(self:vireo.Vireo, type:vireo.CommandType):vireo.CommandAllocator
+           ---@field createVertexLayout fun(self:vireo.Vireo, size:integer, attributes:vireo.VertexAttributeDesc[]):vireo.VertexInputLayout
+           ---@field createShaderModule fun(self:vireo.Vireo, dataOrFile:any):vireo.ShaderModule
+           ---@field createPipelineResources fun(self:vireo.Vireo, layouts:vireo.DescriptorLayout[]|nil, pushConstant:vireo.PushConstantsDesc|nil, name:string|nil):vireo.PipelineResources
+           ---@field createComputePipeline fun(self:vireo.Vireo, resources:vireo.PipelineResources, shader:vireo.ShaderModule, name:string|nil):vireo.ComputePipeline
+           ---@field createGraphicPipeline fun(self:vireo.Vireo, config:vireo.GraphicPipelineConfiguration, name:string|nil):vireo.GraphicPipeline
+           ---@field createBuffer fun(self:vireo.Vireo, type:vireo.BufferType, size:integer, count:integer|nil, name:string|nil):vireo.Buffer
+           ---@field createImage fun(self:vireo.Vireo, format:vireo.ImageFormat, width:integer, height:integer, mipLevels:integer|nil, arraySize:integer|nil, name:string|nil):vireo.Image
+           ---@field createReadWriteImage fun(self:vireo.Vireo, format:vireo.ImageFormat, width:integer, height:integer, mipLevels:integer|nil, arraySize:integer|nil, name:string|nil):vireo.Image
+           ---@field createRenderTarget fun(self:vireo.Vireo, ...):vireo.RenderTarget
+           ---@field createDescriptorLayout fun(self:vireo.Vireo, name:string|nil):vireo.DescriptorLayout
+           ---@field createSamplerDescriptorLayout fun(self:vireo.Vireo, name:string|nil):vireo.DescriptorLayout
+           ---@field createDynamicUniformDescriptorLayout fun(self:vireo.Vireo, name:string|nil):vireo.DescriptorLayout
+           ---@field createDescriptorSet fun(self:vireo.Vireo, layout:vireo.DescriptorLayout, name:string|nil):vireo.DescriptorSet
+           ---@field createSampler fun(self:vireo.Vireo, minFilter:vireo.Filter, magFilter:vireo.Filter, addressModeU:vireo.AddressMode, addressModeV:vireo.AddressMode, addressModeW:vireo.AddressMode, minLod:number|nil, maxLod:number|nil, anisotropyEnable:boolean|nil, mipMapMode:vireo.MipMapMode|nil, compareOp:vireo.CompareOp|nil):vireo.Sampler
+           ---@field getShaderFileExtension fun(self:vireo.Vireo):string
+           ---@field getPhysicalDevice fun(self:vireo.Vireo):vireo.PhysicalDevice
+           ---@field getDevice fun(self:vireo.Vireo):vireo.Device
+           ---@field getInstance fun(self:vireo.Vireo):vireo.Instance
+           Vireo = vireo.Vireo,
+       }
+
