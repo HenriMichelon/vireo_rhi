@@ -60,11 +60,11 @@ set(DIRECTX_SOURCES
 endif ()
 if (${LUA_BINDING})
     set(LUA_BINDINGS_SOURCES
-        ${SRC_DIR}/lua/LuaBindings.cpp
+        ${SRC_DIR}/bindings/lua/LuaBindings.cpp
     )
     set(LUA_BINDINGS_MODULES
-        ${SRC_DIR}/lua/LuaBindings.ixx
-        ${SRC_DIR}/lua/LuaBridge.ixx
+        ${SRC_DIR}/bindings/lua/LuaBindings.ixx
+        ${SRC_DIR}/bindings/lua/LuaBridge.ixx
     )
 endif ()
 add_library(${VIREO_TARGET} STATIC
