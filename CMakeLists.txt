@@ -32,15 +32,17 @@ if(WIN32)
 endif ()
 
 #######################################################
-if (LUA_BINDING)
-    add_compile_definitions(LUA_BINDING)
-endif ()
-
-#######################################################
 include(FetchContent)
 include(cmake/std.cmake)
 include(cmake/compile_options.cmake)
 include(cmake/libraries.cmake)
+
+#######################################################
+if (LUA_BINDING)
+    message("Building Lua bindings for Vireo")
+    add_compile_definitions(LUA_BINDING)
+    set(LUA_INCLUDE_DIR "${lua_cmake_SOURCE_DIR}/upstream" PARENT_SCOPE)
+endif ()
 
 #######################################################
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
