@@ -47,7 +47,7 @@ namespace vireo {
         load(inputStream, size);
     }
 
-    DXShaderModule::DXShaderModule(const std::vector<char>& data) {
+    DXShaderModule::DXShaderModule(const std::vector<char>& data, const std::string& _) {
         dxCheck(D3DCreateBlob(data.size(), &shader), "Error creating blob for  shader ");
         memcpy(shader->GetBufferPointer(), data.data(), data.size());
     }
@@ -61,7 +61,7 @@ namespace vireo {
         const ComPtr<ID3D12Device>& device,
         const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
         const PushConstantsDesc& pushConstant,
-        const std::string& name) {
+        const std::string& _) {
 
         constexpr D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
                D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;

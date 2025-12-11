@@ -54,7 +54,8 @@ export namespace vireo {
             // size_t size) const override;
 
         std::shared_ptr<ShaderModule> createShaderModule(
-            const std::vector<char>& data) const override;
+            const std::vector<char>& data,
+            const std::string& name) const override;
 
 
         std::shared_ptr<PipelineResources> createPipelineResources(

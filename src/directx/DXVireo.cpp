@@ -95,8 +95,8 @@ namespace vireo {
     // }
 
     std::shared_ptr<ShaderModule> DXVireo::createShaderModule(
-        const std::vector<char>& data) const {
-        return std::make_shared<DXShaderModule>(data);
+        const std::vector<char>& data, const std::string& name) const {
+        return std::make_shared<DXShaderModule>(data, name);
     }
 
     std::shared_ptr<Buffer> DXVireo::createBuffer(

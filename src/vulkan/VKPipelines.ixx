@@ -50,7 +50,7 @@ export namespace vireo {
 
         VKShaderModule(VkDevice device, std::ifstream inputStream, size_t size);
 
-        VKShaderModule(const VkDevice device, const std::vector<char>& data);
+        VKShaderModule(VkDevice device, const std::vector<char>& data, const std::string& name);
 
         ~VKShaderModule() override;
 

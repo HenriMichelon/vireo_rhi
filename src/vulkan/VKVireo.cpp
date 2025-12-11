@@ -72,8 +72,8 @@ namespace vireo {
     // }
 
     std::shared_ptr<ShaderModule> VKVireo::createShaderModule(
-        const std::vector<char>& data) const {
-        return std::make_shared<VKShaderModule>(getVKDevice()->getDevice(), data);
+        const std::vector<char>& data, const std::string& name) const {
+        return std::make_shared<VKShaderModule>(getVKDevice()->getDevice(), data, name);
     }
 
     std::shared_ptr<PipelineResources> VKVireo::createPipelineResources(

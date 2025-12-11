@@ -66,7 +66,7 @@ namespace vireo {
 #endif
     }
 
-    VKShaderModule::VKShaderModule(const VkDevice device, const std::vector<char>& data) :
+    VKShaderModule::VKShaderModule(const VkDevice device, const std::vector<char>& data, const std::string& name) :
         device{device} {
         const auto createInfo = VkShaderModuleCreateInfo {
             .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
@@ -76,7 +76,7 @@ namespace vireo {
         vkCheck(vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule));
 #ifdef _DEBUG
         vkSetObjectName(device, reinterpret_cast<uint64_t>(shaderModule), VK_OBJECT_TYPE_SHADER_MODULE,
-            "VKShaderModule");
+            "VKShaderModule : " + name);
 #endif
     }
 

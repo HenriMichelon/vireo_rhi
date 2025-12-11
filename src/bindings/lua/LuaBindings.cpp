@@ -820,7 +820,7 @@ namespace vireo {
                 .addFunction("createCommandAllocator", &Vireo::createCommandAllocator)
                 .addFunction("createVertexLayout", &Vireo::createVertexLayout)
                 .addFunction("createShaderModuleFromFile", (std::shared_ptr<ShaderModule> (Vireo::*)(const std::string&) const) &Vireo::createShaderModule)
-                .addFunction("createShaderModuleFromData", (std::shared_ptr<ShaderModule> (Vireo::*)(const std::vector<char>&) const) &Vireo::createShaderModule)
+                .addFunction("createShaderModuleFromData", (std::shared_ptr<ShaderModule> (Vireo::*)(const std::vector<char>&,const std::string&) const) &Vireo::createShaderModule)
                 .addFunction("createPipelineResources", &Vireo::createPipelineResources)
                 .addFunction("createComputePipeline", &Vireo::createComputePipeline)
                 .addFunction("createGraphicPipeline", &Vireo::createGraphicPipeline)

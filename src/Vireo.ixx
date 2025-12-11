@@ -2634,7 +2634,8 @@ export namespace vireo {
          * Creates a shader module
          */
         virtual std::shared_ptr<ShaderModule> createShaderModule(
-            const std::vector<char>& data) const = 0;
+            const std::vector<char>& data,
+            const std::string& name) const = 0;
 
         /**
          * Creates a pipeline resources description. Describe resources that can be accessed by
