@@ -175,13 +175,6 @@ namespace vireo {
         return Vireo::create(backend);
     }
 
-    std::shared_ptr<Vireo> Vireo_createFull(
-        const Backend backend,
-        const std::uint32_t maxDirectX12Descriptors,
-        const std::uint32_t maxDirectX12Samplers) {
-        return Vireo::create(backend, maxDirectX12Descriptors, maxDirectX12Samplers);
-    }
-
     void LuaBindings::_register(lua_State* L) {
         luabridge::getGlobalNamespace(L).beginNamespace("vireo")
         // enum classes
@@ -809,9 +802,6 @@ namespace vireo {
                 .addFunction("waitIdle", &SubmitQueue::waitIdle)
             .endClass()
             .beginClass<Vireo>("Vireo")
-                // static factories
-                .addStaticFunction("create", &Vireo_createDefault)
-                .addStaticFunction("createFull", &Vireo_createFull)
                 .addFunction("waitIdle", &Vireo::waitIdle)
                 .addFunction("createSwapChain", &Vireo::createSwapChain)
                 .addFunction("createSubmitQueue", &Vireo::createSubmitQueue)

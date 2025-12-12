@@ -10,6 +10,7 @@ module;
 #include <Windows.h>
 #include <dxgi1_6.h>
 #include <d3d12.h>
+#undef ERROR
 #endif
 module vireo.vulkan.devices;
 
@@ -19,21 +20,32 @@ import vireo.vulkan.tools;
 
 namespace vireo {
 
-    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT,
+    static VKAPI_ATTR VkBool32 VKAPI_CALL VKDebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT flagBitsExt,
                                                        VkDebugUtilsMessageTypeFlagsEXT,
                                                        const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
-                                                       void *) {
-        const std::string message("validation layer: " + std::string(pCallbackData->pMessage) + "\n");
-#ifdef _WIN32
-        if (IsDebuggerPresent()) {
-            OutputDebugStringA(message.c_str());
+                                                       void* debugCallbackPtr) {
+        const std::string message("validation layer: " + std::string(pCallbackData->pMessage));
+        if (debugCallbackPtr) {
+            const DebugLevel level =
+                flagBitsExt & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT  ? DebugLevel::ERROR :
+                flagBitsExt & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT  ? DebugLevel::WARNING :
+                flagBitsExt & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT  ? DebugLevel::INFO :
+                DebugLevel::VERBOSE;
+            const auto debugCallback = reinterpret_cast<DebugCallback>(debugCallbackPtr);
+            debugCallback(level, message);
         } else {
-            std::cerr << message;
-        }
+#ifdef _WIN32
+            if (IsDebuggerPresent()) {
+                OutputDebugStringA(message.c_str());
+                OutputDebugStringA("\n");
+            } else {
+                std::cerr << message << std::endl;
+            }
 #else
-        std::cerr << message;
+            std::cerr << message;
 #endif
-        return VK_TRUE;
+        }
+        return VK_FALSE;
     }
 
     // vkCreateDebugUtilsMessengerEXT linker
@@ -59,11 +71,11 @@ namespace vireo {
         }
     }
 
-    VKInstance::VKInstance() {
+    VKInstance::VKInstance(DebugCallback debugCallback) {
         vulkanInitialize();
         std::vector<const char *>requestedLayers{};
 #ifdef _DEBUG
-        const char* validationLayerName = "VK_LAYER_KHRONOS_validation";
+        auto validationLayerName = "VK_LAYER_KHRONOS_validation";
         requestedLayers.push_back(validationLayerName);
 #endif
         uint32_t layerCount;
@@ -104,15 +116,18 @@ namespace vireo {
 
 #ifdef _DEBUG
         // Initialize validating layer for logging
-        constexpr VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{
-            .sType           = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-            .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-                    VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
-            .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-                    VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-                    VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
-            .pfnUserCallback = debugCallback,
-            .pUserData       = nullptr,
+        const VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{
+            .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+            .messageSeverity =
+                VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+                VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+            .messageType =
+                VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+            .pfnUserCallback = VKDebugCallback,
+            .pUserData = debugCallback,
         };
         vkCheck(CreateDebugUtilsMessengerEXT(instance, &debugCreateInfo, nullptr, &debugMessenger));
 #endif

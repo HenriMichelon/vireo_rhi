@@ -9,15 +9,14 @@ module;
 module vireo.vulkan;
 
 import vireo.tools;
-
 import vireo.vulkan.descriptors;
 import vireo.vulkan.pipelines;
 import vireo.vulkan.tools;
 
 namespace vireo {
 
-    VKVireo::VKVireo() {
-        instance = std::make_shared<VKInstance>();
+    VKVireo::VKVireo(DebugCallback debugCallback ) {
+        instance = std::make_shared<VKInstance>(debugCallback);
         physicalDevice = std::make_shared<VKPhysicalDevice>(getVKInstance()->getInstance());
         device = std::make_shared<VKDevice>(*getVKPhysicalDevice(), getVKInstance()->getRequestedLayers());
     }

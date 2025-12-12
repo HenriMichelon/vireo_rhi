@@ -2544,6 +2544,15 @@ export namespace vireo {
         bool              alphaToCoverageEnable{false};
     };
 
+    enum class DebugLevel {
+        VERBOSE,
+        INFO,
+        WARNING,
+        ERROR
+    };
+
+    using DebugCallback = void(*)(DebugLevel, const std::string&);
+
     /**
      * Main abstraction class.
      *
@@ -2556,6 +2565,7 @@ export namespace vireo {
          */
         static std::shared_ptr<Vireo> create(
             Backend backend,
+            DebugCallback debugCallback = nullptr,
             uint32_t maxDirectX12Descriptors = 3000,
             uint32_t maxDirectX12Samplers = 100);
 

@@ -26,10 +26,11 @@ namespace vireo {
 
     std::shared_ptr<Vireo> Vireo::create(
         const Backend backend,
+        DebugCallback debugCallback,
         const uint32_t maxDirectX12Descriptors,
         const uint32_t maxDirectX12Samplers) {
         if (backend == Backend::VULKAN) {
-            return std::make_shared<VKVireo>();
+            return std::make_shared<VKVireo>(debugCallback);
         }
 #ifdef DIRECTX_BACKEND
         return std::make_shared<DXVireo>(maxDirectX12Descriptors, maxDirectX12Samplers);

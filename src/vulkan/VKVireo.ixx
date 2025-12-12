@@ -8,6 +8,7 @@ module;
 #include "vireo/backend/vulkan/Libraries.h"
 export module vireo.vulkan;
 
+import std;
 import vireo;
 import vireo.vulkan.commands;
 import vireo.vulkan.devices;
@@ -18,7 +19,7 @@ export namespace vireo {
 
     class VKVireo : public Vireo {
     public:
-        VKVireo();
+        VKVireo(DebugCallback debugCallback);
 
         void waitIdle() override;
 

@@ -15,7 +15,7 @@ export namespace vireo {
 
     class VKInstance : public Instance {
     public:
-        VKInstance();
+        VKInstance(DebugCallback debugCallback);
 
         ~VKInstance() override;
 
