@@ -2465,7 +2465,10 @@ export namespace vireo {
         float       aspectRatio{};
         uint32_t    currentFrameIndex{0};
 
-        SwapChain(const ImageFormat format, const PresentMode presentMode, const uint32_t framesInFlight) :
+        SwapChain(
+            const ImageFormat format,
+            const PresentMode presentMode,
+            const uint32_t framesInFlight) :
             presentMode{presentMode},
             format{format},
             framesInFlight{framesInFlight} {}

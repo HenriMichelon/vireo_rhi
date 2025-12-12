@@ -41,7 +41,7 @@ export namespace vireo {
 
         const auto& getCurrentImageAvailableSemaphoreInfo() const { return imageAvailableSemaphoreInfo[currentFrameIndex]; }
 
-        const auto& getCurrentRenderFinishedSemaphoreInfo() const { return renderFinishedSemaphoreInfo[currentFrameIndex]; }
+        const auto& getCurrentRenderFinishedSemaphoreInfo() const { return renderFinishedSemaphoreInfo[imageIndex[currentFrameIndex]]; }
 
         void waitIdle() override { vkDeviceWaitIdle(device->getDevice()); }
 
@@ -61,6 +61,7 @@ export namespace vireo {
         // Rendering window drawing surface
         VkSurfaceKHR             surface;
         VkSwapchainKHR           swapChain{VK_NULL_HANDLE};
+        uint32_t                 imagesCount;
         // Frame buffers
         std::vector<VkImage>     swapChainImages;
         // Frame buffers image format

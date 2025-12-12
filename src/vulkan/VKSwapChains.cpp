@@ -26,10 +26,10 @@ namespace vireo {
         const uint32_t framesInFlight):
         SwapChain{format, vSyncMode, framesInFlight},
         device{device},
-#ifdef _WIN32
-        hWnd{static_cast<HWND>(windowHandle)},
-#endif
         presentQueue{presentQueue}
+#ifdef _WIN32
+        ,hWnd{static_cast<HWND>(windowHandle)}
+#endif
     {
         // Get a VkSurface for drawing in the window, must be done before picking the better physical device
         // since we need the VkSurface for vkGetPhysicalDeviceSurfaceCapabilitiesKHR
@@ -47,24 +47,14 @@ namespace vireo {
 
         imageIndex.resize(framesInFlight);
         imageAvailableSemaphore.resize(framesInFlight);
-        renderFinishedSemaphore.resize(framesInFlight);
         imageAvailableSemaphoreInfo.resize(framesInFlight);
-        renderFinishedSemaphoreInfo.resize(framesInFlight);
-
         constexpr auto semaphoreInfo = VkSemaphoreCreateInfo {
             .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
         };
         for (int i = 0; i < framesInFlight; i++) {
-            if (vkCreateSemaphore(device->getDevice(), &semaphoreInfo, nullptr, &imageAvailableSemaphore[i]) != VK_SUCCESS
-                || vkCreateSemaphore(device->getDevice(), &semaphoreInfo, nullptr, &renderFinishedSemaphore[i]) != VK_SUCCESS) {
-                throw Exception("failed to create semaphores!");
+            if (vkCreateSemaphore(device->getDevice(), &semaphoreInfo, nullptr, &imageAvailableSemaphore[i]) != VK_SUCCESS) {
+                throw Exception("failed to create images available semaphores!");
             }
-            renderFinishedSemaphoreInfo[i] = VkSemaphoreSubmitInfo {
-                .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-                .semaphore = renderFinishedSemaphore[i],
-                .stageMask = VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
-                .deviceIndex = 0
-            };
             imageAvailableSemaphoreInfo[i] = VkSemaphoreSubmitInfo {
                 .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
                 .semaphore = imageAvailableSemaphore[i],
@@ -74,9 +64,7 @@ namespace vireo {
             };
 #ifdef _DEBUG
             vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(imageAvailableSemaphore[i]), VK_OBJECT_TYPE_SEMAPHORE,
-                "VKFrameData image Semaphore : " + std::to_string(i));
-            vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(renderFinishedSemaphore[i]), VK_OBJECT_TYPE_SEMAPHORE,
-        "VKFrameData render Semaphore : " + std::to_string(i));
+                "VKSwapChain image available : " + std::to_string(i));
 #endif
         }
         create();
@@ -121,26 +109,43 @@ namespace vireo {
                 "VKSwapChain");
 #endif
         }
-        vkGetSwapchainImagesKHR(device->getDevice(), swapChain, &framesInFlight, nullptr);
-        swapChainImages.resize(framesInFlight);
-        swapChainImageViews.resize(swapChainImages.size());
+        vkGetSwapchainImagesKHR(device->getDevice(), swapChain, &imagesCount, nullptr);
+        swapChainImages.resize(imagesCount);
+        swapChainImageViews.resize(imagesCount);
         swapChainImageFormat = surfaceFormat.format;
 
-        vkGetSwapchainImagesKHR(device->getDevice(), swapChain, &framesInFlight, swapChainImages.data());
+        vkGetSwapchainImagesKHR(device->getDevice(), swapChain, &imagesCount, swapChainImages.data());
         extent      = Extent{ swapChainExtent.width, swapChainExtent.height };
         aspectRatio = static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height);
 
-        for (uint32_t i = 0; i < swapChainImages.size(); i++) {
+        renderFinishedSemaphore.resize(imagesCount);
+        renderFinishedSemaphoreInfo.resize(imagesCount);
+        constexpr auto semaphoreInfo = VkSemaphoreCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
+        };
+
+        for (uint32_t i = 0; i < imagesCount; i++) {
             swapChainImageViews[i] = device->createImageView(
                 swapChainImages[i],
                     swapChainImageFormat,
                     VK_IMAGE_ASPECT_COLOR_BIT,
                     1);
+            if (vkCreateSemaphore(device->getDevice(), &semaphoreInfo, nullptr, &renderFinishedSemaphore[i]) != VK_SUCCESS) {
+                throw Exception("failed to create render finished semaphores!");
+            }
+            renderFinishedSemaphoreInfo[i] = VkSemaphoreSubmitInfo {
+                .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+                .semaphore = renderFinishedSemaphore[i],
+                .stageMask = VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
+                .deviceIndex = 0
+            };
 #ifdef _DEBUG
             vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(swapChainImageViews[i]), VK_OBJECT_TYPE_IMAGE_VIEW,
                 "VKSwapChain Image View " + std::to_string(i));
             vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(swapChainImages[i]), VK_OBJECT_TYPE_IMAGE,
                 "VKSwapChain Image " + std::to_string(i));
+            vkSetObjectName(device->getDevice(), reinterpret_cast<uint64_t>(renderFinishedSemaphore[i]), VK_OBJECT_TYPE_SEMAPHORE,
+        "VKSwapChain render finished : " + std::to_string(i));
 #endif
         }
     }
@@ -161,6 +166,9 @@ namespace vireo {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Swap_chain_recreation#page_Recreating-the-swap-chain
         for (const auto &swapChainImageView : swapChainImageViews) {
             vkDestroyImageView(device->getDevice(), swapChainImageView, nullptr);
+        }
+        for (const auto &renderFinishedSemaphore : renderFinishedSemaphore) {
+            vkDestroySemaphore(device->getDevice(), renderFinishedSemaphore, nullptr);
         }
         vkDestroySwapchainKHR(device->getDevice(), swapChain, nullptr);
     }
@@ -237,7 +245,7 @@ namespace vireo {
         const auto presentInfo = VkPresentInfoKHR {
             .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
             .waitSemaphoreCount = 1,
-            .pWaitSemaphores    = &renderFinishedSemaphore[currentFrameIndex],
+            .pWaitSemaphores    = &renderFinishedSemaphore[imageIndex[currentFrameIndex]],
             .swapchainCount     = 1,
             .pSwapchains        = swapChains,
             .pImageIndices      = &imageIndex[currentFrameIndex],
@@ -280,7 +288,6 @@ namespace vireo {
         cleanup();
         for (int i = 0; i < framesInFlight; i++) {
             vkDestroySemaphore(device->getDevice(), imageAvailableSemaphore[i], nullptr);
-            vkDestroySemaphore(device->getDevice(), renderFinishedSemaphore[i], nullptr);
         }
         vkDestroySurfaceKHR(device->getPhysicalDevice().getInstance(), surface, nullptr);
     }
