@@ -140,6 +140,10 @@ export namespace vireo {
             return ".spv";
         }
 
+        constexpr Backend getBackend() const override {
+            return Backend::VULKAN;
+        }
+
         auto getVKInstance() const { return reinterpret_pointer_cast<VKInstance>(instance); }
 
         auto getVKPhysicalDevice() const { return reinterpret_pointer_cast<VKPhysicalDevice>(physicalDevice); }

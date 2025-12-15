@@ -802,6 +802,7 @@ namespace vireo {
                 .addFunction("waitIdle", &SubmitQueue::waitIdle)
             .endClass()
             .beginClass<Vireo>("Vireo")
+                .addProperty("backend", &Vireo::getBackend)
                 .addFunction("waitIdle", &Vireo::waitIdle)
                 .addFunction("createSwapChain", &Vireo::createSwapChain)
                 .addFunction("createSubmitQueue", &Vireo::createSubmitQueue)

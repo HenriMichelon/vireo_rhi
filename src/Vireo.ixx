@@ -2817,6 +2817,8 @@ export namespace vireo {
 
         virtual std::string getShaderFileExtension() const = 0;
 
+        virtual Backend getBackend() const = 0;
+
         /**
          * Returns the physical device/adapter object
          */

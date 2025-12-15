@@ -134,6 +134,10 @@ export namespace vireo {
             return ".dxil";
         }
 
+        constexpr Backend getBackend() const override {
+            return Backend::DIRECTX;
+        }
+
         auto getDXInstance() const { return reinterpret_pointer_cast<DXInstance>(instance); }
 
         auto getDXPhysicalDevice() const { return reinterpret_pointer_cast<DXPhysicalDevice>(physicalDevice); }
