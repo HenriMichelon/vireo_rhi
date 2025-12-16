@@ -689,6 +689,10 @@ export namespace vireo {
         uint32_t   width{0};
         //! Rect’s height
         uint32_t   height{0};
+
+        Rect() = default;
+        Rect(const int32_t x, const int32_t y, const uint32_t w, const uint32_t h) : x(x), y(y), width(w), height(h) {}
+        Rect(const uint32_t w, const uint32_t h) : width(w), height(h) {}
     };
 
     /**
@@ -707,6 +711,10 @@ export namespace vireo {
         float    minDepth{0.0f};
         //! max depth range for the viewport.
         float    maxDepth{1.0f};
+
+        Viewport() = default;
+        Viewport(const float x, const float y, const float w, const float h) : x(x), y(y), width(w), height(h) {}
+        Viewport(const float w, const float h) : width(w), height(h) {}
     };
 
     /**
