@@ -1363,6 +1363,7 @@ namespace vireo {
         const std::vector<BufferCopyRegion>& regions) const {
         std::vector<VkBufferCopy> copyRegions(regions.size());
         for (int i = 0; i < regions.size(); i++) {
+            assert(regions[i].size != 0);
             copyRegions[i].srcOffset = regions[i].srcOffset;
             copyRegions[i].dstOffset = regions[i].dstOffset;
             copyRegions[i].size = regions[i].size;
