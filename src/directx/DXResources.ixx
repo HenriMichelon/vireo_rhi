@@ -191,7 +191,8 @@ export namespace vireo {
         DXRenderTarget(
             const ComPtr<ID3D12Device> &device,
             const std::shared_ptr<DXImage>& image,
-            RenderTargetType type);
+            RenderTargetType type,
+            bool isMultisampled);
 
         auto& getHandle() const { return handle; }
 

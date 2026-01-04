@@ -231,7 +231,8 @@ namespace vireo {
     DXRenderTarget::DXRenderTarget(
         const ComPtr<ID3D12Device> &device,
         const std::shared_ptr<DXImage>& image,
-        const RenderTargetType type) :
+        const RenderTargetType type,
+        const bool isMultisampled) :
         RenderTarget{type, image} {
         const auto heapDesc = D3D12_DESCRIPTOR_HEAP_DESC{
             .Type = type == RenderTargetType::COLOR ? D3D12_DESCRIPTOR_HEAP_TYPE_RTV : D3D12_DESCRIPTOR_HEAP_TYPE_DSV,
@@ -249,7 +250,7 @@ namespace vireo {
         } else {
             D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
             dsvDesc.Format = DXImage::dxFormats[static_cast<int>(image->getFormat())];
-            dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+            dsvDesc.ViewDimension = isMultisampled ? D3D12_DSV_DIMENSION_TEXTURE2DMS : D3D12_DSV_DIMENSION_TEXTURE2D;
             dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
             device->CreateDepthStencilView(image->getImage().Get(), &dsvDesc, handle);
         }

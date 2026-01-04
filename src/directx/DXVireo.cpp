@@ -169,7 +169,8 @@ namespace vireo {
                 type == RenderTargetType::DEPTH || type == RenderTargetType::DEPTH_STENCIL,
                 clearValue,
                 msaa),
-            type);
+            type,
+            msaa != MSAA::NONE);
     }
 
     std::shared_ptr<RenderTarget> DXVireo::createRenderTarget(
@@ -192,7 +193,8 @@ namespace vireo {
                 false,
                 clearValue,
                 msaa),
-            RenderTargetType::COLOR);
+            RenderTargetType::COLOR,
+            msaa != MSAA::NONE);
     }
     std::shared_ptr<DescriptorLayout> DXVireo::createDescriptorLayout(
         const std::string& name) const {
