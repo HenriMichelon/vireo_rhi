@@ -642,7 +642,7 @@ namespace vireo {
                     ResourceState::UNDEFINED,
                     ResourceState::RENDER_TARGET_COLOR,
                     false, false,
-                    1, 1);
+                    0, 1);
                 colorAttachmentsInfo[i].imageView = msaaColor->getImageView(),
                 colorAttachmentsInfo[i].resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
                 colorAttachmentsInfo[i].resolveImageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
