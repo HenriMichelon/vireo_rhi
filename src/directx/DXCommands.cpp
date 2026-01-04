@@ -532,7 +532,7 @@ namespace vireo {
             dstState = D3D12_RESOURCE_STATE_PRESENT;
         } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::COPY_DST) {
             srcState = D3D12_RESOURCE_STATE_COMMON;
-            dstState = D3D12_RESOURCE_STATE_COPY_DEST;
+            dstState = D3D12_RESOURCE_STATE_COMMON; // Fix D3D12_BARRIER_LAYOUT_LEGACY_COPY_DEST need D3D12_BARRIER_LAYOUT_COMMON for CopyTextureRegion
         } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::SHADER_READ) {
             srcState = D3D12_RESOURCE_STATE_COPY_SOURCE;
             dstState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
@@ -607,6 +607,9 @@ namespace vireo {
         const uint32_t arraySize) const {
         D3D12_RESOURCE_STATES srcState, dstState;
         convertState(oldState, newState, srcState, dstState);
+        if (srcState == dstState) {
+            return;
+        }
         std::vector<D3D12_RESOURCE_BARRIER> barriers;
         if (oldState == ResourceState::RENDER_TARGET_DEPTH_STENCIL ||
             newState == ResourceState::RENDER_TARGET_DEPTH_STENCIL ||
