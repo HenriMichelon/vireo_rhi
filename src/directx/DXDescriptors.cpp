@@ -247,6 +247,8 @@ namespace vireo {
             } else if (image.isDepthStencilFormat()) {
                 if (image.getFormat() == ImageFormat::D24_UNORM_S8_UINT) {
                     viewDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+                } else if (image.getFormat() == ImageFormat::D32_SFLOAT_S8_UINT) {
+                        viewDesc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
                 } else {
                     throw Exception("Unsupported depth format");
                 }
