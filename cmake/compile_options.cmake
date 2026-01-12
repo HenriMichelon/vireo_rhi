@@ -22,12 +22,16 @@ function(compile_options TARGET_NAME )
                     /GS
                     /Ob0
                     /RTC1
-                    /MTd
                     /Wv:18
             )
-            add_definitions(-D_DEBUG)
-            set_property(TARGET ${TARGET_NAME} PROPERTY
-                    MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
+            # add_definitions(-D_DEBUG) # Removed to avoid inconsistency with /MDd
+            if (USE_STATIC_MSVC_RUNTIME_LIBRARY)
+                set_property(TARGET ${TARGET_NAME} PROPERTY
+                        MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
+            else()
+                set_property(TARGET ${TARGET_NAME} PROPERTY
+                        MSVC_RUNTIME_LIBRARY "MultiThreadedDebugDLL")
+            endif()
         else()
             target_compile_options(${TARGET_NAME} PRIVATE
                     /O2
@@ -35,11 +39,15 @@ function(compile_options TARGET_NAME )
                     /Gy
                     /Oi
                     /Ot
-                    /MT
                     /Wv:18
-                set_property(TARGET ${TARGET_NAME} PROPERTY
-                    MSVC_RUNTIME_LIBRARY "MultiThreaded")
             )
+            if (USE_STATIC_MSVC_RUNTIME_LIBRARY)
+                set_property(TARGET ${TARGET_NAME} PROPERTY
+                        MSVC_RUNTIME_LIBRARY "MultiThreaded")
+            else()
+                set_property(TARGET ${TARGET_NAME} PROPERTY
+                        MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
+            endif()
         endif()
     else()
         target_compile_options(${TARGET_NAME} PRIVATE
@@ -51,12 +59,12 @@ function(compile_options TARGET_NAME )
         if (CMAKE_BUILD_TYPE STREQUAL "Debug")
             add_compile_definitions(_DEBUG)
             target_compile_options(${TARGET_NAME} PRIVATE
-                    -O0
+                -O0
             )
         else()
             target_compile_options(${TARGET_NAME} PRIVATE
-                    -O3
-                    -DNDEBUG
+                -O3
+                -DNDEBUG
             )
         endif()
     endif()
