@@ -155,6 +155,8 @@ export namespace vireo {
         BC6H_SFLOAT,
         BC7_UNORM,
         BC7_UNORM_SRGB,
+
+        UNDEFINED
     };
 
     /**
