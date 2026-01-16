@@ -98,7 +98,7 @@ namespace vireo {
         for (UINT n = 0; n < framesInFlight; n++) {
             dxCheck(swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTargets[n])));
 #ifdef _DEBUG
-            renderTargets[n]->SetName(L"SwapChain BackBuffer " + n);
+            renderTargets[n]->SetName(L"SwapChain BackBuffer");
 #endif
             device->getDevice()->CreateRenderTargetView(renderTargets[n].Get(), &rtvDesc, rtvHandle);
             rtvHandle.Offset(1, rtvDescriptorSize);

@@ -532,7 +532,7 @@ namespace vireo {
     void VKCommandList::setScissors(const std::vector<Rect>& rects) const {
         std::vector<VkRect2D> scissors(rects.size());
         for (int i = 0; i < scissors.size(); i++) {
-            scissors[i].offset = {max(rects[i].x, 0), max(rects[i].y, 0)};
+            scissors[i].offset = {std::max(rects[i].x, 0), std::max(rects[i].y, 0)};
             scissors[i].extent.width = rects[i].width;
             scissors[i].extent.height = rects[i].height;
         }
@@ -553,7 +553,7 @@ namespace vireo {
 
     void VKCommandList::setScissors(const Rect& rect) const {
         const auto scissor = VkRect2D{
-            .offset = { max(rect.x, 0), max(rect.y, 0)},
+            .offset = { std::max(rect.x, 0), std::max(rect.y, 0)},
             .extent = { rect.width, rect.height },
         };
         vkCmdSetScissorWithCount(commandBuffer, 1, &scissor);
@@ -1341,7 +1341,7 @@ namespace vireo {
         const size_t size,
         const uint32_t sourceOffset,
         const uint32_t destinationOffset) const {
-        const auto copySize = size == Buffer::WHOLE_SIZE ? min(source.getSize(), destination.getSize()) : size;
+        const auto copySize = size == Buffer::WHOLE_SIZE ? std::min(source.getSize(), destination.getSize()) : size;
         assert(source.getSize() >= (copySize + sourceOffset));
         assert(destination.getSize() >= (copySize + destinationOffset));
         const auto copyRegion = VkBufferCopy{

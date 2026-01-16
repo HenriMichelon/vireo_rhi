@@ -14,6 +14,21 @@ import vireo.directx.resources;
 import vireo.directx.swapchains;
 import vireo.directx.tools;
 
+#if defined(__MINGW32__) || defined(__MINGW64__)
+__CRT_UUID_DECL(ID3D12CommandAllocator,
+    0x6102dee4, 0xaf59, 0x4b09, 0xb9, 0x99, 0xb4, 0x4d, 0x73, 0xf0, 0x9b, 0x24);
+__CRT_UUID_DECL(ID3D12CommandQueue,
+    0x0ec870a6, 0x5d7e, 0x4c22, 0x8c, 0xfc, 0x5b, 0xaa, 0xe0, 0x76, 0x16, 0xed);
+__CRT_UUID_DECL(ID3D12CommandSignature,
+    0xc36a797c, 0xec80, 0x4f0a, 0x89, 0x85, 0xa7, 0xb2, 0x47, 0x50, 0x82, 0xd1);
+__CRT_UUID_DECL(ID3D12Fence,
+    0x0a753dcf, 0xc4d8, 0x4b91, 0xad, 0xf6, 0xbe, 0x5a, 0x60, 0xd9, 0x5a, 0x76);
+__CRT_UUID_DECL(ID3D12GraphicsCommandList,
+    0x5b160d0f, 0xac1b, 0x4185, 0x8b, 0xa8, 0xb3, 0xae, 0x42, 0xa5, 0xa4, 0x55);
+__CRT_UUID_DECL(ID3D12Resource,
+    0x696442be, 0xa72e, 0x4059, 0xbc, 0x79, 0x5b, 0x5c, 0x98, 0x04, 0x0f, 0xad);
+#endif
+
 namespace vireo {
 
     DXSubmitQueue::DXSubmitQueue(const ComPtr<ID3D12Device>& device, const CommandType type) :
@@ -970,7 +985,7 @@ namespace vireo {
         const size_t size,
         const uint32_t sourceOffset,
         const uint32_t destinationOffset) const {
-        const auto copySize = size == Buffer::WHOLE_SIZE ? min(source.getSize(), destination.getSize()) : size;
+        const auto copySize = size == Buffer::WHOLE_SIZE ? std::min(source.getSize(), destination.getSize()) : size;
         assert(source.getSize() >= (copySize + sourceOffset));
         assert(destination.getSize() >= (copySize + destinationOffset));
         const auto& dxDestination = static_cast<const DXBuffer&>(destination);
@@ -1088,7 +1103,12 @@ namespace vireo {
             image.getArraySize());
 
         const auto subresource = dstLocation.SubresourceIndex;
+#if defined(_MSC_VER) || !defined(_WIN32)
         const auto texDesc = image.getImage()->GetDesc();
+#else
+        D3D12_RESOURCE_DESC texDesc;
+        image.getImage()->GetDesc(&texDesc);
+#endif
         auto footprint = D3D12_PLACED_SUBRESOURCE_FOOTPRINT{};
         UINT64 totalBytes{0};
         device->GetCopyableFootprints(
@@ -1122,7 +1142,12 @@ namespace vireo {
         const bool) const {
         const auto& image = static_cast<const DXImage&>(destination);
         const auto& buffer = static_cast<const DXBuffer&>(source);
+#if defined(_MSC_VER) || !defined(_WIN32)
         const auto texDesc = image.getImage()->GetDesc();
+#else
+        D3D12_RESOURCE_DESC texDesc;
+        image.getImage()->GetDesc(&texDesc);
+#endif
         for (UINT mip = 0; mip < image.getMipLevels(); mip++) {
             auto dstLoc = D3D12_TEXTURE_COPY_LOCATION{
                 .pResource = image.getImage().Get(),
@@ -1177,7 +1202,12 @@ namespace vireo {
             image.getArraySize());
 
         UINT64 totalBytes = 0;
+#if defined(_MSC_VER) || !defined(_WIN32)
         const auto texDesc = image.getImage()->GetDesc();
+#else
+        D3D12_RESOURCE_DESC texDesc;
+        image.getImage()->GetDesc(&texDesc);
+#endif
         auto footprint = D3D12_PLACED_SUBRESOURCE_FOOTPRINT{};
         device->GetCopyableFootprints(
             &texDesc,

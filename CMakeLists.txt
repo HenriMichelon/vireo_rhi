@@ -9,8 +9,8 @@ cmake_minimum_required(VERSION 3.29)
 #######################################################
 project(vireo_rhi)
 set(VIREO_TARGET ${PROJECT_NAME})
-if(NOT DEFINED DIRECTX_BACKEND)
-    set(DIRECTX_BACKEND ON)
+if(DEFINED MSVC)
+
 endif()
 
 #######################################################
@@ -22,13 +22,16 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 add_compile_definitions(VK_NO_PROTOTYPES)
 if(WIN32)
-    add_compile_definitions(VK_USE_PLATFORM_WIN32_KHR UNICODE _UNICODE)
+    add_compile_definitions(VK_USE_PLATFORM_WIN32_KHR UNICODE _UNICODE NOMINMAX)
     if(MSVC)
         set(USE_STATIC_MSVC_RUNTIME_LIBRARY ON)
         if (CMAKE_BUILD_TYPE STREQUAL "Debug")
             set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
         else ()
             set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+        endif ()
+        if (NOT DEFINED DIRECTX_BACKEND)
+            set(DIRECTX_BACKEND ON)
         endif ()
     endif()
     if (DIRECTX_BACKEND)
@@ -129,9 +132,9 @@ if (LUA_BINDING)
     target_link_libraries(${VIREO_TARGET} lua)
     target_include_directories(${VIREO_TARGET} PRIVATE ${lua_cmake_SOURCE_DIR}/upstream)
 endif ()
-target_precompile_headers(${VIREO_TARGET} PRIVATE
-        "<cstdint>"
-)
+#target_precompile_headers(${VIREO_TARGET} PRIVATE
+#        "<cstdint>"
+#)
 if(WIN32)
     target_compile_definitions(${VIREO_TARGET} PRIVATE WIN32_LEAN_AND_MEAN)
     set_target_properties(${VIREO_TARGET} PROPERTIES WIN32_EXECUTABLE TRUE)

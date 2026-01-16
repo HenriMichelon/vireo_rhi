@@ -24,7 +24,7 @@ function(compile_options TARGET_NAME )
                     /RTC1
                     /Wv:18
             )
-            # add_definitions(-D_DEBUG) # Removed to avoid inconsistency with /MDd
+            add_definitions(-D_DEBUG)
             if (USE_STATIC_MSVC_RUNTIME_LIBRARY)
                 set_property(TARGET ${TARGET_NAME} PROPERTY
                         MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
@@ -54,12 +54,14 @@ function(compile_options TARGET_NAME )
                 -Wno-deprecated-declarations
                 -Wno-nullability-completeness
                 -Werror
+                -pthread
         )
         target_link_libraries(${TARGET_NAME} -static)
         if (CMAKE_BUILD_TYPE STREQUAL "Debug")
             add_compile_definitions(_DEBUG)
             target_compile_options(${TARGET_NAME} PRIVATE
                 -O0
+                -D_DEBUG
             )
         else()
             target_compile_options(${TARGET_NAME} PRIVATE

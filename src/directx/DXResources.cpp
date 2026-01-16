@@ -168,8 +168,12 @@ namespace vireo {
             IID_PPV_ARGS(&image)));
 
         if constexpr (isMemoryUsageEnabled()) {
-            const auto allocInfo = device->GetResourceAllocationInfo(
-                0,1, &imageDesc);
+#if defined(_MSC_VER) || !defined(_WIN32)
+            const auto allocInfo = device->GetResourceAllocationInfo(0,1, &imageDesc);
+#else
+            D3D12_RESOURCE_ALLOCATION_INFO allocInfo;
+            device->GetResourceAllocationInfo(&allocInfo, 0,1, &imageDesc);
+#endif
             auto lock = std::lock_guard(memoryAllocationsMutex);
             memoryAllocations.push_back({
                 VideoMemoryAllocationUsage::IMAGE,

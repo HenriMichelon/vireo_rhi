@@ -16,6 +16,13 @@ import vireo.directx.resources;
 import vireo.directx.swapchains;
 import vireo.directx.tools;
 
+#if defined(__MINGW32__) || defined(__MINGW64__)
+__CRT_UUID_DECL(ID3D12PipelineState,
+    0x765a30f3, 0xf624, 0x4c6f, 0xa8, 0x28, 0xac, 0xe9, 0x48, 0x62, 0x24, 0x45);
+__CRT_UUID_DECL(ID3D12RootSignature,
+    0xc54a6b66, 0x72df, 0x4ee8, 0x8b, 0xe5, 0xa9, 0x46, 0xa1, 0x42, 0x92, 0x14);
+#endif
+
 namespace vireo {
 
     DXVertexInputLayout::DXVertexInputLayout(const std::vector<VertexAttributeDesc>& attributesDescriptions) {

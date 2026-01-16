@@ -14,6 +14,16 @@ export import vireo.tools;
 
 export namespace vireo {
 
+    using uint8_t  = std::uint8_t;
+    using uint16_t = std::uint16_t;
+    using uint32_t = std::uint32_t;
+    using uint64_t = std::uint64_t;
+    using int8_t   = std::int8_t;
+    using int16_t  = std::int16_t;
+    using int32_t  = std::int32_t;
+    using int64_t  = std::int64_t;
+    using size_t   = std::size_t;
+
     /**
      * Type of supported backends
      *
@@ -1192,7 +1202,7 @@ export namespace vireo {
         /**
          * Returns the number of bytes for one pixel, or the block size in bytes for BCn compressed formats
          */
-        static auto getPixelSize(const ImageFormat format) { return pixelSize[static_cast<int>(format)]; }
+        static uint8_t getPixelSize(const ImageFormat format) { return pixelSize[static_cast<int>(format)]; }
 
         /**
          * Returns the currently allocated images.

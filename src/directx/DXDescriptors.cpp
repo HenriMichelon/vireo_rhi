@@ -12,6 +12,11 @@ import std;
 import vireo.directx.resources;
 import vireo.directx.tools;
 
+#if defined(__MINGW32__) || defined(__MINGW64__)
+__CRT_UUID_DECL(ID3D12DescriptorHeap,
+    0x8efb471d, 0x616c, 0x4f49, 0x90, 0xf7, 0x12, 0x7b, 0xb7, 0x63, 0xfa, 0x51);
+#endif
+
 namespace vireo {
 
     DescriptorLayout& DXDescriptorLayout::add(const DescriptorIndex index, const DescriptorType type, const size_t count) {
@@ -66,9 +71,13 @@ namespace vireo {
 
         dxCheck(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&heap)));
         descriptorSize = device->GetDescriptorHandleIncrementSize(heapDesc.Type);
+#if defined(_MSC_VER) || !defined(_WIN32)
         cpuBase = heap->GetCPUDescriptorHandleForHeapStart();
         gpuBase = heap->GetGPUDescriptorHandleForHeapStart();
-
+#else
+         heap->GetCPUDescriptorHandleForHeapStart(&cpuBase);
+         heap->GetGPUDescriptorHandleForHeapStart(&gpuBase);
+#endif
         allocatedDescriptors.resize(maxDescriptors);
     }
 

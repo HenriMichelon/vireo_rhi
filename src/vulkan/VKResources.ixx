@@ -8,8 +8,8 @@ module;
 #include "vireo/backend/vulkan/Libraries.h"
 export module vireo.vulkan.resources;
 
+import std;
 import vireo;
-
 import vireo.vulkan.devices;
 
 export namespace vireo {
