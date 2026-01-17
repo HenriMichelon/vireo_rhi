@@ -56,7 +56,11 @@ function(compile_options TARGET_NAME )
                 -Werror
                 -pthread
         )
-        target_link_libraries(${TARGET_NAME} -static)
+        if(WIN32)
+            target_link_libraries(${TARGET_NAME} -static)
+        else()
+            target_link_options(${TARGET_NAME} PRIVATE -stdlib=libc++)
+        endif ()
         if (CMAKE_BUILD_TYPE STREQUAL "Debug")
             add_compile_definitions(_DEBUG)
             target_compile_options(${TARGET_NAME} PRIVATE

@@ -17,7 +17,7 @@ export namespace vireo {
     class Exception : public std::exception {
     public:
         template <typename... Args>
-        explicit Exception(Args&&... args) {
+        Exception(Args&&... args) {
             std::ostringstream oss;
             (oss << ... << std::forward<Args>(args));
 #ifdef _MSC_VER
@@ -27,6 +27,8 @@ export namespace vireo {
 #ifdef _WIN32
             if (IsDebuggerPresent()) {
                 OutputDebugStringA(message.c_str());
+#elifdef __linux__
+            std::cerr << message << std::endl;
 #endif
 #ifdef __has_builtin
                 __builtin_debugtrap();
