@@ -14,6 +14,9 @@ if(MSVC)
 else()
     set(STD_BASE_DIR ${COMPILER_DIR}/../share/libc++/v1)
     set(STD_EXTENSION cppm)
+    if(UNIX AND NOT APPLE)
+        set(STD_INCLUDE_DIR ${COMPILER_DIR}/../include/c++/v1)
+    endif ()
 endif()
 
 # compile the std library
@@ -50,6 +53,10 @@ if(MSVC)
         )
     endif()
 else()
+    if(UNIX AND NOT APPLE)
+        target_include_directories(std-cxx-modules SYSTEM PRIVATE ${STD_INCLUDE_DIR})
+        target_compile_options(std-cxx-modules PRIVATE -nostdinc++)
+    endif ()
     target_compile_options(std-cxx-modules
             PRIVATE
             -Wno-reserved-module-identifier

@@ -10,6 +10,7 @@ export module vireo.vulkan.swapchains;
 
 import std;
 import vireo;
+import vireo.platform;
 import vireo.vulkan.devices;
 
 export namespace vireo {
@@ -19,7 +20,7 @@ export namespace vireo {
         VKSwapChain(
             const std::shared_ptr<const VKDevice>& device,
             VkQueue presentQueue,
-            void* windowHandle,
+            PlatformWindowHandle windowHandle,
             ImageFormat format,
             PresentMode vSyncMode,
             uint32_t framesInFlight);
@@ -59,6 +60,8 @@ export namespace vireo {
         };
 
         const std::shared_ptr<const VKDevice> device;
+        // Platform specific window handle
+        PlatformWindowHandle    windowHandle;
         // Rendering window drawing surface
         VkSurfaceKHR             surface;
         VkSwapchainKHR           swapChain{VK_NULL_HANDLE};
@@ -81,10 +84,6 @@ export namespace vireo {
         std::vector<VkSemaphore>     renderFinishedSemaphore;
         std::vector<VkSemaphoreSubmitInfo> imageAvailableSemaphoreInfo;
         std::vector<VkSemaphoreSubmitInfo> renderFinishedSemaphoreInfo;
-
-#ifdef _WIN32
-        HWND hWnd;
-#endif
 
         void create();
 

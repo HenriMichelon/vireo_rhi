@@ -10,6 +10,7 @@ import std;
 #ifdef LUA_BINDING
 import vireo.lua;
 #endif
+export import vireo.platform;
 export import vireo.tools;
 
 export namespace vireo {
@@ -2602,7 +2603,7 @@ export namespace vireo {
         virtual std::shared_ptr<SwapChain> createSwapChain(
             ImageFormat format,
             const std::shared_ptr<const SubmitQueue>& presentQueue,
-            void* windowHandle,
+            PlatformWindowHandle windowHandle,
             PresentMode presentMode = PresentMode::VSYNC,
             uint32_t framesInFlight = 2) const = 0;
 

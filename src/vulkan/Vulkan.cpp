@@ -9,7 +9,10 @@
         #define WIN32_LEAN_AND_MEAN
     #endif
     #include <windows.h>
-    HMODULE vulkanModule;
+    HMODULE vulkanModule{nullptr};
+#elifdef __linux__
+    #include <dlfcn.h>
+    void* vulkanModule{nullptr};
 #endif
 #include "vireo/backend/vulkan/Vulkan.h"
 
@@ -151,13 +154,20 @@ PFN_vkCmdSetRasterizationSamplesEXT vkCmdSetRasterizationSamplesEXT;
 PFN_vkCmdSetSampleMaskEXT vkCmdSetSampleMaskEXT;
 PFN_vkCmdSetVertexInputEXT vkCmdSetVertexInputEXT;
 
-void vulkanInitialize() {
+bool vulkanInitialize() {
 #ifdef _WIN32
     vulkanModule = LoadLibraryA("vulkan-1.dll");
+    if (!vulkanModule) { return false; }
     vkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr)(void(*)(void))GetProcAddress(vulkanModule, "vkGetInstanceProcAddr");
+#elifdef __linux__
+    vulkanModule = dlopen("libvulkan.so.1", RTLD_NOW | RTLD_LOCAL);
+    if (!vulkanModule) { return false; }
+    vkGetInstanceProcAddr = reinterpret_cast<PFN_vkGetInstanceProcAddr>(dlsym(vulkanModule, "vkGetInstanceProcAddr"));
 #endif
+    if (!vkGetInstanceProcAddr) { return false; }
     vkCreateInstance = (PFN_vkCreateInstance)vkGetInstanceProcAddr(nullptr, "vkCreateInstance");
     vkEnumerateInstanceLayerProperties = (PFN_vkEnumerateInstanceLayerProperties)vkGetInstanceProcAddr(nullptr, "vkEnumerateInstanceLayerProperties");
+    return true;
 }
 
 void vulkanInitializeInstance(VkInstance instance) {
@@ -303,5 +313,10 @@ void vulkanInitializeDevice(VkDevice device) {
 }
 
 void vulkanFinalize() {
+#ifdef _WIN32
     FreeLibrary(vulkanModule);
+#elifdef __linux__
+    dlclose(vulkanModule);
+#endif
+
 }

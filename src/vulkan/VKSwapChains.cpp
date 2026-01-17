@@ -9,8 +9,8 @@ module;
 #include <cassert>
 module vireo.vulkan.swapchains;
 
+import vireo.platform;
 import vireo.tools;
-
 import vireo.vulkan.commands;
 import vireo.vulkan.resources;
 import vireo.vulkan.tools;
@@ -20,16 +20,14 @@ namespace vireo {
     VKSwapChain::VKSwapChain(
         const std::shared_ptr<const VKDevice>& device,
         const VkQueue presentQueue,
-        void* windowHandle,
+        PlatformWindowHandle windowHandle,
         const ImageFormat format,
         const PresentMode vSyncMode,
         const uint32_t framesInFlight):
         SwapChain{format, vSyncMode, framesInFlight},
         device{device},
-        presentQueue{presentQueue}
-#ifdef _WIN32
-        ,hWnd{static_cast<HWND>(windowHandle)}
-#endif
+        presentQueue{presentQueue},
+        windowHandle{windowHandle}
     {
         // Get a VkSurface for drawing in the window, must be done before picking the better physical device
         // since we need the VkSurface for vkGetPhysicalDeviceSurfaceCapabilitiesKHR
@@ -220,19 +218,22 @@ namespace vireo {
 #ifdef _WIN32
         RECT windowRect{};
         if (GetClientRect(hWnd, &windowRect) == 0) {
-            throw Exception("Error getting window rect");
+            throw Exception("VKSwapChain: Error getting window rect");
         }
         const auto actualExtent = VkExtent2D {
             .width = static_cast<uint32_t>(windowRect.right - windowRect.left),
             .height = static_cast<uint32_t>(windowRect.bottom - windowRect.top)
         };
+#elifdef __linux__
+        XWindowAttributes attrs{};
+        if (!XGetWindowAttributes(windowHandle.display, windowHandle.window, &attrs)) {
+            throw Exception("VKSwapChain: Error getting window attributes");
+        }
+        const auto actualExtent = VkExtent2D {
+            .width  = static_cast<uint32_t>(attrs.width),
+            .height = static_cast<uint32_t>(attrs.height)
+        };
 #endif
-        // actualExtent.width = glm::max(
-        //         capabilities.minImageExtent.width,
-        //         glm::min(capabilities.maxImageExtent.width, actualExtent.width));
-        // actualExtent.height = glm::max(
-        //         capabilities.minImageExtent.height,
-        //         glm::min(capabilities.maxImageExtent.height, actualExtent.height));
         return actualExtent;
     }
 

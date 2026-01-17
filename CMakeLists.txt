@@ -108,6 +108,7 @@ target_sources(${VIREO_TARGET}
         PUBLIC
         FILE_SET CXX_MODULES
         FILES
+        ${SRC_DIR}/Platform.ixx
         ${SRC_DIR}/Tools.ixx
         ${SRC_DIR}/Vireo.ixx
         ${DIRECTX_MODULES}

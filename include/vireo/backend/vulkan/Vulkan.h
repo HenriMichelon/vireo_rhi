@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2024-2025 Henri Michelon
+ * Copyright (c) 2024-2025 Henri Michelon
  *
  * This software is released under the MIT License.
  * https://opensource.org/licenses/MIT
@@ -9,6 +9,10 @@
 #ifdef _WIN32
  #ifndef VK_USE_PLATFORM_WIN32_KHR
   #define VK_USE_PLATFORM_WIN32_KHR
+ #endif
+#elifdef __linux__
+ #ifndef VK_USE_PLATFORM_XLIB_KHR
+  #define VK_USE_PLATFORM_XLIB_KHR
  #endif
 #endif
 #ifndef VK_NO_PROTOTYPES
@@ -175,7 +179,7 @@ extern PFN_vkCmdSetRasterizationSamplesEXT vkCmdSetRasterizationSamplesEXT;
 extern PFN_vkCmdSetSampleMaskEXT vkCmdSetSampleMaskEXT;
 extern PFN_vkCmdSetVertexInputEXT vkCmdSetVertexInputEXT;
 
-void vulkanInitialize();
+bool vulkanInitialize();
 void vulkanInitializeInstance(VkInstance instance);
 void vulkanInitializeDevice(VkDevice device);
 void vulkanFinalize();

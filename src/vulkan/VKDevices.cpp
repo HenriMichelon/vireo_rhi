@@ -11,11 +11,12 @@ module;
 #include <dxgi1_6.h>
 #include <d3d12.h>
 #undef ERROR
+#elifdef __linux__
+#include <string.h>
 #endif
 module vireo.vulkan.devices;
 
 import vireo.tools;
-
 import vireo.vulkan.tools;
 
 namespace vireo {
@@ -71,8 +72,10 @@ namespace vireo {
         }
     }
 
-    VKInstance::VKInstance(DebugCallback debugCallback) {
-        vulkanInitialize();
+    VKInstance::VKInstance(const DebugCallback debugCallback) {
+        if (!vulkanInitialize()) {
+            throw Exception("Failed to initialize Vulkan!");
+        }
         std::vector<const char *>requestedLayers{};
 #ifdef _DEBUG
         auto validationLayerName = "VK_LAYER_KHRONOS_validation";
@@ -95,7 +98,7 @@ namespace vireo {
 
         std::vector<const char *> instanceExtensions{};
         instanceExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
-        instanceExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+        instanceExtensions.push_back(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
         instanceExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 #ifdef _DEBUG
         instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -332,6 +335,7 @@ namespace vireo {
     // https://dev.to/reg__/there-is-a-way-to-query-gpu-memory-usage-in-vulkan---use-dxgi-1f0d
     const PhysicalDeviceDesc VKPhysicalDevice::getDescription() const {
         PhysicalDeviceDesc result;
+#ifdef _WIN32
         IDXGIFactory4 *dxgiFactory{nullptr};
         if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory)))) { return result; }
         IDXGIAdapter1 *tmpDxgiAdapter{nullptr};
@@ -351,6 +355,32 @@ namespace vireo {
             ++adapterIndex;
         }
         dxgiFactory->Release();
+#else
+        {
+            auto props = VkPhysicalDeviceProperties{};
+            vkGetPhysicalDeviceProperties(physicalDevice, &props);
+            result.name = props.deviceName;
+        }
+        {
+            auto memProps = VkPhysicalDeviceMemoryProperties {};
+            vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProps);
+
+            uint64_t deviceLocal{0};
+            uint64_t nonLocal{0};
+
+            for (auto i = 0; i < memProps.memoryHeapCount; ++i) {
+                const auto& heap = memProps.memoryHeaps[i];
+                if (heap.flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT) {
+                    deviceLocal += heap.size;
+                } else {
+                    nonLocal += heap.size;
+                }
+            }
+            result.dedicatedVideoMemory   = deviceLocal;
+            result.dedicatedSystemMemory  = 0;
+            result.sharedSystemMemory     = nonLocal;
+        }
+#endif
         return result;
     }
 
