@@ -9,9 +9,6 @@ cmake_minimum_required(VERSION 3.29)
 #######################################################
 project(vireo_rhi)
 set(VIREO_TARGET ${PROJECT_NAME})
-if(DEFINED MSVC)
-
-endif()
 
 #######################################################
 set(CMAKE_CXX_STANDARD 23)

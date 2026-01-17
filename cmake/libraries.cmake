@@ -7,6 +7,7 @@
 ###### Vulkan SDK
 message(NOTICE "Searching for Vulkan SDK")
 find_package(Vulkan REQUIRED)
+message("Vulkan " ${Vulkan_VERSION} " found")
 
 ###### DirectX Headers
 if (DIRECTX_BACKEND)
