@@ -33,7 +33,7 @@ namespace vireo {
         // since we need the VkSurface for vkGetPhysicalDeviceSurfaceCapabilitiesKHR
         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Window_surface#page_Window-surface-creation
 #ifdef _WIN32
-        const VkWin32SurfaceCreateInfoKHR surfaceCreateInfo{
+        const VkWin32SurfaceCreateInfoKHR surfaceCreateInfo {
             .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
             .hinstance = GetModuleHandle(nullptr),
             .hwnd = static_cast<HWND>(windowHandle),
@@ -41,6 +41,28 @@ namespace vireo {
         const auto vkCreateWin32SurfaceKHR = reinterpret_cast<PFN_vkCreateWin32SurfaceKHR>(
             vkGetInstanceProcAddr(device->getPhysicalDevice().getInstance(), "vkCreateWin32SurfaceKHR"));
         vkCheck(vkCreateWin32SurfaceKHR(device->getPhysicalDevice().getInstance(), &surfaceCreateInfo, nullptr, &surface));
+#elifdef __linux__
+        if (is_x11()) {
+            const auto handle = static_cast<PlatformWindowHandleXLIB*>(windowHandle);
+            const VkXlibSurfaceCreateInfoKHR surfaceCreateInfo {
+                .sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,
+                .dpy = handle->display,
+                .window = handle->window, };
+            const auto vkCreateXlibSurfaceKHR = reinterpret_cast<PFN_vkCreateXlibSurfaceKHR>(
+                vkGetInstanceProcAddr(device->getPhysicalDevice().getInstance(), "vkCreateXlibSurfaceKHR"));
+            vkCheck(vkCreateXlibSurfaceKHR(device->getPhysicalDevice().getInstance(), &surfaceCreateInfo, NULL, &surface));
+        } else if (is_wayland()) {
+            const auto handle = static_cast<PlatformWindowHandleWayland*>(windowHandle);
+            const VkWaylandSurfaceCreateInfoKHR surfaceCreateInfo {
+                .sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR,
+                .display = handle->display,
+                .surface = handle->surface, };
+            const auto vkCreateWaylandSurfaceKHR = reinterpret_cast<PFN_vkCreateWaylandSurfaceKHR>(
+                vkGetInstanceProcAddr(device->getPhysicalDevice().getInstance(), "vkCreateWaylandSurfaceKHR"));
+            vkCheck(vkCreateWaylandSurfaceKHR(device->getPhysicalDevice().getInstance(), &surfaceCreateInfo, NULL, &surface));
+        } else {
+            throw Exception("Unknown display server");
+        }
 #endif
 
         imageIndex.resize(framesInFlight);
@@ -220,21 +242,27 @@ namespace vireo {
         if (GetClientRect(hWnd, &windowRect) == 0) {
             throw Exception("VKSwapChain: Error getting window rect");
         }
-        const auto actualExtent = VkExtent2D {
+        return VkExtent2D {
             .width = static_cast<uint32_t>(windowRect.right - windowRect.left),
             .height = static_cast<uint32_t>(windowRect.bottom - windowRect.top)
         };
 #elifdef __linux__
-        XWindowAttributes attrs{};
-        if (!XGetWindowAttributes(windowHandle.display, windowHandle.window, &attrs)) {
-            throw Exception("VKSwapChain: Error getting window attributes");
+        if (is_x11()) {
+            const auto handle = static_cast<PlatformWindowHandleXLIB*>(windowHandle);
+            XWindowAttributes attrs{};
+            if (!XGetWindowAttributes(handle->display, handle->window, &attrs)) {
+                throw Exception("VKSwapChain: Error getting window attributes");
+            }
+            return VkExtent2D {
+                .width  = static_cast<uint32_t>(attrs.width),
+                .height = static_cast<uint32_t>(attrs.height)
+            };
+        } else if (is_wayland()) {
+            const auto handle = static_cast<PlatformWindowHandleWayland*>(windowHandle);
+
         }
-        const auto actualExtent = VkExtent2D {
-            .width  = static_cast<uint32_t>(attrs.width),
-            .height = static_cast<uint32_t>(attrs.height)
-        };
 #endif
-        return actualExtent;
+        throw Exception("VKSwapChain: Error getting swap chain extent");
     }
 
     void VKSwapChain::nextFrameIndex() {

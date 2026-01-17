@@ -14,6 +14,9 @@
  #ifndef VK_USE_PLATFORM_XLIB_KHR
   #define VK_USE_PLATFORM_XLIB_KHR
  #endif
+ #ifndef VK_USE_PLATFORM_WAYLAND_KHR
+  #define VK_USE_PLATFORM_WAYLAND_KHR
+ #endif
 #endif
 #ifndef VK_NO_PROTOTYPES
  #define VK_NO_PROTOTYPES

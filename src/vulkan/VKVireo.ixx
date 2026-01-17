@@ -8,6 +8,7 @@ export module vireo.vulkan;
 
 import std;
 import vireo;
+import vireo.platform;
 import vireo.vulkan.commands;
 import vireo.vulkan.devices;
 import vireo.vulkan.resources;
