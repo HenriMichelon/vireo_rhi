@@ -7,6 +7,10 @@
 module;
 #include "vireo/backend/vulkan/Libraries.h"
 #include <cassert>
+#ifdef USE_SDL3
+    #include <SDL3/SDL.h>
+    #include <SDL3/SDL_vulkan.h>
+#endif
 module vireo.vulkan.swapchains;
 
 import vireo.platform;
@@ -41,27 +45,13 @@ namespace vireo {
         const auto vkCreateWin32SurfaceKHR = reinterpret_cast<PFN_vkCreateWin32SurfaceKHR>(
             vkGetInstanceProcAddr(device->getPhysicalDevice().getInstance(), "vkCreateWin32SurfaceKHR"));
         vkCheck(vkCreateWin32SurfaceKHR(device->getPhysicalDevice().getInstance(), &surfaceCreateInfo, nullptr, &surface));
-#elifdef __linux__
-        if (is_x11()) {
-            const auto handle = static_cast<PlatformWindowHandleXLIB*>(windowHandle);
-            const VkXlibSurfaceCreateInfoKHR surfaceCreateInfo {
-                .sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,
-                .dpy = handle->display,
-                .window = handle->window, };
-            const auto vkCreateXlibSurfaceKHR = reinterpret_cast<PFN_vkCreateXlibSurfaceKHR>(
-                vkGetInstanceProcAddr(device->getPhysicalDevice().getInstance(), "vkCreateXlibSurfaceKHR"));
-            vkCheck(vkCreateXlibSurfaceKHR(device->getPhysicalDevice().getInstance(), &surfaceCreateInfo, NULL, &surface));
-        } else if (is_wayland()) {
-            const auto handle = static_cast<PlatformWindowHandleWayland*>(windowHandle);
-            const VkWaylandSurfaceCreateInfoKHR surfaceCreateInfo {
-                .sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR,
-                .display = handle->display,
-                .surface = handle->surface, };
-            const auto vkCreateWaylandSurfaceKHR = reinterpret_cast<PFN_vkCreateWaylandSurfaceKHR>(
-                vkGetInstanceProcAddr(device->getPhysicalDevice().getInstance(), "vkCreateWaylandSurfaceKHR"));
-            vkCheck(vkCreateWaylandSurfaceKHR(device->getPhysicalDevice().getInstance(), &surfaceCreateInfo, NULL, &surface));
-        } else {
-            throw Exception("Unknown display server");
+#elifdef USE_SDL3
+        if (!SDL_Vulkan_CreateSurface(
+            windowHandle,
+            device->getPhysicalDevice().getInstance(),
+            nullptr,
+            &surface)) {
+            throw Exception("VKSwapChain : error creating Vulkan surface - ", SDL_GetError());
         }
 #endif
 
@@ -247,20 +237,16 @@ namespace vireo {
             .height = static_cast<uint32_t>(windowRect.bottom - windowRect.top)
         };
 #elifdef __linux__
-        if (is_x11()) {
-            const auto handle = static_cast<PlatformWindowHandleXLIB*>(windowHandle);
-            XWindowAttributes attrs{};
-            if (!XGetWindowAttributes(handle->display, handle->window, &attrs)) {
-                throw Exception("VKSwapChain: Error getting window attributes");
-            }
-            return VkExtent2D {
-                .width  = static_cast<uint32_t>(attrs.width),
-                .height = static_cast<uint32_t>(attrs.height)
-            };
-        } else if (is_wayland()) {
-            const auto handle = static_cast<PlatformWindowHandleWayland*>(windowHandle);
+        int w = 0;
+        int h = 0;
 
+        if (!SDL_GetWindowSizeInPixels(windowHandle, &w, &h)) {
+            throw Exception("VKSwapChain: error getting SDL window extent");
         }
+        return VkExtent2D{
+            .width  = static_cast<uint32_t>(w),
+            .height = static_cast<uint32_t>(h)
+        };
 #endif
         throw Exception("VKSwapChain: Error getting swap chain extent");
     }

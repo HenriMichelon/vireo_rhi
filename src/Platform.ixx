@@ -6,51 +6,16 @@
 */
 module;
 #ifdef _WIN32
-#include <window.h>
-#elifdef __linux__
-#include <X11/Xlib.h>
-#include <cstring>
-#include <cstdlib>
-// #include <wayland-client.h>
-// #include <wayland-client-protocol.h>
+    #include <window.h>
+#elifdef USE_SDL3
+    #include <SDL3/SDL_video.h>
 #endif
 export module vireo.platform;
 
-
+export namespace vireo {
 #ifdef _WIN32
-    export using PlatformWindowHandle = HWND;
-#elifdef __linux__
-    export struct PlatformWindowHandleXLIB {
-        Display* display;
-        Window window;
-    };
-    export struct PlatformWindowHandleWayland {
-        struct wl_display* display;
-        struct wl_surface* surface;
-    };
-    export using PlatformWindowHandle  = void*;
-
-    export bool is_wayland() {
-        const char* xdg = getenv("XDG_SESSION_TYPE");
-        if (xdg && strcmp(xdg, "wayland") == 0)
-            return true;
-
-        if (getenv("WAYLAND_DISPLAY"))
-            return true;
-
-        return false;
-    }
-
-    export bool is_x11() {
-        const char* xdg = getenv("XDG_SESSION_TYPE");
-        if (xdg && strcmp(xdg, "x11") == 0)
-            return true;
-
-        if (getenv("DISPLAY"))
-            return true;
-
-        return false;
-    }
-
+    using PlatformWindowHandle = HWND;
+#elifdef USE_SDL3
+    using PlatformWindowHandle = SDL_Window*;
 #endif
-
+}

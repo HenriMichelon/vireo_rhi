@@ -84,6 +84,10 @@ export namespace vireo {
         std::vector<VkSemaphore>     renderFinishedSemaphore;
         std::vector<VkSemaphoreSubmitInfo> imageAvailableSemaphoreInfo;
         std::vector<VkSemaphoreSubmitInfo> renderFinishedSemaphoreInfo;
+#ifdef __linux__
+        // Wayland window extent
+        static VkExtent2D windowExtent;
+#endif
 
         void create();
 

@@ -7,12 +7,16 @@
 module;
 #include "vireo/backend/vulkan/Libraries.h"
 #ifdef _WIN32
-#include <Windows.h>
-#include <dxgi1_6.h>
-#include <d3d12.h>
-#undef ERROR
-#elifdef __linux__
-#include <string.h>
+    #include <Windows.h>
+    #include <dxgi1_6.h>
+    #include <d3d12.h>
+    #undef ERROR
+#endif
+#ifdef USE_SDL3
+    #include <SDL3/SDL_vulkan.h>
+#endif
+#ifdef __linux__
+    #include <string.h>
 #endif
 module vireo.vulkan.devices;
 
@@ -98,19 +102,20 @@ namespace vireo {
         }
 
         std::vector<const char *> instanceExtensions{};
-        instanceExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+        instanceExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 #ifdef _WIN32
-            instanceExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-#elifdef __linux__
-        if (is_x11()) {
-            instanceExtensions.push_back(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
-        } else if (is_wayland()) {
-            instanceExtensions.push_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
-        } else {
-            throw Exception("Unknown display server");
+        instanceExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+        instanceExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+#elifdef USE_SDL3
+        uint32_t sdlInstanceExtensionsCount;
+        auto* sdlInstanceExtensions = SDL_Vulkan_GetInstanceExtensions(&sdlInstanceExtensionsCount);
+        if (sdlInstanceExtensions == nullptr) {
+            throw Exception("VKInstance : can't get SDL3 Vulkan extensions - ", SDL_GetError());
+        }
+        for (auto i = 0; i < sdlInstanceExtensionsCount; i++) {
+            instanceExtensions.push_back(sdlInstanceExtensions[i]);
         }
 #endif
-        instanceExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 #ifdef _DEBUG
         instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
