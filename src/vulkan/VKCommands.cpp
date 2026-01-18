@@ -1226,14 +1226,13 @@ namespace vireo {
         const std::shared_ptr<const RenderTarget>& renderTarget,
         const ResourceState oldState,
         const ResourceState newState) const {
-        assert(
-        renderTarget != nullptr);
+        assert(renderTarget != nullptr);
         barrier(
-        static_pointer_cast<const VKImage>(renderTarget->getImage())->getImage(),
-        oldState, newState,
-        renderTarget->getImage()->isDepthFormat(),
-        renderTarget->getImage()->isDepthStencilFormat(),
-        0, 1);
+            static_pointer_cast<const VKImage>(renderTarget->getImage())->getImage(),
+            oldState, newState,
+            renderTarget->getImage()->isDepthFormat(),
+            renderTarget->getImage()->isDepthStencilFormat(),
+            0, 1);
     }
 
     void VKCommandList::barrier(

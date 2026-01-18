@@ -48,7 +48,9 @@ namespace vireo {
                 std::cerr << message << std::endl;
             }
 #else
-            std::cerr << message;
+            if (!(flagBitsExt & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)) {
+                std::cerr << message << std::endl;
+            }
 #endif
         }
         return VK_FALSE;
