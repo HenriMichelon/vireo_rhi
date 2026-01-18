@@ -4,12 +4,11 @@
 * This software is released under the MIT License.
 * https://opensource.org/licenses/MIT
 */
-module;
-#include "vireo/backend/vulkan/Libraries.h"
 export module vireo.vulkan;
 
 import std;
 import vireo;
+import vireo.platform;
 import vireo.vulkan.commands;
 import vireo.vulkan.devices;
 import vireo.vulkan.resources;
@@ -26,7 +25,7 @@ export namespace vireo {
         std::shared_ptr<SwapChain> createSwapChain(
             ImageFormat format,
             const std::shared_ptr<const SubmitQueue>& submitQueue,
-            void* windowHandle,
+            PlatformWindowHandle windowHandle,
             PresentMode presentMode,
             uint32_t framesInFlight) const override;
 

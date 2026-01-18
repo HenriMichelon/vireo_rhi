@@ -1,22 +1,26 @@
 /*!
 \page tutorial_1_01_devenv Development environment
 
-Since Vireo currently only supports Microsoft Windows this tutorial assumes that
-you use this operating system.
+All platforms
+---------------------------------------------------------------------------
+Install the [Vulkan SDK](https://vulkan.lunarg.com/).
 
-We will be using CMake which means that you can use [Microsoft Visual Studio](https://visualstudio.microsoft.com/fr/) or
-[Jetbrains CLion](https://www.jetbrains.com/clion/) to edit and compile your code.
-Note that you need to install the CMake component for Visual Studio.
+Microsoft Window
+---------------------------------------------------------------------------
+Vireo can be compiled with MSVC 19+ ou [LLVM/MingW 21+](https://github.com/mstorsjo/llvm-mingw/releases).
 
 Since Vireo implements a DirectX 12 backend under Windows you need to install 
-[Microsoft Visual C++ 2022 (MSCV 19+)](https://visualstudio.microsoft.com/fr/).
-Vireo can be compiled with LLVM but only with the Vulkan back-end alone.
+[Microsoft Visual C++ 2022 (MSCV 19+)](https://visualstudio.microsoft.com/fr/)
+event if you use LLVM : install the "Game Development with C++" component for Visual Studio.
 
-For DirectX 12 install the "Game Development with C++" component for Visual Studio.
+The project uses CMake which means that you that you need to install the CMake component if you use Visual Studio.
+You can use [Jetbrains CLion](https://www.jetbrains.com/clion/) or Visual Studio Code but be warned that the VSCode
+support for C++ modules is far from perfect.
 
-For Vulkan install the [Vulkan SDK](https://vulkan.lunarg.com/)
-
-The CMake scripts will automatically install the [GLM](https://github.com/g-truc/glm) library used in this tutorial
+Linux
+---------------------------------------------------------------------------
+Install the llvm, vulkan and vulkan-validation-layers packages.
+For Vulkan you must execute the `setup-env.sh` of the Vulkan SDK in for profile script (.bash_profile, .zprofile, ...)
 
 Next : \ref tutorial_1_02_project
 */

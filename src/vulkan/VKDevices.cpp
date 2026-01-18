@@ -7,15 +7,21 @@
 module;
 #include "vireo/backend/vulkan/Libraries.h"
 #ifdef _WIN32
-#include <Windows.h>
-#include <dxgi1_6.h>
-#include <d3d12.h>
-#undef ERROR
+    #include <Windows.h>
+    #include <dxgi1_6.h>
+    #include <d3d12.h>
+    #undef ERROR
+#endif
+#ifdef USE_SDL3
+    #include <SDL3/SDL_vulkan.h>
+#endif
+#ifdef __linux__
+    #include <string.h>
 #endif
 module vireo.vulkan.devices;
 
+import vireo.platform;
 import vireo.tools;
-
 import vireo.vulkan.tools;
 
 namespace vireo {
@@ -42,7 +48,9 @@ namespace vireo {
                 std::cerr << message << std::endl;
             }
 #else
-            std::cerr << message;
+            if (!(flagBitsExt & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)) {
+                std::cerr << message << std::endl;
+            }
 #endif
         }
         return VK_FALSE;
@@ -71,8 +79,10 @@ namespace vireo {
         }
     }
 
-    VKInstance::VKInstance(DebugCallback debugCallback) {
-        vulkanInitialize();
+    VKInstance::VKInstance(const DebugCallback debugCallback) {
+        if (!vulkanInitialize()) {
+            throw Exception("Failed to initialize Vulkan!");
+        }
         std::vector<const char *>requestedLayers{};
 #ifdef _DEBUG
         auto validationLayerName = "VK_LAYER_KHRONOS_validation";
@@ -90,13 +100,29 @@ namespace vireo {
                     break;
                 }
             }
-            if (!layerFound) { throw Exception("A requested Vulkan layer is not supported"); }
+            if (!layerFound) {
+                if (layerName == validationLayerName) {
+                    throw Exception("Vulkan validation layer not found, please install the 'vulkan-validation-layers' package");
+                }
+                throw Exception("A requested Vulkan layer is not supported");
+            }
         }
 
         std::vector<const char *> instanceExtensions{};
+        instanceExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+#ifdef _WIN32
         instanceExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
         instanceExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-        instanceExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+#elifdef USE_SDL3
+        uint32_t sdlInstanceExtensionsCount;
+        auto* sdlInstanceExtensions = SDL_Vulkan_GetInstanceExtensions(&sdlInstanceExtensionsCount);
+        if (sdlInstanceExtensions == nullptr) {
+            throw Exception("VKInstance : can't get SDL3 Vulkan extensions - ", SDL_GetError());
+        }
+        for (auto i = 0; i < sdlInstanceExtensionsCount; i++) {
+            instanceExtensions.push_back(sdlInstanceExtensions[i]);
+        }
+#endif
 #ifdef _DEBUG
         instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
@@ -332,6 +358,7 @@ namespace vireo {
     // https://dev.to/reg__/there-is-a-way-to-query-gpu-memory-usage-in-vulkan---use-dxgi-1f0d
     const PhysicalDeviceDesc VKPhysicalDevice::getDescription() const {
         PhysicalDeviceDesc result;
+#ifdef _WIN32
         IDXGIFactory4 *dxgiFactory{nullptr};
         if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory)))) { return result; }
         IDXGIAdapter1 *tmpDxgiAdapter{nullptr};
@@ -351,6 +378,32 @@ namespace vireo {
             ++adapterIndex;
         }
         dxgiFactory->Release();
+#else
+        {
+            auto props = VkPhysicalDeviceProperties{};
+            vkGetPhysicalDeviceProperties(physicalDevice, &props);
+            result.name = props.deviceName;
+        }
+        {
+            auto memProps = VkPhysicalDeviceMemoryProperties {};
+            vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProps);
+
+            uint64_t deviceLocal{0};
+            uint64_t nonLocal{0};
+
+            for (auto i = 0; i < memProps.memoryHeapCount; ++i) {
+                const auto& heap = memProps.memoryHeaps[i];
+                if (heap.flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT) {
+                    deviceLocal += heap.size;
+                } else {
+                    nonLocal += heap.size;
+                }
+            }
+            result.dedicatedVideoMemory   = deviceLocal;
+            result.dedicatedSystemMemory  = 0;
+            result.sharedSystemMemory     = nonLocal;
+        }
+#endif
         return result;
     }
 

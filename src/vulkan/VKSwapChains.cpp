@@ -7,10 +7,14 @@
 module;
 #include "vireo/backend/vulkan/Libraries.h"
 #include <cassert>
+#ifdef USE_SDL3
+    #include <SDL3/SDL.h>
+    #include <SDL3/SDL_vulkan.h>
+#endif
 module vireo.vulkan.swapchains;
 
+import vireo.platform;
 import vireo.tools;
-
 import vireo.vulkan.commands;
 import vireo.vulkan.resources;
 import vireo.vulkan.tools;
@@ -20,22 +24,20 @@ namespace vireo {
     VKSwapChain::VKSwapChain(
         const std::shared_ptr<const VKDevice>& device,
         const VkQueue presentQueue,
-        void* windowHandle,
+        PlatformWindowHandle windowHandle,
         const ImageFormat format,
         const PresentMode vSyncMode,
         const uint32_t framesInFlight):
         SwapChain{format, vSyncMode, framesInFlight},
         device{device},
-        presentQueue{presentQueue}
-#ifdef _WIN32
-        ,hWnd{static_cast<HWND>(windowHandle)}
-#endif
+        presentQueue{presentQueue},
+        windowHandle{windowHandle}
     {
         // Get a VkSurface for drawing in the window, must be done before picking the better physical device
         // since we need the VkSurface for vkGetPhysicalDeviceSurfaceCapabilitiesKHR
         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Window_surface#page_Window-surface-creation
 #ifdef _WIN32
-        const VkWin32SurfaceCreateInfoKHR surfaceCreateInfo{
+        const VkWin32SurfaceCreateInfoKHR surfaceCreateInfo {
             .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
             .hinstance = GetModuleHandle(nullptr),
             .hwnd = static_cast<HWND>(windowHandle),
@@ -43,6 +45,14 @@ namespace vireo {
         const auto vkCreateWin32SurfaceKHR = reinterpret_cast<PFN_vkCreateWin32SurfaceKHR>(
             vkGetInstanceProcAddr(device->getPhysicalDevice().getInstance(), "vkCreateWin32SurfaceKHR"));
         vkCheck(vkCreateWin32SurfaceKHR(device->getPhysicalDevice().getInstance(), &surfaceCreateInfo, nullptr, &surface));
+#elifdef USE_SDL3
+        if (!SDL_Vulkan_CreateSurface(
+            windowHandle,
+            device->getPhysicalDevice().getInstance(),
+            nullptr,
+            &surface)) {
+            throw Exception("VKSwapChain : error creating Vulkan surface - ", SDL_GetError());
+        }
 #endif
 
         imageIndex.resize(framesInFlight);
@@ -81,12 +91,16 @@ namespace vireo {
             framesInFlight > swapChainSupport.capabilities.maxImageCount) {
             framesInFlight = swapChainSupport.capabilities.maxImageCount;
         }
+        auto minImages = swapChainSupport.capabilities.minImageCount + 1;
+        if (swapChainSupport.capabilities.maxImageCount > 0 && minImages > swapChainSupport.capabilities.maxImageCount) {
+            minImages = swapChainSupport.capabilities.maxImageCount;
+        }
 
         {
             auto createInfo = VkSwapchainCreateInfoKHR {
                 .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
                 .surface = surface,
-                .minImageCount = framesInFlight,
+                .minImageCount = minImages,
                 .imageFormat = surfaceFormat.format,
                 .imageColorSpace = surfaceFormat.colorSpace,
                 .imageExtent = swapChainExtent,
@@ -98,6 +112,7 @@ namespace vireo {
                 .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
                 .presentMode = presentMode,
                 .clipped = VK_TRUE,
+                .oldSwapchain =  swapChain
             };
             createInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
             createInfo.queueFamilyIndexCount = 0;
@@ -154,15 +169,19 @@ namespace vireo {
         const auto swapChainSupport  = querySwapChainSupport(
             device->getPhysicalDevice().getPhysicalDevice(),
             surface);
-        const auto newExtent = chooseSwapExtent(swapChainSupport.capabilities);
-        if (newExtent.width != swapChainExtent.width || newExtent.height != swapChainExtent.height) {
-            vkDeviceWaitIdle(device->getDevice());
-            cleanup();
-            create();
+        vkDeviceWaitIdle(device->getDevice());
+#ifdef USE_SDL3
+        SDL_SyncWindow(windowHandle);
+        SDL_PumpEvents();
+#endif
+        cleanupImages();
+        const auto oldSwapChain = swapChain;
+        create();
+        if (oldSwapChain != VK_NULL_HANDLE) {
+            cleanupSwapChain(oldSwapChain);
         }
     }
-
-    void VKSwapChain::cleanup() const {
+    void VKSwapChain::cleanupImages() const {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Swap_chain_recreation#page_Recreating-the-swap-chain
         for (const auto &swapChainImageView : swapChainImageViews) {
             vkDestroyImageView(device->getDevice(), swapChainImageView, nullptr);
@@ -170,7 +189,17 @@ namespace vireo {
         for (const auto &renderFinishedSemaphore : renderFinishedSemaphore) {
             vkDestroySemaphore(device->getDevice(), renderFinishedSemaphore, nullptr);
         }
-        vkDestroySwapchainKHR(device->getDevice(), swapChain, nullptr);
+    }
+    void VKSwapChain::cleanupSwapChain(const VkSwapchainKHR oldSwapChain) const {
+        vkDestroySwapchainKHR(device->getDevice(), oldSwapChain, nullptr);
+    }
+
+    void VKSwapChain::cleanup() const {
+        cleanupImages();
+        cleanupSwapChain(swapChain);
+#ifdef USE_SDL3
+        SDL_Vulkan_DestroySurface(device->getPhysicalDevice().getInstance(), surface, nullptr);
+#endif
     }
 
     VKSwapChain::SwapChainSupportDetails VKSwapChain::querySwapChainSupport(
@@ -216,24 +245,31 @@ namespace vireo {
     }
 
     VkExtent2D VKSwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities) const {
-        // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain#page_Swap-extent
+        // https://vulkan-tutorial.com/Drawing_a_triangle/Presentat ion/Swap_chain#page_Swap-extent
+        const auto actualExtent = capabilities.currentExtent;
+        if (actualExtent.width != std::numeric_limits<uint32_t>::max()) {
+            return actualExtent;
+        }
 #ifdef _WIN32
         RECT windowRect{};
-        if (GetClientRect(hWnd, &windowRect) == 0) {
-            throw Exception("Error getting window rect");
+        if (GetClientRect(windowHandle, &windowRect) == 0) {
+            throw Exception("VKSwapChain: Error getting window rect");
         }
-        const auto actualExtent = VkExtent2D {
+        return {
             .width = static_cast<uint32_t>(windowRect.right - windowRect.left),
             .height = static_cast<uint32_t>(windowRect.bottom - windowRect.top)
         };
+#elifdef __linux__
+        int w = 0;
+        int h = 0;
+        if (!SDL_GetWindowSizeInPixels(windowHandle, &w, &h)) {
+            throw Exception("VKSwapChain: error getting SDL window extent");
+        }
+        return {
+            .width  = std::clamp(static_cast<uint32_t>(w), capabilities.minImageExtent.width, capabilities.maxImageExtent.width),
+            .height = std::clamp(static_cast<uint32_t>(h), capabilities.minImageExtent.height, capabilities.maxImageExtent.height)
+        };
 #endif
-        // actualExtent.width = glm::max(
-        //         capabilities.minImageExtent.width,
-        //         glm::min(capabilities.maxImageExtent.width, actualExtent.width));
-        // actualExtent.height = glm::max(
-        //         capabilities.minImageExtent.height,
-        //         glm::min(capabilities.maxImageExtent.height, actualExtent.height));
-        return actualExtent;
     }
 
     void VKSwapChain::nextFrameIndex() {
@@ -254,6 +290,7 @@ namespace vireo {
         const auto result = vkQueuePresentKHR(presentQueue, &presentInfo);
         if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
             recreate();
+
         } else if (result != VK_SUCCESS) {
             throw Exception("failed to present swap chain image!");
         }
@@ -275,6 +312,7 @@ namespace vireo {
              VK_NULL_HANDLE,
              &imageIndex[currentFrameIndex]);
         if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+            recreate();
             return false;
         }
         if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {

@@ -24,7 +24,7 @@ namespace vireo {
     std::shared_ptr<SwapChain> VKVireo::createSwapChain(
         const ImageFormat format,
         const std::shared_ptr<const SubmitQueue>& submitQueue,
-        void* windowHandle,
+        PlatformWindowHandle windowHandle,
         const PresentMode presentMode,
         const uint32_t framesInFlight) const {
         return std::make_shared<VKSwapChain>(getVKDevice(),

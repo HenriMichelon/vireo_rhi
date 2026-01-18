@@ -9,9 +9,6 @@ cmake_minimum_required(VERSION 3.29)
 #######################################################
 project(vireo_rhi)
 set(VIREO_TARGET ${PROJECT_NAME})
-if(DEFINED MSVC)
-
-endif()
 
 #######################################################
 set(CMAKE_CXX_STANDARD 23)
@@ -20,9 +17,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
-add_compile_definitions(VK_NO_PROTOTYPES)
 if(WIN32)
-    add_compile_definitions(VK_USE_PLATFORM_WIN32_KHR UNICODE _UNICODE NOMINMAX)
+    add_compile_definitions(WIN32_LEAN_AND_MEAN UNICODE _UNICODE NOMINMAX)
     if(MSVC)
         set(USE_STATIC_MSVC_RUNTIME_LIBRARY ON)
         if (CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -37,6 +33,13 @@ if(WIN32)
     if (DIRECTX_BACKEND)
         add_compile_definitions(DIRECTX_BACKEND)
     endif ()
+elseif (LINUX AND NOT APPLE)
+    set(USE_SDL3 ON)
+    set(DIRECTX_BACKEND OFF)
+    add_compile_definitions(USE_SDL3)
+endif ()
+if (NOT USE_SDL3)
+    add_compile_definitions(VK_NO_PROTOTYPES)
 endif ()
 
 #######################################################
@@ -46,29 +49,36 @@ include(cmake/compile_options.cmake)
 include(cmake/libraries.cmake)
 
 #######################################################
-if (LUA_BINDING)
-    message("Building Lua bindings for Vireo")
-    add_compile_definitions(LUA_BINDING)
-    set(LUA_INCLUDE_DIR "${lua_cmake_SOURCE_DIR}/upstream" PARENT_SCOPE)
-endif ()
-
-#######################################################
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 #######################################################
-if (${DIRECTX_BACKEND})
-set(DIRECTX_SOURCES
-        ${SRC_DIR}/directx/DXCommands.cpp
-        ${SRC_DIR}/directx/DXDescriptors.cpp
-        ${SRC_DIR}/directx/DXDevices.cpp
-        ${SRC_DIR}/directx/DXPipelines.cpp
-        ${SRC_DIR}/directx/DXResources.cpp
-        ${SRC_DIR}/directx/DXSwapChains.cpp
-        ${SRC_DIR}/directx/DXVireo.cpp
-)
+if (DIRECTX_BACKEND)
+    set(DIRECTX_SOURCES
+            ${SRC_DIR}/directx/DXCommands.cpp
+            ${SRC_DIR}/directx/DXDescriptors.cpp
+            ${SRC_DIR}/directx/DXDevices.cpp
+            ${SRC_DIR}/directx/DXPipelines.cpp
+            ${SRC_DIR}/directx/DXResources.cpp
+            ${SRC_DIR}/directx/DXSwapChains.cpp
+            ${SRC_DIR}/directx/DXVireo.cpp
+    )
+    set(DIRECTX_MODULES
+            ${SRC_DIR}/directx/DXCommands.ixx
+            ${SRC_DIR}/directx/DXDescriptors.ixx
+            ${SRC_DIR}/directx/DXDevices.ixx
+            ${SRC_DIR}/directx/DXPipelines.ixx
+            ${SRC_DIR}/directx/DXResources.ixx
+            ${SRC_DIR}/directx/DXSwapChains.ixx
+            ${SRC_DIR}/directx/DXTools.ixx
+            ${SRC_DIR}/directx/DXVireo.ixx
+    )
 endif ()
+
 if (${LUA_BINDING})
+    message("Building Lua bindings for Vireo")
+    add_compile_definitions(LUA_BINDING)
+    set(LUA_INCLUDE_DIR "${lua_cmake_SOURCE_DIR}/upstream" PARENT_SCOPE)
     set(LUA_BINDINGS_SOURCES
         ${SRC_DIR}/bindings/lua/LuaBindings.cpp
     )
@@ -77,6 +87,7 @@ if (${LUA_BINDING})
         ${SRC_DIR}/bindings/lua/LuaBridge.ixx
     )
 endif ()
+
 add_library(${VIREO_TARGET} STATIC
         ${SRC_DIR}/Vireo.cpp
         ${DIRECTX_SOURCES}
@@ -91,23 +102,11 @@ add_library(${VIREO_TARGET} STATIC
         ${LUA_BINDINGS_SOURCES}
 )
 
-if (${DIRECTX_BACKEND})
-set(DIRECTX_MODULES
-        ${SRC_DIR}/directx/DXCommands.ixx
-        ${SRC_DIR}/directx/DXDescriptors.ixx
-        ${SRC_DIR}/directx/DXDevices.ixx
-        ${SRC_DIR}/directx/DXPipelines.ixx
-        ${SRC_DIR}/directx/DXResources.ixx
-        ${SRC_DIR}/directx/DXSwapChains.ixx
-        ${SRC_DIR}/directx/DXTools.ixx
-        ${SRC_DIR}/directx/DXVireo.ixx
-)
-endif ()
-
 target_sources(${VIREO_TARGET}
         PUBLIC
         FILE_SET CXX_MODULES
         FILES
+        ${SRC_DIR}/Platform.ixx
         ${SRC_DIR}/Tools.ixx
         ${SRC_DIR}/Vireo.ixx
         ${DIRECTX_MODULES}
@@ -123,26 +122,21 @@ target_sources(${VIREO_TARGET}
 )
 
 compile_options(${VIREO_TARGET})
+set_property(TARGET ${VIREO_TARGET} PROPERTY COMPILE_WARNING_AS_ERROR ON)
 target_include_directories(${VIREO_TARGET} PRIVATE ${INCLUDE_DIR} ${Vulkan_INCLUDE_DIRS})
-if(DIRECTX_BACKEND)
-    target_include_directories(${VIREO_TARGET} PRIVATE ${DirectXH_DIR}/include/directx)
-endif ()
 target_link_libraries(${VIREO_TARGET} std-cxx-modules)
 if (LUA_BINDING)
     target_link_libraries(${VIREO_TARGET} lua)
     target_include_directories(${VIREO_TARGET} PRIVATE ${lua_cmake_SOURCE_DIR}/upstream)
 endif ()
-#target_precompile_headers(${VIREO_TARGET} PRIVATE
-#        "<cstdint>"
-#)
 if(WIN32)
     target_compile_definitions(${VIREO_TARGET} PRIVATE WIN32_LEAN_AND_MEAN)
     set_target_properties(${VIREO_TARGET} PROPERTIES WIN32_EXECUTABLE TRUE)
     if (DIRECTX_BACKEND)
+        target_include_directories(${VIREO_TARGET} PRIVATE ${DirectXH_DIR}/include/directx)
         target_link_libraries(${VIREO_TARGET} DirectX-Headers dxgi d3d12)
     endif()
 endif ()
-set_property(TARGET ${VIREO_TARGET} PROPERTY COMPILE_WARNING_AS_ERROR ON)
 
 #######################################################
 find_program(DOXYPRESS_EXECUTABLE doxypress)
