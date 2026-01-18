@@ -25,24 +25,15 @@ Vireo RHI is an open-source library written in modern C++ that implements a comm
 
 ### Prerequisites
 
-- C++23 compiler with std module support: MSVC 19+, [LLVM+MingW 21+](https://github.com/mstorsjo/llvm-mingw/releases).
+Vireo supports Microsoft Windows and Linux (X11 & Wayland).
+
+- C++23 compiler with std module support (for windows : MSVC 19+, [LLVM+MingW 21+](https://github.com/mstorsjo/llvm-mingw/releases), for Linux : LLVM 21+).
 - CMake 3.29+ with a build tool like Ninja
-- Vulkan SDK (1.3+) (For Linux install the `vulkan-validation-layers` package)
+- Vulkan SDK (1.3+) (For Linux install the optional `vulkan-validation-layers` package)
 
 ### Building
 
 Vireo RHI is intended to be used as a submodule or a CMake subdirectory.
-
-```bash
-git clone https://github.com/HenriMichelon/vireo_rhi.git
-```
-
-In your `CMakeLists.txt`:
-
-```cmake
-add_subdirectory(path/to/vireo_rhi)
-target_link_libraries(your_target PUBLIC vireo_rhi)
-```
 
 ### Configuration Options
 
