@@ -168,6 +168,17 @@ namespace vireo {
         if (newExtent.width != swapChainExtent.width || newExtent.height != swapChainExtent.height) {
             vkDeviceWaitIdle(device->getDevice());
             cleanup();
+#ifdef USE_SDL3
+        if (std::string(SDL_GetCurrentVideoDriver()) == "wayland") {
+            if (!SDL_Vulkan_CreateSurface(
+                windowHandle,
+                device->getPhysicalDevice().getInstance(),
+                nullptr,
+                &surface)) {
+                throw Exception("VKSwapChain : error creating Vulkan surface - ", SDL_GetError());
+                }
+        }
+#endif
             create();
         }
     }
