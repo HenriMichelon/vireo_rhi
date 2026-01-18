@@ -252,7 +252,7 @@ namespace vireo {
         }
 #ifdef _WIN32
         RECT windowRect{};
-        if (GetClientRect(hWnd, &windowRect) == 0) {
+        if (GetClientRect(windowHandle, &windowRect) == 0) {
             throw Exception("VKSwapChain: Error getting window rect");
         }
         return {

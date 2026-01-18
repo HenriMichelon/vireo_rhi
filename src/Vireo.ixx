@@ -25,6 +25,7 @@ export namespace vireo {
     using int64_t  = std::int64_t;
     using size_t   = std::size_t;
 
+
     /**
      * Type of supported backends
      *

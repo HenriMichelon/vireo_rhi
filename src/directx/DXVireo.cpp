@@ -32,7 +32,7 @@ namespace vireo {
     std::shared_ptr<SwapChain> DXVireo::createSwapChain(
         const ImageFormat format,
         const std::shared_ptr<const SubmitQueue>& submitQueue,
-        void* windowHandle,
+        PlatformWindowHandle windowHandle,
         const PresentMode presentMode,
         const uint32_t framesInFlight) const {
         return std::make_shared<DXSwapChain>(
@@ -40,7 +40,7 @@ namespace vireo {
             getDXDevice(),
             static_pointer_cast<const DXSubmitQueue>(submitQueue)->getCommandQueue(),
             format,
-            static_cast<HWND>(windowHandle),
+            windowHandle,
             presentMode,
             framesInFlight);
     }

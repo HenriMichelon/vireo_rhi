@@ -17,9 +17,9 @@ export namespace vireo {
     class Exception : public std::exception {
     public:
         template <typename... Args>
-        Exception(Args&&... args) {
+        Exception(Args... args) {
             std::ostringstream oss;
-            (oss << ... << std::forward<Args>(args));
+            (oss << ... << args);
 #ifdef _MSC_VER
             message = oss.str();
 #endif

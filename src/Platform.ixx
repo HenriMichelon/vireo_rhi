@@ -6,7 +6,7 @@
 */
 module;
 #ifdef _WIN32
-    #include <window.h>
+    #include <windows.h>
 #elifdef USE_SDL3
     #include <SDL3/SDL_video.h>
 #endif
