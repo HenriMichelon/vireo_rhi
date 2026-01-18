@@ -105,7 +105,7 @@ namespace vireo {
         instanceExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 #ifdef _WIN32
         instanceExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
-        instanceExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+        instanceExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);Trying to integrate Wayland
 #elifdef USE_SDL3
         uint32_t sdlInstanceExtensionsCount;
         auto* sdlInstanceExtensions = SDL_Vulkan_GetInstanceExtensions(&sdlInstanceExtensionsCount);
