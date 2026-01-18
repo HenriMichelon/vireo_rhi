@@ -181,6 +181,9 @@ namespace vireo {
             vkDestroySemaphore(device->getDevice(), renderFinishedSemaphore, nullptr);
         }
         vkDestroySwapchainKHR(device->getDevice(), swapChain, nullptr);
+#ifdef USE_SDL3
+        SDL_Vulkan_DestroySurface(device->getPhysicalDevice().getInstance(), surface, nullptr);
+#endif
     }
 
     VKSwapChain::SwapChainSupportDetails VKSwapChain::querySwapChainSupport(

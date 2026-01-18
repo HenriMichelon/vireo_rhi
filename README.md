@@ -27,7 +27,7 @@ Vireo RHI is an open-source library written in modern C++ that implements a comm
 
 - C++23 compiler with std module support: MSVC 19+, [LLVM+MingW 21+](https://github.com/mstorsjo/llvm-mingw/releases).
 - CMake 3.29+ with a build tool like Ninja
-- Vulkan SDK (1.3+)
+- Vulkan SDK (1.3+) (For Linux install the `vulkan-validation-layers` package)
 
 ### Building
 

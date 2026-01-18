@@ -98,7 +98,12 @@ namespace vireo {
                     break;
                 }
             }
-            if (!layerFound) { throw Exception("A requested Vulkan layer is not supported"); }
+            if (!layerFound) {
+                if (layerName == validationLayerName) {
+                    throw Exception("Vulkan validation layer not found, please install the 'vulkan-validation-layers' package");
+                }
+                throw Exception("A requested Vulkan layer is not supported");
+            }
         }
 
         std::vector<const char *> instanceExtensions{};
