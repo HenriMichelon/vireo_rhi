@@ -93,6 +93,10 @@ export namespace vireo {
 
         void cleanup() const;
 
+        void cleanupImages() const;
+
+        void cleanupSwapChain(VkSwapchainKHR oldSwapChain) const;
+
         // Get the swap chain capabilities
         static SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice vkPhysicalDevice, VkSurfaceKHR surface);
 
