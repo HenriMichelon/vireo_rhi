@@ -20,9 +20,7 @@ export namespace vireo {
         Exception(Args... args) {
             std::ostringstream oss;
             (oss << ... << args);
-#ifdef _MSC_VER
             message = oss.str();
-#endif
 #ifdef _DEBUG
 #ifdef _WIN32
             if (IsDebuggerPresent()) {
