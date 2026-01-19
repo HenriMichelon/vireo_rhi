@@ -194,12 +194,10 @@ namespace vireo {
         vkDestroySwapchainKHR(device->getDevice(), oldSwapChain, nullptr);
     }
 
-    void VKSwapChain::cleanup() const {
+    void VKSwapChain::cleanup() {
+        waitIdle();
         cleanupImages();
         cleanupSwapChain(swapChain);
-#ifdef USE_SDL3
-        SDL_Vulkan_DestroySurface(device->getPhysicalDevice().getInstance(), surface, nullptr);
-#endif
     }
 
     VKSwapChain::SwapChainSupportDetails VKSwapChain::querySwapChainSupport(

@@ -91,7 +91,7 @@ export namespace vireo {
 
         void create();
 
-        void cleanup() const;
+        void cleanup();
 
         void cleanupImages() const;
 
