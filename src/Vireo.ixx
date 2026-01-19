@@ -2481,7 +2481,7 @@ export namespace vireo {
 
     protected:
         const PresentMode presentMode;
-        const ImageFormat format;
+        ImageFormat format;
         uint32_t    framesInFlight;
         Extent      extent{};
         float       aspectRatio{};

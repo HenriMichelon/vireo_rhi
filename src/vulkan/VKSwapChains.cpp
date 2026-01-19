@@ -87,6 +87,8 @@ namespace vireo {
         const auto presentMode  = chooseSwapPresentMode(swapChainSupport.presentModes);
         swapChainExtent = chooseSwapExtent(swapChainSupport.capabilities);
 
+        format = VKImage::vkFormatToImageFormat(surfaceFormat.format);
+
         if (swapChainSupport.capabilities.maxImageCount > 0 &&
             framesInFlight > swapChainSupport.capabilities.maxImageCount) {
             framesInFlight = swapChainSupport.capabilities.maxImageCount;
@@ -225,9 +227,23 @@ namespace vireo {
     }
 
     VkSurfaceFormatKHR VKSwapChain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats) const {
-        // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain#page_Choosing-the-right-settings-for-the-swap-chain
+        // Try the requested format
         for (const auto &availableFormat : availableFormats) {
-            if (availableFormat.format == VKImage::vkFormats[static_cast<int>(format)]) { return availableFormat; }
+            if (availableFormat.format == VKImage::vkFormats[static_cast<int>(format)]) {
+                return availableFormat;
+            }
+        }
+        // Try RGBA format
+        for (const auto &availableFormat : availableFormats) {
+            if (availableFormat.format == VK_FORMAT_R8G8B8A8_UNORM ) {
+                return availableFormat;
+            }
+        }
+        // Try BGRA format (X11)
+        for (const auto &availableFormat : availableFormats) {
+            if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM) {
+                return availableFormat;
+            }
         }
         return availableFormats[0];
     }

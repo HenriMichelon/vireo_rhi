@@ -151,7 +151,6 @@ export namespace vireo {
             VK_FORMAT_BC7_SRGB_BLOCK,
         };
 
-
         VKImage(
             const std::shared_ptr<const VKDevice>& device,
             ImageFormat format,
@@ -171,6 +170,8 @@ export namespace vireo {
         auto getImage() const { return image; }
 
         auto getImageView() const { return imageView; }
+
+        static ImageFormat vkFormatToImageFormat(VkFormat format);
 
     private:
         const std::shared_ptr<const VKDevice> device;
