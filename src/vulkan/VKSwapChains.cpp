@@ -259,7 +259,7 @@ namespace vireo {
             .width = static_cast<uint32_t>(windowRect.right - windowRect.left),
             .height = static_cast<uint32_t>(windowRect.bottom - windowRect.top)
         };
-#elifdef __linux__
+#elifdef USE_SDL3
         int w = 0;
         int h = 0;
         if (!SDL_GetWindowSizeInPixels(windowHandle, &w, &h)) {
