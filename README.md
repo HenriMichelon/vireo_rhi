@@ -7,7 +7,7 @@ Vireo RHI is an open-source library written in modern C++ that implements a comm
 - **Multi-API Support**: 
     - **Vulkan 1.3**
     - **DirectX 12**
-- **Modern C++ Architecture**: Built with **C++23** and utilizes **C++ Modules** for faster compilation and clean code.
+- **Modern C++ Architecture**: Built with C++23 and utilizes C++ Modules for faster compilation and clean code.
 - **Low-Level Abstraction**: Abstraction of core modern graphics concepts:
     - Pipelines (Graphic & Compute)
     - Resource Management (Buffers, Images, Samplers)
@@ -17,7 +17,7 @@ Vireo RHI is an open-source library written in modern C++ that implements a comm
     - Presentation (Swap Chains)
 - **Validation & Debugging**: Integrated support for graphics API validation and debug layers.
 - **Lua Bindings**: Optional Lua 5.4+ bindings for high-level logic and rapid prototyping.
-- **Cross-Platform**: Designed for Windows (DirectX 12 & Vulkan) and potentially other platforms supporting Vulkan.
+- **Cross-Platform**: Designed for Windows (DirectX 12 & Vulkan), Linux (Vulkan) and potentially other platforms supporting Vulkan.
 
 **Note**: This library is a work-in-progress and functionalities are added as needed by dependent projects (such as [Lysa Engine](https://github.com/LysaEngine)).
 
