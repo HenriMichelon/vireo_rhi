@@ -358,7 +358,7 @@ namespace vireo {
     // https://dev.to/reg__/there-is-a-way-to-query-gpu-memory-usage-in-vulkan---use-dxgi-1f0d
     const PhysicalDeviceDesc VKPhysicalDevice::getDescription() const {
         PhysicalDeviceDesc result;
-#ifdef _WIN32
+#if defined(_WIN32) and defined(DIRECTX_BACKEND)
         IDXGIFactory4 *dxgiFactory{nullptr};
         if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory)))) { return result; }
         IDXGIAdapter1 *tmpDxgiAdapter{nullptr};
