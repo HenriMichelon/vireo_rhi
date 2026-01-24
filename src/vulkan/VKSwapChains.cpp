@@ -283,6 +283,8 @@ namespace vireo {
             .width  = std::clamp(static_cast<uint32_t>(w), capabilities.minImageExtent.width, capabilities.maxImageExtent.width),
             .height = std::clamp(static_cast<uint32_t>(h), capabilities.minImageExtent.height, capabilities.maxImageExtent.height)
         };
+#else
+        return actualExtent;
 #endif
     }
 

@@ -17,5 +17,7 @@ export namespace vireo {
     using PlatformWindowHandle = HWND;
 #elifdef USE_SDL3
     using PlatformWindowHandle = SDL_Window*;
+#else
+    using PlatformWindowHandle = void*;
 #endif
 }
