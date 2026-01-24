@@ -15,6 +15,8 @@ function(compile_options TARGET_NAME )
                 /fp:fast
                 /DUNICODE
                 /D_UNICODE
+                /DWIN32_LEAN_AND_MEAN
+                /DNOMINMAX
         )
         if (CMAKE_BUILD_TYPE STREQUAL "Debug")
             target_compile_options(${TARGET_NAME} PRIVATE
