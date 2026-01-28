@@ -4,8 +4,29 @@
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT
 #
-function(compile_options TARGET_NAME )
+function(vireo_compile_options TARGET_NAME)
+    set(CMAKE_CXX_STANDARD 23 CACHE INTERNAL "")
+    set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE INTERNAL "")
+    set(CMAKE_CXX_EXTENSIONS OFF CACHE INTERNAL "")
+    if(NOT CMAKE_BUILD_TYPE)
+        set(CMAKE_BUILD_TYPE Release CACHE INTERNAL "")
+    endif()
+    if(WIN32)
+        add_compile_definitions(WIN32_LEAN_AND_MEAN UNICODE _UNICODE NOMINMAX)
+        if (DIRECTX_BACKEND)
+            add_compile_definitions(DIRECTX_BACKEND)
+            target_link_libraries(${TARGET_NAME} Xinput dinput8 dxguid dxgi d3d12 d3dcompiler uuid )
+        endif ()
+        if(MINGW)
+            target_link_options(${TARGET_NAME} PRIVATE "-mwindows")
+        endif()
+        set_target_properties(${TARGET_NAME} PROPERTIES  WIN32_EXECUTABLE TRUE)
+    elseif (LINUX AND NOT APPLE)
+        add_compile_definitions(USE_SDL3)
+    endif ()
     if(MSVC)
+        set(USE_STATIC_MSVC_RUNTIME_LIBRARY ON CACHE INTERNAL "")
+        target_compile_options(${TARGET_NAME} PRIVATE )
         target_compile_options(${TARGET_NAME} PRIVATE
                 /nologo
                 /W2
@@ -13,8 +34,7 @@ function(compile_options TARGET_NAME )
                 /std:c++latest
                 /experimental:module
                 /fp:fast
-                /DUNICODE
-                /D_UNICODE
+                /wd4291  # for Flecs 'new' placement operator
         )
         if (CMAKE_BUILD_TYPE STREQUAL "Debug")
             target_compile_options(${TARGET_NAME} PRIVATE
@@ -53,12 +73,14 @@ function(compile_options TARGET_NAME )
         target_compile_options(${TARGET_NAME} PRIVATE
                 -Wno-deprecated-declarations
                 -Wno-nullability-completeness
+                -Wno-unused-command-line-argument
                 -Werror
                 -pthread
         )
         if(WIN32)
             target_link_libraries(${TARGET_NAME} -static)
         else()
+            target_compile_options(${TARGET_NAME} PRIVATE -stdlib=libc++)
             target_link_options(${TARGET_NAME} PRIVATE -stdlib=libc++)
         endif ()
         if (CMAKE_BUILD_TYPE STREQUAL "Debug")
