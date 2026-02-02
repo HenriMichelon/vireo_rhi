@@ -782,25 +782,25 @@ namespace vireo {
             srcLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             dstLayout = VK_IMAGE_LAYOUT_GENERAL;
         } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::RENDER_TARGET_COLOR) {
-            srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
             dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
             srcAccess = 0;
-            dstAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            dstAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
             srcLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             dstLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         } else if (oldState == ResourceState::SHADER_READ && newState == ResourceState::RENDER_TARGET_COLOR) {
             srcStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
             dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
             srcAccess = VK_ACCESS_SHADER_READ_BIT;
-            dstAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            dstAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
             srcLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         } else if (oldState == ResourceState::UNDEFINED &&
                   (newState == ResourceState::RENDER_TARGET_DEPTH_STENCIL || newState == ResourceState::RENDER_TARGET_DEPTH)) {
-            srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-            dstStage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            srcStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
             srcAccess = 0;
-            dstAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+            dstAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
             srcLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             dstLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
             aspectFlag = newState == ResourceState::RENDER_TARGET_DEPTH ?
@@ -819,10 +819,10 @@ namespace vireo {
                 static_cast<VkImageAspectFlagBits>(VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
         } else if ((oldState == ResourceState::RENDER_TARGET_DEPTH_STENCIL_READ || oldState == ResourceState::RENDER_TARGET_DEPTH_READ) &&
                    (newState == ResourceState::RENDER_TARGET_DEPTH_STENCIL || newState == ResourceState::RENDER_TARGET_DEPTH)) {
-            srcStage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-            dstStage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            srcStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
             srcAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-            dstAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+            dstAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
             srcLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
             aspectFlag = (oldState == ResourceState::RENDER_TARGET_DEPTH_READ || newState == ResourceState::RENDER_TARGET_DEPTH)?
@@ -830,7 +830,7 @@ namespace vireo {
                 static_cast<VkImageAspectFlagBits>(VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
         } else if (oldState == ResourceState::UNDEFINED &&
             (newState == ResourceState::RENDER_TARGET_DEPTH_STENCIL_READ || newState == ResourceState::RENDER_TARGET_DEPTH_READ)) {
-            srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            srcStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
             dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
             srcAccess = 0;
             dstAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
@@ -896,7 +896,7 @@ namespace vireo {
             srcLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
         } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::PRESENT) {
-            srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            srcStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
             dstStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
             srcAccess = 0;
             dstAccess = 0;
@@ -959,9 +959,9 @@ namespace vireo {
             srcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_GENERAL;
         } else if (oldState == ResourceState::RENDER_TARGET_COLOR && newState == ResourceState::UNDEFINED) {
-            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
             dstStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-            srcAccess = 0;
+            srcAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
             dstAccess = 0;
             srcLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_GENERAL;
@@ -1005,7 +1005,7 @@ namespace vireo {
             srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
             srcAccess = 0;
-            dstAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            dstAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
             srcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::COPY_DST) {
@@ -1030,33 +1030,33 @@ namespace vireo {
             srcLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
         } else if (oldState == ResourceState::SHADER_READ && newState == ResourceState::RENDER_TARGET_DEPTH) {
-            srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-            dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-            srcAccess = 0;
-            dstAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+            srcStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            srcAccess = VK_ACCESS_SHADER_READ_BIT;
+            dstAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
             srcLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
             aspectFlag = VK_IMAGE_ASPECT_DEPTH_BIT;
         } else if (oldState == ResourceState::SHADER_READ && newState == ResourceState::RENDER_TARGET_DEPTH_STENCIL) {
-            srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-            dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-            srcAccess = 0;
-            dstAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+            srcStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            srcAccess = VK_ACCESS_SHADER_READ_BIT;
+            dstAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
             srcLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
             aspectFlag =  static_cast<VkImageAspectFlagBits>(VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
         } else if (oldState == ResourceState::RENDER_TARGET_DEPTH && newState == ResourceState::SHADER_READ) {
-            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            srcStage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
             dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-            srcAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
+            srcAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
             dstAccess = VK_ACCESS_SHADER_READ_BIT;
             srcLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             aspectFlag = VK_IMAGE_ASPECT_DEPTH_BIT;
         } else if (oldState == ResourceState::RENDER_TARGET_DEPTH_STENCIL && newState == ResourceState::SHADER_READ) {
-            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            srcStage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
             dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-            srcAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
+            srcAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
             dstAccess = VK_ACCESS_SHADER_READ_BIT;
             srcLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
