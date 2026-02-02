@@ -125,18 +125,35 @@ namespace vireo {
 #endif
 #ifdef _DEBUG
         instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        instanceExtensions.push_back(VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME);
 #endif
         constexpr VkApplicationInfo applicationInfo{
             .sType      = VK_STRUCTURE_TYPE_APPLICATION_INFO,
             .apiVersion = VK_API_VERSION_1_3};
-        const VkInstanceCreateInfo createInfo = {VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-                                                 nullptr,
-                                                 0,
-                                                 &applicationInfo,
-                                                 static_cast<uint32_t>(requestedLayers.size()),
-                                                 requestedLayers.data(),
-                                                 static_cast<uint32_t>(instanceExtensions.size()),
-                                                 instanceExtensions.data()};
+
+        void* pNext = nullptr;
+#ifdef _DEBUG
+        constexpr VkValidationFeatureEnableEXT enables[] = {
+            VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT
+        };
+        const auto validationFeatures = VkValidationFeaturesEXT{
+            .sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT,
+            .pNext = nullptr,
+            .enabledValidationFeatureCount = 1,
+            .pEnabledValidationFeatures = enables
+        };
+        pNext = (void*)&validationFeatures;
+#endif
+
+        const VkInstanceCreateInfo createInfo = {
+            VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+            pNext,
+            0,
+            &applicationInfo,
+            static_cast<uint32_t>(requestedLayers.size()),
+            requestedLayers.data(),
+            static_cast<uint32_t>(instanceExtensions.size()),
+instanceExtensions.data()};
         vkCheck(vkCreateInstance(&createInfo, nullptr, &instance));
         vulkanInitializeInstance(instance);
 
