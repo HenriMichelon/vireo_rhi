@@ -69,7 +69,10 @@ namespace vireo {
                 .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
                 .semaphore = imageAvailableSemaphore[i],
                 .value = 1,
-                .stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR,
+                .stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT |
+                             VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT |
+                             VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT |
+                             VK_PIPELINE_STAGE_2_COPY_BIT,
                 .deviceIndex = 0
             };
 #ifdef _DEBUG
