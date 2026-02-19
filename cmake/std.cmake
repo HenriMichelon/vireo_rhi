@@ -62,6 +62,7 @@ else()
             -Wno-reserved-module-identifier
             -Wno-reserved-user-defined-literal
             -pthread
+            -std=c++23
     )
     if (CMAKE_BUILD_TYPE STREQUAL "Debug")
         target_compile_options(std-cxx-modules PRIVATE
