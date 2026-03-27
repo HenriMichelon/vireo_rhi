@@ -29,6 +29,11 @@ target_sources(std-cxx-modules
         FILES
         ${STD_BASE_DIR}/std.${STD_EXTENSION}
         ${STD_BASE_DIR}/std.compat.${STD_EXTENSION})
+set_target_properties(std-cxx-modules PROPERTIES
+    CXX_STANDARD 23
+    CXX_STANDARD_REQUIRED ON
+    CXX_EXTENSIONS OFF
+)
 
 if(MSVC)
     target_compile_options(std-cxx-modules PRIVATE

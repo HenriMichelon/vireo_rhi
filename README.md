@@ -29,7 +29,14 @@ Vireo supports Microsoft Windows and Linux (X11 & Wayland).
 
 - C++23 compiler with std module support (for windows : MSVC 19+, [LLVM+MingW 21+](https://github.com/mstorsjo/llvm-mingw/releases), for Linux : LLVM 21+).
 - CMake 3.29+ with a build tool like Ninja
-- Vulkan SDK (1.3+) (For Linux install the optional `vulkan-validation-layers` package)
+- Vulkan SDK (1.3+) 
+
+For Linux the following packages are needed :
+- vulkan-validation-layers
+- LLVM
+- libc++
+You need manually install the last version of the Vulkan SDK and execute the `setup-env.sh` script from the Vulkan installation directory.
+
 
 ### Building
 

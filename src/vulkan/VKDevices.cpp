@@ -101,9 +101,11 @@ namespace vireo {
                 }
             }
             if (!layerFound) {
+#ifdef _DEBUG
                 if (layerName == validationLayerName) {
                     throw Exception("Vulkan validation layer not found, please install the 'vulkan-validation-layers' package");
                 }
+#endif
                 throw Exception("A requested Vulkan layer is not supported");
             }
         }

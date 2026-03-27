@@ -5,9 +5,11 @@
 # https://opensource.org/licenses/MIT
 #
 function(vireo_compile_options TARGET_NAME)
-    set(CMAKE_CXX_STANDARD 23 CACHE INTERNAL "")
-    set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE INTERNAL "")
-    set(CMAKE_CXX_EXTENSIONS OFF CACHE INTERNAL "")
+    set_target_properties(${TARGET_NAME}  PROPERTIES
+        CXX_STANDARD 23
+        CXX_STANDARD_REQUIRED ON
+        CXX_EXTENSIONS OFF
+    )
     if(NOT CMAKE_BUILD_TYPE)
         set(CMAKE_BUILD_TYPE Release CACHE INTERNAL "")
     endif()
@@ -74,6 +76,7 @@ function(vireo_compile_options TARGET_NAME)
                 -Wno-deprecated-declarations
                 -Wno-nullability-completeness
                 -Wno-unused-command-line-argument
+                -Wno-TU-local-entity-exposure
                 -Werror
                 -pthread
         )
