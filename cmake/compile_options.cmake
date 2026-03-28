@@ -76,10 +76,16 @@ function(vireo_compile_options TARGET_NAME)
                 -Wno-deprecated-declarations
                 -Wno-nullability-completeness
                 -Wno-unused-command-line-argument
-                -Wno-TU-local-entity-exposure
                 -Werror
                 -pthread
         )
+        include(CheckCXXCompilerFlag)
+        if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 22)
+            check_cxx_compiler_flag(-Wno-TU-local-entity-exposure HAS_WNO_TU_LOCAL)
+            if (HAS_WNO_TU_LOCAL)
+                target_compile_options(${TARGET_NAME} PRIVATE -Wno-TU-local-entity-exposure)
+            endif()
+        endif()
         if(WIN32)
             target_link_libraries(${TARGET_NAME} -static)
         else()
