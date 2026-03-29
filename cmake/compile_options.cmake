@@ -76,6 +76,7 @@ function(vireo_compile_options TARGET_NAME)
                 -Wno-deprecated-declarations
                 -Wno-nullability-completeness
                 -Wno-unused-command-line-argument
+                -Wno-inconsistent-missing-override
                 -Werror
                 -pthread
         )
