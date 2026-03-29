@@ -16,7 +16,7 @@ export namespace vireo {
 
     class DXVireo : public Vireo {
     public:
-        DXVireo(uint32_t maxDescriptors, uint32_t maxSamplers);
+        DXVireo(const BackendConfiguration& config);
 
         std::shared_ptr<SwapChain> createSwapChain(
             ImageFormat format,

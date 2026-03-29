@@ -24,16 +24,12 @@ namespace vireo {
     std::mutex Image::memoryAllocationsMutex;
     std::list<VideoMemoryAllocationDesc> Image::memoryAllocations{};
 
-    std::shared_ptr<Vireo> Vireo::create(
-        const Backend backend,
-        DebugCallback debugCallback,
-        const uint32_t maxDirectX12Descriptors,
-        const uint32_t maxDirectX12Samplers) {
-        if (backend == Backend::VULKAN) {
-            return std::make_shared<VKVireo>(debugCallback);
+    std::shared_ptr<Vireo> Vireo::create(const BackendConfiguration& configuration) {
+        if (configuration.backend == Backend::VULKAN) {
+            return std::make_shared<VKVireo>(configuration);
         }
 #ifdef DIRECTX_BACKEND
-        return std::make_shared<DXVireo>(maxDirectX12Descriptors, maxDirectX12Samplers);
+        return std::make_shared<DXVireo>(configuration);
 #endif
         throw Exception("Unsupported backend");
     }

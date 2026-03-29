@@ -25,7 +25,6 @@ export namespace vireo {
     using int64_t  = std::int64_t;
     using size_t   = std::size_t;
 
-
     /**
      * Type of supported backends
      *
@@ -2575,6 +2574,14 @@ export namespace vireo {
 
     using DebugCallback = void(*)(DebugLevel, const std::string&);
 
+    struct BackendConfiguration {
+        Backend backend = Backend::VULKAN;
+        DebugCallback debugCallback = nullptr;
+        std::vector<const char*> vulkanFilteredValidationMessages = { };
+        uint32_t directX12MaxDescriptors = 3000;
+        uint32_t directX12MaxSamplers = 100;
+    };
+
     /**
      * Main abstraction class.
      *
@@ -2585,11 +2592,7 @@ export namespace vireo {
         /**
          * Creates a new Vireo class using the given backend.
          */
-        static std::shared_ptr<Vireo> create(
-            Backend backend,
-            DebugCallback debugCallback = nullptr,
-            uint32_t maxDirectX12Descriptors = 3000,
-            uint32_t maxDirectX12Samplers = 100);
+        static std::shared_ptr<Vireo> create(const BackendConfiguration& configuration = {});
 
         virtual void waitIdle() {}
 
@@ -2837,8 +2840,14 @@ export namespace vireo {
          */
         static bool isBackendSupported(Backend backend);
 
+        /**
+         * Returns the compiled shader file name extension
+         */
         virtual std::string getShaderFileExtension() const = 0;
 
+        /**
+         * Returns the current backend
+         */
         virtual Backend getBackend() const = 0;
 
         /**
@@ -2846,8 +2855,14 @@ export namespace vireo {
          */
         auto getPhysicalDevice() const { return physicalDevice; }
 
+        /**
+         * Returns the logical device object
+         */
         auto getDevice() const { return device; }
 
+        /**
+         * Returns the backend  object
+         */
         auto getInstance() const { return instance; }
 
         virtual ~Vireo() = default;

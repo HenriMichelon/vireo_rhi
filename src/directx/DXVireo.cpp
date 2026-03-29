@@ -15,18 +15,18 @@ import vireo.directx.swapchains;
 
 namespace vireo {
 
-    DXVireo::DXVireo(const uint32_t maxDescriptors, const uint32_t maxSamplers)  {
+    DXVireo::DXVireo(const BackendConfiguration& config)  {
         instance = std::make_shared<DXInstance>();
         physicalDevice = std::make_shared<DXPhysicalDevice>(getDXInstance()->getFactory());
         device = std::make_shared<DXDevice>(getDXPhysicalDevice()->getHardwareAdapter());
         cbvSrvUavDescriptorHeap = std::make_shared<DXDescriptorHeap>(
             getDXDevice()->getDevice(),
             D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-            maxDescriptors);
+            config.directX12MaxDescriptors);
         samplerDescriptorHeap = std::make_shared<DXDescriptorHeap>(
             getDXDevice()->getDevice(),
             D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,
-            maxSamplers);
+            config.directX12MaxSamplers);
     }
 
     std::shared_ptr<SwapChain> DXVireo::createSwapChain(

@@ -15,8 +15,8 @@ import vireo.vulkan.tools;
 
 namespace vireo {
 
-    VKVireo::VKVireo(DebugCallback debugCallback ) {
-        instance = std::make_shared<VKInstance>(debugCallback);
+    VKVireo::VKVireo(const BackendConfiguration& config) {
+        instance = std::make_shared<VKInstance>(config);
         physicalDevice = std::make_shared<VKPhysicalDevice>(getVKInstance()->getInstance());
         device = std::make_shared<VKDevice>(*getVKPhysicalDevice(), getVKInstance()->getRequestedLayers());
     }

@@ -18,7 +18,7 @@ export namespace vireo {
 
     class VKVireo : public Vireo {
     public:
-        VKVireo(DebugCallback debugCallback);
+        VKVireo(const BackendConfiguration& config);
 
         void waitIdle() override;
 
