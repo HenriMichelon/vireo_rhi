@@ -128,7 +128,9 @@ namespace vireo {
 #ifdef _DEBUG
         instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
         instanceExtensions.push_back(VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME);
-        instanceExtensions.push_back(VK_EXT_LAYER_SETTINGS_EXTENSION_NAME);
+        if (!config.vulkanFilteredValidationMessages.empty()) {
+            instanceExtensions.push_back(VK_EXT_LAYER_SETTINGS_EXTENSION_NAME);
+        }
 #endif
         constexpr VkApplicationInfo applicationInfo{
             .sType      = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -136,30 +138,33 @@ namespace vireo {
 
         void* pNext = nullptr;
 #ifdef _DEBUG
-        const VkLayerSettingEXT layerSettings[] = {
-            {
-                .pLayerName   = "VK_LAYER_KHRONOS_validation",
-                .pSettingName = "message_id_filter",
-                .type         = VK_LAYER_SETTING_TYPE_STRING_EXT,
-                .valueCount   = static_cast<uint32_t>(config.vulkanFilteredValidationMessages.size()),
-                .pValues      = config.vulkanFilteredValidationMessages.data(),
-            },
-        };
-        const VkLayerSettingsCreateInfoEXT layerSettingsInfo{
-            .sType        = VK_STRUCTURE_TYPE_LAYER_SETTINGS_CREATE_INFO_EXT,
-            .pNext        = nullptr,
-            .settingCount = static_cast<uint32_t>(std::size(layerSettings)),
-            .pSettings    = layerSettings,
-        };
         constexpr VkValidationFeatureEnableEXT enables[] = {
             VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT
         };
-        const auto validationFeatures = VkValidationFeaturesEXT{
+        auto validationFeatures = VkValidationFeaturesEXT{
             .sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT,
-            .pNext = &layerSettingsInfo,
+            .pNext = nullptr,
             .enabledValidationFeatureCount = 1,
             .pEnabledValidationFeatures = enables
         };
+        if (!config.vulkanFilteredValidationMessages.empty()) {
+            const VkLayerSettingEXT layerSettings[] = {
+                {
+                    .pLayerName   = "VK_LAYER_KHRONOS_validation",
+                    .pSettingName = "message_id_filter",
+                    .type         = VK_LAYER_SETTING_TYPE_STRING_EXT,
+                    .valueCount   = static_cast<uint32_t>(config.vulkanFilteredValidationMessages.size()),
+                    .pValues      = config.vulkanFilteredValidationMessages.data(),
+                },
+            };
+            const VkLayerSettingsCreateInfoEXT layerSettingsInfo{
+                .sType        = VK_STRUCTURE_TYPE_LAYER_SETTINGS_CREATE_INFO_EXT,
+                .pNext        = nullptr,
+                .settingCount = static_cast<uint32_t>(std::size(layerSettings)),
+                .pSettings    = layerSettings,
+            };
+            validationFeatures.pNext = &layerSettingsInfo;
+        }
         pNext = (void*)&validationFeatures;
 #endif
 
