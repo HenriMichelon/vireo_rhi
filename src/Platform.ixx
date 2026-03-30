@@ -24,12 +24,12 @@ export namespace vireo {
     consteval Platform getPlatform() { return Platform::WINDOWS; }
 #elifdef USE_SDL3
     using PlatformWindowHandle = SDL_Window*;
+#else
+    using PlatformWindowHandle = void*;
+#endif
+
 #ifdef __linux__
     consteval Platform getPlatform() { return Platform::LINUX; }
-#else
-    #error "Unsupported platform"
 #endif
-#else
-    #error "Unsupported platform"
-#endif
+
 }
