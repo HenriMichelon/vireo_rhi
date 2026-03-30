@@ -198,7 +198,8 @@
         "exclude-files": [
             "../src/Vireo.cpp",
             "../src/vulkan",
-            "../src/directx"
+            "../src/directx",
+            "../src/bindings"
         ],
         "exclude-patterns": [
             ""
@@ -231,7 +232,7 @@
         "mdfile-mainpage": ""
     },
     "messages": {
-        "quiet": true,
+        "quiet": false,
         "warn-doc-error": true,
         "warn-format": "$file:$line: $text",
         "warn-logfile": "",
@@ -388,6 +389,7 @@
         "xml-output": "xml",
         "xml-program-listing": true
     },
+    "pathPrior": "C:/Users/hmich/Documents/GitHub/vireo_rhi/docs",
     "preprocessor": {
         "enable-preprocessing": true,
         "expand-as-defined": [
