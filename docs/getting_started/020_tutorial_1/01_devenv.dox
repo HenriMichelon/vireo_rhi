@@ -19,7 +19,7 @@ support for C++ modules is far from perfect.
 
 Linux
 ---------------------------------------------------------------------------
-Install the llvm, vulkan and vulkan-validation-layers packages.
+Install the Vulkan SDK, llvm, cmake, ninja and vulkan-validation-layers packages.
 For Vulkan you must execute the `setup-env.sh` of the Vulkan SDK in for profile script (.bash_profile, .zprofile, ...)
 
 Next : \ref tutorial_1_02_project

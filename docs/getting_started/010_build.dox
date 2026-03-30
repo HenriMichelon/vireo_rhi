@@ -14,6 +14,9 @@ For Microsoft Windows :
 - [MSVC 19+ (VS 2022)](https://visualstudio.microsoft.com/fr/)
 (or [LLVM 20+](https://github.com/mstorsjo/llvm-mingw/releases) but only with the DirectX backend disabled)
 - [CMake 3.29+](https://cmake.org/download/) ([Visual Studio](https://learn.microsoft.com/en-us/cpp/build/cmake-projects-in-visual-studio?view=msvc-170)) with a [build tool](https://github.com/ninja-build/ninja/releases)
+For Linux :
+- packages llvm, cmake, ninja, vulkan-validation-layers,
+- Creates the VULKAN_SDK environment variable pointing to the Vulkan SDK installation directory.
 
 Standalone build
 ---------------------------------------------------------------------------
