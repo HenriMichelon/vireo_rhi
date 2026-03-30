@@ -9,7 +9,6 @@ cmake_minimum_required(VERSION 3.29)
 #######################################################
 project(vireo_rhi)
 set(VIREO_TARGET ${PROJECT_NAME})
-include(cmake/compile_options.cmake)
 
 #######################################################
 if(WIN32)
@@ -19,7 +18,7 @@ if(WIN32)
 elseif (LINUX AND NOT APPLE)
     set(DIRECTX_BACKEND OFF)
     if (NOT DEFINED USE_SDL3)
-        set(USE_SDL3 ON)
+        set(USE_SDL3 ON CACHE STRING "SDL3" FORCE)
     endif ()
 endif ()
 if (NOT USE_SDL3)
@@ -27,6 +26,7 @@ if (NOT USE_SDL3)
 endif ()
 
 #######################################################
+include(cmake/compile_options.cmake)
 include(FetchContent)
 include(cmake/std.cmake)
 include(cmake/libraries.cmake)
