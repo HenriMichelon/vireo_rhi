@@ -7,7 +7,7 @@ First, clone the following projects somewhere in your computer :
 
 Then add a `.env.cmake` file containing the following variable at the root of your project template project:
 
-    set(VIREO_PROJECT_DIR "path_to_the_cloned_vireo_directory")
+    set(VIREO_RHI_PROJECT_DIR "path_to_the_cloned_vireo_directory")
 
 In the `src` directory creates :
 
