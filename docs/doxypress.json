@@ -232,7 +232,7 @@
         "mdfile-mainpage": ""
     },
     "messages": {
-        "quiet": false,
+        "quiet": true,
         "warn-doc-error": true,
         "warn-format": "$file:$line: $text",
         "warn-logfile": "",

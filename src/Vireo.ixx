@@ -2022,6 +2022,7 @@ export namespace vireo {
          * @param offset The byte offset into the buffer where parameters begin.
          * @param drawCount The number of draws to execute, and can be zero.
          * @param stride The byte stride between successive sets of draw parameters.
+         * @param firstCommandOffset Offset in bytes of the first command
          */
         virtual void drawIndirect(
             const Buffer& buffer,
@@ -2036,6 +2037,7 @@ export namespace vireo {
          * @param offset The byte offset into the buffer where parameters begin.
          * @param drawCount The number of draws to execute, and can be zero.
          * @param stride The byte stride between successive sets of draw parameters.
+         * @param firstCommandOffset Offset in bytes of the first command
          */
         void drawIndirect(
             const std::shared_ptr<Buffer>& buffer,
@@ -2054,6 +2056,7 @@ export namespace vireo {
          * @param countOffset The byte offset into `countBuffer` where the draw count begins.
          * @param maxDrawCount The maximum number of draws that will be executed. The actual number of executed draw calls is the minimum of the count specified in countBuffer and maxDrawCount
          * @param stride The byte stride between successive sets of draw parameters.
+         * @param firstCommandOffset Offset in bytes of the first command
          */
         virtual void drawIndexedIndirectCount(
             Buffer& buffer,
@@ -2072,6 +2075,7 @@ export namespace vireo {
          * @param countOffset The byte offset into `countBuffer` where the draw count begins.
          * @param maxDrawCount The maximum number of draws that will be executed. The actual number of executed draw calls is the minimum of the count specified in countBuffer and maxDrawCount
          * @param stride The byte stride between successive sets of draw parameters.
+         * @param firstCommandOffset Offset in bytes of the first command
          */
         void drawIndexedIndirectCount(
             const std::shared_ptr<Buffer>& buffer,
@@ -2090,6 +2094,7 @@ export namespace vireo {
          * @param offset The byte offset into the buffer where parameters begin.
          * @param maxDrawCount The maximum number of draws that will be executed. The actual number of executed draw calls is the minimum of the count specified in countBuffer and maxDrawCount
          * @param stride The byte stride between successive sets of draw parameters.
+         * @param firstCommandOffset Offset in bytes of the first command
          */
         virtual void drawIndexedIndirect(
             const Buffer& buffer,
@@ -2104,6 +2109,7 @@ export namespace vireo {
          * @param offset The byte offset into the buffer where parameters begin.
          * @param maxDrawCount The maximum number of draws that will be executed. The actual number of executed draw calls is the minimum of the count specified in countBuffer and maxDrawCount
          * @param stride The byte stride between successive sets of draw parameters.
+         * @param firstCommandOffset Offset in bytes of the first command
          */
         void drawIndexedIndirect(
             const std::shared_ptr<Buffer>& buffer,
