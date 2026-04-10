@@ -4,8 +4,33 @@
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT
 #
-function(compile_options TARGET_NAME )
-    if(MSVC)
+function(vireo_compile_options TARGET_NAME)
+    set_target_properties(${TARGET_NAME}  PROPERTIES
+        CXX_STANDARD 23
+        CXX_STANDARD_REQUIRED ON
+        CXX_EXTENSIONS OFF
+    )
+    if(NOT CMAKE_BUILD_TYPE)
+        set(CMAKE_BUILD_TYPE Release CACHE INTERNAL "")
+    endif()
+    if (WIN32)
+        add_compile_definitions(WIN32_LEAN_AND_MEAN UNICODE _UNICODE NOMINMAX)
+        if (DIRECTX_BACKEND)
+            add_compile_definitions(DIRECTX_BACKEND)
+            target_link_libraries(${TARGET_NAME} Xinput dinput8 dxguid dxgi d3d12 d3dcompiler uuid )
+        endif ()
+        if(MINGW)
+            target_link_options(${TARGET_NAME} PRIVATE "-mwindows")
+        endif()
+        set_target_properties(${TARGET_NAME} PROPERTIES  WIN32_EXECUTABLE TRUE)
+    elseif (LINUX AND NOT APPLE)
+        if (USE_SDL3)
+            add_compile_definitions(USE_SDL3)
+        endif ()
+    endif ()
+    if (MSVC)
+        set(USE_STATIC_MSVC_RUNTIME_LIBRARY ON CACHE INTERNAL "")
+        target_compile_options(${TARGET_NAME} PRIVATE )
         target_compile_options(${TARGET_NAME} PRIVATE
                 /nologo
                 /W2
@@ -17,6 +42,7 @@ function(compile_options TARGET_NAME )
                 /D_UNICODE
                 /DWIN32_LEAN_AND_MEAN
                 /DNOMINMAX
+                /wd4291  # for Flecs 'new' placement operator
         )
         if (CMAKE_BUILD_TYPE STREQUAL "Debug")
             target_compile_options(${TARGET_NAME} PRIVATE
@@ -55,12 +81,22 @@ function(compile_options TARGET_NAME )
         target_compile_options(${TARGET_NAME} PRIVATE
                 -Wno-deprecated-declarations
                 -Wno-nullability-completeness
+                -Wno-unused-command-line-argument
+                -Wno-inconsistent-missing-override
                 -Werror
                 -pthread
         )
+        include(CheckCXXCompilerFlag)
+        if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 22)
+            check_cxx_compiler_flag(-Wno-TU-local-entity-exposure HAS_WNO_TU_LOCAL)
+            if (HAS_WNO_TU_LOCAL)
+                target_compile_options(${TARGET_NAME} PRIVATE -Wno-TU-local-entity-exposure)
+            endif()
+        endif()
         if(WIN32)
             target_link_libraries(${TARGET_NAME} -static)
         else()
+            target_compile_options(${TARGET_NAME} PRIVATE -stdlib=libc++)
             target_link_options(${TARGET_NAME} PRIVATE -stdlib=libc++)
         endif ()
         if (CMAKE_BUILD_TYPE STREQUAL "Debug")

@@ -15,6 +15,26 @@ import vireo.directx.pipelines;
 
 export namespace vireo {
 
+    class DXQueryPool : public QueryPool {
+    public:
+        DXQueryPool(
+            const ComPtr<ID3D12Device>& device,
+            const ComPtr<ID3D12CommandQueue>& commandQueue,
+            uint32_t capacity,
+            const std::string& name);
+
+        std::vector<uint64_t> getResults(uint32_t firstQuery, uint32_t queryCount) const override;
+
+        auto getHeap()           const { return queryHeap.Get(); }
+        auto getReadbackBuffer() const { return readbackBuffer.Get(); }
+
+    private:
+        ComPtr<ID3D12QueryHeap>  queryHeap;
+        ComPtr<ID3D12Resource>   readbackBuffer;
+        void*                    mappedPtr{nullptr};
+        UINT64                   bufferSize{0};
+    };
+
     class DXFence : public Fence {
     public:
         DXFence(const ComPtr<ID3D12Device>& device);
@@ -300,6 +320,10 @@ export namespace vireo {
             const std::shared_ptr<const PipelineResources>& pipelineResources,
             const PushConstantsDesc& pushConstants,
             const void* data) const override;
+
+        void writeTimestamp(const QueryPool& queryPool, uint32_t queryIndex) override;
+
+        void resolveQueryPool(const QueryPool& queryPool, uint32_t firstQuery, uint32_t queryCount) override;
 
         void cleanup() override;
 

@@ -17,6 +17,31 @@ import vireo.vulkan.resources;
 
 export namespace vireo {
 
+    class VKQueryPool : public QueryPool {
+    public:
+        VKQueryPool(
+            const std::shared_ptr<const VKDevice>& device,
+            uint32_t capacity,
+            const std::string& name);
+
+        ~VKQueryPool() override;
+
+        std::vector<uint64_t> getResults(uint32_t firstQuery, uint32_t queryCount) const override;
+
+        auto getQueryPool() const { return queryPool; }
+
+        // Host-visible buffer where vkCmdCopyQueryPoolResults writes results
+        auto getReadbackBuffer() const { return readbackBuffer; }
+
+    private:
+        const VkDevice device;
+        VkQueryPool    queryPool{VK_NULL_HANDLE};
+        VkBuffer       readbackBuffer{VK_NULL_HANDLE};
+        VkDeviceMemory readbackMemory{VK_NULL_HANDLE};
+        void*          mappedPtr{nullptr};
+        VkDeviceSize   bufferSize{0};
+    };
+
     class VKFence : public Fence {
     public:
         VKFence(bool createSignaled, const std::shared_ptr<const VKDevice>& device, const std::string& name);
@@ -307,6 +332,10 @@ export namespace vireo {
             const std::shared_ptr<const PipelineResources>& pipelineResources,
             const PushConstantsDesc& pushConstants,
             const void* data) const override;
+
+        void writeTimestamp(const QueryPool& queryPool, uint32_t queryIndex) override;
+
+        void resolveQueryPool(const QueryPool& queryPool, uint32_t firstQuery, uint32_t queryCount) override;
 
         auto getCommandBuffer() const { return commandBuffer; }
 

@@ -79,7 +79,7 @@ namespace vireo {
         }
     }
 
-    VKInstance::VKInstance(const DebugCallback debugCallback) {
+    VKInstance::VKInstance(const BackendConfiguration& config) {
         if (!vulkanInitialize()) {
             throw Exception("Failed to initialize Vulkan!");
         }
@@ -101,9 +101,11 @@ namespace vireo {
                 }
             }
             if (!layerFound) {
+#ifdef _DEBUG
                 if (layerName == validationLayerName) {
                     throw Exception("Vulkan validation layer not found, please install the 'vulkan-validation-layers' package");
                 }
+#endif
                 throw Exception("A requested Vulkan layer is not supported");
             }
         }
@@ -125,18 +127,56 @@ namespace vireo {
 #endif
 #ifdef _DEBUG
         instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        instanceExtensions.push_back(VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME);
+        if (!config.vulkanFilteredValidationMessages.empty()) {
+            instanceExtensions.push_back(VK_EXT_LAYER_SETTINGS_EXTENSION_NAME);
+        }
 #endif
         constexpr VkApplicationInfo applicationInfo{
             .sType      = VK_STRUCTURE_TYPE_APPLICATION_INFO,
             .apiVersion = VK_API_VERSION_1_3};
-        const VkInstanceCreateInfo createInfo = {VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-                                                 nullptr,
-                                                 0,
-                                                 &applicationInfo,
-                                                 static_cast<uint32_t>(requestedLayers.size()),
-                                                 requestedLayers.data(),
-                                                 static_cast<uint32_t>(instanceExtensions.size()),
-                                                 instanceExtensions.data()};
+
+        void* pNext = nullptr;
+#ifdef _DEBUG
+        constexpr VkValidationFeatureEnableEXT enables[] = {
+            VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT
+        };
+        auto validationFeatures = VkValidationFeaturesEXT{
+            .sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT,
+            .pNext = nullptr,
+            .enabledValidationFeatureCount = 1,
+            .pEnabledValidationFeatures = enables
+        };
+        if (!config.vulkanFilteredValidationMessages.empty()) {
+            const VkLayerSettingEXT layerSettings[] = {
+                {
+                    .pLayerName   = "VK_LAYER_KHRONOS_validation",
+                    .pSettingName = "message_id_filter",
+                    .type         = VK_LAYER_SETTING_TYPE_STRING_EXT,
+                    .valueCount   = static_cast<uint32_t>(config.vulkanFilteredValidationMessages.size()),
+                    .pValues      = config.vulkanFilteredValidationMessages.data(),
+                },
+            };
+            const VkLayerSettingsCreateInfoEXT layerSettingsInfo{
+                .sType        = VK_STRUCTURE_TYPE_LAYER_SETTINGS_CREATE_INFO_EXT,
+                .pNext        = nullptr,
+                .settingCount = static_cast<uint32_t>(std::size(layerSettings)),
+                .pSettings    = layerSettings,
+            };
+            validationFeatures.pNext = &layerSettingsInfo;
+        }
+        pNext = (void*)&validationFeatures;
+#endif
+
+        const VkInstanceCreateInfo createInfo = {
+            VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+            pNext,
+            0,
+            &applicationInfo,
+            static_cast<uint32_t>(requestedLayers.size()),
+            requestedLayers.data(),
+            static_cast<uint32_t>(instanceExtensions.size()),
+instanceExtensions.data()};
         vkCheck(vkCreateInstance(&createInfo, nullptr, &instance));
         vulkanInitializeInstance(instance);
 
@@ -153,7 +193,7 @@ namespace vireo {
                 VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
                 VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
             .pfnUserCallback = VKDebugCallback,
-            .pUserData = reinterpret_cast<void*>(debugCallback),
+            .pUserData = reinterpret_cast<void*>(config.debugCallback),
         };
         vkCheck(CreateDebugUtilsMessengerEXT(instance, &debugCreateInfo, nullptr, &debugMessenger));
 #endif
@@ -407,7 +447,9 @@ namespace vireo {
         return result;
     }
 
-    VKDevice::VKDevice(const VKPhysicalDevice& physicalDevice, const std::vector<const char *>& requestedLayers):
+    VKDevice::VKDevice(
+        const VKPhysicalDevice& physicalDevice,
+        const std::vector<const char *>& requestedLayers):
         physicalDevice{physicalDevice} {
          /// Select command queues
         std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;

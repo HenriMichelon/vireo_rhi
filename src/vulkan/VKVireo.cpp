@@ -15,8 +15,8 @@ import vireo.vulkan.tools;
 
 namespace vireo {
 
-    VKVireo::VKVireo(DebugCallback debugCallback ) {
-        instance = std::make_shared<VKInstance>(debugCallback);
+    VKVireo::VKVireo(const BackendConfiguration& config) {
+        instance = std::make_shared<VKInstance>(config);
         physicalDevice = std::make_shared<VKPhysicalDevice>(getVKInstance()->getInstance());
         device = std::make_shared<VKDevice>(*getVKPhysicalDevice(), getVKInstance()->getRequestedLayers());
     }
@@ -242,6 +242,12 @@ namespace vireo {
             getVKDevice(),
             minFilter, magFilter, addressModeU, addressModeV, addressModeW,
             minLod, maxLod, anisotropyEnable, mipMapMode, compareOp);
+    }
+
+    std::shared_ptr<QueryPool> VKVireo::createQueryPool(
+        const uint32_t capacity,
+        const std::string& name) const {
+        return std::make_shared<VKQueryPool>(getVKDevice(), capacity, name);
     }
 
 }

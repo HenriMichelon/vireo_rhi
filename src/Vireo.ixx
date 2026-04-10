@@ -25,7 +25,6 @@ export namespace vireo {
     using int64_t  = std::int64_t;
     using size_t   = std::size_t;
 
-
     /**
      * Type of supported backends
      *
@@ -1630,6 +1629,47 @@ export namespace vireo {
         size_t size;
     };
 
+
+    /**
+     * A GPU timestamp query pool, used for GPU-side performance profiling.
+     */
+    class QueryPool : public std::enable_shared_from_this<QueryPool> {
+    public:
+        /**
+         * Returns the maximum number of timestamp slots in this pool.
+         */
+        auto getCapacity() const { return capacity; }
+
+        /**
+         * Returns the period (in milliseconds) of one GPU clock tick.
+         * Multiply a raw tick difference by this value to get a duration in ms.
+         */
+        auto getTimestampPeriodMs() const { return timestampPeriodMs; }
+
+        /**
+         * Reads back resolved timestamp values from the host-visible buffer.
+         * @param firstQuery Index of the first query slot to read.
+         * @param queryCount Number of consecutive slots to read.
+         * @return A vector of raw 64-bit GPU tick values. Convert to ms with getTimestampPeriodMs().
+         *
+         * @note Must only be called after the command list containing the matching
+         *       resolveQueryPool() call has fully finished executing on the GPU
+         *       (i.e. after the associated Fence has been signaled).
+         */
+        virtual std::vector<uint64_t> getResults(uint32_t firstQuery, uint32_t queryCount) const = 0;
+
+        virtual ~QueryPool() = default;
+        QueryPool(const QueryPool&) = delete;
+        QueryPool& operator=(const QueryPool&) = delete;
+
+    protected:
+        QueryPool(const uint32_t capacity, const double timestampPeriodMs)
+            : capacity{capacity}, timestampPeriodMs{timestampPeriodMs} {}
+
+        uint32_t capacity;
+        double   timestampPeriodMs;
+    };
+
     /**
      * A command list (buffer) object
      *
@@ -2023,6 +2063,7 @@ export namespace vireo {
          * @param offset The byte offset into the buffer where parameters begin.
          * @param drawCount The number of draws to execute, and can be zero.
          * @param stride The byte stride between successive sets of draw parameters.
+         * @param firstCommandOffset Offset in bytes of the first command
          */
         virtual void drawIndirect(
             const Buffer& buffer,
@@ -2037,6 +2078,7 @@ export namespace vireo {
          * @param offset The byte offset into the buffer where parameters begin.
          * @param drawCount The number of draws to execute, and can be zero.
          * @param stride The byte stride between successive sets of draw parameters.
+         * @param firstCommandOffset Offset in bytes of the first command
          */
         void drawIndirect(
             const std::shared_ptr<Buffer>& buffer,
@@ -2055,6 +2097,7 @@ export namespace vireo {
          * @param countOffset The byte offset into `countBuffer` where the draw count begins.
          * @param maxDrawCount The maximum number of draws that will be executed. The actual number of executed draw calls is the minimum of the count specified in countBuffer and maxDrawCount
          * @param stride The byte stride between successive sets of draw parameters.
+         * @param firstCommandOffset Offset in bytes of the first command
          */
         virtual void drawIndexedIndirectCount(
             Buffer& buffer,
@@ -2073,6 +2116,7 @@ export namespace vireo {
          * @param countOffset The byte offset into `countBuffer` where the draw count begins.
          * @param maxDrawCount The maximum number of draws that will be executed. The actual number of executed draw calls is the minimum of the count specified in countBuffer and maxDrawCount
          * @param stride The byte stride between successive sets of draw parameters.
+         * @param firstCommandOffset Offset in bytes of the first command
          */
         void drawIndexedIndirectCount(
             const std::shared_ptr<Buffer>& buffer,
@@ -2091,6 +2135,7 @@ export namespace vireo {
          * @param offset The byte offset into the buffer where parameters begin.
          * @param maxDrawCount The maximum number of draws that will be executed. The actual number of executed draw calls is the minimum of the count specified in countBuffer and maxDrawCount
          * @param stride The byte stride between successive sets of draw parameters.
+         * @param firstCommandOffset Offset in bytes of the first command
          */
         virtual void drawIndexedIndirect(
             const Buffer& buffer,
@@ -2105,6 +2150,7 @@ export namespace vireo {
          * @param offset The byte offset into the buffer where parameters begin.
          * @param maxDrawCount The maximum number of draws that will be executed. The actual number of executed draw calls is the minimum of the count specified in countBuffer and maxDrawCount
          * @param stride The byte stride between successive sets of draw parameters.
+         * @param firstCommandOffset Offset in bytes of the first command
          */
         void drawIndexedIndirect(
             const std::shared_ptr<Buffer>& buffer,
@@ -2207,6 +2253,30 @@ export namespace vireo {
             const Buffer& buffer,
             ResourceState oldState,
             ResourceState newState) const = 0;
+
+        /**
+         * Records a GPU timestamp into a query pool slot at the top-of-pipe stage.
+         *
+         * @param queryPool The pool to write into.
+         * @param queryIndex Slot index within the pool (must be < pool capacity).
+         *
+         * @note Always call resolveQueryPool() after all writeTimestamp() calls
+         *       in the same command list, before the list is submitted.
+         */
+        virtual void writeTimestamp(const QueryPool& queryPool, uint32_t queryIndex) = 0;
+
+        /**
+         * Copies a contiguous range of timestamp slots from a query pool into its
+         * internal host-visible readback buffer so the CPU can read the results.
+         *
+         * @param queryPool   The pool to resolve.
+         * @param firstQuery  Index of the first slot to resolve.
+         * @param queryCount  Number of consecutive slots to resolve.
+         *
+         * @note This command must be recorded in the same command list (and after)
+         *       all writeTimestamp() calls for the resolved range.
+         */
+        virtual void resolveQueryPool(const QueryPool& queryPool, uint32_t firstQuery, uint32_t queryCount) = 0;
 
         /**
          * Cleanup staging buffers used by `upload` functions
@@ -2575,6 +2645,14 @@ export namespace vireo {
 
     using DebugCallback = void(*)(DebugLevel, const std::string&);
 
+    struct BackendConfiguration {
+        Backend backend = Backend::VULKAN;
+        DebugCallback debugCallback = nullptr;
+        std::vector<const char*> vulkanFilteredValidationMessages = { };
+        uint32_t directX12MaxDescriptors = 3000;
+        uint32_t directX12MaxSamplers = 100;
+    };
+
     /**
      * Main abstraction class.
      *
@@ -2585,11 +2663,7 @@ export namespace vireo {
         /**
          * Creates a new Vireo class using the given backend.
          */
-        static std::shared_ptr<Vireo> create(
-            Backend backend,
-            DebugCallback debugCallback = nullptr,
-            uint32_t maxDirectX12Descriptors = 3000,
-            uint32_t maxDirectX12Samplers = 100);
+        static std::shared_ptr<Vireo> create(const BackendConfiguration& configuration = {});
 
         virtual void waitIdle() {}
 
@@ -2819,26 +2893,43 @@ export namespace vireo {
             const std::string& name = "DescriptorSet") const = 0;
 
         /**
+         * Creates a GPU timestamp query pool for performance profiling.
+         * @param capacity  Maximum number of timestamp slots.
+         *                  Must be even when using begin/end pairs (slot N = begin, N+1 = end).
+         * @param name      Object name for debug tools.
+         */
+        virtual std::shared_ptr<QueryPool> createQueryPool(
+            uint32_t capacity,
+            const std::string& name = "QueryPool") const = 0;
+
+        /**
          * Creates a texture sampler.
          */
-        virtual std::shared_ptr<Sampler> createSampler(Filter minFilter,
-                                                  Filter magFilter,
-                                                  AddressMode addressModeU,
-                                                  AddressMode addressModeV,
-                                                  AddressMode addressModeW,
-                                                  float minLod = 0.0f,
-                                                  float maxLod = Sampler::LOD_CLAMP_NONE,
-                                                  bool anisotropyEnable = true,
-                                                  MipMapMode mipMapMode = MipMapMode::LINEAR,
-                                                  CompareOp compareOp = CompareOp::NEVER) const = 0;
+        virtual std::shared_ptr<Sampler> createSampler(
+            Filter minFilter,
+            Filter magFilter,
+            AddressMode addressModeU,
+            AddressMode addressModeV,
+            AddressMode addressModeW,
+            float minLod = 0.0f,
+            float maxLod = Sampler::LOD_CLAMP_NONE,
+            bool anisotropyEnable = true,
+            MipMapMode mipMapMode = MipMapMode::LINEAR,
+            CompareOp compareOp = CompareOp::NEVER) const = 0;
 
         /**
          * Returns `true` if the backend API is supported
          */
         static bool isBackendSupported(Backend backend);
 
+        /**
+         * Returns the compiled shader file name extension
+         */
         virtual std::string getShaderFileExtension() const = 0;
 
+        /**
+         * Returns the current backend
+         */
         virtual Backend getBackend() const = 0;
 
         /**
@@ -2846,8 +2937,14 @@ export namespace vireo {
          */
         auto getPhysicalDevice() const { return physicalDevice; }
 
+        /**
+         * Returns the logical device object
+         */
         auto getDevice() const { return device; }
 
+        /**
+         * Returns the backend  object
+         */
         auto getInstance() const { return instance; }
 
         virtual ~Vireo() = default;

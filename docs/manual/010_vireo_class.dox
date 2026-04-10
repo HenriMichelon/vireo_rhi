@@ -6,14 +6,15 @@ application.
 
 The starting point for using Vireo is to import the `vireo` module then create an instance of this class by calling the
 \ref vireo::Vireo::create static method.
-This method takes the \ref vireo::Backend "Backend" you want to use, DirectX or Vulkan :
+This method takes a \ref vireo::BackendConfiguration object as parameter :
 
 \code{.cpp}
 import vireo;
 
 ...
-
-auto vireo = vireo::Vireo::create(vireo::Backend::VULKAN);
+auto configuration = vireo::BackendConfiguration{};
+configuration.backend = vireo::Backend::VULKAN;
+auto vireo = vireo::Vireo::create(configuration);
 
 \endcode
 

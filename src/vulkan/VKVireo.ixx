@@ -18,7 +18,7 @@ export namespace vireo {
 
     class VKVireo : public Vireo {
     public:
-        VKVireo(DebugCallback debugCallback);
+        VKVireo(const BackendConfiguration& config);
 
         void waitIdle() override;
 
@@ -134,6 +134,10 @@ export namespace vireo {
             bool anisotropyEnable,
             MipMapMode mipMapMode,
             CompareOp compareOp) const override;
+
+        std::shared_ptr<QueryPool> createQueryPool(
+            uint32_t capacity,
+            const std::string& name) const override;
 
         constexpr std::string getShaderFileExtension() const override {
             return ".spv";

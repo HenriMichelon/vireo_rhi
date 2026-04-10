@@ -16,7 +16,7 @@ export namespace vireo {
 
     class DXVireo : public Vireo {
     public:
-        DXVireo(uint32_t maxDescriptors, uint32_t maxSamplers);
+        DXVireo(const BackendConfiguration& config);
 
         std::shared_ptr<SwapChain> createSwapChain(
             ImageFormat format,
@@ -129,6 +129,10 @@ export namespace vireo {
            bool anisotropyEnable,
            MipMapMode mipMapMode,
            CompareOp compareOp) const override;
+
+        std::shared_ptr<QueryPool> createQueryPool(
+            uint32_t capacity,
+            const std::string& name) const override;
 
         constexpr std::string getShaderFileExtension() const override {
             return ".dxil";

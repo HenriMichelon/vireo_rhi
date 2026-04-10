@@ -13,11 +13,23 @@ module;
 export module vireo.platform;
 
 export namespace vireo {
+
+    enum class Platform {
+        WINDOWS = 0,
+        LINUX = 1,
+    };
+
 #ifdef _WIN32
     using PlatformWindowHandle = HWND;
+    consteval Platform getPlatform() { return Platform::WINDOWS; }
 #elifdef USE_SDL3
     using PlatformWindowHandle = SDL_Window*;
 #else
     using PlatformWindowHandle = void*;
 #endif
+
+#ifdef __linux__
+    consteval Platform getPlatform() { return Platform::LINUX; }
+#endif
+
 }

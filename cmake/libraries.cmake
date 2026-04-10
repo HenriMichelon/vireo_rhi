@@ -37,7 +37,7 @@ if (USE_SDL3)
     FetchContent_Declare(
             SDL3
             GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-            GIT_TAG        release-3.4.0
+            GIT_TAG        release-3.4.4
     )
     set(SDL_SHARED OFF CACHE BOOL "" FORCE)
     set(SDL_STATIC ON  CACHE BOOL "" FORCE)

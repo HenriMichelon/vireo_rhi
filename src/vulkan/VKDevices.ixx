@@ -15,7 +15,7 @@ export namespace vireo {
 
     class VKInstance : public Instance {
     public:
-        VKInstance(DebugCallback debugCallback);
+        VKInstance(const BackendConfiguration& config);
 
         ~VKInstance() override;
 
@@ -115,7 +115,9 @@ export namespace vireo {
 
     class VKDevice : public Device {
     public:
-        VKDevice(const VKPhysicalDevice& physicalDevice, const std::vector<const char *>& requestedLayers);
+        VKDevice(
+            const VKPhysicalDevice& physicalDevice,
+            const std::vector<const char *>& requestedLayers);
         ~VKDevice() override;
 
         inline auto getDevice() const { return device; }

@@ -12,11 +12,17 @@ if(MSVC)
     set(STD_BASE_DIR ${COMPILER_DIR}/../../../modules)
     set(STD_EXTENSION ixx)
 else()
-    set(STD_BASE_DIR ${COMPILER_DIR}/../share/libc++/v1)
     set(STD_EXTENSION cppm)
-    if(UNIX AND NOT APPLE)
+    if(EXISTS /usr/share/libc++/v1)
+        set(STD_BASE_DIR /usr/share/libc++/v1)
+    else()
+        set(STD_BASE_DIR ${COMPILER_DIR}/../share/libc++/v1)
+    endif()
+    if(EXISTS /usr/include/c++/v1)
+        set(STD_INCLUDE_DIR /usr/include/c++/v1)
+    else()
         set(STD_INCLUDE_DIR ${COMPILER_DIR}/../include/c++/v1)
-    endif ()
+    endif()
 endif()
 
 # compile the std library
@@ -29,6 +35,11 @@ target_sources(std-cxx-modules
         FILES
         ${STD_BASE_DIR}/std.${STD_EXTENSION}
         ${STD_BASE_DIR}/std.compat.${STD_EXTENSION})
+set_target_properties(std-cxx-modules PROPERTIES
+    CXX_STANDARD 23
+    CXX_STANDARD_REQUIRED ON
+    CXX_EXTENSIONS OFF
+)
 
 if(MSVC)
     target_compile_options(std-cxx-modules PRIVATE
@@ -62,6 +73,7 @@ else()
             -Wno-reserved-module-identifier
             -Wno-reserved-user-defined-literal
             -pthread
+            -std=c++23
     )
     if (CMAKE_BUILD_TYPE STREQUAL "Debug")
         target_compile_options(std-cxx-modules PRIVATE

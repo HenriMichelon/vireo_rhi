@@ -15,18 +15,18 @@ import vireo.directx.swapchains;
 
 namespace vireo {
 
-    DXVireo::DXVireo(const uint32_t maxDescriptors, const uint32_t maxSamplers)  {
+    DXVireo::DXVireo(const BackendConfiguration& config)  {
         instance = std::make_shared<DXInstance>();
         physicalDevice = std::make_shared<DXPhysicalDevice>(getDXInstance()->getFactory());
         device = std::make_shared<DXDevice>(getDXPhysicalDevice()->getHardwareAdapter());
         cbvSrvUavDescriptorHeap = std::make_shared<DXDescriptorHeap>(
             getDXDevice()->getDevice(),
             D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-            maxDescriptors);
+            config.directX12MaxDescriptors);
         samplerDescriptorHeap = std::make_shared<DXDescriptorHeap>(
             getDXDevice()->getDevice(),
             D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,
-            maxSamplers);
+            config.directX12MaxSamplers);
     }
 
     std::shared_ptr<SwapChain> DXVireo::createSwapChain(
@@ -252,6 +252,20 @@ namespace vireo {
             getDXDevice()->getDevice(),
             type,
             std::vector{cbvSrvUavDescriptorHeap, samplerDescriptorHeap});
+    }
+
+    std::shared_ptr<QueryPool> DXVireo::createQueryPool(
+        const uint32_t capacity,
+        const std::string& name) const {
+
+        const auto& dxDevice = getDXDevice()->getDevice();
+        const D3D12_COMMAND_QUEUE_DESC queueDesc{
+            .Type  = D3D12_COMMAND_LIST_TYPE_DIRECT,
+            .Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
+        };
+        ComPtr<ID3D12CommandQueue> tempQueue;
+        dxDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&tempQueue));
+        return std::make_shared<DXQueryPool>(dxDevice, tempQueue, capacity, name);
     }
 
 }

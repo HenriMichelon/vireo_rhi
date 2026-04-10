@@ -21,6 +21,25 @@ Vireo RHI is an open-source library written in modern C++ that implements a comm
 
 **Note**: This library is a work-in-progress and functionalities are added as needed by dependent projects (such as [Lysa Engine](https://github.com/LysaEngine)).
 
+## Documentation
+
+### Official documentation
+- **User Documentation**: [https://henrimichelon.github.io/Vireo](https://henrimichelon.github.io/Vireo)
+- **Hello Triangle Tutorial**: [https://henrimichelon.github.io/Vireo/gs_020_tutorial_1.html](https://henrimichelon.github.io/Vireo/gs_020_tutorial_1.html)
+
+### Samples
+
+Check out the [Vireo Samples](https://github.com/HenriMichelon/vireo_samples) repository for practical examples.
+
+### Articles
+
+| Article                                        | Language |
+|:-----------------------------------------------| :--- |
+| What is Vireo RHI?                             | [🇫🇷 French](https://henrimichelon.github.io/Articles/fr/vireo_rhi.html) / [🇺🇸 English](https://henrimichelon.github.io/Articles/en/vireo_rhi.html) 
+| Example of TAA implementation with Vireo RHI   | [🇫🇷 French](https://henrimichelon.github.io/Articles/fr/taa_vireo_rhi.html) / [🇺🇸 English](https://henrimichelon.github.io/Articles/en/taa_vireo_rhi.html) |
+| Example of SMAA implementation with Vireo RHI  | [🇫🇷 French](https://henrimichelon.github.io/Articles/fr/smaa_vireo_rhi.html) / [🇺🇸 English](https://henrimichelon.github.io/Articles/en/smaa_vireo_rhi.html) |
+
+
 ## Getting Started
 
 ### Prerequisites
@@ -29,7 +48,13 @@ Vireo supports Microsoft Windows and Linux (X11 & Wayland).
 
 - C++23 compiler with std module support (for windows : MSVC 19+, [LLVM+MingW 21+](https://github.com/mstorsjo/llvm-mingw/releases), for Linux : LLVM 21+).
 - CMake 3.29+ with a build tool like Ninja
-- Vulkan SDK (1.3+) (For Linux install the optional `vulkan-validation-layers` package)
+- Vulkan SDK (1.3+) 
+
+For Linux the following packages are needed :
+- vulkan-validation-layers
+- LLVM
+- libc++
+You need manually install the last version of the Vulkan SDK and execute the `setup-env.sh` script from the Vulkan installation directory.
 
 ### Building
 
@@ -40,14 +65,6 @@ Vireo RHI is intended to be used as a submodule or a CMake subdirectory.
 - `DIRECTX_BACKEND`: Enable/Disable DirectX 12 support (Default: `ON` on Windows).
 - `LUA_BINDING`: Enable/Disable Lua bindings (Default: `OFF`).
 
-## Documentation
-
-- **User Documentation**: [https://henrimichelon.github.io/Vireo](https://henrimichelon.github.io/Vireo)
-- **Hello Triangle Tutorial**: [https://henrimichelon.github.io/Vireo/gs_020_tutorial_1.html](https://henrimichelon.github.io/Vireo/gs_020_tutorial_1.html)
-
-## Samples
-
-Check out the [Vireo Samples](https://github.com/HenriMichelon/vireo_samples) repository for practical examples.
 
 ## License
 
