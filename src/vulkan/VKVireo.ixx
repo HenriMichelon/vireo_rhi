@@ -135,6 +135,10 @@ export namespace vireo {
             MipMapMode mipMapMode,
             CompareOp compareOp) const override;
 
+        std::shared_ptr<QueryPool> createQueryPool(
+            uint32_t capacity,
+            const std::string& name) const override;
+
         constexpr std::string getShaderFileExtension() const override {
             return ".spv";
         }

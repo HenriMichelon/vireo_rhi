@@ -244,4 +244,10 @@ namespace vireo {
             minLod, maxLod, anisotropyEnable, mipMapMode, compareOp);
     }
 
+    std::shared_ptr<QueryPool> VKVireo::createQueryPool(
+        const uint32_t capacity,
+        const std::string& name) const {
+        return std::make_shared<VKQueryPool>(getVKDevice(), capacity, name);
+    }
+
 }

@@ -1332,4 +1332,73 @@ namespace vireo {
         }
     }
 
+    DXQueryPool::DXQueryPool(
+        const ComPtr<ID3D12Device>& device,
+        const ComPtr<ID3D12CommandQueue>& commandQueue,
+        const uint32_t capacity,
+        const std::string& name)
+        : QueryPool{capacity, 0.0} {
+
+        UINT64 gpuFrequency = 0;
+        commandQueue->GetTimestampFrequency(&gpuFrequency);
+        timestampPeriodMs = gpuFrequency > 0 ? 1000.0 / static_cast<double>(gpuFrequency) : 0.0;
+
+        const D3D12_QUERY_HEAP_DESC heapDesc{
+            .Type  = D3D12_QUERY_HEAP_TYPE_TIMESTAMP,
+            .Count = capacity,
+        };
+        device->CreateQueryHeap(&heapDesc, IID_PPV_ARGS(&queryHeap));
+    #ifdef _DEBUG
+        const std::wstring wname(name.begin(), name.end());
+        queryHeap->SetName(wname.c_str());
+    #endif
+
+        bufferSize = static_cast<UINT64>(capacity) * sizeof(UINT64);
+        const auto heapProps = D3D12_HEAP_PROPERTIES{
+            .Type = D3D12_HEAP_TYPE_READBACK,
+        };
+        const auto bufDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
+        device->CreateCommittedResource(
+            &heapProps,
+            D3D12_HEAP_FLAG_NONE,
+            &bufDesc,
+            D3D12_RESOURCE_STATE_COPY_DEST,
+            nullptr,
+            IID_PPV_ARGS(&readbackBuffer));
+
+        readbackBuffer->Map(0, nullptr, &mappedPtr);
+    }
+
+    std::vector<uint64_t> DXQueryPool::getResults(
+        const uint32_t firstQuery,
+        const uint32_t queryCount) const {
+
+        std::vector<uint64_t> results(queryCount);
+        if (mappedPtr && queryCount > 0) {
+            const auto* src = static_cast<const uint64_t*>(mappedPtr) + firstQuery;
+            std::copy(src, src + queryCount, results.begin());
+        }
+        return results;
+    }
+
+    void DXCommandList::writeTimestamp(const QueryPool& queryPool, const uint32_t queryIndex) {
+        const auto& dxPool = static_cast<const DXQueryPool&>(queryPool);
+        commandList->EndQuery(dxPool.getHeap(), D3D12_QUERY_TYPE_TIMESTAMP, queryIndex);
+    }
+
+    void DXCommandList::resolveQueryPool(
+        const QueryPool& queryPool,
+        const uint32_t firstQuery,
+        const uint32_t queryCount) {
+
+        const auto& dxPool = static_cast<const DXQueryPool&>(queryPool);
+        commandList->ResolveQueryData(
+            dxPool.getHeap(),
+            D3D12_QUERY_TYPE_TIMESTAMP,
+            firstQuery,
+            queryCount,
+            dxPool.getReadbackBuffer(),
+            static_cast<UINT64>(firstQuery) * sizeof(UINT64));
+    }
+
 }

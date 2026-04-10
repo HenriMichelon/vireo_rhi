@@ -1629,6 +1629,47 @@ export namespace vireo {
         size_t size;
     };
 
+
+    /**
+     * A GPU timestamp query pool, used for GPU-side performance profiling.
+     */
+    class QueryPool : public std::enable_shared_from_this<QueryPool> {
+    public:
+        /**
+         * Returns the maximum number of timestamp slots in this pool.
+         */
+        auto getCapacity() const { return capacity; }
+
+        /**
+         * Returns the period (in milliseconds) of one GPU clock tick.
+         * Multiply a raw tick difference by this value to get a duration in ms.
+         */
+        auto getTimestampPeriodMs() const { return timestampPeriodMs; }
+
+        /**
+         * Reads back resolved timestamp values from the host-visible buffer.
+         * @param firstQuery Index of the first query slot to read.
+         * @param queryCount Number of consecutive slots to read.
+         * @return A vector of raw 64-bit GPU tick values. Convert to ms with getTimestampPeriodMs().
+         *
+         * @note Must only be called after the command list containing the matching
+         *       resolveQueryPool() call has fully finished executing on the GPU
+         *       (i.e. after the associated Fence has been signaled).
+         */
+        virtual std::vector<uint64_t> getResults(uint32_t firstQuery, uint32_t queryCount) const = 0;
+
+        virtual ~QueryPool() = default;
+        QueryPool(const QueryPool&) = delete;
+        QueryPool& operator=(const QueryPool&) = delete;
+
+    protected:
+        QueryPool(const uint32_t capacity, const double timestampPeriodMs)
+            : capacity{capacity}, timestampPeriodMs{timestampPeriodMs} {}
+
+        uint32_t capacity;
+        double   timestampPeriodMs;
+    };
+
     /**
      * A command list (buffer) object
      *
@@ -2212,6 +2253,30 @@ export namespace vireo {
             const Buffer& buffer,
             ResourceState oldState,
             ResourceState newState) const = 0;
+
+        /**
+         * Records a GPU timestamp into a query pool slot at the top-of-pipe stage.
+         *
+         * @param queryPool The pool to write into.
+         * @param queryIndex Slot index within the pool (must be < pool capacity).
+         *
+         * @note Always call resolveQueryPool() after all writeTimestamp() calls
+         *       in the same command list, before the list is submitted.
+         */
+        virtual void writeTimestamp(const QueryPool& queryPool, uint32_t queryIndex) = 0;
+
+        /**
+         * Copies a contiguous range of timestamp slots from a query pool into its
+         * internal host-visible readback buffer so the CPU can read the results.
+         *
+         * @param queryPool   The pool to resolve.
+         * @param firstQuery  Index of the first slot to resolve.
+         * @param queryCount  Number of consecutive slots to resolve.
+         *
+         * @note This command must be recorded in the same command list (and after)
+         *       all writeTimestamp() calls for the resolved range.
+         */
+        virtual void resolveQueryPool(const QueryPool& queryPool, uint32_t firstQuery, uint32_t queryCount) = 0;
 
         /**
          * Cleanup staging buffers used by `upload` functions
@@ -2826,6 +2891,16 @@ export namespace vireo {
         virtual std::shared_ptr<DescriptorSet> createDescriptorSet(
             const std::shared_ptr<const DescriptorLayout>& layout,
             const std::string& name = "DescriptorSet") const = 0;
+
+        /**
+         * Creates a GPU timestamp query pool for performance profiling.
+         * @param capacity  Maximum number of timestamp slots.
+         *                  Must be even when using begin/end pairs (slot N = begin, N+1 = end).
+         * @param name      Object name for debug tools.
+         */
+        virtual std::shared_ptr<QueryPool> createQueryPool(
+            uint32_t capacity,
+            const std::string& name = "QueryPool") const = 0;
 
         /**
          * Creates a texture sampler.

@@ -254,4 +254,18 @@ namespace vireo {
             std::vector{cbvSrvUavDescriptorHeap, samplerDescriptorHeap});
     }
 
+    std::shared_ptr<QueryPool> DXVireo::createQueryPool(
+        const uint32_t capacity,
+        const std::string& name) const {
+
+        const auto& dxDevice = getDXDevice()->getDevice();
+        const D3D12_COMMAND_QUEUE_DESC queueDesc{
+            .Type  = D3D12_COMMAND_LIST_TYPE_DIRECT,
+            .Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
+        };
+        ComPtr<ID3D12CommandQueue> tempQueue;
+        dxDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&tempQueue));
+        return std::make_shared<DXQueryPool>(dxDevice, tempQueue, capacity, name);
+    }
+
 }

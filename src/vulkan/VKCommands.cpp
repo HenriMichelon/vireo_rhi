@@ -1651,4 +1651,108 @@ namespace vireo {
         vkDestroySemaphore(device, semaphore, nullptr);
     }
 
+    VKQueryPool::VKQueryPool(
+        const std::shared_ptr<const VKDevice>& vkDevice,
+        const uint32_t capacity,
+        const std::string& name)
+        : QueryPool{
+            capacity,
+            static_cast<double>(vkDevice->getPhysicalDevice().getDeviceProperties().limits.timestampPeriod) / 1e6
+          },
+          device{vkDevice->getDevice()} {
+
+        const auto poolInfo = VkQueryPoolCreateInfo{
+            .sType      = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO,
+            .queryType  = VK_QUERY_TYPE_TIMESTAMP,
+            .queryCount = capacity,
+        };
+        vkCreateQueryPool(device, &poolInfo, nullptr, &queryPool);
+#ifdef _DEBUG
+        vkSetObjectName(device,
+            reinterpret_cast<uint64_t>(queryPool),
+            VK_OBJECT_TYPE_QUERY_POOL,
+            "VKQueryPool : " + name);
+#endif
+
+        bufferSize = static_cast<VkDeviceSize>(capacity) * sizeof(uint64_t);
+        const auto bufferInfo = VkBufferCreateInfo{
+            .sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+            .size        = bufferSize,
+            .usage       = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        };
+        vkCreateBuffer(device, &bufferInfo, nullptr, &readbackBuffer);
+
+        VkMemoryRequirements memReqs{};
+        vkGetBufferMemoryRequirements(device, readbackBuffer, &memReqs);
+
+        const uint32_t memType = vkDevice->getPhysicalDevice().findMemoryType(
+            memReqs.memoryTypeBits,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+        const auto allocInfo = VkMemoryAllocateInfo{
+            .sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+            .allocationSize  = memReqs.size,
+            .memoryTypeIndex = memType,
+        };
+        vkAllocateMemory(device, &allocInfo, nullptr, &readbackMemory);
+        vkBindBufferMemory(device, readbackBuffer, readbackMemory, 0);
+        vkMapMemory(device, readbackMemory, 0, bufferSize, 0, &mappedPtr);
+    }
+
+    VKQueryPool::~VKQueryPool() {
+        if (mappedPtr) {
+            vkUnmapMemory(device, readbackMemory);
+        }
+        if (readbackBuffer != VK_NULL_HANDLE) {
+            vkDestroyBuffer(device, readbackBuffer, nullptr);
+        }
+        if (readbackMemory != VK_NULL_HANDLE) {
+            vkFreeMemory(device, readbackMemory, nullptr);
+        }
+        if (queryPool != VK_NULL_HANDLE) {
+            vkDestroyQueryPool(device, queryPool, nullptr);
+        }
+    }
+
+    std::vector<uint64_t> VKQueryPool::getResults(
+        const uint32_t firstQuery,
+        const uint32_t queryCount) const {
+
+        std::vector<uint64_t> results(queryCount);
+        if (mappedPtr && queryCount > 0) {
+            const auto* src = static_cast<const uint64_t*>(mappedPtr) + firstQuery;
+            std::copy(src, src + queryCount, results.begin());
+        }
+        return results;
+    }
+
+    void VKCommandList::writeTimestamp(const QueryPool& queryPool, const uint32_t queryIndex) {
+        const auto& vkPool = static_cast<const VKQueryPool&>(queryPool);
+        // Reset the single slot before writing (required by Vulkan spec for host-reset)
+        vkCmdResetQueryPool(commandBuffer, vkPool.getQueryPool(), queryIndex, 1);
+        vkCmdWriteTimestamp(
+            commandBuffer,
+            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+            vkPool.getQueryPool(),
+            queryIndex);
+    }
+
+    void VKCommandList::resolveQueryPool(
+        const QueryPool& queryPool,
+        const uint32_t firstQuery,
+        const uint32_t queryCount) {
+
+        const auto& vkPool = static_cast<const VKQueryPool&>(queryPool);
+        vkCmdCopyQueryPoolResults(
+            commandBuffer,
+            vkPool.getQueryPool(),
+            firstQuery,
+            queryCount,
+            vkPool.getReadbackBuffer(),
+            static_cast<VkDeviceSize>(firstQuery) * sizeof(uint64_t),
+            sizeof(uint64_t),
+            VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
+    }
+
 }
