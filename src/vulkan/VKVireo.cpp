@@ -163,7 +163,7 @@ namespace vireo {
             const uint32_t arraySize,
             const MSAA msaa,
             const std::string& name) const {
-        return std::make_shared<RenderTarget>(
+        return std::make_shared<VKRenderTarget>(
             type,
             std::make_shared<VKImage>(
                 getVKDevice(),
@@ -185,7 +185,7 @@ namespace vireo {
         const ClearValue clearValue,
         MSAA msaa,
         const std::string& name) const {
-        return std::make_shared<RenderTarget>(
+        return std::make_shared<VKRenderTarget>(
             RenderTargetType::COLOR,
             std::make_shared<VKImage>(
                 getVKDevice(),

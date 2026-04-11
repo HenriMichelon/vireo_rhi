@@ -219,6 +219,8 @@ instanceExtensions.data()};
             VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
             // Pipelines dynamic states for IA & viewports
             VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME,
+            // Use gl_Layer in vertex shaders without geometry shader https://docs.vulkan.org/refpages/latest/refpages/source/VK_EXT_shader_viewport_index_layer.html
+            VK_EXT_SHADER_VIEWPORT_INDEX_LAYER_EXTENSION_NAME,
 #ifndef NDEBUG
             // To debugPrintEXT() from shaders :-)
             // See shader_debug_env.cmd for setup with environment variables
@@ -524,6 +526,8 @@ instanceExtensions.data()};
                 .drawIndirectCount = VK_TRUE,
                 .runtimeDescriptorArray = VK_TRUE,
                 .timelineSemaphore = VK_TRUE,
+                .shaderOutputViewportIndex = VK_TRUE,// VK_EXT_shader_viewport_index_layer
+                .shaderOutputLayer = VK_TRUE, // VK_EXT_shader_viewport_index_layer
             };
             const VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature{
                 .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR,
@@ -549,14 +553,15 @@ instanceExtensions.data()};
         }
     }
 
-    VkImageView VKDevice::createImageView(const VkImage            image,
-                                       const VkFormat           format,
-                                       const VkImageAspectFlags aspectFlags,
-                                       const uint32_t           mipLevels,
-                                       const VkImageViewType    type,
-                                       const uint32_t           baseArrayLayer,
-                                       const uint32_t           layers,
-                                       const uint32_t           baseMipLevel) const {
+    VkImageView VKDevice::createImageView(
+        const VkImage            image,
+        const VkFormat           format,
+        const VkImageAspectFlags aspectFlags,
+        const uint32_t           mipLevels,
+        const VkImageViewType    type,
+        const uint32_t           baseArrayLayer,
+        const uint32_t           layers,
+        const uint32_t           baseMipLevel) const {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Image_views
         const VkImageViewCreateInfo viewInfo{
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,

@@ -196,6 +196,8 @@ export namespace vireo {
 
         auto& getHandle() const { return handle; }
 
+        std::shared_ptr<RenderTarget> fromLayer(uint32_t imageLayer) override;
+
     private:
         ComPtr<ID3D12DescriptorHeap> heap;
         D3D12_CPU_DESCRIPTOR_HANDLE  handle;

@@ -173,8 +173,13 @@ namespace vireo {
         const bool        isDepthBuffer,
         const bool        isDepthBufferWithStencil,
         const MSAA        msaa):
-        Image{format, width, height, mipLevels, arraySize, useByComputeShader},
-        device{device} {
+        Image{format, width, height, mipLevels, arraySize, useByComputeShader, name},
+        device{device},
+        aspect{isDepthBuffer ?
+           isDepthBufferWithStencil ?
+           VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT:
+           VK_IMAGE_ASPECT_DEPTH_BIT :
+           VK_IMAGE_ASPECT_COLOR_BIT} {
         const VkImageUsageFlags usage =
             isRenderTarget ?
                 isDepthBuffer ?
@@ -228,15 +233,10 @@ namespace vireo {
         "VKImage Memory : " + name);
 #endif
 
-        const auto aspect = isDepthBuffer ?
-            isDepthBufferWithStencil ?
-            VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT:
-            VK_IMAGE_ASPECT_DEPTH_BIT :
-            VK_IMAGE_ASPECT_COLOR_BIT;
         const auto viewInfo = VkImageViewCreateInfo {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .image = image,
-            .viewType = arraySize == 6 ? VK_IMAGE_VIEW_TYPE_CUBE : VK_IMAGE_VIEW_TYPE_2D,
+            .viewType = arraySize == 6 ? VK_IMAGE_VIEW_TYPE_CUBE : arraySize > 1 ? VK_IMAGE_VIEW_TYPE_2D_ARRAY : VK_IMAGE_VIEW_TYPE_2D,
             .format = vkFormats[static_cast<int>(format)],
             .subresourceRange = {
                 .aspectMask = static_cast<uint32_t>(aspect),
@@ -347,4 +347,29 @@ namespace vireo {
         }
     }
 
+    std::shared_ptr<RenderTarget> VKRenderTarget::fromLayer(const uint32_t imageLayer) {
+        auto result = std::make_shared<VKRenderTarget>(getType(), getImage());
+        const auto vkImage = std::static_pointer_cast<VKImage>(getImage());
+        const auto viewInfo = VkImageViewCreateInfo {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+            .image = vkImage->getImage(),
+            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .format = VKImage::vkFormats[static_cast<int>(vkImage->getFormat())],
+            .subresourceRange = {
+                .aspectMask = static_cast<uint32_t>(vkImage->getAspect()),
+                .baseMipLevel = 0,
+                .levelCount = vkImage->getMipLevels(),
+                .baseArrayLayer = imageLayer,
+                .layerCount = 1
+            }
+        };
+        vkCheck(vkCreateImageView(vkImage->getDevice()->getDevice(), &viewInfo, nullptr, &result->imageView));
+        return result;
+    }
+
+    VKRenderTarget::~VKRenderTarget() {
+        if (imageView) {
+            vkDestroyImageView(std::static_pointer_cast<VKImage>(getImage())->getDevice()->getDevice(), imageView, nullptr);
+        }
+    }
 }

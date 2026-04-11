@@ -606,13 +606,17 @@ namespace vireo {
 
         auto colorAttachmentsInfo = std::vector<VkRenderingAttachmentInfo>(conf.colorRenderTargets.size());
         for (int i = 0; i < conf.colorRenderTargets.size(); i++) {
+            const auto rt = conf.colorRenderTargets[i].renderTarget ?
+                std::static_pointer_cast<VKRenderTarget>(conf.colorRenderTargets[i].renderTarget)
+                : nullptr;
             const auto vkSwapChain = conf.colorRenderTargets[i].swapChain ?
                 static_pointer_cast<VKSwapChain>(conf.colorRenderTargets[i].swapChain) : nullptr;
-            const auto vkColorImage = conf.colorRenderTargets[i].renderTarget ?
-                static_pointer_cast<VKImage>(conf.colorRenderTargets[i].renderTarget->getImage()) : nullptr;
+            const auto vkColorImage = rt ?
+                static_pointer_cast<VKImage>(rt->getImage()) : nullptr;
             const auto colorImageView =
                 vkSwapChain ? vkSwapChain->getCurrentImageView() :
-                vkColorImage ? vkColorImage->getImageView() :
+                rt ? rt->getImageView() ? rt->getImageView() :
+                vkColorImage->getImageView() :
                 VK_NULL_HANDLE;
 
             if (colorImageView) {
@@ -642,7 +646,7 @@ namespace vireo {
                     ResourceState::UNDEFINED,
                     ResourceState::RENDER_TARGET_COLOR,
                     false, false,
-                    0, 1);
+                    0, 1, 0, Image::ALL_LAYERS);
                 colorAttachmentsInfo[i].imageView = msaaColor->getImageView(),
                 colorAttachmentsInfo[i].resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
                 colorAttachmentsInfo[i].resolveImageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
@@ -682,11 +686,13 @@ namespace vireo {
         const bool isDepth,
         const bool isStencil,
         const uint32_t firstMipLevel,
-        const uint32_t levelCount) const {
+        const uint32_t levelCount,
+        const uint32_t firstArrayLayer,
+        const uint32_t layerCount) const {
         VkPipelineStageFlags srcStage, dstStage;
         VkAccessFlags srcAccess, dstAccess;
         VkImageLayout srcLayout, dstLayout;
-        VkImageAspectFlagBits aspectFlag = static_cast<VkImageAspectFlagBits>(
+        auto aspectFlag = static_cast<VkImageAspectFlagBits>(
             isDepth ? VK_IMAGE_ASPECT_DEPTH_BIT :
             isStencil ? VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT :
             VK_IMAGE_ASPECT_COLOR_BIT);
@@ -704,8 +710,8 @@ namespace vireo {
                 .aspectMask = static_cast<uint32_t>(aspectFlag),
                 .baseMipLevel = firstMipLevel,
                 .levelCount = levelCount,
-                .baseArrayLayer = 0,
-                .layerCount = VK_REMAINING_ARRAY_LAYERS,
+                .baseArrayLayer = firstArrayLayer,
+                .layerCount = layerCount == Image::ALL_LAYERS ? VK_REMAINING_ARRAY_LAYERS : layerCount,
             }
         };
         vkCmdPipelineBarrier(commandBuffer,
@@ -723,7 +729,9 @@ namespace vireo {
     void VKCommandList::barrier(
         const std::vector<VkImage>& images,
         const ResourceState oldState,
-        const ResourceState newState) const {
+        const ResourceState newState,
+        const uint32_t firstArrayLayer,
+        const uint32_t layerCount) const {
         assert(!images.empty());
         VkPipelineStageFlags srcStage, dstStage;
         VkAccessFlags srcAccess, dstAccess;
@@ -749,8 +757,8 @@ namespace vireo {
             barriers[i].subresourceRange.aspectMask = static_cast<uint32_t>(aspectFlag);
             barriers[i].subresourceRange.baseMipLevel = 0;
             barriers[i].subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
-            barriers[i].subresourceRange.baseArrayLayer = 0;
-            barriers[i].subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
+            barriers[i].subresourceRange.baseArrayLayer = firstArrayLayer;
+            barriers[i].subresourceRange.layerCount = layerCount == Image::ALL_LAYERS ? VK_REMAINING_ARRAY_LAYERS : layerCount;
         }
         vkCmdPipelineBarrier(commandBuffer,
             srcStage,
@@ -1029,6 +1037,13 @@ namespace vireo {
             dstAccess = VK_ACCESS_TRANSFER_READ_BIT;
             srcLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        } else if (oldState == ResourceState::SHADER_READ && newState == ResourceState::COPY_DST) {
+            srcStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            srcAccess = VK_ACCESS_SHADER_READ_BIT;
+            dstAccess = VK_ACCESS_TRANSFER_READ_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
         } else if (oldState == ResourceState::SHADER_READ && newState == ResourceState::RENDER_TARGET_DEPTH) {
             srcStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
             dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
@@ -1218,26 +1233,30 @@ namespace vireo {
         const ResourceState oldState,
         const ResourceState newState,
         const uint32_t firstMipLevel,
-        const uint32_t levelCount) const {
+        const uint32_t levelCount,
+        const uint32_t firstArrayLayer,
+        const uint32_t layerCount) const {
         assert(image != nullptr);
         barrier(
             static_pointer_cast<const VKImage>(image)->getImage(),
             oldState, newState,
             image->isDepthFormat(), image->isDepthStencilFormat(),
-            firstMipLevel, levelCount);
+            firstMipLevel, levelCount, firstArrayLayer, layerCount);
     }
 
     void VKCommandList::barrier(
         const std::shared_ptr<const RenderTarget>& renderTarget,
         const ResourceState oldState,
-        const ResourceState newState) const {
+        const ResourceState newState,
+        const uint32_t firstArrayLayer,
+        const uint32_t layerCount) const {
         assert(renderTarget != nullptr);
         barrier(
             static_pointer_cast<const VKImage>(renderTarget->getImage())->getImage(),
             oldState, newState,
             renderTarget->getImage()->isDepthFormat(),
             renderTarget->getImage()->isDepthStencilFormat(),
-            0, 1);
+            0, 1, firstArrayLayer, layerCount);
     }
 
     void VKCommandList::barrier(
@@ -1247,19 +1266,21 @@ namespace vireo {
         assert(swapChain != nullptr);
         barrier(
             static_pointer_cast<const VKSwapChain>(swapChain)->getCurrentImage(),
-            oldState, newState,
-            false, false, 0, 1);
+            oldState, newState, false, false,
+            0, 1, 0, Image::ALL_LAYERS);
     }
 
     void VKCommandList::barrier(
         const std::vector<std::shared_ptr<const RenderTarget>>& renderTargets,
         const ResourceState oldState,
-        const ResourceState newState) const {
+        const ResourceState newState,
+        const uint32_t firstArrayLayer,
+        const uint32_t layerCount) const {
         assert(!renderTargets.empty());
         const auto r = std::views::transform(renderTargets, [](const std::shared_ptr<const RenderTarget>& renderTarget) {
             return static_pointer_cast<const VKImage>(renderTarget->getImage())->getImage();
         });
-        barrier(std::vector<VkImage>{r.begin(), r.end()}, oldState, newState);
+        barrier(std::vector<VkImage>{r.begin(), r.end()}, oldState, newState, firstArrayLayer, layerCount);
     }
 
     void VKCommandList::pushConstants(
@@ -1598,6 +1619,35 @@ namespace vireo {
         vkCmdCopyImage(commandBuffer,
                        vkSource.getImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                        vkSwapChain.getCurrentImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                       1, &copyRegion);
+    }
+
+    void VKCommandList::copy(
+        const Image& source,
+        const Image& destination,
+        const uint32_t mipLevel,
+        const uint32_t sourceFirstArrayLayer,
+        const uint32_t destinationFirstArrayLayer,
+        const uint32_t layerCount) const {
+        const auto& vkSource = static_cast<const VKImage&>(source);
+        const auto& vkDestination = static_cast<const VKImage&>(destination);
+        auto copyRegion = VkImageCopy {
+            .srcSubresource = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .mipLevel = mipLevel,
+                .baseArrayLayer = sourceFirstArrayLayer,
+                .layerCount = layerCount == Image::ALL_LAYERS ? VK_REMAINING_ARRAY_LAYERS : layerCount,
+            },
+            .srcOffset = {0, 0, 0},
+        };
+        copyRegion.dstSubresource = copyRegion.srcSubresource;
+        copyRegion.dstSubresource.baseArrayLayer = destinationFirstArrayLayer;
+        copyRegion.dstOffset = {0, 0, 0};
+        copyRegion.extent = {source.getWidth(), source.getHeight(), 1};
+
+        vkCmdCopyImage(commandBuffer,
+                       vkSource.getImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                       vkDestination.getImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                        1, &copyRegion);
     }
 

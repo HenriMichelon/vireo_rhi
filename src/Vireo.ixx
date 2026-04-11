@@ -1131,6 +1131,11 @@ export namespace vireo {
         static constexpr uint32_t IMAGE_ROW_PITCH_ALIGNMENT{256};
 
         /**
+         * Specify all image layers for barriers
+         */
+        static constexpr uint32_t ALL_LAYERS{0};
+
+        /**
          * Returns the pixel format
          */
         auto getFormat() const { return format; }
@@ -1223,6 +1228,8 @@ export namespace vireo {
             return isDepthStencilFormat(format);
         }
 
+        const auto& getName() const { return name; }
+
         virtual ~Image() = default;
         Image (Image&) = delete;
         Image& operator = (const Image&) = delete;
@@ -1234,7 +1241,9 @@ export namespace vireo {
             const uint32_t height,
             const uint32_t mipLevels,
             const uint32_t arraySize,
-            const bool isReadWrite) :
+            const bool isReadWrite,
+            const std::string& name) :
+            name{name},
             format{format},
             width{width},
             height{height},
@@ -1246,6 +1255,7 @@ export namespace vireo {
         static std::list<VideoMemoryAllocationDesc> memoryAllocations;
 
     private:
+        const std::string name;
         const ImageFormat format;
         const uint32_t    width;
         const uint32_t    height;
@@ -1275,12 +1285,19 @@ export namespace vireo {
             type{type},
             image{image} {}
 
+        /**
+         * Creates a virtual render target with a view/rtv on a specific layer
+         * @param imageLayer
+         * @return
+         */
+        virtual std::shared_ptr<RenderTarget> fromLayer(uint32_t imageLayer) = 0;
+
         virtual ~RenderTarget() = default;
         RenderTarget (RenderTarget&) = delete;
         RenderTarget& operator = (const RenderTarget&) = delete;
 
     private:
-        const RenderTargetType  type;
+        const RenderTargetType type;
         const std::shared_ptr<Image> image;
     };
 
@@ -1870,6 +1887,30 @@ export namespace vireo {
             const SwapChain& swapChain) const = 0;
 
         /**
+         * Copy an image into another imagee
+         */
+        virtual void copy(
+            const Image& source,
+            const Image& destination,
+            uint32_t mipLevel = 0,
+            uint32_t sourceFirstArrayLayer = 0,
+            uint32_t destinationFirstArrayLayer = 0,
+            uint32_t layerCount = Image::ALL_LAYERS) const = 0;
+
+        /**
+         * Copy an image into another imagee
+         */
+        virtual void copy(
+            const std::shared_ptr<const Image>& source,
+            const std::shared_ptr<const Image>& destination,
+            uint32_t mipLevel = 0,
+            uint32_t sourceFirstArrayLayer = 0,
+            uint32_t destinationFirstArrayLayer = 0,
+            uint32_t layerCount = Image::ALL_LAYERS) const {
+            copy(*source, *destination, mipLevel, sourceFirstArrayLayer, destinationFirstArrayLayer, layerCount);
+        }
+
+        /**
          * Copy an image into the current swap chain image
          */
         void copy(
@@ -2196,36 +2237,48 @@ export namespace vireo {
          * @param oldState Old state in an image state transition.
          * @param newState New state in an image state transition.
          * @param firstMipLevel  The first mip level to include is this barrier
-         * @param levelCount Number of level to include
+         * @param levelCount Number of mip level to include
+         * @param firstArrayLayer  The first array layer to include is this barrier
+         * @param layerCount  Number of array layers level to include
          */
         virtual void barrier(
             const std::shared_ptr<const Image>& image,
             ResourceState oldState,
             ResourceState newState,
             uint32_t firstMipLevel = 0,
-            uint32_t levelCount = 1) const = 0;
+            uint32_t levelCount = 1,
+            uint32_t firstArrayLayer = 0,
+            uint32_t layerCount = Image::ALL_LAYERS) const = 0;
 
         /**
          * Insert a memory dependency
          * @param renderTarget The image affected by this barrier.
          * @param oldState Old state in an image state transition.
          * @param newState New state in an image state transition.
+         * @param firstArrayLayer  The first array layer to include is this barrier
+         * @param layerCount  Number of array layers level to include
          */
         virtual void barrier(
             const std::shared_ptr<const RenderTarget>& renderTarget,
             ResourceState oldState,
-            ResourceState newState) const = 0;
+            ResourceState newState,
+            uint32_t firstArrayLayer = 0,
+            uint32_t layerCount = Image::ALL_LAYERS) const = 0;
 
         /**
          * Insert a memory dependency
          * @param renderTargets The images affected by this barrier.
          * @param oldState Old state in an image state transition.
          * @param newState New state in an image state transition.
+         * @param firstArrayLayer  The first array layer to include is this barrier
+         * @param layerCount  Number of array layers level to include
          */
         virtual void barrier(
             const std::vector<std::shared_ptr<const RenderTarget>>& renderTargets,
             ResourceState oldState,
-            ResourceState newState) const = 0;
+            ResourceState newState,
+            uint32_t firstArrayLayer = 0,
+            uint32_t layerCount = Image::ALL_LAYERS) const = 0;
 
         /**
          * Insert a memory dependency
@@ -2249,6 +2302,12 @@ export namespace vireo {
             const PushConstantsDesc& pushConstants,
             const void* data) const = 0;
 
+        /**
+         * Insert a memory dependency for a Buffer
+    *    * @param buffer The buffer affected by this barrier.
+         * @param oldState Old state in a memory state transition.
+         * @param newState New state in a memory state transition.
+         */
         virtual void barrier(
             const Buffer& buffer,
             ResourceState oldState,

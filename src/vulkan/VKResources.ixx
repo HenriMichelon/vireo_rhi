@@ -173,11 +173,33 @@ export namespace vireo {
 
         static ImageFormat vkFormatToImageFormat(VkFormat format);
 
+        auto getAspect() const { return aspect; }
+
+        auto getDevice() const { return device; }
+
     private:
         const std::shared_ptr<const VKDevice> device;
-        VkImage        image{VK_NULL_HANDLE};
+        const int aspect;
+        VkImage image{VK_NULL_HANDLE};
         VkDeviceMemory imageMemory{VK_NULL_HANDLE};
-        VkImageView    imageView{VK_NULL_HANDLE};
+        VkImageView imageView{VK_NULL_HANDLE};
+    };
+
+    class VKRenderTarget : public RenderTarget {
+    public:
+        VKRenderTarget(const RenderTargetType type, const std::shared_ptr<Image>& image) :
+          RenderTarget(type, image) {}
+
+        std::shared_ptr<RenderTarget> fromLayer(uint32_t imageLayer) override;
+
+        auto getImageView() const {
+            return imageView ? imageView : std::static_pointer_cast<VKImage>(getImage())->getImageView();
+        }
+
+        ~VKRenderTarget() override;
+
+    private:
+        VkImageView imageView{VK_NULL_HANDLE};
     };
 
 }
