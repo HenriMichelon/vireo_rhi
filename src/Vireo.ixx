@@ -1887,24 +1887,24 @@ export namespace vireo {
         /**
          * Blit an image into the current swap chain image
          */
-        virtual void blit(
-            const Image& source,
-            const SwapChain& swapChain,
-            FilterMode filterMode = FilterMode::NEAREST,
-            uint32_t dstX = 0,
-            uint32_t dstY = 0) const = 0;
+        // virtual void blit(
+        //     const Image& source,
+        //     const SwapChain& swapChain,
+        //     FilterMode filterMode = FilterMode::NEAREST,
+        //     uint32_t dstX = 0,
+        //     uint32_t dstY = 0) const = 0;
 
         /**
          * Blit an image into the current swap chain image
          */
-        void blit(
-            const std::shared_ptr<Image>& source,
-            const std::shared_ptr<SwapChain>& swapChain,
-            const FilterMode filterMode = FilterMode::NEAREST,
-            const uint32_t dstX = 0,
-            const uint32_t dstY = 0) const {
-            blit(*source, *swapChain, filterMode, dstX, dstY);
-        }
+        // void blit(
+        //     const std::shared_ptr<Image>& source,
+        //     const std::shared_ptr<SwapChain>& swapChain,
+        //     const FilterMode filterMode = FilterMode::NEAREST,
+        //     const uint32_t dstX = 0,
+        //     const uint32_t dstY = 0) const {
+        //     blit(*source, *swapChain, filterMode, dstX, dstY);
+        // }
 
         /**
          * Copy an image into another imagee

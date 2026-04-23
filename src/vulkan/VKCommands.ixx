@@ -234,12 +234,12 @@ export namespace vireo {
             const Image& source,
             const SwapChain& swapChain) const override;
 
-        void blit(
-            const Image& source,
-            const SwapChain& swapChain,
-            FilterMode filterMode,
-            uint32_t dstX,
-            uint32_t dstY) const override;
+        // void blit(
+        //     const Image& source,
+        //     const SwapChain& swapChain,
+        //     FilterMode filterMode,
+        //     uint32_t dstX,
+        //     uint32_t dstY) const override;
 
         void beginRendering(const RenderingConfiguration& conf) override;
 

@@ -204,18 +204,18 @@ namespace vireo {
         const float minLod,
         const float maxLod,
         const bool anisotropyEnable,
-        const MipMapMode mipMapMode,
+        const FilterMode mipMapMode,
         CompareOp compareOp) {
 
         int filter = anisotropyEnable ? D3D12_FILTER_ANISOTROPIC : 0;
         if ((minFilter == Filter::LINEAR) && (magFilter == Filter::LINEAR)) {
-            filter |= mipMapMode == MipMapMode::LINEAR ? D3D12_FILTER_MIN_MAG_MIP_LINEAR : D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT;
+            filter |= mipMapMode == FilterMode::LINEAR ? D3D12_FILTER_MIN_MAG_MIP_LINEAR : D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT;
         } else if ((minFilter == Filter::NEAREST) && (magFilter == Filter::NEAREST)) {
-            filter |= mipMapMode == MipMapMode::LINEAR ? D3D12_FILTER_MIN_MAG_POINT_MIP_LINEAR : D3D12_FILTER_MIN_MAG_MIP_POINT;
+            filter |= mipMapMode == FilterMode::LINEAR ? D3D12_FILTER_MIN_MAG_POINT_MIP_LINEAR : D3D12_FILTER_MIN_MAG_MIP_POINT;
         } else if ((minFilter == Filter::NEAREST) && (magFilter == Filter::LINEAR)) {
-            filter |= mipMapMode == MipMapMode::LINEAR ? D3D12_FILTER_MIN_POINT_MAG_MIP_LINEAR : D3D12_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
+            filter |= mipMapMode == FilterMode::LINEAR ? D3D12_FILTER_MIN_POINT_MAG_MIP_LINEAR : D3D12_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
         } else if ((minFilter == Filter::LINEAR) && (magFilter == Filter::NEAREST)) {
-            filter |= mipMapMode == MipMapMode::LINEAR ? D3D12_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR : D3D12_FILTER_MIN_LINEAR_MAG_MIP_POINT;
+            filter |= mipMapMode == FilterMode::LINEAR ? D3D12_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR : D3D12_FILTER_MIN_LINEAR_MAG_MIP_POINT;
         }
 
         samplerDesc = D3D12_SAMPLER_DESC{

@@ -68,7 +68,7 @@ export namespace vireo {
             float minLod,
             float maxLod,
             bool anisotropyEnable,
-            MipMapMode mipMapMode,
+            FilterMode mipMapMode,
             CompareOp compareOp);
 
         const auto& getSamplerDesc() const { return samplerDesc; }

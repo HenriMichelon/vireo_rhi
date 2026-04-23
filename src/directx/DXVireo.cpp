@@ -230,7 +230,7 @@ namespace vireo {
            float minLod,
            float maxLod,
            bool anisotropyEnable,
-           MipMapMode mipMapMode,
+           FilterMode mipMapMode,
            CompareOp compareOp) const {
         return std::make_shared<DXSampler>(
             minFilter, magFilter, addressModeU, addressModeV, addressModeW,
