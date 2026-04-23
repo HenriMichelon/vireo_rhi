@@ -241,11 +241,16 @@ namespace vireo {
                         D3D12_SRV_DIMENSION_TEXTURE2DARRAY :
                         D3D12_SRV_DIMENSION_TEXTURE2D,
                 .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
-                .Texture2D= {
-                    .MipLevels = image.getMipLevels()
-                },
-            };
-            if (image.isDepthFormat()) {
+                };
+            if (viewDesc.ViewDimension == D3D12_SRV_DIMENSION_TEXTURE2D) {
+                viewDesc.Texture2D.MipLevels = image.getMipLevels();
+            } else if (viewDesc.ViewDimension == D3D12_SRV_DIMENSION_TEXTURE2DARRAY) {
+                viewDesc.Texture2DArray.MipLevels = image.getMipLevels();
+                viewDesc.Texture2DArray.ArraySize = image.getArraySize();
+            } else if (viewDesc.ViewDimension == D3D12_SRV_DIMENSION_TEXTURECUBE) {
+                viewDesc.TextureCube.MipLevels = image.getMipLevels();
+            }
+        if (image.isDepthFormat()) {
                 if (image.getFormat() == ImageFormat::D32_SFLOAT) {
                     viewDesc.Format = DXGI_FORMAT_R32_FLOAT;
                 } else if (image.getFormat() == ImageFormat::D16_UNORM) {

@@ -386,10 +386,10 @@ export namespace vireo {
             const ComPtr<ID3D12Resource>& resource,
             ResourceState oldState,
             ResourceState newState,
-            uint32_t firstMipLevel = 0,
-            uint32_t levelCount = 1,
-            uint32_t firstArrayLayer = 0,
-            uint32_t layerCount = Image::ALL_LAYERS) const;
+            uint32_t firstMipLevel,
+            uint32_t levelCount,
+            uint32_t firstArrayLayer,
+            uint32_t layerCount) const;
 
         void barrier(
             const std::vector<ID3D12Resource*>& resources,

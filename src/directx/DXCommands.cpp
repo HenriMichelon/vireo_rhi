@@ -456,7 +456,8 @@ namespace vireo {
             static_pointer_cast<const DXImage>(image)->getImage(),
             oldState, newState,
             firstMipLevel, levelCount,
-            image->getArraySize());
+            firstArrayLayer,
+            layerCount == Image::ALL_LAYERS ? image->getArraySize() : layerCount);
     }
 
     void DXCommandList::barrier(
@@ -465,7 +466,11 @@ namespace vireo {
         const ResourceState newState) const {
         assert(swapChain != nullptr);
         const auto dxSwapChain = static_pointer_cast<const DXSwapChain>(swapChain);
-        barrier(dxSwapChain->getRenderTargets()[dxSwapChain->getCurrentFrameIndex()], oldState, newState);
+        barrier(
+            dxSwapChain->getRenderTargets()[dxSwapChain->getCurrentFrameIndex()],
+            oldState, newState,
+            0, 1,
+            0, 1);
     }
 
     void DXCommandList::barrier(
@@ -475,7 +480,14 @@ namespace vireo {
        const uint32_t firstArrayLayer,
        const uint32_t layerCount) const {
         assert(renderTarget != nullptr);
-        barrier( static_pointer_cast<const DXImage>(renderTarget->getImage())->getImage(), oldState, newState, firstArrayLayer, layerCount);
+        const auto image = static_pointer_cast<const DXImage>(renderTarget->getImage());
+        barrier(
+            image->getImage(),
+            oldState,
+            newState,
+            0, 1,
+            firstArrayLayer,
+            layerCount == Image::ALL_LAYERS ? image->getArraySize() : layerCount);
     }
 
     void DXCommandList::barrier(
