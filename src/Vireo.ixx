@@ -1903,10 +1903,10 @@ export namespace vireo {
         virtual void copy(
             const std::shared_ptr<const Image>& source,
             const std::shared_ptr<const Image>& destination,
-            uint32_t mipLevel = 0,
-            uint32_t sourceFirstArrayLayer = 0,
-            uint32_t destinationFirstArrayLayer = 0,
-            uint32_t layerCount = Image::ALL_LAYERS) const {
+            const uint32_t mipLevel = 0,
+            const uint32_t sourceFirstArrayLayer = 0,
+            const uint32_t destinationFirstArrayLayer = 0,
+            const uint32_t layerCount = Image::ALL_LAYERS) const {
             copy(*source, *destination, mipLevel, sourceFirstArrayLayer, destinationFirstArrayLayer, layerCount);
         }
 

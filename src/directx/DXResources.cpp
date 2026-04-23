@@ -109,7 +109,7 @@ namespace vireo {
         const bool        isDepthBuffer,
         const ClearValue  clearValue,
         const MSAA        msaa):
-        Image{format, width, height, mipLevels, arraySize, useByComputeShader} {
+        Image{format, width, height, mipLevels, arraySize, useByComputeShader, name} {
         const auto dxFormat = dxFormats[static_cast<int>(format)];
         const auto samples = DXPhysicalDevice::dxSampleCount[static_cast<int>(msaa)];
         UINT quality = 0;
@@ -237,7 +237,9 @@ namespace vireo {
         const std::shared_ptr<DXImage>& image,
         const RenderTargetType type,
         const bool isMultisampled) :
-        RenderTarget{type, image} {
+        RenderTarget{type, image},
+        isMultisampled{isMultisampled},
+        device{device} {
         const auto heapDesc = D3D12_DESCRIPTOR_HEAP_DESC{
             .Type = type == RenderTargetType::COLOR ? D3D12_DESCRIPTOR_HEAP_TYPE_RTV : D3D12_DESCRIPTOR_HEAP_TYPE_DSV,
             .NumDescriptors = 1,
@@ -250,7 +252,23 @@ namespace vireo {
         heap->GetCPUDescriptorHandleForHeapStart(&handle);
 #endif
         if (type == RenderTargetType::COLOR) {
-            device->CreateRenderTargetView(image->getImage().Get(), nullptr, handle);
+            D3D12_RENDER_TARGET_VIEW_DESC rtvDesc  = {};
+            rtvDesc.Format = DXImage::dxFormats[static_cast<int>(image->getFormat())];
+            rtvDesc.ViewDimension = isMultisampled ? D3D12_RTV_DIMENSION_TEXTURE2DMSARRAY : D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+            if (isMultisampled) {
+                rtvDesc.Texture2DMSArray = D3D12_TEX2DMS_ARRAY_RTV {
+                    .FirstArraySlice = 0,
+                    .ArraySize = 1,
+                };
+            } else {
+                rtvDesc.Texture2DArray = D3D12_TEX2D_ARRAY_RTV {
+                    .MipSlice = 0,
+                    .FirstArraySlice = 0,
+                    .ArraySize = 1,
+                    .PlaneSlice = 0,
+                };
+            }
+            device->CreateRenderTargetView(image->getImage().Get(), &rtvDesc, handle);
         } else {
             D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
             dsvDesc.Format = DXImage::dxFormats[static_cast<int>(image->getFormat())];
@@ -260,4 +278,47 @@ namespace vireo {
         }
     }
 
+    DXRenderTarget::DXRenderTarget(
+        const ComPtr<ID3D12Device>& device,
+        const std::shared_ptr<DXImage>& image,
+        const RenderTargetType type) :
+        RenderTarget{type, image},
+        isMultisampled{false},
+        device{device} {
+    }
+
+    std::shared_ptr<RenderTarget> DXRenderTarget::fromLayer(const uint32_t imageLayer) {
+        assert(getType() == RenderTargetType::COLOR);
+        auto dxImage = std::static_pointer_cast<DXImage>(getImage());
+        auto layerRT = std::make_shared<DXRenderTarget>(device, dxImage, getType());
+        constexpr auto heapDesc = D3D12_DESCRIPTOR_HEAP_DESC {
+            .Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
+            .NumDescriptors = 1,
+            .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
+        };
+        dxCheck(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&heap)));
+#ifdef _MSC_VER
+        layerRT->handle = heap->GetCPUDescriptorHandleForHeapStart();
+#else
+        heap->GetCPUDescriptorHandleForHeapStart(&layerRT->handle);
+#endif
+        D3D12_RENDER_TARGET_VIEW_DESC rtvDesc  = {};
+        rtvDesc.Format = DXImage::dxFormats[static_cast<int>(dxImage->getFormat())];
+        rtvDesc.ViewDimension = isMultisampled ? D3D12_RTV_DIMENSION_TEXTURE2DMSARRAY : D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+        if (isMultisampled) {
+            rtvDesc.Texture2DMSArray = D3D12_TEX2DMS_ARRAY_RTV {
+                .FirstArraySlice = imageLayer,
+                .ArraySize = 1,
+            };
+        } else {
+            rtvDesc.Texture2DArray = D3D12_TEX2D_ARRAY_RTV {
+                .MipSlice = 0,
+                .FirstArraySlice = imageLayer,
+                .ArraySize = 1,
+                .PlaneSlice = 0,
+            };
+        }
+        device->CreateRenderTargetView(dxImage->getImage().Get(), &rtvDesc, layerRT->handle);
+        return layerRT;
+    }
 }

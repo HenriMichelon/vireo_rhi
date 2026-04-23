@@ -199,6 +199,14 @@ export namespace vireo {
             const Buffer& destination,
             const std::vector<BufferCopyRegion>& regions) const override;
 
+        void copy(
+            const Image& source,
+            const Image& destination,
+            uint32_t mipLevel,
+            uint32_t sourceFirstArrayLayer,
+            uint32_t destinationFirstArrayLayer,
+            uint32_t layerCount) const override;
+
         void uploadArray(
             const Image& destination,
             const std::vector<void*>& sources,
@@ -294,12 +302,16 @@ export namespace vireo {
             ResourceState oldState,
             ResourceState newState,
             uint32_t firstMipLevel,
-            uint32_t levelCount) const override;
+            uint32_t levelCount,
+            uint32_t firstArrayLayer,
+            uint32_t layerCount) const override;
 
         void barrier(
             const std::shared_ptr<const RenderTarget>& renderTarget,
             ResourceState oldState,
-            ResourceState newState) const override;
+            ResourceState newState,
+            uint32_t firstArrayLayer,
+            uint32_t layerCount) const override;
 
         void barrier(
             const std::shared_ptr<const SwapChain>& swapChain,
@@ -309,7 +321,9 @@ export namespace vireo {
         void barrier(
             const std::vector<std::shared_ptr<const RenderTarget>>& renderTargets,
             ResourceState oldState,
-            ResourceState newState) const override;
+            ResourceState newState,
+            uint32_t firstArrayLayer,
+            uint32_t layerCount) const override;
 
         void barrier(
            const Buffer& buffer,
@@ -374,7 +388,8 @@ export namespace vireo {
             ResourceState newState,
             uint32_t firstMipLevel = 0,
             uint32_t levelCount = 1,
-            uint32_t arraySize = 1) const;
+            uint32_t firstArrayLayer = 0,
+            uint32_t layerCount = Image::ALL_LAYERS) const;
 
         void barrier(
             const std::vector<ID3D12Resource*>& resources,

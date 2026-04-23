@@ -448,7 +448,9 @@ namespace vireo {
         const ResourceState oldState,
         const ResourceState newState,
         const uint32_t firstMipLevel,
-        const uint32_t levelCount) const {
+        const uint32_t levelCount,
+        const uint32_t firstArrayLayer,
+        const uint32_t layerCount) const {
         assert(image != nullptr);
         barrier(
             static_pointer_cast<const DXImage>(image)->getImage(),
@@ -469,15 +471,19 @@ namespace vireo {
     void DXCommandList::barrier(
        const std::shared_ptr<const RenderTarget>& renderTarget,
        const ResourceState oldState,
-       const ResourceState newState) const {
+       const ResourceState newState,
+       const uint32_t firstArrayLayer,
+       const uint32_t layerCount) const {
         assert(renderTarget != nullptr);
-        barrier( static_pointer_cast<const DXImage>(renderTarget->getImage())->getImage(), oldState, newState);
+        barrier( static_pointer_cast<const DXImage>(renderTarget->getImage())->getImage(), oldState, newState, firstArrayLayer, layerCount);
     }
 
     void DXCommandList::barrier(
         const std::vector<std::shared_ptr<const RenderTarget>>& renderTargets,
         const ResourceState oldState,
-        const ResourceState newState) const {
+        const ResourceState newState,
+        const uint32_t firstArrayLayer,
+        const uint32_t layerCount) const {
         assert(renderTargets.size() > 0);
         const auto r = std::views::transform(renderTargets, [](const std::shared_ptr<const RenderTarget>& renderTarget) {
             return static_pointer_cast<const DXImage>(renderTarget->getImage())->getImage().Get();
@@ -619,7 +625,8 @@ namespace vireo {
         const ResourceState newState,
         const uint32_t firstMipLevel,
         const uint32_t levelCount,
-        const uint32_t arraySize) const {
+        const uint32_t firstArrayLayer,
+        const uint32_t layerCount) const {
         D3D12_RESOURCE_STATES srcState, dstState;
         convertState(oldState, newState, srcState, dstState);
         if (srcState == dstState) {
@@ -633,10 +640,10 @@ namespace vireo {
             for (int plane = 0; plane < 2; ++plane) {
                 const auto subresourceIndex = D3D12CalcSubresource(
                     0,
-                    0,
+                    firstArrayLayer,
                     plane,
                     levelCount,
-                    arraySize);
+                    layerCount);
                 barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(
                     resource.Get(),
                     srcState,
@@ -644,15 +651,15 @@ namespace vireo {
                     subresourceIndex));
             }
         } else {
-            barriers.reserve(arraySize);
-            for (int slice = 0; slice < arraySize; ++slice) {
+            barriers.reserve(layerCount);
+            for (int slice = firstArrayLayer; slice < layerCount; ++slice) {
                 for (int mip = firstMipLevel; mip < levelCount; ++mip) {
                     const auto subresourceIndex = D3D12CalcSubresource(
                         mip,
                         slice,
                         0,
                         levelCount,
-                        arraySize);
+                        layerCount);
                     barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(
                         resource.Get(),
                         srcState,
@@ -1303,6 +1310,38 @@ namespace vireo {
         };
 
         commandList->CopyTextureRegion(&dstLocation, 0, 0, 0, &srcLocation, nullptr);
+    }
+
+    void DXCommandList::copy(
+        const Image& source,
+        const Image& destination,
+        const uint32_t mipLevel,
+        const uint32_t sourceFirstArrayLayer,
+        const uint32_t destinationFirstArrayLayer,
+        const uint32_t layerCount) const {
+        const auto& dxSource = static_cast<const DXImage&>(source);
+        const auto& dxDestination = static_cast<const DXImage&>(destination);
+
+        const auto srcMipLevels = dxSource.getMipLevels();
+        const auto dstMipLevels = dxDestination.getMipLevels();
+
+        for (auto i = 0; i < layerCount; ++i) {
+            const auto srcSubresource = mipLevel + (sourceFirstArrayLayer + i) * srcMipLevels;
+            const auto dstSubresource = mipLevel + (destinationFirstArrayLayer + i) * dstMipLevels;
+
+            const auto srcLocation = D3D12_TEXTURE_COPY_LOCATION {
+                .pResource = dxSource.getImage().Get(),
+                .Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
+                .SubresourceIndex = srcSubresource,
+            };
+            const auto dstLocation = D3D12_TEXTURE_COPY_LOCATION {
+                .pResource = dxDestination.getImage().Get(),
+                .Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
+                .SubresourceIndex = dstSubresource,
+            };
+
+            commandList->CopyTextureRegion(&dstLocation, 0, 0, 0, &srcLocation, nullptr);
+        }
     }
 
     DXFence::DXFence(const ComPtr<ID3D12Device>& device) {
