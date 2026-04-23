@@ -70,18 +70,16 @@ export namespace vireo {
     };
 
     /**
-     * Possible values of the Vireo::createSampler mipmapMode parameter, specifying the mipmap mode used for texture
-     * lookups.
+     * Possible values of the CommandList::blit filter parameter and Vireo::createSampler mipmapMode parameter
      *
      * Manual page : \ref manual_030_03_resources
      */
-    enum class MipMapMode {
+    enum class FilterMode {
         //! Nearest filtering
         NEAREST,
         //! Linear filtering
         LINEAR,
     };
-
     /**
      * Available image formats. Only the common formats between the supported back ends are available.
      *
@@ -1887,6 +1885,28 @@ export namespace vireo {
             const SwapChain& swapChain) const = 0;
 
         /**
+         * Blit an image into the current swap chain image
+         */
+        virtual void blit(
+            const Image& source,
+            const SwapChain& swapChain,
+            FilterMode filterMode = FilterMode::NEAREST,
+            uint32_t dstX = 0,
+            uint32_t dstY = 0) const = 0;
+
+        /**
+         * Blit an image into the current swap chain image
+         */
+        void blit(
+            const std::shared_ptr<Image>& source,
+            const std::shared_ptr<SwapChain>& swapChain,
+            const FilterMode filterMode = FilterMode::NEAREST,
+            const uint32_t dstX = 0,
+            const uint32_t dstY = 0) const {
+            blit(*source, *swapChain, filterMode, dstX, dstY);
+        }
+
+        /**
          * Copy an image into another imagee
          */
         virtual void copy(
@@ -2973,7 +2993,7 @@ export namespace vireo {
             float minLod = 0.0f,
             float maxLod = Sampler::LOD_CLAMP_NONE,
             bool anisotropyEnable = true,
-            MipMapMode mipMapMode = MipMapMode::LINEAR,
+            FilterMode mipMapMode = FilterMode::LINEAR,
             CompareOp compareOp = CompareOp::NEVER) const = 0;
 
         /**

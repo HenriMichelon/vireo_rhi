@@ -130,7 +130,7 @@ namespace vireo {
         const float minLod,
         const float maxLod,
         const bool anisotropyEnable,
-        const MipMapMode mipMapMode,
+        const FilterMode mipMapMode,
         CompareOp compareOp) :
         device{device->getDevice()} {
         // https://vulkan-tutorial.com/Texture_mapping/Image_view_and_sampler#page_Samplers

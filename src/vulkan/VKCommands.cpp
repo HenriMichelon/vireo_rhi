@@ -1622,6 +1622,47 @@ namespace vireo {
                        1, &copyRegion);
     }
 
+    void VKCommandList::blit(
+        const Image& source,
+        const SwapChain& swapChain,
+        const FilterMode filterMode,
+        const uint32_t dstX,
+        const uint32_t dstY) const {
+        const auto& vkSource = static_cast<const VKImage&>(source);
+        const auto& vkSwapChain = static_cast<const VKSwapChain&>(swapChain);
+
+        const VkFilter filter   = filterMode == FilterMode::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
+
+        const auto blitRegion = VkImageBlit {
+            .srcSubresource = {
+                .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+                .mipLevel       = 0,
+                .baseArrayLayer = 0,
+                .layerCount     = 1,
+            },
+            .srcOffsets = {
+                { 0, 0, 0 },
+                { static_cast<int32_t>(source.getWidth()), static_cast<int32_t>(source.getHeight()), 1 }
+            },
+            .dstSubresource = {
+                .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+                .mipLevel       = 0,
+                .baseArrayLayer = 0,
+                .layerCount     = 1,
+            },
+            .dstOffsets = {
+                { static_cast<int32_t>(dstX), static_cast<int32_t>(dstY), 0 },
+                { static_cast<int32_t>(swapChain.getExtent().width), static_cast<int32_t>(swapChain.getExtent().height), 1 }
+            },
+        };
+
+        vkCmdBlitImage(commandBuffer,
+                       vkSource.getImage(),           VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                       vkSwapChain.getCurrentImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                       1, &blitRegion,
+                       filter);
+    }
+
     void VKCommandList::copy(
         const Image& source,
         const Image& destination,
