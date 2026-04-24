@@ -196,6 +196,11 @@ namespace vireo {
             RenderTargetType::COLOR,
             msaa != MSAA::NONE);
     }
+    std::shared_ptr<DescriptorLayout> DXVireo::createBindlessDescriptorLayout(
+        const std::string& name) const {
+        return std::make_shared<DXDescriptorLayout>(false, false, true);
+    }
+
     std::shared_ptr<DescriptorLayout> DXVireo::createDescriptorLayout(
         const std::string& name) const {
         return std::make_shared<DXDescriptorLayout>(false, false);

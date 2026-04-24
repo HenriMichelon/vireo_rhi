@@ -32,7 +32,12 @@ namespace vireo {
         if ((!isDynamicUniform()) && type == DescriptorType::UNIFORM_DYNAMIC) {
             throw Exception("Use uniform dynamic descriptor layout for UNIFORM_DYNAMIC resources");
         }
-        auto unbounded = type == DescriptorType::SAMPLED_IMAGE && count > 1 ;
+        auto unbounded = (
+            (isBindless() && count > 1 && (
+                type == DescriptorType::SAMPLED_IMAGE ||
+                type == DescriptorType::READWRITE_IMAGE))
+            || (!isBindless() && type == DescriptorType::SAMPLED_IMAGE && count > 1)
+        );
         CD3DX12_DESCRIPTOR_RANGE1 range;
         range.Init(
                 type == DescriptorType::UNIFORM ? D3D12_DESCRIPTOR_RANGE_TYPE_CBV :

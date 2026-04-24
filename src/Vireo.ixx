@@ -1337,6 +1337,11 @@ export namespace vireo {
          */
         auto isSamplers() const { return samplers; }
 
+        /**
+         * Returns `true` if the layout uses bindless descriptor indexing
+         */
+        auto isBindless() const { return bindless; }
+
         virtual ~DescriptorLayout() = default;
         DescriptorLayout (DescriptorLayout&) = delete;
         DescriptorLayout& operator = (const DescriptorLayout&) = delete;
@@ -1348,8 +1353,11 @@ export namespace vireo {
         bool   samplers{false};
         // true for UNIFORM_DYNAMIC only layout
         bool   dynamic{false};
+        // true for bindless descriptor indexing
+        bool   bindless{false};
 
-        DescriptorLayout(const bool samplers, const bool dynamic): samplers{samplers}, dynamic{dynamic} {}
+        DescriptorLayout(const bool samplers, const bool dynamic, const bool bindless = false)
+            : samplers{samplers}, dynamic{dynamic}, bindless{bindless} {}
     };
 
     /**
@@ -2947,6 +2955,14 @@ export namespace vireo {
          */
         virtual std::shared_ptr<DescriptorLayout> createDescriptorLayout(
             const std::string& name = "DescriptorLayout") const = 0;
+
+        /**
+         * Creates an empty descriptor layout for bindless descriptor indexing.
+         * The last binding in this layout must be the unbounded array of images/textures.
+         * @param name Object name for debug
+         */
+        virtual std::shared_ptr<DescriptorLayout> createBindlessDescriptorLayout(
+            const std::string& name = "BindlessDescriptorLayout") const = 0;
 
         /**
          * Creates an empty description layout for SAMPLER resources types

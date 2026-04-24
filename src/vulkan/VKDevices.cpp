@@ -524,6 +524,14 @@ instanceExtensions.data()};
                 .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
                 .pNext = &deviceVulkan11Features,
                 .drawIndirectCount = VK_TRUE,
+                // Descriptor indexing features required for bindless textures/images
+                .shaderSampledImageArrayNonUniformIndexing    = VK_TRUE,
+                .shaderStorageImageArrayNonUniformIndexing    = VK_TRUE,
+                .descriptorBindingSampledImageUpdateAfterBind = VK_TRUE,
+                .descriptorBindingStorageImageUpdateAfterBind = VK_TRUE,
+                .descriptorBindingUpdateUnusedWhilePending    = VK_TRUE,
+                .descriptorBindingPartiallyBound              = VK_TRUE,
+                .descriptorBindingVariableDescriptorCount     = VK_TRUE,
                 .runtimeDescriptorArray = VK_TRUE,
                 .timelineSemaphore = VK_TRUE,
                 .shaderOutputViewportIndex = VK_TRUE,// VK_EXT_shader_viewport_index_layer

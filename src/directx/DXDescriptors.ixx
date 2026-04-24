@@ -15,7 +15,8 @@ export namespace vireo {
 
     class DXDescriptorLayout : public DescriptorLayout {
     public:
-        DXDescriptorLayout(const bool isForSampler, const bool isDynamic) : DescriptorLayout{isForSampler, isDynamic} {}
+        DXDescriptorLayout(const bool isForSampler, const bool isDynamic, const bool isBindless = false)
+            : DescriptorLayout{isForSampler, isDynamic, isBindless} {}
 
         DescriptorLayout& add(DescriptorIndex index, DescriptorType type, size_t count = 1) override;
 

@@ -206,19 +206,24 @@ namespace vireo {
         vkDeviceWaitIdle(getVKDevice()->getDevice());
     }
 
+    std::shared_ptr<DescriptorLayout> VKVireo::createBindlessDescriptorLayout(
+        const std::string& name) const {
+        return std::make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), false, false, true, name);
+    }
+
     std::shared_ptr<DescriptorLayout> VKVireo::createDescriptorLayout(
         const std::string& name) const {
-        return std::make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), false, false, name);
+        return std::make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), false, false, false, name);
     }
 
     std::shared_ptr<DescriptorLayout> VKVireo::createSamplerDescriptorLayout(
         const std::string& name) const {
-        return std::make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), true, false, name);
+        return std::make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), true, false, false, name);
     }
 
     std::shared_ptr<DescriptorLayout> VKVireo::_createDynamicUniformDescriptorLayout(
         const std::string& name) const {
-        return std::make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), false, true, name);
+        return std::make_shared<VKDescriptorLayout>(getVKDevice()->getDevice(), false, true, false, name);
     }
 
     std::shared_ptr<DescriptorSet> VKVireo::createDescriptorSet(

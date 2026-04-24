@@ -16,8 +16,8 @@ import vireo.vulkan.tools;
 
 namespace vireo {
 
-    VKDescriptorLayout::VKDescriptorLayout(const VkDevice device, const bool samplers, const bool dynamic, const std::string& name):
-        DescriptorLayout{samplers, dynamic}, device{device}, name{name} {
+    VKDescriptorLayout::VKDescriptorLayout(const VkDevice device, const bool samplers, const bool dynamic, const bool bindless, const std::string& name):
+        DescriptorLayout{samplers, dynamic, bindless}, device{device}, name{name} {
     }
 
     DescriptorLayout& VKDescriptorLayout::add(const DescriptorIndex index, const DescriptorType type, const size_t count) {
@@ -51,20 +51,48 @@ namespace vireo {
 
     void VKDescriptorLayout::build() {
         std::vector<VkDescriptorSetLayoutBinding> bindings;
-        for (const auto& poolSize : poolSizes) {
+        std::vector<VkDescriptorBindingFlags>     bindingFlags;
+
+        const auto lastIdx = poolSizes.empty() ? 0 : poolSizes.rbegin()->first;
+
+        for (const auto& [idx, poolSize] : poolSizes) {
             auto binding = VkDescriptorSetLayoutBinding{
-                .binding = poolSize.first,
-                .descriptorType = poolSize.second.type,
-                .descriptorCount = poolSize.second.descriptorCount,
-                .stageFlags = VK_SHADER_STAGE_ALL
+                .binding         = idx,
+                .descriptorType  = poolSize.type,
+                .descriptorCount = poolSize.descriptorCount,
+                .stageFlags      = VK_SHADER_STAGE_ALL
             };
             bindings.push_back(binding);
+
+        if (bindless) {
+            VkDescriptorBindingFlags flags = 0;
+            if (idx == lastIdx) {
+                    // Only the last binding (the unbounded texture/image array) gets bindless flags.
+                    flags = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT
+                          | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT
+                          | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT;
+                }
+                bindingFlags.push_back(flags);
+            }
+        }
+
+        VkDescriptorSetLayoutBindingFlagsCreateInfo flagsInfo{};
+        if (bindless) {
+            flagsInfo = {
+                .sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO,
+                .pNext         = nullptr,
+                .bindingCount  = static_cast<uint32_t>(bindingFlags.size()),
+                .pBindingFlags = bindingFlags.data(),
+            };
         }
 
         const auto layoutInfo = VkDescriptorSetLayoutCreateInfo {
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+            .sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+            .pNext        = bindless ? &flagsInfo : nullptr,
+            .flags        = bindless ? VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT
+                               : static_cast<VkDescriptorSetLayoutCreateFlags>(0),
             .bindingCount = static_cast<uint32_t>(bindings.size()),
-            .pBindings = bindings.data(),
+            .pBindings    = bindings.data(),
         };
         vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &setLayout);
 #ifdef _DEBUG
@@ -85,20 +113,36 @@ namespace vireo {
         const auto setLayout = vkLayout->getSetLayout();
         device = vkLayout->getDevice();
 
+        const bool bindless = layout->isBindless();
+
         std::vector<VkDescriptorPoolSize> poolSizes;
         for (const auto &poolSize : vkLayout->getPoolSizes()) {
             poolSizes.push_back(poolSize.second);
         }
         const auto poolInfo = VkDescriptorPoolCreateInfo {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+            // Bindless pools need UPDATE_AFTER_BIND_BIT to allow updates while descriptors are in use
+            .flags = bindless ? VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT
+                        : static_cast<VkDescriptorPoolCreateFlags>(0),
             .maxSets = static_cast<uint32_t>(vkLayout->getCapacity()),
             .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
             .pPoolSizes = poolSizes.data(),
         };
         vkCreateDescriptorPool(device, &poolInfo, nullptr, &pool);
 
+        const uint32_t variableCount = bindless && !vkLayout->getPoolSizes().empty()
+            ? vkLayout->getPoolSizes().rbegin()->second.descriptorCount
+            : 0;
+        const VkDescriptorSetVariableDescriptorCountAllocateInfo variableCountInfo {
+            .sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO,
+            .pNext              = nullptr,
+            .descriptorSetCount = 1,
+            .pDescriptorCounts  = &variableCount,
+        };
+
         const auto allocInfo = VkDescriptorSetAllocateInfo {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+            .pNext = bindless ? &variableCountInfo : nullptr,
             .descriptorPool = pool,
             .descriptorSetCount = 1,
             .pSetLayouts = &setLayout,
