@@ -766,6 +766,9 @@ namespace vireo {
         } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::UNIFORM) {
             srcState = D3D12_RESOURCE_STATE_COPY_DEST;
             dstState = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+        } else if (oldState == ResourceState::VERTEX_INPUT && newState == ResourceState::COPY_DST) {
+            srcState = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+            dstState = D3D12_RESOURCE_STATE_COPY_DEST;
         } else {
             throw Exception("Not implemented");
         }
