@@ -437,7 +437,7 @@ namespace vireo {
             maxDrawCount, stride);
     }
 
-    void VKCommandList::bindPipeline(Pipeline& pipeline) {
+    void VKCommandList::bindPipeline(Pipeline& pipeline, const bool descriptorsAlreadyBounds) {
         if (pipeline.getType() == PipelineType::COMPUTE) {
             vkCmdBindPipeline(
                 commandBuffer,

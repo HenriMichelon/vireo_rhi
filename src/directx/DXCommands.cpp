@@ -212,20 +212,32 @@ namespace vireo {
         DXCommandList::cleanup();
     }
 
-    void DXCommandList::bindPipeline(Pipeline& pipeline) {
-        std::vector<ID3D12DescriptorHeap*> heaps(descriptorHeaps.size());
-        for (int i = 0; i < descriptorHeaps.size(); i++) {
-            heaps[i] = descriptorHeaps[i]->getHeap().Get();
-        }
-        commandList->SetDescriptorHeaps(heaps.size(), heaps.data());
-        if (pipeline.getType() == PipelineType::COMPUTE) {
-            commandList->SetPipelineState(static_cast<const DXComputePipeline&>(pipeline).getPipelineState().Get());
-            commandList->SetComputeRootSignature(static_pointer_cast<const DXPipelineResources>(pipeline.getResources())->getRootSignature().Get());
+    void DXCommandList::bindPipeline(
+        Pipeline& pipeline,
+        const bool descriptorsAlreadyBounds) {
+        if (descriptorsAlreadyBounds) {
+            if (pipeline.getType() == PipelineType::COMPUTE) {
+                commandList->SetPipelineState(static_cast<const DXComputePipeline&>(pipeline).getPipelineState().Get());
+            } else {
+                const auto& dxPipeline = static_cast<const DXGraphicPipeline&>(pipeline);
+                commandList->SetPipelineState(dxPipeline.getPipelineState().Get());
+                commandList->IASetPrimitiveTopology(dxPipeline.getPrimitiveTopology());
+            }
         } else {
-            const auto& dxPipeline = static_cast<const DXGraphicPipeline&>(pipeline);
-            commandList->SetPipelineState(dxPipeline.getPipelineState().Get());
-            commandList->SetGraphicsRootSignature(static_pointer_cast<const DXPipelineResources>(pipeline.getResources())->getRootSignature().Get());
-            commandList->IASetPrimitiveTopology(dxPipeline.getPrimitiveTopology());
+            std::vector<ID3D12DescriptorHeap*> heaps(descriptorHeaps.size());
+            for (int i = 0; i < descriptorHeaps.size(); i++) {
+                heaps[i] = descriptorHeaps[i]->getHeap().Get();
+            }
+            commandList->SetDescriptorHeaps(heaps.size(), heaps.data());
+            if (pipeline.getType() == PipelineType::COMPUTE) {
+                commandList->SetPipelineState(static_cast<const DXComputePipeline&>(pipeline).getPipelineState().Get());
+                commandList->SetComputeRootSignature(static_pointer_cast<const DXPipelineResources>(pipeline.getResources())->getRootSignature().Get());
+            } else {
+                const auto& dxPipeline = static_cast<const DXGraphicPipeline&>(pipeline);
+                commandList->SetPipelineState(dxPipeline.getPipelineState().Get());
+                commandList->SetGraphicsRootSignature(static_pointer_cast<const DXPipelineResources>(pipeline.getResources())->getRootSignature().Get());
+                commandList->IASetPrimitiveTopology(dxPipeline.getPrimitiveTopology());
+            }
         }
         currentlyBoundPipeline = &pipeline;
     }
@@ -238,6 +250,33 @@ namespace vireo {
         for (int i = 0; i < descriptors.size(); i++) {
             const auto& dxDescriptorSet = static_pointer_cast<const DXDescriptorSet>(descriptors[i]);
             if (currentlyBoundPipeline->getType() == PipelineType::COMPUTE) {
+                commandList->SetComputeRootDescriptorTable(firstSet + i, dxDescriptorSet->getDescriptors().gpuHandle);
+            } else {
+                commandList->SetGraphicsRootDescriptorTable(firstSet + i, dxDescriptorSet->getDescriptors().gpuHandle);
+            }
+        }
+    }
+
+    void DXCommandList::bindDescriptors(
+        const PipelineType pipelineType,
+        const std::shared_ptr<PipelineResources>& pipelineResources,
+        const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors,
+        const uint32_t firstSet) const {
+        assert(descriptors.size() > 0);
+        std::vector<ID3D12DescriptorHeap*> heaps(descriptorHeaps.size());
+        for (int i = 0; i < descriptorHeaps.size(); i++) {
+            heaps[i] = descriptorHeaps[i]->getHeap().Get();
+        }
+        commandList->SetDescriptorHeaps(heaps.size(), heaps.data());
+        const auto rootSignature = static_pointer_cast<const DXPipelineResources>(pipelineResources)->getRootSignature().Get();
+        if (pipelineType == PipelineType::COMPUTE) {
+            commandList->SetComputeRootSignature(rootSignature);
+        } else {
+            commandList->SetGraphicsRootSignature(rootSignature);
+        }
+        for (int i = 0; i < descriptors.size(); i++) {
+            const auto& dxDescriptorSet = static_pointer_cast<const DXDescriptorSet>(descriptors[i]);
+            if (pipelineType == PipelineType::COMPUTE) {
                 commandList->SetComputeRootDescriptorTable(firstSet + i, dxDescriptorSet->getDescriptors().gpuHandle);
             } else {
                 commandList->SetGraphicsRootDescriptorTable(firstSet + i, dxDescriptorSet->getDescriptors().gpuHandle);

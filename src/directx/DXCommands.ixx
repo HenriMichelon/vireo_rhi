@@ -236,9 +236,15 @@ export namespace vireo {
 
         void bindIndexBuffer(const Buffer& buffer, IndexType indexType, uint32_t firstIndex) const override;
 
-        void bindPipeline(Pipeline& pipeline) override;
+        void bindPipeline(Pipeline& pipeline, bool descriptorsAlreadyBounds) override;
 
         void bindDescriptors(
+            const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors,
+            uint32_t firstSet) const override;
+
+        void bindDescriptors(
+            PipelineType pipelineType,
+            const std::shared_ptr<PipelineResources>& pipelineResources,
             const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors,
             uint32_t firstSet) const override;
 
