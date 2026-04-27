@@ -453,6 +453,29 @@ namespace vireo {
     }
 
     void VKCommandList::bindDescriptors(
+        const PipelineType pipelineType,
+        const std::shared_ptr<PipelineResources>& pipelineResources,
+        const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors,
+        const uint32_t firstSet) const {
+        assert(!descriptors.empty());
+        const auto vkLayout = static_pointer_cast<const VKPipelineResources>(pipelineResources)->getPipelineLayout();
+        std::vector<VkDescriptorSet> descriptorSets(descriptors.size());
+        for (int i = 0; i < descriptors.size(); i++) {
+            descriptorSets[i] = static_pointer_cast<const VKDescriptorSet>(descriptors[i])->getSet();
+        }
+        vkCmdBindDescriptorSets(commandBuffer,
+                                pipelineType == PipelineType::COMPUTE ?
+                                    VK_PIPELINE_BIND_POINT_COMPUTE :
+                                    VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                vkLayout,
+                                firstSet,
+                                descriptorSets.size(),
+                                descriptorSets.data(),
+                                0,
+                                nullptr);
+    }
+
+    void VKCommandList::bindDescriptors(
         const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors,
         const uint32_t firstSet) const {
         assert(!descriptors.empty());

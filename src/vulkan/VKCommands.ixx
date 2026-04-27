@@ -261,6 +261,12 @@ export namespace vireo {
             const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors,
             uint32_t firstSet) const override;
 
+        void bindDescriptors(
+            PipelineType pipelineType,
+            const std::shared_ptr<PipelineResources>& pipelineResources,
+            const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors,
+            uint32_t firstSet) const override;
+
         void bindDescriptor(
             const DescriptorSet& descriptor,
             uint32_t set) const override;

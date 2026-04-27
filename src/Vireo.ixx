@@ -2046,7 +2046,21 @@ export namespace vireo {
         virtual void bindPipeline(const std::shared_ptr<Pipeline>& pipeline) { bindPipeline(*pipeline); }
 
         /**
-         * Bind descriptor sets to a command list
+         * Bind descriptor sets to a command list, before binding a pipeline
+         * @param pipelineType The pipelines type to be bound after
+         * @param pipelineResources The pipelines layouts
+         * @param descriptors The descriptor sets to bind
+         * @param firstSet The set number of the first descriptor set to be bound
+         */
+        virtual void bindDescriptors(
+            PipelineType pipelineType,
+            const std::shared_ptr<PipelineResources>& pipelineResources,
+            const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors,
+            uint32_t firstSet = 0) const = 0;
+
+
+        /**
+         * Bind descriptor sets to a command list, after a pipeline have been bound
          * @param descriptors The descriptor sets to bind
          * @param firstSet The set number of the first descriptor set to be bound
          */
@@ -2055,7 +2069,7 @@ export namespace vireo {
             uint32_t firstSet = 0) const = 0;
 
         /**
-         * Bind descriptor set to a command list
+         * Bind descriptor set to a command list, after a pipeline have been bound
          * @param descriptor The descriptor set to bind
          * @param set The set number of the descriptor set to be bound
         */
@@ -2064,7 +2078,7 @@ export namespace vireo {
             uint32_t set) const = 0;
 
         /**
-         * Binds descriptor set to a command list
+         * Binds descriptor set to a command list, after a pipeline have been bound
          * @param descriptor The descriptor set to bind
          * @param set The set number of the descriptor set to be bound
         */
@@ -2075,7 +2089,7 @@ export namespace vireo {
         }
 
         /**
-         * Binds a dynamic uniform descriptor set to a command list
+         * Binds a dynamic uniform descriptor set to a command list, after a pipeline have been bound
          * @param descriptor The descriptor set to bind
          * @param set The set number of the descriptor set to be bound
          * @param offset Values specifying dynamic offsets for the UNIFORM_DYNAMIC resource.
@@ -2086,7 +2100,7 @@ export namespace vireo {
             uint32_t offset) const = 0;
 
         /**
-         * Binds a dynamic uniform descriptor set to a command list
+         * Binds a dynamic uniform descriptor set to a command list, after a pipeline have been bound
          * @param descriptor The descriptor set to bind
          * @param set The set number of the descriptor set to be bound
          * @param offset Values specifying dynamic offsets for the UNIFORM_DYNAMIC resource.
