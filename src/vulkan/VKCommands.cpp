@@ -1203,6 +1203,11 @@ namespace vireo {
             dstStage = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
             srcAccess = VK_ACCESS_TRANSFER_READ_BIT;
             dstAccess = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
+        } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::SHADER_READ) {
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+            srcAccess = VK_ACCESS_TRANSFER_READ_BIT;
+            dstAccess = VK_ACCESS_SHADER_READ_BIT;
         } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::VERTEX_INPUT) {
             srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             dstStage = VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
