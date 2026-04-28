@@ -68,7 +68,7 @@ namespace vireo {
                 buffer.Get() });
         }
 #ifdef _DEBUG
-        //buffer->SetName(L"DXBuffer : " + std::to_wstring(name));
+        buffer->SetName((L"DXBuffer : " + std::to_wstring(name)).c_str());
 #endif
     }
 
@@ -182,7 +182,7 @@ namespace vireo {
                 image.Get() });
         }
 #ifdef _DEBUG
-        //image->SetName(("DXIMage : " + name).c_str());
+        image->SetName((L"DXIMage : " + std::to_wstring(name)).c_str());
 #endif
     }
 

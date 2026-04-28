@@ -1009,7 +1009,7 @@ namespace vireo {
                 nullptr,
                 IID_PPV_ARGS(&stagingBuffer)));
 #ifdef _DEBUG
-            //tagingBuffer->SetName("stagingBuffer buffer");
+            stagingBuffer->SetName(L"stagingBuffer buffer");
 #endif
         }
 

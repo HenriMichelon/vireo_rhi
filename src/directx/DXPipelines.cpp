@@ -68,7 +68,7 @@ namespace vireo {
         const ComPtr<ID3D12Device>& device,
         const std::vector<std::shared_ptr<DescriptorLayout>>& descriptorLayouts,
         const PushConstantsDesc& pushConstant,
-        const std::string& _) {
+        const std::string& name) {
 
         constexpr D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
                D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
@@ -141,7 +141,7 @@ namespace vireo {
             signature->GetBufferSize(),
             IID_PPV_ARGS(&rootSignature)));
 #ifdef _DEBUG
-        //rootSignature->SetName(("DXPipelineResources : " + name).c_str());
+        rootSignature->SetName((L"DXPipelineResources : " + std::to_wstring(name)).c_str());
 #endif
     }
 
@@ -161,7 +161,7 @@ namespace vireo {
 
         dxCheck(device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)));
 #ifdef _DEBUG
-        //pipelineState->SetName(("DXComputePipeline : " + name).c_str());
+        pipelineState->SetName((L"DXComputePipeline : " + std::to_wstring(name)).c_str());
 #endif
     }
 
@@ -265,7 +265,7 @@ namespace vireo {
         psoDesc.BlendState.AlphaToCoverageEnable = configuration.alphaToCoverageEnable;
         dxCheck(device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState)));
 #ifdef _DEBUG
-        //pipelineState->SetName(("DXGraphicPipeline : " + name).c_str());
+        pipelineState->SetName((L"DXGraphicPipeline : " + std::to_wstring(name)).c_str());
 #endif
     }
 
