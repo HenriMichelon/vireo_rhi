@@ -805,7 +805,7 @@ namespace vireo {
             VkImageLayout& srcLayout,
             VkImageLayout& dstLayout,
             VkImageAspectFlagBits& aspectFlag) {
-        if (oldState == ResourceState::UNDEFINED && newState == ResourceState::DISPATCH_TARGET) {
+        if (oldState == ResourceState::UNDEFINED && newState == ResourceState::COMPUTE_WRITE) {
             srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
             dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
             srcAccess = 0;
@@ -968,7 +968,7 @@ namespace vireo {
             dstAccess = VK_ACCESS_SHADER_READ_BIT;
             srcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        } else if (oldState == ResourceState::DISPATCH_TARGET && newState == ResourceState::COPY_SRC) {
+        } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::COPY_SRC) {
             srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             srcAccess = 0;
@@ -996,7 +996,7 @@ namespace vireo {
             dstAccess = 0;
             srcLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_GENERAL;
-        } else if (oldState == ResourceState::DISPATCH_TARGET && newState == ResourceState::UNDEFINED) {
+        } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::UNDEFINED) {
             srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
             dstStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
             srcAccess = 0;
@@ -1025,7 +1025,7 @@ namespace vireo {
             aspectFlag = oldState == ResourceState::RENDER_TARGET_DEPTH_READ ?
                 VK_IMAGE_ASPECT_DEPTH_BIT :
                 static_cast<VkImageAspectFlagBits>(VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
-        } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::DISPATCH_TARGET) {
+        } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::COMPUTE_WRITE) {
             srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
             srcAccess = VK_ACCESS_TRANSFER_READ_BIT;

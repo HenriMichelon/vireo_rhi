@@ -578,8 +578,6 @@ export namespace vireo {
         RENDER_TARGET_DEPTH_STENCIL,
         //! Used as a depth and stencil attachment in the graphics pipeline
         RENDER_TARGET_DEPTH_STENCIL_READ,
-        //! Used as a read/write image with a compute pipeline
-        DISPATCH_TARGET,
         //! Used for presenting a presentable image for display.
         PRESENT,
         //! Used as a source of a transfer/copy/blit command
