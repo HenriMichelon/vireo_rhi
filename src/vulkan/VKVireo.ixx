@@ -110,6 +110,9 @@ export namespace vireo {
             MSAA msaa,
             const std::string& name) const override;
 
+        std::shared_ptr<RenderTarget> createRenderTarget(
+            const std::shared_ptr<Image>& image) const override;
+
         std::shared_ptr<DescriptorLayout> createBindlessDescriptorLayout(
             const std::string& name) const override;
 

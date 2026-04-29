@@ -202,6 +202,13 @@ namespace vireo {
                 msaa));
     }
 
+    std::shared_ptr<RenderTarget> VKVireo::createRenderTarget(
+        const std::shared_ptr<Image>& image) const {
+        return std::make_shared<VKRenderTarget>(
+           RenderTargetType::COLOR,
+           image);
+    }
+
     void VKVireo::waitIdle() {
         vkDeviceWaitIdle(getVKDevice()->getDevice());
     }

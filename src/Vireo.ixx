@@ -1273,7 +1273,7 @@ export namespace vireo {
         auto getImage() const { return image; }
 
         /**
-         * Return the type of the attachment
+         * Return the type of the attachmentN
          */
         auto getType() const { return type; }
 
@@ -2966,6 +2966,16 @@ export namespace vireo {
             ClearValue clearValue = {},
             MSAA msaa = MSAA::NONE,
             const std::string& name = "RenderTarget") const = 0;
+
+        /**
+         * Creates a read/write image in VRAM for use as a render target using an existing image.
+         * @param image source image.
+         * @param clearValue A clear value used for optimized clearing. Must be the same as the clear value used when
+         * rendering.
+         * @param name Object name for debug
+         */
+        virtual std::shared_ptr<RenderTarget> createRenderTarget(
+            const std::shared_ptr<Image>& image) const = 0;
 
         /**
          * Creates an empty description layout.

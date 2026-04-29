@@ -143,10 +143,10 @@ namespace vireo {
                 isRenderTarget ?
                     isDepthBuffer ? D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL :
                     D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET :
-                useByComputeShader ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS :
+                useByComputeShader ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS | D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET:
                 D3D12_RESOURCE_FLAG_NONE,
         };
-        if (isRenderTarget) {
+        if (isRenderTarget || useByComputeShader) {
             dxClearValue.Format = dxFormat;
             if (isDepthBuffer) {
                 dxClearValue.DepthStencil = {
