@@ -256,13 +256,13 @@ namespace vireo {
         assert(!layout->isSamplers());
         assert(images.size() > 0);
         auto imagesInfo = std::vector<VkDescriptorImageInfo>(images.size());
-        bool isStorage = false;
+        // bool isStorage = false;
         for (int i = 0; i < images.size(); i++) {
             assert(images[i] != nullptr);
             imagesInfo[i].sampler = VK_NULL_HANDLE;
             imagesInfo[i].imageView = static_pointer_cast<const VKImage>(images[i])->getImageView();
             imagesInfo[i].imageLayout = images[i]->isReadWrite() ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            isStorage |= images[i]->isReadWrite();
+            // isStorage |= images[i]->isReadWrite();
         }
         const auto write = VkWriteDescriptorSet {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -270,7 +270,8 @@ namespace vireo {
             .dstBinding = index,
             .dstArrayElement = 0,
             .descriptorCount = static_cast<uint32_t>(imagesInfo.size()),
-            .descriptorType = isStorage ? VK_DESCRIPTOR_TYPE_STORAGE_IMAGE : VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
+            // .descriptorType = isStorage ? VK_DESCRIPTOR_TYPE_STORAGE_IMAGE : VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
+            .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
             .pImageInfo = imagesInfo.data(),
         };
         vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
