@@ -219,13 +219,13 @@ namespace vireo {
         }
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const Image& image) {
+    void DXDescriptorSet::update(const DescriptorIndex index, const Image& image, bool forceShaderRead) {
         assert(!layout->isDynamicUniform());
         assert(!layout->isSamplers());
         const auto cpuHandle = D3D12_CPU_DESCRIPTOR_HANDLE { descriptors.cpuHandle.ptr + index * heap->getDescriptorSize() };
 
         const auto& dxImage = static_cast<const DXImage&>(image);
-        if (image.isReadWrite()) {
+        if (image.isReadWrite() && !forceShaderRead) {
             const auto viewDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC {
                 .Format = DXImage::dxFormats[static_cast<int>(image.getFormat())],
                 .ViewDimension = image.getArraySize() > 1 ? D3D12_UAV_DIMENSION_TEXTURE2DARRAY : D3D12_UAV_DIMENSION_TEXTURE2D,
@@ -293,7 +293,7 @@ namespace vireo {
 
     void DXDescriptorSet::update(const DescriptorIndex index, const std::vector<std::shared_ptr<Image>>& images) {
         for (int i = 0; i < images.size(); ++i) {
-            update(index + i, *images[i]);
+            update(index + i, *images[i], true);
         }
     }
 

@@ -1405,8 +1405,8 @@ export namespace vireo {
          * @param index Binding index
          * @param image The texture
          */
-        void update(const DescriptorIndex index, const std::shared_ptr<const Image>& image) {
-            update(index, *image);
+        void update(const DescriptorIndex index, const std::shared_ptr<const Image>& image, bool forceShaderRead = false) {
+            update(index, *image, forceShaderRead);
         }
 
         /**
@@ -1414,7 +1414,7 @@ export namespace vireo {
          * @param index Binding index
          * @param image The texture
          */
-        virtual void update(DescriptorIndex index, const Image& image) = 0;
+        virtual void update(DescriptorIndex index, const Image& image, bool forceShaderRead = false) = 0;
 
         /**
          * Bind a sampler

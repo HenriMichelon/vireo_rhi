@@ -62,7 +62,7 @@ export namespace vireo {
 
         void update(DescriptorIndex index, const Buffer& buffer) override;
 
-        void update(DescriptorIndex index, const Image& image) override;
+        void update(DescriptorIndex index, const Image& image, bool forceShaderRead) override;
 
         void update(DescriptorIndex index, const Sampler& sampler) override;
 
