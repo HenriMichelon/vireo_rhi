@@ -833,6 +833,13 @@ namespace vireo {
             dstAccess = VK_ACCESS_SHADER_READ_BIT;
             srcLayout = VK_IMAGE_LAYOUT_GENERAL;
             dstLayout = VK_IMAGE_LAYOUT_GENERAL;
+        } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::COMPUTE_READ) {
+            srcStage = static_cast<VkPipelineStageFlags>(VK_PIPELINE_STAGE_2_COPY_BIT);
+            dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            srcAccess = 0;
+            dstAccess = VK_ACCESS_SHADER_READ_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            dstLayout = VK_IMAGE_LAYOUT_GENERAL;
         } else if (oldState == ResourceState::SHADER_READ && newState == ResourceState::COMPUTE_WRITE) {
             srcStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
             dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
