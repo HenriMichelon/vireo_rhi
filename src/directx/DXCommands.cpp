@@ -542,13 +542,35 @@ namespace vireo {
         barrier(std::vector<ID3D12Resource*>{r.begin(), r.end()}, oldState, newState);
     }
 
+    void DXCommandList::barrier(
+        const std::vector<std::shared_ptr<const Image>>& images,
+        const ResourceState oldState,
+        const ResourceState newState,
+        const uint32_t firstArrayLayer,
+        const uint32_t layerCount) const {
+        assert(images.size() > 0);
+        const auto r = std::views::transform(images, [](const std::shared_ptr<const Image>& image) {
+            return static_pointer_cast<const DXImage>(image)->getImage().Get();
+        });
+        barrier(std::vector<ID3D12Resource*>{r.begin(), r.end()}, oldState, newState);
+    }
+
     void DXCommandList::convertState(
             const ResourceState oldState,
             const ResourceState newState,
             D3D12_RESOURCE_STATES& srcState,
             D3D12_RESOURCE_STATES& dstState) {
-        if (oldState == ResourceState::UNDEFINED && newState == ResourceState::DISPATCH_TARGET) {
+        if (oldState == ResourceState::UNDEFINED && newState == ResourceState::COMPUTE_WRITE) {
             srcState = D3D12_RESOURCE_STATE_COMMON;
+            dstState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+        } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::COMPUTE_READ) {
+            srcState = D3D12_RESOURCE_STATE_COMMON;
+            dstState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+        } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::COMPUTE_READ) {
+            srcState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+            dstState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+        } else if (oldState == ResourceState::COMPUTE_READ && newState == ResourceState::COMPUTE_WRITE) {
+            srcState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
             dstState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
         } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::RENDER_TARGET_COLOR) {
             srcState = D3D12_RESOURCE_STATE_COMMON;
@@ -623,9 +645,12 @@ namespace vireo {
         } else if (oldState == ResourceState::SHADER_READ && newState == ResourceState::RENDER_TARGET_DEPTH_STENCIL) {
             srcState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
             dstState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
-        } else if (oldState == ResourceState::DISPATCH_TARGET && newState == ResourceState::COPY_SRC) {
+        } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::COPY_SRC) {
             srcState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
             dstState = D3D12_RESOURCE_STATE_COPY_SOURCE;
+        } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::SHADER_READ) {
+            srcState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+            dstState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
         } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::COPY_SRC) {
             srcState = D3D12_RESOURCE_STATE_COMMON;
             dstState = D3D12_RESOURCE_STATE_COPY_SOURCE;
@@ -635,7 +660,7 @@ namespace vireo {
         } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::UNDEFINED) {
             srcState = D3D12_RESOURCE_STATE_COPY_SOURCE;
             dstState = D3D12_RESOURCE_STATE_COMMON;
-        } else if (oldState == ResourceState::DISPATCH_TARGET && newState == ResourceState::UNDEFINED) {
+        } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::UNDEFINED) {
             srcState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
             dstState = D3D12_RESOURCE_STATE_COMMON;
         } else if (oldState == ResourceState::RENDER_TARGET_COLOR && newState == ResourceState::UNDEFINED) {
@@ -649,7 +674,7 @@ namespace vireo {
                 newState == ResourceState::UNDEFINED) {
             srcState = D3D12_RESOURCE_STATE_DEPTH_READ;
             dstState = D3D12_RESOURCE_STATE_COMMON;
-        } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::DISPATCH_TARGET) {
+        } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::COMPUTE_WRITE) {
             srcState = D3D12_RESOURCE_STATE_COPY_SOURCE;
             dstState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
         } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::COPY_DST) {

@@ -261,7 +261,8 @@ namespace vireo {
             assert(images[i] != nullptr);
             imagesInfo[i].sampler = VK_NULL_HANDLE;
             imagesInfo[i].imageView = static_pointer_cast<const VKImage>(images[i])->getImageView();
-            imagesInfo[i].imageLayout = images[i]->isReadWrite() ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            imagesInfo[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            // imagesInfo[i].imageLayout = images[i]->isReadWrite() ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             // isStorage |= images[i]->isReadWrite();
         }
         const auto write = VkWriteDescriptorSet {
@@ -284,7 +285,7 @@ namespace vireo {
         for (int i = 0; i < samplers.size(); i++) {
             imagesInfo[i].sampler = static_pointer_cast<const VKSampler>(samplers[i])->getSampler();
             imagesInfo[i].imageView = VK_NULL_HANDLE;
-            imagesInfo[i].imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            imagesInfo[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         }
         const auto write = VkWriteDescriptorSet {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,

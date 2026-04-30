@@ -332,6 +332,13 @@ export namespace vireo {
             uint32_t layerCount) const override;
 
         void barrier(
+            const std::vector<std::shared_ptr<const Image>>& images,
+            ResourceState oldState,
+            ResourceState newState,
+            uint32_t firstArrayLayer,
+            uint32_t layerCount) const override;
+
+        void barrier(
            const Buffer& buffer,
            ResourceState oldState,
            ResourceState newState) const override;
