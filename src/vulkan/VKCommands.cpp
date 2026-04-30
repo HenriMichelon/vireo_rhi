@@ -812,6 +812,27 @@ namespace vireo {
             dstAccess = VK_ACCESS_SHADER_WRITE_BIT;
             srcLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             dstLayout = VK_IMAGE_LAYOUT_GENERAL;
+        } else if (oldState == ResourceState::COMPUTE_READ && newState == ResourceState::COMPUTE_WRITE) {
+            srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            srcAccess = VK_ACCESS_SHADER_READ_BIT;
+            dstAccess = VK_ACCESS_SHADER_WRITE_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_GENERAL;
+            dstLayout = VK_IMAGE_LAYOUT_GENERAL;
+        } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::COMPUTE_READ) {
+            srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            srcAccess = VK_ACCESS_SHADER_WRITE_BIT;
+            dstAccess = VK_ACCESS_SHADER_READ_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_GENERAL;
+            dstLayout = VK_IMAGE_LAYOUT_GENERAL;
+        } else if (oldState == ResourceState::SHADER_READ && newState == ResourceState::COMPUTE_WRITE) {
+            srcStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            srcAccess = VK_ACCESS_SHADER_READ_BIT;
+            dstAccess = VK_ACCESS_SHADER_WRITE_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_GENERAL;
         } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::RENDER_TARGET_COLOR) {
             srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
             dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -884,6 +905,13 @@ namespace vireo {
             dstAccess = VK_ACCESS_SHADER_READ_BIT;
             srcLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::COMPUTE_READ) {
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            srcAccess = 0;
+            dstAccess = VK_ACCESS_SHADER_READ_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            dstLayout = VK_IMAGE_LAYOUT_GENERAL;
         } else if (oldState == ResourceState::RENDER_TARGET_COLOR && newState == ResourceState::SHADER_READ) {
             srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
             dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
@@ -1130,7 +1158,7 @@ namespace vireo {
             dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
             srcAccess = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
             dstAccess = VK_ACCESS_SHADER_WRITE_BIT;
-        }else if (oldState == ResourceState::INDIRECT_DRAW && newState == ResourceState::COPY_DST) {
+        } else if (oldState == ResourceState::INDIRECT_DRAW && newState == ResourceState::COPY_DST) {
             srcStage = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
             dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             srcAccess = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
@@ -1324,6 +1352,19 @@ namespace vireo {
         assert(!renderTargets.empty());
         const auto r = std::views::transform(renderTargets, [](const std::shared_ptr<const RenderTarget>& renderTarget) {
             return static_pointer_cast<const VKImage>(renderTarget->getImage())->getImage();
+        });
+        barrier(std::vector<VkImage>{r.begin(), r.end()}, oldState, newState, firstArrayLayer, layerCount);
+    }
+
+    void VKCommandList::barrier(
+        const std::vector<std::shared_ptr<const Image>>& images,
+        const ResourceState oldState,
+        const ResourceState newState,
+        const uint32_t firstArrayLayer,
+        const uint32_t layerCount) const {
+        assert(!images.empty());
+        const auto r = std::views::transform(images, [](const std::shared_ptr<const Image>& image) {
+            return static_pointer_cast<const VKImage>(image)->getImage();
         });
         barrier(std::vector<VkImage>{r.begin(), r.end()}, oldState, newState, firstArrayLayer, layerCount);
     }

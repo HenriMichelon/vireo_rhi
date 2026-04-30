@@ -328,15 +328,15 @@ export namespace vireo {
             ResourceState newState,
             uint32_t firstMipLevel,
             uint32_t levelCount,
-            uint32_t firstArrayLayer = 0,
-            uint32_t layerCount = Image::ALL_LAYERS) const override;
+            uint32_t firstArrayLayer,
+            uint32_t layerCount) const override;
 
         void barrier(
             const std::shared_ptr<const RenderTarget>& renderTarget,
             ResourceState oldState,
             ResourceState newState,
-            uint32_t firstArrayLayer = 0,
-            uint32_t layerCount = Image::ALL_LAYERS) const override;
+            uint32_t firstArrayLayer,
+            uint32_t layerCount) const override;
 
         void barrier(
             const std::shared_ptr<const SwapChain>& swapChain,
@@ -347,8 +347,15 @@ export namespace vireo {
             const std::vector<std::shared_ptr<const RenderTarget>>& renderTargets,
             ResourceState oldState,
             ResourceState newState,
-            uint32_t firstArrayLayer = 0,
-            uint32_t layerCount = Image::ALL_LAYERS) const override;
+            uint32_t firstArrayLayer,
+            uint32_t layerCount) const override;
+
+        void barrier(
+            const std::vector<std::shared_ptr<const Image>>& images,
+            ResourceState oldState,
+            ResourceState newState,
+            uint32_t firstArrayLayer,
+            uint32_t layerCount) const override;
 
         void barrier(
             const Buffer& buffer,

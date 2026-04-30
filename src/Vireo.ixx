@@ -2328,6 +2328,20 @@ export namespace vireo {
 
         /**
          * Insert a memory dependency
+         * @param images The images affected by this barrier.
+         * @param oldState Old state in an image state transition.
+         * @param newState New state in an image state transition.
+         * @param firstArrayLayer  The first array layer to include is this barrier
+         * @param layerCount  Number of array layers level to include
+         */
+        virtual void barrier(
+            const std::vector<std::shared_ptr<const Image>>& images,
+            ResourceState oldState,
+            ResourceState newState,
+            uint32_t firstArrayLayer = 0,
+            uint32_t layerCount = Image::ALL_LAYERS) const = 0;
+        /**
+         * Insert a memory dependency
          * @param swapChain The image affected by this barrier.
          * @param oldState Old state in an image state transition.
          * @param newState New state in an image state transition.
