@@ -1395,6 +1395,8 @@ namespace vireo {
             stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
         } else if (pushConstants.stage == ShaderStage::FRAGMENT) {
             stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        } else if (pushConstants.stage == ShaderStage::COMPUTE) {
+            stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
         }  else {
             stageFlags = VK_SHADER_STAGE_ALL_GRAPHICS;
         }

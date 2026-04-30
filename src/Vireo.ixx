@@ -2079,7 +2079,7 @@ export namespace vireo {
         */
         virtual void bindDescriptor(
             const DescriptorSet& descriptor,
-            uint32_t set) const = 0;
+            uint32_t set = 0) const = 0;
 
         /**
          * Binds descriptor set to a command list, after a pipeline have been bound
@@ -2088,7 +2088,7 @@ export namespace vireo {
         */
         void bindDescriptor(
             const std::shared_ptr<const DescriptorSet>& descriptor,
-            const uint32_t set) const {
+            const uint32_t set = 0) const {
             bindDescriptor(*descriptor, set);
         }
 

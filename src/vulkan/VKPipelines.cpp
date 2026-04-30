@@ -110,7 +110,9 @@ namespace vireo {
                 pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
             } else if (pushConstant.stage == ShaderStage::FRAGMENT) {
                 pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-            }  else {
+            } else if (pushConstant.stage == ShaderStage::COMPUTE) {
+                pushConstantRange.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+            } else {
                 pushConstantRange.stageFlags = VK_SHADER_STAGE_ALL_GRAPHICS;
             }
             pushConstantRange.offset = pushConstant.offset;
