@@ -232,13 +232,13 @@ namespace vireo {
             }
             commandList->SetDescriptorHeaps(heaps.size(), heaps.data());
             if (pipeline.getType() == PipelineType::COMPUTE) {
-                commandList->SetPipelineState(static_cast<const DXComputePipeline&>(pipeline).getPipelineState().Get());
                 commandList->SetComputeRootSignature(static_pointer_cast<const DXPipelineResources>(pipeline.getResources())->getRootSignature().Get());
+                commandList->SetPipelineState(static_cast<const DXComputePipeline&>(pipeline).getPipelineState().Get());
             } else {
                 const auto& dxPipeline = static_cast<const DXGraphicPipeline&>(pipeline);
-                commandList->SetPipelineState(dxPipeline.getPipelineState().Get());
                 commandList->SetGraphicsRootSignature(static_pointer_cast<const DXPipelineResources>(pipeline.getResources())->getRootSignature().Get());
                 commandList->IASetPrimitiveTopology(dxPipeline.getPrimitiveTopology());
+                commandList->SetPipelineState(dxPipeline.getPipelineState().Get());
             }
         }
         currentlyBoundPipeline = &pipeline;
@@ -846,14 +846,23 @@ namespace vireo {
         const std::shared_ptr<const PipelineResources>& pipelineResources,
         const PushConstantsDesc& pushConstants,
         const void* data) const {
+        assert(currentlyBoundPipeline != nullptr);
         assert(pipelineResources != nullptr);
         assert(data != nullptr);
         const auto dxResources = static_pointer_cast<const DXPipelineResources>(pipelineResources);
-        commandList->SetGraphicsRoot32BitConstants(
-            dxResources->getPushConstantsRootParameterIndex(),
-            pushConstants.size / sizeof(uint32_t),
-            data,
-            pushConstants.offset);
+        if (currentlyBoundPipeline->getType() == PipelineType::GRAPHIC) {
+            commandList->SetGraphicsRoot32BitConstants(
+                dxResources->getPushConstantsRootParameterIndex(),
+                pushConstants.size / sizeof(uint32_t),
+                data,
+                pushConstants.offset);
+        } else {
+            commandList->SetComputeRoot32BitConstants(
+                dxResources->getPushConstantsRootParameterIndex(),
+                pushConstants.size / sizeof(uint32_t),
+                data,
+                pushConstants.offset);
+        }
     }
 
     void DXCommandList::begin() const {
