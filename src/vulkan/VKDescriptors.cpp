@@ -167,7 +167,7 @@ namespace vireo {
         const auto& vkBuffer = static_cast<const VKBuffer&>(buffer);
         const auto bufferInfo = VkDescriptorBufferInfo {
             .buffer = vkBuffer.getBuffer(),
-            .range = vkBuffer.getInstanceSizeAligned(),
+            .range = VK_WHOLE_SIZE,
         };
         const auto write = VkWriteDescriptorSet {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
