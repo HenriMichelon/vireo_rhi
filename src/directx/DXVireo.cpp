@@ -202,7 +202,8 @@ namespace vireo {
         return std::make_shared<DXRenderTarget>(
             getDXDevice()->getDevice(),
             static_pointer_cast<DXImage>(image),
-            RenderTargetType::COLOR);
+            RenderTargetType::COLOR,
+            false);
     }
 
     std::shared_ptr<DescriptorLayout> DXVireo::createBindlessDescriptorLayout(
