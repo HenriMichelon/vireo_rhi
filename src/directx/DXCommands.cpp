@@ -769,7 +769,7 @@ namespace vireo {
         D3D12_RESOURCE_STATES srcState, dstState;
         std::vector<D3D12_RESOURCE_BARRIER> barriers;
         const auto& dxBuffer = static_cast<const DXBuffer&>(buffer).getBuffer().Get();
-        if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::COMPUTE_WRITE) {
+        if (oldState == ResourceState::COMPUTE_WRITE) {
             barriers.push_back(CD3DX12_RESOURCE_BARRIER::UAV(dxBuffer));
         }
         if (oldState == ResourceState::INDIRECT_DRAW && newState == ResourceState::COPY_DST) {
