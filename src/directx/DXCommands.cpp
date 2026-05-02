@@ -775,9 +775,15 @@ namespace vireo {
         if (oldState == ResourceState::INDIRECT_DRAW && newState == ResourceState::COPY_DST) {
             srcState = D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
             dstState = D3D12_RESOURCE_STATE_COPY_DEST;
-        }else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::COPY_DST) {
+        } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::COPY_DST) {
             srcState = D3D12_RESOURCE_STATE_COMMON;
             dstState = D3D12_RESOURCE_STATE_COPY_DEST;
+        } else if (oldState == ResourceState::COMPUTE_READ && newState == ResourceState::COPY_DST) {
+            srcState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+            dstState = D3D12_RESOURCE_STATE_COPY_DEST;
+        } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::COMPUTE_READ) {
+            srcState = D3D12_RESOURCE_STATE_COPY_DEST;
+            dstState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
         } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::COMPUTE_WRITE) {
             srcState = D3D12_RESOURCE_STATE_COPY_DEST;
             dstState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
