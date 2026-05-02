@@ -1187,11 +1187,21 @@ namespace vireo {
             dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
             srcAccess = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
             dstAccess = VK_ACCESS_SHADER_READ_BIT;
+        } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::COPY_DST){
+            srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            srcAccess = VK_ACCESS_SHADER_WRITE_BIT;
+            dstAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
         } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::INDIRECT_DRAW){
             srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
             dstStage = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
             srcAccess = VK_ACCESS_SHADER_WRITE_BIT;
             dstAccess = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
+        } else if (oldState == ResourceState::COMPUTE_READ && newState == ResourceState::COMPUTE_WRITE) {
+            srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            srcAccess = VK_ACCESS_SHADER_READ_BIT;
+            dstAccess = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT;
         } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::COMPUTE_WRITE) {
             srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
@@ -1248,7 +1258,7 @@ namespace vireo {
             srcAccess = VK_ACCESS_TRANSFER_READ_BIT;
             dstAccess = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
         } else if (oldState == ResourceState::COMPUTE_READ && newState == ResourceState::INDIRECT_DRAW) {
-            srcStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+            srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
             dstStage = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
             srcAccess = VK_ACCESS_SHADER_READ_BIT;
             dstAccess = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
@@ -1283,7 +1293,7 @@ namespace vireo {
             srcAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
             dstAccess = VK_ACCESS_SHADER_READ_BIT;
         } else if (oldState == ResourceState::COMPUTE_READ && newState == ResourceState::COPY_DST) {
-            srcStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+            srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
             dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             srcAccess = VK_ACCESS_SHADER_READ_BIT;
             dstAccess = VK_ACCESS_TRANSFER_WRITE_BIT;

@@ -778,6 +778,9 @@ namespace vireo {
         } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::COPY_DST) {
             srcState = D3D12_RESOURCE_STATE_COMMON;
             dstState = D3D12_RESOURCE_STATE_COPY_DEST;
+        } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::COPY_DST) {
+            srcState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+            dstState = D3D12_RESOURCE_STATE_COPY_DEST;
         } else if (oldState == ResourceState::COMPUTE_READ && newState == ResourceState::COPY_DST) {
             srcState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
             dstState = D3D12_RESOURCE_STATE_COPY_DEST;
@@ -792,6 +795,9 @@ namespace vireo {
             dstState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
         } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::COMPUTE_WRITE) {
             srcState = D3D12_RESOURCE_STATE_COPY_DEST;
+            dstState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+        } else if (oldState == ResourceState::COMPUTE_READ && newState == ResourceState::COMPUTE_WRITE) {
+            srcState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
             dstState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
         } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::SHADER_READ) {
             srcState = D3D12_RESOURCE_STATE_COPY_DEST;
