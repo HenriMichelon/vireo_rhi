@@ -98,7 +98,7 @@ namespace vireo {
         for (UINT n = 0; n < framesInFlight; n++) {
             dxCheck(swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTargets[n])));
 #ifdef _DEBUG
-            renderTargets[n]->SetName(L"SwapChain BackBuffer");
+            renderTargets[n]->SetName(std::to_wstring("SwapChain BackBuffer #" + std::to_string(n)).c_str());
 #endif
             device->getDevice()->CreateRenderTargetView(renderTargets[n].Get(), &rtvDesc, rtvHandle);
             rtvHandle.Offset(1, rtvDescriptorSize);
@@ -155,7 +155,7 @@ namespace vireo {
             for (UINT n = 0; n < framesInFlight; n++) {
                 dxCheck(swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTargets[n])));
 #ifdef _DEBUG
-                //renderTargets[n]->SetName(L"SwapChain BackBuffer " + n);
+                renderTargets[n]->SetName(std::to_wstring("SwapChain BackBuffer #" + std::to_string(n)).c_str());
 #endif
                 device->getDevice()->CreateRenderTargetView(renderTargets[n].Get(), &rtvDesc, rtvHandle);
                 rtvHandle.Offset(1, rtvDescriptorSize);
