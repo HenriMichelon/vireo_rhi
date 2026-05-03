@@ -99,16 +99,16 @@ namespace vireo {
     DXImage::DXImage(
         const ComPtr<ID3D12Device> &device,
         const ImageFormat format,
-        const uint32_t    width,
-        const uint32_t    height,
-        const uint32_t    mipLevels,
-        const uint32_t    arraySize,
-        const std::string&    name,
-        const bool        useByComputeShader,
-        const bool        isRenderTarget,
-        const bool        isDepthBuffer,
-        const ClearValue  clearValue,
-        const MSAA        msaa):
+        const uint32_t width,
+        const uint32_t height,
+        const uint32_t mipLevels,
+        const uint32_t arraySize,
+        const std::string& name,
+        const bool useByComputeShader,
+        const bool isRenderTarget,
+        const bool isDepthBuffer,
+        const ClearValue clearValue,
+        const MSAA msaa):
         Image{format, width, height, mipLevels, arraySize, useByComputeShader, name} {
         const auto dxFormat = dxFormats[static_cast<int>(format)];
         const auto samples = DXPhysicalDevice::dxSampleCount[static_cast<int>(msaa)];
@@ -130,10 +130,10 @@ namespace vireo {
             .DepthOrArraySize = static_cast<UINT16>(arraySize),
             .MipLevels = static_cast<UINT16>(mipLevels),
             .Format =
-                format == ImageFormat::D32_SFLOAT_S8_UINT ?
-                DXGI_FORMAT_R32G8X24_TYPELESS :
-                format == ImageFormat::D24_UNORM_S8_UINT ?
-                DXGI_FORMAT_R24G8_TYPELESS :
+                format == ImageFormat::D32_SFLOAT_S8_UINT ? DXGI_FORMAT_R32G8X24_TYPELESS :
+                format == ImageFormat::D24_UNORM_S8_UINT ? DXGI_FORMAT_R24G8_TYPELESS :
+                format == ImageFormat::D32_SFLOAT ? DXGI_FORMAT_R32_TYPELESS :
+                format == ImageFormat::D16_UNORM ? DXGI_FORMAT_R16_TYPELESS :
                 dxFormat,
             .SampleDesc = {
                 samples,

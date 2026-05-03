@@ -259,7 +259,7 @@ namespace vireo {
                 if (image.getFormat() == ImageFormat::D32_SFLOAT) {
                     viewDesc.Format = DXGI_FORMAT_R32_FLOAT;
                 } else if (image.getFormat() == ImageFormat::D16_UNORM) {
-                    viewDesc.Format = DXGI_FORMAT_R16_FLOAT;
+                    viewDesc.Format = DXGI_FORMAT_R16_UNORM;
                 } else {
                     throw Exception("Unsupported depth format");
                 }
