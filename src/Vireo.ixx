@@ -3106,7 +3106,7 @@ export namespace vireo {
 template <> struct luabridge::Stack<vireo::Backend> : Enum<vireo::Backend> {};
 template <> struct luabridge::Stack<vireo::Filter> : Enum<vireo::Filter> {};
 template <> struct luabridge::Stack<vireo::AddressMode> : Enum<vireo::AddressMode> {};
-template <> struct luabridge::Stack<vireo::MipMapMode> : Enum<vireo::MipMapMode> {};
+template <> struct luabridge::Stack<vireo::FilterMode> : Enum<vireo::FilterMode> {};
 template <> struct luabridge::Stack<vireo::ImageFormat> : Enum<vireo::ImageFormat> {};
 template <> struct luabridge::Stack<vireo::BufferType> : Enum<vireo::BufferType> {};
 template <> struct luabridge::Stack<vireo::IndexType> : Enum<vireo::IndexType> {};

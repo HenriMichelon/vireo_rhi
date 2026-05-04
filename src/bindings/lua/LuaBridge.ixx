@@ -12,6 +12,7 @@ extern "C"
 #include "lauxlib.h"
 }
 #include <cassert>
+#include <cstdint>
 export module lua_bridge;
 
 import std;
