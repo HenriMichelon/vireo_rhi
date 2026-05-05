@@ -21,13 +21,14 @@ if (DIRECTX_BACKEND)
 endif ()
 
 ######################################################
-if (LUA_BINDING)
+if (LUA_BINDINGS)
     message(NOTICE "Fetching Lua-cmake...")
     FetchContent_Declare(
             lua_cmake
             GIT_REPOSITORY https://github.com/lubgr/lua-cmake.git
             GIT_TAG        master
     )
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(lua_cmake)
 endif()
 

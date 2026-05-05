@@ -63,7 +63,7 @@ Vireo RHI is intended to be used as a submodule or a CMake subdirectory.
 ### Configuration Options
 
 - `DIRECTX_BACKEND`: Enable/Disable DirectX 12 support (Default: `ON` on Windows).
-- `LUA_BINDING`: Enable/Disable Lua bindings (Default: `OFF`).
+- `LUA_BINDINGS`: Enable/Disable Lua bindings (Default: `OFF`).
 
 
 ## License

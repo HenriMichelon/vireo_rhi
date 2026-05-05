@@ -1,688 +1,694 @@
 ---@diagnostic disable: missing-return
---EmmyLua annotations and documentation for Vireo
+-- EmmyLua annotations and documentation for Vireo
+-- Generated from LuaBindings (_register)
 
 return {
-           ------------------------------------------------------------------------
-           -- Enums
-           ------------------------------------------------------------------------
-
-           ---@class vireo.Backend
-           ---@field UNDEFINED integer
-           ---@field DIRECTX integer
-           ---@field VULKAN integer
-           Backend = vireo.Backend,
-
-           ---@class vireo.Filter
-           ---@field NEAREST integer
-           ---@field LINEAR integer
-           Filter = vireo.Filter,
-
-           ---@class vireo.AddressMode
-           ---@field REPEAT integer
-           ---@field MIRRORED_REPEAT integer
-           ---@field CLAMP_TO_EDGE integer
-           ---@field CLAMP_TO_BORDER integer
-           AddressMode = vireo.AddressMode,
-
-           ---@class vireo.MipMapMode
-           ---@field NEAREST integer
-           ---@field LINEAR integer
-           MipMapMode = vireo.MipMapMode,
-
-           ---@class vireo.ImageFormat
-           ---@field R8_UNORM integer
-           ---@field R8_SNORM integer
-           ---@field R8_UINT integer
-           ---@field R8_SINT integer
-           ---@field R8G8_UNORM integer
-           ---@field R8G8_SNORM integer
-           ---@field R8G8_UINT integer
-           ---@field R8G8_SINT integer
-           ---@field R8G8B8A8_UNORM integer
-           ---@field R8G8B8A8_SNORM integer
-           ---@field R8G8B8A8_UINT integer
-           ---@field R8G8B8A8_SINT integer
-           ---@field R8G8B8A8_SRGB integer
-           ---@field B8G8R8A8_UNORM integer
-           ---@field B8G8R8A8_SRGB integer
-           ---@field B8G8R8X8_UNORM integer
-           ---@field B8G8R8X8_SRGB integer
-           ---@field A2B10G10R10_UNORM integer
-           ---@field A2B10G10R10_UINT integer
-           ---@field R16_UNORM integer
-           ---@field R16_SNORM integer
-           ---@field R16_UINT integer
-           ---@field R16_SINT integer
-           ---@field R16_SFLOAT integer
-           ---@field R16G16_UNORM integer
-           ---@field R16G16_SNORM integer
-           ---@field R16G16_UINT integer
-           ---@field R16G16_SINT integer
-           ---@field R16G16_SFLOAT integer
-           ---@field R16G16B16A16_UNORM integer
-           ---@field R16G16B16A16_SNORM integer
-           ---@field R16G16B16A16_UINT integer
-           ---@field R16G16B16A16_SINT integer
-           ---@field R16G16B16A16_SFLOAT integer
-           ---@field R32_UINT integer
-           ---@field R32_SINT integer
-           ---@field R32_SFLOAT integer
-           ---@field R32G32_UINT integer
-           ---@field R32G32_SINT integer
-           ---@field R32G32_SFLOAT integer
-           ---@field R32G32B32_UINT integer
-           ---@field R32G32B32_SINT integer
-           ---@field R32G32B32_SFLOAT integer
-           ---@field R32G32B32A32_UINT integer
-           ---@field R32G32B32A32_SINT integer
-           ---@field R32G32B32A32_SFLOAT integer
-           ---@field D16_UNORM integer
-           ---@field D24_UNORM_S8_UINT integer
-           ---@field D32_SFLOAT integer
-           ---@field D32_SFLOAT_S8_UINT integer
-           ---@field BC1_UNORM integer
-           ---@field BC1_UNORM_SRGB integer
-           ---@field BC2_UNORM integer
-           ---@field BC2_UNORM_SRGB integer
-           ---@field BC3_UNORM integer
-           ---@field BC3_UNORM_SRGB integer
-           ---@field BC4_UNORM integer
-           ---@field BC4_SNORM integer
-           ---@field BC5_UNORM integer
-           ---@field BC5_SNORM integer
-           ---@field BC6H_UFLOAT integer
-           ---@field BC6H_SFLOAT integer
-           ---@field BC7_UNORM integer
-           ---@field BC7_UNORM_SRGB integer
-           ImageFormat = vireo.ImageFormat,
-
-           ---@class vireo.BufferType
-           ---@field VERTEX integer
-           ---@field INDEX integer
-           ---@field INDIRECT integer
-           ---@field UNIFORM integer
-           ---@field STORAGE integer
-           ---@field DEVICE_STORAGE integer
-           ---@field READWRITE_STORAGE integer
-           ---@field BUFFER_UPLOAD integer
-           ---@field BUFFER_DOWNLOAD integer
-           ---@field IMAGE_UPLOAD integer
-           ---@field IMAGE_DOWNLOAD integer
-           BufferType = vireo.BufferType,
-
-           ---@class vireo.IndexType
-           ---@field UINT16 integer
-           ---@field UINT32 integer
-           IndexType = vireo.IndexType,
-
-           ---@class vireo.DescriptorType
-           ---@field UNIFORM integer
-           ---@field UNIFORM_DYNAMIC integer
-           ---@field STORAGE integer
-           ---@field DEVICE_STORAGE integer
-           ---@field READWRITE_STORAGE integer
-           ---@field SAMPLED_IMAGE integer
-           ---@field SAMPLER integer
-           ---@field READWRITE_IMAGE integer
-           DescriptorType = vireo.DescriptorType,
-
-           ---@class vireo.CommandType
-           ---@field GRAPHIC integer
-           ---@field TRANSFER integer
-           ---@field COMPUTE integer
-           CommandType = vireo.CommandType,
-
-           ---@class vireo.AttributeFormat
-           ---@field R32_FLOAT integer
-           ---@field R32G32_FLOAT integer
-           ---@field R32G32B32_FLOAT integer
-           ---@field R32G32B32A32_FLOAT integer
-           ---@field R32_SINT integer
-           ---@field R32G32_SINT integer
-           ---@field R32G32B32_SINT integer
-           ---@field R32G32B32A32_SINT integer
-           ---@field R32_UINT integer
-           ---@field R32G32_UINT integer
-           ---@field R32G32B32_UINT integer
-           ---@field R32G32B32A32_UINT integer
-           AttributeFormat = vireo.AttributeFormat,
-
-           ---@class vireo.RenderTargetType
-           ---@field COLOR integer
-           ---@field DEPTH integer
-           ---@field DEPTH_STENCIL integer
-           RenderTargetType = vireo.RenderTargetType,
-
-           ---@class vireo.CullMode
-           ---@field NONE integer
-           ---@field FRONT integer
-           ---@field BACK integer
-           CullMode = vireo.CullMode,
-
-           ---@class vireo.PrimitiveTopology
-           ---@field POINT_LIST integer
-           ---@field LINE_LIST integer
-           ---@field LINE_STRIP integer
-           ---@field TRIANGLE_LIST integer
-           ---@field TRIANGLE_STRIP integer
-           PrimitiveTopology = vireo.PrimitiveTopology,
-
-           ---@class vireo.PolygonMode
-           ---@field FILL integer
-           ---@field WIREFRAME integer
-           PolygonMode = vireo.PolygonMode,
-
-           ---@class vireo.CompareOp
-           ---@field NEVER integer
-           ---@field LESS integer
-           ---@field EQUAL integer
-           ---@field LESS_OR_EQUAL integer
-           ---@field GREATER integer
-           ---@field NOT_EQUAL integer
-           ---@field GREATER_OR_EQUAL integer
-           ---@field ALWAYS integer
-           CompareOp = vireo.CompareOp,
-
-           ---@class vireo.StencilOp
-           ---@field KEEP integer
-           ---@field ZERO integer
-           ---@field REPLACE integer
-           ---@field INCREMENT_AND_CLAMP integer
-           ---@field DECREMENT_AND_CLAMP integer
-           ---@field INVERT integer
-           ---@field INCREMENT_AND_WRAP integer
-           ---@field DECREMENT_AND_WRAP integer
-           StencilOp = vireo.StencilOp,
-
-           ---@class vireo.BlendFactor
-           ---@field ZERO integer
-           ---@field ONE integer
-           ---@field SRC_COLOR integer
-           ---@field ONE_MINUS_SRC_COLOR integer
-           ---@field DST_COLOR integer
-           ---@field ONE_MINUS_DST_COLOR integer
-           ---@field SRC_ALPHA integer
-           ---@field ONE_MINUS_SRC_ALPHA integer
-           ---@field DST_ALPHA integer
-           ---@field ONE_MINUS_DST_ALPHA integer
-           ---@field CONSTANT_COLOR integer
-           ---@field ONE_MINUS_CONSTANT_COLOR integer
-           ---@field CONSTANT_ALPHA integer
-           ---@field ONE_MINUS_CONSTANT_ALPHA integer
-           ---@field SRC_ALPHA_SATURATE integer
-           ---@field SRC1_COLOR integer
-           ---@field ONE_MINUS_SRC1_COLOR integer
-           ---@field SRC1_ALPHA integer
-           ---@field ONE_MINUS_SRC1_ALPHA integer
-           BlendFactor = vireo.BlendFactor,
-
-           ---@class vireo.BlendOp
-           ---@field ADD integer
-           ---@field SUBTRACT integer
-           ---@field REVERSE_SUBTRACT integer
-           ---@field MIN integer
-           ---@field MAX integer
-           BlendOp = vireo.BlendOp,
-
-           ---@class vireo.LogicOp
-           ---@field CLEAR integer
-           ---@field SET integer
-           ---@field COPY integer
-           ---@field COPY_INVERTED integer
-           ---@field NOOP integer
-           ---@field INVERT integer
-           ---@field AND integer
-           ---@field NAND integer
-           ---@field OR integer
-           ---@field NOR integer
-           ---@field XOR integer
-           ---@field EQUIV integer
-           ---@field AND_REVERSE integer
-           ---@field AND_INVERTED integer
-           ---@field OR_REVERSE integer
-           ---@field OR_INVERTED integer
-           LogicOp = vireo.LogicOp,
-
-           ---@class vireo.ColorWriteMask
-           ---@field RED integer
-           ---@field GREEN integer
-           ---@field BLUE integer
-           ---@field ALPHA integer
-           ---@field ALL integer
-           ColorWriteMask = vireo.ColorWriteMask,
-
-           ---@class vireo.ShaderStage
-           ---@field ALL integer
-           ---@field VERTEX integer
-           ---@field FRAGMENT integer
-           ---@field HULL integer
-           ---@field DOMAIN integer
-           ---@field GEOMETRY integer
-           ---@field COMPUTE integer
-           ShaderStage = vireo.ShaderStage,
-
-           ---@class vireo.WaitStage
-           ---@field NONE integer
-           ---@field PIPELINE_TOP integer
-           ---@field VERTEX_INPUT integer
-           ---@field VERTEX_SHADER integer
-           ---@field DEPTH_STENCIL_TEST_BEFORE_FRAGMENT_SHADER integer
-           ---@field FRAGMENT_SHADER integer
-           ---@field DEPTH_STENCIL_TEST_AFTER_FRAGMENT_SHADER integer
-           ---@field COLOR_OUTPUT integer
-           ---@field COMPUTE_SHADER integer
-           ---@field TRANSFER integer
-           ---@field PIPELINE_BOTTOM integer
-           ---@field ALL_GRAPHICS integer
-           ---@field ALL_COMMANDS integer
-           ---@field COPY integer
-           ---@field RESOLV integer
-           ---@field BLIT integer
-           ---@field CLEAR integer
-           WaitStage = vireo.WaitStage,
-
-           ---@class vireo.ResourceState
-           ---@field UNDEFINED integer
-           ---@field GENERAL integer
-           ---@field RENDER_TARGET_COLOR integer
-           ---@field RENDER_TARGET_DEPTH integer
-           ---@field RENDER_TARGET_DEPTH_READ integer
-           ---@field RENDER_TARGET_DEPTH_STENCIL integer
-           ---@field RENDER_TARGET_DEPTH_STENCIL_READ integer
-           ---@field DISPATCH_TARGET integer
-           ---@field PRESENT integer
-           ---@field COPY_SRC integer
-           ---@field COPY_DST integer
-           ---@field SHADER_READ integer
-           ---@field COMPUTE_READ integer
-           ---@field COMPUTE_WRITE integer
-           ---@field INDIRECT_DRAW integer
-           ---@field VERTEX_INPUT integer
-           ---@field UNIFORM integer
-           ResourceState = vireo.ResourceState,
-
-           ---@class vireo.MSAA
-           ---@field NONE integer
-           ---@field X2 integer
-           ---@field X4 integer
-           ---@field X8 integer
-           ---@field X16 integer
-           ---@field X32 integer
-           ---@field X64 integer
-           MSAA = vireo.MSAA,
-
-           ---@class vireo.PresentMode
-           ---@field IMMEDIATE integer
-           ---@field VSYNC integer
-           PresentMode = vireo.PresentMode,
-
-           ---@class vireo.PipelineType
-           ---@field GRAPHIC integer
-           ---@field COMPUTE integer
-           PipelineType = vireo.PipelineType,
-
-           ---@class vireo.SemaphoreType
-           ---@field BINARY integer
-           ---@field TIMELINE integer
-           SemaphoreType = vireo.SemaphoreType,
-
-           ---@class vireo.VideoMemoryAllocationUsage
-           ---@field BUFFER integer
-           ---@field IMAGE integer
-           VideoMemoryAllocationUsage = vireo.VideoMemoryAllocationUsage,
-
-           ------------------------------------------------------------------------
-           -- Aliases / typedefs
-           ------------------------------------------------------------------------
-
-           ---@alias vireo.DescriptorIndex integer
-           DescriptorIndex = nil, -- alias only, no runtime value
-
-           ------------------------------------------------------------------------
-           -- Structs
-           ------------------------------------------------------------------------
-
-           ---@class vireo.ColorBlendDesc
-           ---@field blendEnable boolean
-           ---@field srcColorBlendFactor vireo.BlendFactor
-           ---@field dstColorBlendFactor vireo.BlendFactor
-           ---@field colorBlendOp vireo.BlendOp
-           ---@field srcAlphaBlendFactor vireo.BlendFactor
-           ---@field dstAlphaBlendFactor vireo.BlendFactor
-           ---@field alphaBlendOp vireo.BlendOp
-           ---@field colorWriteMask vireo.ColorWriteMask
-           ColorBlendDesc = vireo.ColorBlendDesc,
-
-           ---@class vireo.StencilOpState
-           ---@field failOp vireo.StencilOp
-           ---@field passOp vireo.StencilOp
-           ---@field depthFailOp vireo.StencilOp
-           ---@field compareOp vireo.CompareOp
-           ---@field compareMask integer
-           ---@field writeMask integer
-           StencilOpState = vireo.StencilOpState,
-
-           ---@class vireo.PhysicalDeviceDesc
-           ---@field name string
-           ---@field dedicatedVideoMemory integer
-           ---@field dedicatedSystemMemory integer
-           ---@field sharedSystemMemory integer
-           PhysicalDeviceDesc = vireo.PhysicalDeviceDesc,
-
-           ---@class vireo.Extent
-           ---@field width integer
-           ---@field height integer
-           Extent = vireo.Extent,
-
-           ---@class vireo.Rect
-           ---@field x integer
-           ---@field y integer
-           ---@field width integer
-           ---@field height integer
-           Rect = vireo.Rect,
-
-           ---@class vireo.Viewport
-           ---@field x number
-           ---@field y number
-           ---@field width number
-           ---@field height number
-           ---@field minDepth number
-           ---@field maxDepth number
-           Viewport = vireo.Viewport,
-
-           ---@class vireo.PushConstantsDesc
-           ---@field stage vireo.ShaderStage
-           ---@field size integer
-           ---@field offset integer
-           PushConstantsDesc = vireo.PushConstantsDesc,
-
-           ---@class vireo.VertexAttributeDesc
-           ---@field binding string
-           ---@field format vireo.AttributeFormat
-           ---@field offset integer
-           VertexAttributeDesc = vireo.VertexAttributeDesc,
-
-           ---@class vireo.DepthClearValue
-           ---@field depth number
-           ---@field stencil integer
-           DepthClearValue = vireo.DepthClearValue,
-
-           ---@class vireo.ClearValue
-           ---@field color number[]            @length 4
-           ---@field depthStencil vireo.DepthClearValue
-           ClearValue = vireo.ClearValue,
-
-           ---@class vireo.VideoMemoryAllocationDesc
-           ---@field usage vireo.VideoMemoryAllocationUsage
-           ---@field name string
-           ---@field size integer
-           ---@field ref any
-           VideoMemoryAllocationDesc = vireo.VideoMemoryAllocationDesc,
-
-           ---@class vireo.RenderTargetDesc
-           ---@field swapChain vireo.SwapChain|nil
-           ---@field renderTarget vireo.RenderTarget|nil
-           ---@field multisampledRenderTarget vireo.RenderTarget|nil
-           ---@field clear boolean
-           ---@field clearValue vireo.ClearValue
-           ---@field discardAfterRender boolean
-           RenderTargetDesc = vireo.RenderTargetDesc,
-
-           ---@class vireo.RenderingConfiguration
-           ---@field colorRenderTargets vireo.RenderTargetDesc[]
-           ---@field depthStencilRenderTarget vireo.RenderTarget|nil
-           ---@field multisampledDepthStencilRenderTarget vireo.RenderTarget|nil
-           ---@field depthTestEnable boolean
-           ---@field stencilTestEnable boolean
-           ---@field clearDepthStencil boolean
-           ---@field depthStencilClearValue vireo.ClearValue
-           ---@field discardDepthStencilAfterRender boolean
-           RenderingConfiguration = vireo.RenderingConfiguration,
-
-           ---@class vireo.BufferUploadInfo
-           ---@field buffer vireo.Buffer
-           ---@field data lightuserdata|any
-           BufferUploadInfo = vireo.BufferUploadInfo,
-
-           ---@class vireo.ImageUploadInfo
-           ---@field image vireo.Image
-           ---@field data lightuserdata|any
-           ImageUploadInfo = vireo.ImageUploadInfo,
-
-           ---@class vireo.DrawIndirectCommand
-           ---@field vertexCount integer
-           ---@field instanceCount integer
-           ---@field firstVertex integer
-           ---@field firstInstance integer
-           DrawIndirectCommand = vireo.DrawIndirectCommand,
-
-           ---@class vireo.DrawIndexedIndirectCommand
-           ---@field indexCount integer
-           ---@field instanceCount integer
-           ---@field firstIndex integer
-           ---@field vertexOffset integer
-           ---@field firstInstance integer
-           DrawIndexedIndirectCommand = vireo.DrawIndexedIndirectCommand,
-
-           ---@class vireo.BufferCopyRegion
-           ---@field srcOffset integer
-           ---@field dstOffset integer
-           ---@field size integer
-           BufferCopyRegion = vireo.BufferCopyRegion,
-
-           ---@class vireo.GraphicPipelineConfiguration
-           ---@field resources vireo.PipelineResources
-           ---@field colorRenderFormats vireo.ImageFormat[]
-           ---@field colorBlendDesc vireo.ColorBlendDesc[]
-           ---@field vertexInputLayout vireo.VertexInputLayout|nil
-           ---@field vertexShader vireo.ShaderModule|nil
-           ---@field fragmentShader vireo.ShaderModule|nil
-           ---@field hullShader vireo.ShaderModule|nil
-           ---@field domainShader vireo.ShaderModule|nil
-           ---@field geometryShader vireo.ShaderModule|nil
-           ---@field primitiveTopology vireo.PrimitiveTopology
-           ---@field msaa vireo.MSAA
-           ---@field cullMode vireo.CullMode
-           ---@field polygonMode vireo.PolygonMode
-           ---@field frontFaceCounterClockwise boolean
-           ---@field depthStencilImageFormat vireo.ImageFormat
-           ---@field depthTestEnable boolean
-           ---@field depthWriteEnable boolean
-           ---@field depthCompareOp vireo.CompareOp
-           ---@field depthBiasEnable boolean
-           ---@field depthBiasConstantFactor number
-           ---@field depthBiasClamp number
-           ---@field depthBiasSlopeFactor number
-           ---@field stencilTestEnable boolean
-           ---@field frontStencilOpState vireo.StencilOpState
-           ---@field backStencilOpState vireo.StencilOpState
-           ---@field logicOpEnable boolean
-           ---@field logicOp vireo.LogicOp
-           ---@field alphaToCoverageEnable boolean
-           GraphicPipelineConfiguration = vireo.GraphicPipelineConfiguration,
-
-           ------------------------------------------------------------------------
-           -- Classes / objets
-           ------------------------------------------------------------------------
-
-           ---@class vireo.Fence
-           ---@field wait fun(self:vireo.Fence):nil
-           ---@field reset fun(self:vireo.Fence):nil
-           Fence = vireo.Fence,
-
-           ---@class vireo.Semaphore
-           ---@field getType fun(self:vireo.Semaphore):vireo.SemaphoreType
-           ---@field getValue fun(self:vireo.Semaphore):integer
-           ---@field setValue fun(self:vireo.Semaphore, value:integer):nil
-           ---@field incrementValue fun(self:vireo.Semaphore):nil
-           ---@field decrementValue fun(self:vireo.Semaphore):nil
-           Semaphore = vireo.Semaphore,
-
-           ---@class vireo.Instance
-           Instance = vireo.Instance,
-
-           ---@class vireo.PhysicalDevice
-           ---@field getDescription fun(self:vireo.PhysicalDevice):vireo.PhysicalDeviceDesc
-           PhysicalDevice = vireo.PhysicalDevice,
-
-           ---@class vireo.Device
-           ---@field haveDedicatedTransferQueue fun(self:vireo.Device):boolean
-           Device = vireo.Device,
-
-           ---@class vireo.Buffer
-           ---@field WHOLE_SIZE integer
-           ---@field getSize fun(self:vireo.Buffer):integer
-           ---@field getType fun(self:vireo.Buffer):vireo.BufferType
-           ---@field getInstanceSize fun(self:vireo.Buffer):integer
-           ---@field getInstanceSizeAligned fun(self:vireo.Buffer):integer
-           ---@field getInstanceCount fun(self:vireo.Buffer):integer
-           ---@field getMappedAddress fun(self:vireo.Buffer):lightuserdata|any
-           ---@field map fun(self:vireo.Buffer):nil
-           ---@field unmap fun(self:vireo.Buffer):nil
-           ---@field write fun(self:vireo.Buffer, data:lightuserdata|any, size:integer|nil, offset:integer|nil):nil
-           ---@field getMemoryAllocations fun():vireo.VideoMemoryAllocationDesc[]
-           Buffer = vireo.Buffer,
-
-           ---@class vireo.Sampler
-           Sampler = vireo.Sampler,
-
-           ---@class vireo.Image
-           ---@field IMAGE_ROW_PITCH_ALIGNMENT integer
-           ---@field getFormat fun(self:vireo.Image):vireo.ImageFormat
-           ---@field getWidth fun(self:vireo.Image):integer
-           ---@field getHeight fun(self:vireo.Image):integer
-           ---@field getMipLevels fun(self:vireo.Image):integer
-           ---@field getArraySize fun(self:vireo.Image):integer
-           ---@field getRowPitch fun(self:vireo.Image, mipLevel:integer|nil):integer
-           ---@field getRowLength fun(self:vireo.Image, mipLevel:integer|nil):integer
-           ---@field getImageSize fun(self:vireo.Image, mipLevel:integer|nil):integer
-           ---@field getAlignedImageSize fun(self:vireo.Image, mipLevel:integer|nil):integer
-           ---@field getAlignedRowPitch fun(self:vireo.Image, mipLevel:integer|nil):integer
-           ---@field getAlignedRowLength fun(self:vireo.Image, mipLevel:integer|nil):integer
-           ---@field isReadWrite fun(self:vireo.Image):boolean
-           ---@field isDepthFormat fun(self:vireo.Image):boolean
-           ---@field isDepthStencilFormat fun(self:vireo.Image):boolean
-           ---@field getPixelSize fun(format:vireo.ImageFormat):integer
-           ---@field getMemoryAllocations fun():vireo.VideoMemoryAllocationDesc[]
-           Image = vireo.Image,
-
-           ---@class vireo.RenderTarget
-           ---@field getImage fun(self:vireo.RenderTarget):vireo.Image
-           ---@field getType fun(self:vireo.RenderTarget):vireo.RenderTargetType
-           RenderTarget = vireo.RenderTarget,
-
-           ---@class vireo.DescriptorLayout
-           ---@field add fun(self:vireo.DescriptorLayout, index:vireo.DescriptorIndex, type:vireo.DescriptorType, count:integer|nil):vireo.DescriptorLayout
-           ---@field build fun(self:vireo.DescriptorLayout):nil
-           ---@field getCapacity fun(self:vireo.DescriptorLayout):integer
-           ---@field isDynamicUniform fun(self:vireo.DescriptorLayout):boolean
-           ---@field isSamplers fun(self:vireo.DescriptorLayout):boolean
-           DescriptorLayout = vireo.DescriptorLayout,
-
-           ---@class vireo.DescriptorSet
-           ---@field update fun(self:vireo.DescriptorSet, index:vireo.DescriptorIndex, bufferOrImageOrSampler:any, counterBuffer:any|nil):nil
-           ---@field getLayout fun(self:vireo.DescriptorSet):vireo.DescriptorLayout
-           DescriptorSet = vireo.DescriptorSet,
-
-           ---@class vireo.VertexInputLayout
-           VertexInputLayout = vireo.VertexInputLayout,
-
-           ---@class vireo.ShaderModule
-           ShaderModule = vireo.ShaderModule,
-
-           ---@class vireo.PipelineResources
-           PipelineResources = vireo.PipelineResources,
-
-           ---@class vireo.Pipeline
-           ---@field getResources fun(self:vireo.Pipeline):vireo.PipelineResources
-           ---@field getType fun(self:vireo.Pipeline):vireo.PipelineType
-           Pipeline = vireo.Pipeline,
-
-           ---@class vireo.ComputePipeline : vireo.Pipeline
-           ComputePipeline = vireo.ComputePipeline,
-
-           ---@class vireo.GraphicPipeline : vireo.Pipeline
-           GraphicPipeline = vireo.GraphicPipeline,
-
-           ---@class vireo.SwapChain
-           ---@field getExtent fun(self:vireo.SwapChain):vireo.Extent
-           ---@field getAspectRatio fun(self:vireo.SwapChain):number
-           ---@field getCurrentFrameIndex fun(self:vireo.SwapChain):integer
-           ---@field getFramesInFlight fun(self:vireo.SwapChain):integer
-           ---@field getFormat fun(self:vireo.SwapChain):vireo.ImageFormat
-           ---@field nextFrameIndex fun(self:vireo.SwapChain):nil
-           ---@field acquire fun(self:vireo.SwapChain, fence:vireo.Fence):boolean
-           ---@field present fun(self:vireo.SwapChain):nil
-           ---@field recreate fun(self:vireo.SwapChain):nil
-           ---@field waitIdle fun(self:vireo.SwapChain):nil
-           SwapChain = vireo.SwapChain,
-
-           ---@class vireo.CommandList
-           ---@field begin fun(self:vireo.CommandList):nil
-           ---@field end fun(self:vireo.CommandList):nil
-           ---@field upload fun(self:vireo.CommandList, destination:any, source:any, firstMipLevel:integer|nil):nil
-           ---@field uploadArray fun(self:vireo.CommandList, destination:vireo.Image, sources:any[], firstMipLevel:integer|nil):nil
-           ---@field copy fun(self:vireo.CommandList, ...):nil
-           ---@field beginRendering fun(self:vireo.CommandList, config:vireo.RenderingConfiguration):nil
-           ---@field endRendering fun(self:vireo.CommandList):nil
-           ---@field dispatch fun(self:vireo.CommandList, x:integer, y:integer, z:integer):nil
-           ---@field bindVertexBuffer fun(self:vireo.CommandList, buffer:vireo.Buffer, offset:integer|nil):nil
-           ---@field bindVertexBuffers fun(self:vireo.CommandList, buffers:vireo.Buffer[], offsets:integer[]|nil):nil
-           ---@field bindIndexBuffer fun(self:vireo.CommandList, buffer:vireo.Buffer, indexType:vireo.IndexType|nil, firstIndex:integer|nil):nil
-           ---@field bindPipeline fun(self:vireo.CommandList, pipeline:vireo.Pipeline):nil
-           ---@field bindDescriptors fun(self:vireo.CommandList, descriptors:vireo.DescriptorSet[], firstSet:integer|nil):nil
-           ---@field bindDescriptor fun(self:vireo.CommandList, descriptor:vireo.DescriptorSet, set:integer, offset:integer|nil):nil
-           ---@field draw fun(self:vireo.CommandList, vertexCountPerInstance:integer, instanceCount:integer|nil, firstVertex:integer|nil, firstInstance:integer|nil):nil
-           ---@field drawIndexed fun(self:vireo.CommandList, indexCountPerInstance:integer, instanceCount:integer|nil, firstIndex:integer|nil, firstVertex:integer|nil, firstInstance:integer|nil):nil
-           ---@field drawIndirect fun(self:vireo.CommandList, buffer:vireo.Buffer, offset:integer, drawCount:integer, stride:integer, firstCommandOffset:integer|nil):nil
-           ---@field drawIndexedIndirect fun(self:vireo.CommandList, buffer:vireo.Buffer, offset:integer, maxDrawCount:integer, stride:integer, firstCommandOffset:integer|nil):nil
-           ---@field drawIndexedIndirectCount fun(self:vireo.CommandList, buffer:vireo.Buffer, offset:integer, countBuffer:vireo.Buffer, countOffset:integer, maxDrawCount:integer, stride:integer, firstCommandOffset:integer|nil):nil
-           ---@field setViewports fun(self:vireo.CommandList, viewports:vireo.Viewport[]):nil
-           ---@field setScissors fun(self:vireo.CommandList, rects:vireo.Rect[]):nil
-           ---@field setViewport fun(self:vireo.CommandList, viewport:vireo.Viewport):nil
-           ---@field setScissors fun(self:vireo.CommandList, rect:vireo.Rect):nil
-           ---@field setStencilReference fun(self:vireo.CommandList, reference:integer):nil
-           ---@field barrier fun(self:vireo.CommandList, ...):nil
-           ---@field pushConstants fun(self:vireo.CommandList, resources:vireo.PipelineResources, desc:vireo.PushConstantsDesc, data:any):nil
-           ---@field cleanup fun(self:vireo.CommandList):nil
-           CommandList = vireo.CommandList,
-
-           ---@class vireo.CommandAllocator
-           ---@field reset fun(self:vireo.CommandAllocator):nil
-           ---@field createCommandList fun(self:vireo.CommandAllocator, pipelineOrNil:vireo.Pipeline|nil):vireo.CommandList
-           ---@field getCommandListType fun(self:vireo.CommandAllocator):vireo.CommandType
-           CommandAllocator = vireo.CommandAllocator,
-
-           ---@class vireo.SubmitQueue
-           ---@field submit fun(self:vireo.SubmitQueue, ...):nil
-           ---@field waitIdle fun(self:vireo.SubmitQueue):nil
-           SubmitQueue = vireo.SubmitQueue,
-
-           ---@class vireo.Vireo
-           ---@field waitIdle fun(self:vireo.Vireo):nil
-           ---@field createSwapChain fun(self:vireo.Vireo, format:vireo.ImageFormat, presentQueue:vireo.SubmitQueue, windowHandle:any, presentMode:vireo.PresentMode|nil, framesInFlight:integer|nil):vireo.SwapChain
-           ---@field createSubmitQueue fun(self:vireo.Vireo, commandType:vireo.CommandType, name:string|nil):vireo.SubmitQueue
-           ---@field createFence fun(self:vireo.Vireo, createSignaled:boolean|nil, name:string|nil):vireo.Fence
-           ---@field createSemaphore fun(self:vireo.Vireo, type:vireo.SemaphoreType, name:string|nil):vireo.Semaphore
-           ---@field createCommandAllocator fun(self:vireo.Vireo, type:vireo.CommandType):vireo.CommandAllocator
-           ---@field createVertexLayout fun(self:vireo.Vireo, size:integer, attributes:vireo.VertexAttributeDesc[]):vireo.VertexInputLayout
-           ---@field createShaderModule fun(self:vireo.Vireo, dataOrFile:any):vireo.ShaderModule
-           ---@field createPipelineResources fun(self:vireo.Vireo, layouts:vireo.DescriptorLayout[]|nil, pushConstant:vireo.PushConstantsDesc|nil, name:string|nil):vireo.PipelineResources
-           ---@field createComputePipeline fun(self:vireo.Vireo, resources:vireo.PipelineResources, shader:vireo.ShaderModule, name:string|nil):vireo.ComputePipeline
-           ---@field createGraphicPipeline fun(self:vireo.Vireo, config:vireo.GraphicPipelineConfiguration, name:string|nil):vireo.GraphicPipeline
-           ---@field createBuffer fun(self:vireo.Vireo, type:vireo.BufferType, size:integer, count:integer|nil, name:string|nil):vireo.Buffer
-           ---@field createImage fun(self:vireo.Vireo, format:vireo.ImageFormat, width:integer, height:integer, mipLevels:integer|nil, arraySize:integer|nil, name:string|nil):vireo.Image
-           ---@field createReadWriteImage fun(self:vireo.Vireo, format:vireo.ImageFormat, width:integer, height:integer, mipLevels:integer|nil, arraySize:integer|nil, name:string|nil):vireo.Image
-           ---@field createRenderTarget fun(self:vireo.Vireo, ...):vireo.RenderTarget
-           ---@field createDescriptorLayout fun(self:vireo.Vireo, name:string|nil):vireo.DescriptorLayout
-           ---@field createSamplerDescriptorLayout fun(self:vireo.Vireo, name:string|nil):vireo.DescriptorLayout
-           ---@field createDynamicUniformDescriptorLayout fun(self:vireo.Vireo, name:string|nil):vireo.DescriptorLayout
-           ---@field createDescriptorSet fun(self:vireo.Vireo, layout:vireo.DescriptorLayout, name:string|nil):vireo.DescriptorSet
-           ---@field createSampler fun(self:vireo.Vireo, minFilter:vireo.Filter, magFilter:vireo.Filter, addressModeU:vireo.AddressMode, addressModeV:vireo.AddressMode, addressModeW:vireo.AddressMode, minLod:number|nil, maxLod:number|nil, anisotropyEnable:boolean|nil, mipMapMode:vireo.MipMapMode|nil, compareOp:vireo.CompareOp|nil):vireo.Sampler
-           ---@field getShaderFileExtension fun(self:vireo.Vireo):string
-           ---@field getPhysicalDevice fun(self:vireo.Vireo):vireo.PhysicalDevice
-           ---@field getDevice fun(self:vireo.Vireo):vireo.Device
-           ---@field getInstance fun(self:vireo.Vireo):vireo.Instance
-           Vireo = vireo.Vireo,
-       }
-
+    ------------------------------------------------------------------------
+    -- Enums (exposed as namespaces)
+    ------------------------------------------------------------------------
+
+    ---@class vireo.Backend
+    ---@field UNDEFINED integer
+    ---@field DIRECTX integer
+    ---@field VULKAN integer
+    Backend = vireo.Backend,
+
+    ---@class vireo.Filter
+    ---@field NEAREST integer
+    ---@field LINEAR integer
+    Filter = vireo.Filter,
+
+    ---@class vireo.AddressMode
+    ---@field REPEAT integer
+    ---@field MIRRORED_REPEAT integer
+    ---@field CLAMP_TO_EDGE integer
+    ---@field CLAMP_TO_BORDER integer
+    AddressMode = vireo.AddressMode,
+
+    ---@class vireo.FilterMode
+    ---@field NEAREST integer
+    ---@field LINEAR integer
+    FilterMode = vireo.FilterMode,
+
+    ---@class vireo.ImageFormat
+    ---@field R8_UNORM integer
+    ---@field R8_SNORM integer
+    ---@field R8_UINT integer
+    ---@field R8_SINT integer
+    ---@field R8G8_UNORM integer
+    ---@field R8G8_SNORM integer
+    ---@field R8G8_UINT integer
+    ---@field R8G8_SINT integer
+    ---@field R8G8B8A8_UNORM integer
+    ---@field R8G8B8A8_SNORM integer
+    ---@field R8G8B8A8_UINT integer
+    ---@field R8G8B8A8_SINT integer
+    ---@field R8G8B8A8_SRGB integer
+    ---@field B8G8R8A8_UNORM integer
+    ---@field B8G8R8A8_SRGB integer
+    ---@field B8G8R8X8_UNORM integer
+    ---@field B8G8R8X8_SRGB integer
+    ---@field A2B10G10R10_UNORM integer
+    ---@field A2B10G10R10_UINT integer
+    ---@field R16_UNORM integer
+    ---@field R16_SNORM integer
+    ---@field R16_UINT integer
+    ---@field R16_SINT integer
+    ---@field R16_SFLOAT integer
+    ---@field R16G16_UNORM integer
+    ---@field R16G16_SNORM integer
+    ---@field R16G16_UINT integer
+    ---@field R16G16_SINT integer
+    ---@field R16G16_SFLOAT integer
+    ---@field R16G16B16A16_UNORM integer
+    ---@field R16G16B16A16_SNORM integer
+    ---@field R16G16B16A16_UINT integer
+    ---@field R16G16B16A16_SINT integer
+    ---@field R16G16B16A16_SFLOAT integer
+    ---@field R32_UINT integer
+    ---@field R32_SINT integer
+    ---@field R32_SFLOAT integer
+    ---@field R32G32_UINT integer
+    ---@field R32G32_SINT integer
+    ---@field R32G32_SFLOAT integer
+    ---@field R32G32B32_UINT integer
+    ---@field R32G32B32_SINT integer
+    ---@field R32G32B32_SFLOAT integer
+    ---@field R32G32B32A32_UINT integer
+    ---@field R32G32B32A32_SINT integer
+    ---@field R32G32B32A32_SFLOAT integer
+    ---@field D16_UNORM integer
+    ---@field D24_UNORM_S8_UINT integer
+    ---@field D32_SFLOAT integer
+    ---@field D32_SFLOAT_S8_UINT integer
+    ---@field BC1_UNORM integer
+    ---@field BC1_UNORM_SRGB integer
+    ---@field BC2_UNORM integer
+    ---@field BC2_UNORM_SRGB integer
+    ---@field BC3_UNORM integer
+    ---@field BC3_UNORM_SRGB integer
+    ---@field BC4_UNORM integer
+    ---@field BC4_SNORM integer
+    ---@field BC5_UNORM integer
+    ---@field BC5_SNORM integer
+    ---@field BC6H_UFLOAT integer
+    ---@field BC6H_SFLOAT integer
+    ---@field BC7_UNORM integer
+    ---@field BC7_UNORM_SRGB integer
+    ImageFormat = vireo.ImageFormat,
+
+    ---@class vireo.BufferType
+    ---@field VERTEX integer
+    ---@field INDEX integer
+    ---@field INDIRECT integer
+    ---@field UNIFORM integer
+    ---@field STORAGE integer
+    ---@field DEVICE_STORAGE integer
+    ---@field READWRITE_STORAGE integer
+    ---@field BUFFER_UPLOAD integer
+    ---@field BUFFER_DOWNLOAD integer
+    ---@field IMAGE_UPLOAD integer
+    ---@field IMAGE_DOWNLOAD integer
+    BufferType = vireo.BufferType,
+
+    ---@class vireo.IndexType
+    ---@field UINT16 integer
+    ---@field UINT32 integer
+    IndexType = vireo.IndexType,
+
+    ---@class vireo.DescriptorType
+    ---@field UNIFORM integer
+    ---@field UNIFORM_DYNAMIC integer
+    ---@field STORAGE integer
+    ---@field DEVICE_STORAGE integer
+    ---@field READWRITE_STORAGE integer
+    ---@field SAMPLED_IMAGE integer
+    ---@field SAMPLER integer
+    ---@field READWRITE_IMAGE integer
+    DescriptorType = vireo.DescriptorType,
+
+    ---@class vireo.CommandType
+    ---@field GRAPHIC integer
+    ---@field TRANSFER integer
+    ---@field COMPUTE integer
+    CommandType = vireo.CommandType,
+
+    ---@class vireo.AttributeFormat
+    ---@field R32_FLOAT integer
+    ---@field R32G32_FLOAT integer
+    ---@field R32G32B32_FLOAT integer
+    ---@field R32G32B32A32_FLOAT integer
+    ---@field R32_SINT integer
+    ---@field R32G32_SINT integer
+    ---@field R32G32B32_SINT integer
+    ---@field R32G32B32A32_SINT integer
+    ---@field R32_UINT integer
+    ---@field R32G32_UINT integer
+    ---@field R32G32B32_UINT integer
+    ---@field R32G32B32A32_UINT integer
+    AttributeFormat = vireo.AttributeFormat,
+
+    ---@class vireo.RenderTargetType
+    ---@field COLOR integer
+    ---@field DEPTH integer
+    ---@field DEPTH_STENCIL integer
+    RenderTargetType = vireo.RenderTargetType,
+
+    ---@class vireo.CullMode
+    ---@field NONE integer
+    ---@field FRONT integer
+    ---@field BACK integer
+    CullMode = vireo.CullMode,
+
+    ---@class vireo.PrimitiveTopology
+    ---@field POINT_LIST integer
+    ---@field LINE_LIST integer
+    ---@field LINE_STRIP integer
+    ---@field TRIANGLE_LIST integer
+    ---@field TRIANGLE_STRIP integer
+    PrimitiveTopology = vireo.PrimitiveTopology,
+
+    ---@class vireo.PolygonMode
+    ---@field FILL integer
+    ---@field WIREFRAME integer
+    PolygonMode = vireo.PolygonMode,
+
+    ---@class vireo.CompareOp
+    ---@field NEVER integer
+    ---@field LESS integer
+    ---@field EQUAL integer
+    ---@field LESS_OR_EQUAL integer
+    ---@field GREATER integer
+    ---@field NOT_EQUAL integer
+    ---@field GREATER_OR_EQUAL integer
+    ---@field ALWAYS integer
+    CompareOp = vireo.CompareOp,
+
+    ---@class vireo.StencilOp
+    ---@field KEEP integer
+    ---@field ZERO integer
+    ---@field REPLACE integer
+    ---@field INCREMENT_AND_CLAMP integer
+    ---@field DECREMENT_AND_CLAMP integer
+    ---@field INVERT integer
+    ---@field INCREMENT_AND_WRAP integer
+    ---@field DECREMENT_AND_WRAP integer
+    StencilOp = vireo.StencilOp,
+
+    ---@class vireo.BlendFactor
+    ---@field ZERO integer
+    ---@field ONE integer
+    ---@field SRC_COLOR integer
+    ---@field ONE_MINUS_SRC_COLOR integer
+    ---@field DST_COLOR integer
+    ---@field ONE_MINUS_DST_COLOR integer
+    ---@field SRC_ALPHA integer
+    ---@field ONE_MINUS_SRC_ALPHA integer
+    ---@field DST_ALPHA integer
+    ---@field ONE_MINUS_DST_ALPHA integer
+    ---@field CONSTANT_COLOR integer
+    ---@field ONE_MINUS_CONSTANT_COLOR integer
+    ---@field CONSTANT_ALPHA integer
+    ---@field ONE_MINUS_CONSTANT_ALPHA integer
+    ---@field SRC_ALPHA_SATURATE integer
+    ---@field SRC1_COLOR integer
+    ---@field ONE_MINUS_SRC1_COLOR integer
+    ---@field SRC1_ALPHA integer
+    ---@field ONE_MINUS_SRC1_ALPHA integer
+    BlendFactor = vireo.BlendFactor,
+
+    ---@class vireo.BlendOp
+    ---@field ADD integer
+    ---@field SUBTRACT integer
+    ---@field REVERSE_SUBTRACT integer
+    ---@field MIN integer
+    ---@field MAX integer
+    BlendOp = vireo.BlendOp,
+
+    ---@class vireo.LogicOp
+    ---@field CLEAR integer
+    ---@field SET integer
+    ---@field COPY integer
+    ---@field COPY_INVERTED integer
+    ---@field NOOP integer
+    ---@field INVERT integer
+    ---@field AND integer
+    ---@field NAND integer
+    ---@field OR integer
+    ---@field NOR integer
+    ---@field XOR integer
+    ---@field EQUIV integer
+    ---@field AND_REVERSE integer
+    ---@field AND_INVERTED integer
+    ---@field OR_REVERSE integer
+    ---@field OR_INVERTED integer
+    LogicOp = vireo.LogicOp,
+
+    ---@class vireo.ColorWriteMask
+    ---@field RED integer
+    ---@field GREEN integer
+    ---@field BLUE integer
+    ---@field ALPHA integer
+    ---@field ALL integer
+    ColorWriteMask = vireo.ColorWriteMask,
+
+    ---@class vireo.ShaderStage
+    ---@field ALL integer
+    ---@field VERTEX integer
+    ---@field FRAGMENT integer
+    ---@field HULL integer
+    ---@field DOMAIN integer
+    ---@field GEOMETRY integer
+    ---@field COMPUTE integer
+    ShaderStage = vireo.ShaderStage,
+
+    ---@class vireo.WaitStage
+    ---@field NONE integer
+    ---@field PIPELINE_TOP integer
+    ---@field VERTEX_INPUT integer
+    ---@field VERTEX_SHADER integer
+    ---@field DEPTH_STENCIL_TEST_BEFORE_FRAGMENT_SHADER integer
+    ---@field FRAGMENT_SHADER integer
+    ---@field DEPTH_STENCIL_TEST_AFTER_FRAGMENT_SHADER integer
+    ---@field COLOR_OUTPUT integer
+    ---@field COMPUTE_SHADER integer
+    ---@field TRANSFER integer
+    ---@field PIPELINE_BOTTOM integer
+    ---@field ALL_GRAPHICS integer
+    ---@field ALL_COMMANDS integer
+    ---@field COPY integer
+    ---@field RESOLV integer
+    ---@field BLIT integer
+    ---@field CLEAR integer
+    WaitStage = vireo.WaitStage,
+
+    ---@class vireo.ResourceState
+    ---@field UNDEFINED integer
+    ---@field GENERAL integer
+    ---@field RENDER_TARGET_COLOR integer
+    ---@field RENDER_TARGET_DEPTH integer
+    ---@field RENDER_TARGET_DEPTH_READ integer
+    ---@field RENDER_TARGET_DEPTH_STENCIL integer
+    ---@field RENDER_TARGET_DEPTH_STENCIL_READ integer
+    ---@field PRESENT integer
+    ---@field COPY_SRC integer
+    ---@field COPY_DST integer
+    ---@field SHADER_READ integer
+    ---@field COMPUTE_READ integer
+    ---@field COMPUTE_WRITE integer
+    ---@field INDIRECT_DRAW integer
+    ---@field VERTEX_INPUT integer
+    ---@field UNIFORM integer
+    ResourceState = vireo.ResourceState,
+
+    ---@class vireo.MSAA
+    ---@field NONE integer
+    ---@field X2 integer
+    ---@field X4 integer
+    ---@field X8 integer
+    ---@field X16 integer
+    ---@field X32 integer
+    ---@field X64 integer
+    MSAA = vireo.MSAA,
+
+    ---@class vireo.PresentMode
+    ---@field IMMEDIATE integer
+    ---@field VSYNC integer
+    PresentMode = vireo.PresentMode,
+
+    ---@class vireo.PipelineType
+    ---@field GRAPHIC integer
+    ---@field COMPUTE integer
+    PipelineType = vireo.PipelineType,
+
+    ---@class vireo.SemaphoreType
+    ---@field BINARY integer
+    ---@field TIMELINE integer
+    SemaphoreType = vireo.SemaphoreType,
+
+    ------------------------------------------------------------------------
+    -- Aliases / typedefs
+    ------------------------------------------------------------------------
+
+    ---@alias vireo.DescriptorIndex integer
+    DescriptorIndex = nil, -- alias only, no runtime value
+
+    ------------------------------------------------------------------------
+    -- Structs
+    -- Note: properties use snake_case as registered in LuaBindings
+    ------------------------------------------------------------------------
+
+    ---@class vireo.ColorBlendDesc
+    ---@field blend_enable boolean
+    ---@field src_color_blend_factor vireo.BlendFactor
+    ---@field dst_color_blend_factor vireo.BlendFactor
+    ---@field color_blend_op vireo.BlendOp
+    ---@field src_alpha_blend_factor vireo.BlendFactor
+    ---@field dst_alpha_blend_factor vireo.BlendFactor
+    ---@field alpha_blend_op vireo.BlendOp
+    ---@field color_write_mask vireo.ColorWriteMask
+    ColorBlendDesc = vireo.ColorBlendDesc,
+
+    ---@class vireo.StencilOpState
+    ---@field fail_op vireo.StencilOp
+    ---@field pass_op vireo.StencilOp
+    ---@field depth_fail_op vireo.StencilOp
+    ---@field compare_op vireo.CompareOp
+    ---@field compare_mask integer
+    ---@field write_mask integer
+    StencilOpState = vireo.StencilOpState,
+
+    ---@class vireo.PhysicalDeviceDesc
+    ---@field name string
+    ---@field dedicated_video_memory integer
+    ---@field dedicated_system_memory integer
+    ---@field shared_system_memory integer
+    PhysicalDeviceDesc = vireo.PhysicalDeviceDesc,
+
+    ---@class vireo.Extent
+    ---@field width integer
+    ---@field height integer
+    Extent = vireo.Extent,
+
+    ---@class vireo.Rect
+    ---Constructor overloads:
+    ---  Rect(width, height)          -- x=0, y=0
+    ---  Rect(x, y, width, height)
+    ---@field x integer
+    ---@field y integer
+    ---@field width integer
+    ---@field height integer
+    Rect = vireo.Rect,
+
+    ---@class vireo.Viewport
+    ---Constructor overloads:
+    ---  Viewport(width, height)
+    ---  Viewport(x, y, width, height)
+    ---@field x number
+    ---@field y number
+    ---@field width number
+    ---@field height number
+    ---@field min_depth number
+    ---@field max_depth number
+    Viewport = vireo.Viewport,
+
+    ---@class vireo.PushConstantsDesc
+    ---@field stage vireo.ShaderStage
+    ---@field size integer
+    ---@field offset integer
+    PushConstantsDesc = vireo.PushConstantsDesc,
+
+    ---@class vireo.VertexAttributeDesc
+    ---@field binding string
+    ---@field format vireo.AttributeFormat
+    ---@field offset integer
+    VertexAttributeDesc = vireo.VertexAttributeDesc,
+
+    ---@class vireo.DepthClearValue
+    ---@field depth number
+    ---@field stencil integer
+    DepthClearValue = vireo.DepthClearValue,
+
+    --- Note: color[] and depthStencil sub-fields are NOT currently exposed
+    --- via properties in LuaBindings (the helper functions are commented out).
+    ---@class vireo.ClearValue
+    ClearValue = vireo.ClearValue,
+
+    ---@class vireo.VideoMemoryAllocationDesc
+    ---@field usage vireo.VideoMemoryAllocationUsage
+    ---@field name string
+    ---@field size integer
+    ---@field ref any
+    VideoMemoryAllocationDesc = vireo.VideoMemoryAllocationDesc,
+
+    ---@class vireo.RenderTargetDesc
+    ---@field swap_chain vireo.SwapChain|nil
+    ---@field render_target vireo.RenderTarget|nil
+    ---@field multisampled_render_target vireo.RenderTarget|nil
+    ---@field clear boolean
+    ---@field clear_value vireo.ClearValue
+    ---@field discard_after_render boolean
+    RenderTargetDesc = vireo.RenderTargetDesc,
+
+    ---@class vireo.RenderingConfiguration
+    ---@field color_render_targets vireo.RenderTargetDesc[]
+    ---@field depth_stencil_render_target vireo.RenderTarget|nil
+    ---@field multisampled_depth_stencil_render_target vireo.RenderTarget|nil
+    ---@field depth_test_enable boolean
+    ---@field stencil_test_enable boolean
+    ---@field clear_depth_stencil boolean
+    ---@field depth_stencil_clear_value vireo.ClearValue
+    ---@field discard_depth_stencil_after_render boolean
+    RenderingConfiguration = vireo.RenderingConfiguration,
+
+    ---@class vireo.DrawIndirectCommand
+    ---@field vertex_count integer
+    ---@field instance_count integer
+    ---@field first_vertex integer
+    ---@field first_instance integer
+    DrawIndirectCommand = vireo.DrawIndirectCommand,
+
+    ---@class vireo.DrawIndexedIndirectCommand
+    ---@field index_count integer
+    ---@field instance_count integer
+    ---@field first_index integer
+    ---@field vertex_offset integer
+    ---@field first_instance integer
+    DrawIndexedIndirectCommand = vireo.DrawIndexedIndirectCommand,
+
+    ---@class vireo.BufferCopyRegion
+    ---@field src_offset integer
+    ---@field dst_offset integer
+    ---@field size integer
+    BufferCopyRegion = vireo.BufferCopyRegion,
+
+    ---@class vireo.GraphicPipelineConfiguration
+    ---@field resources vireo.PipelineResources
+    ---@field color_render_formats vireo.ImageFormat[]
+    ---@field color_blend_desc vireo.ColorBlendDesc[]
+    ---@field vertex_input_layout vireo.VertexInputLayout|nil
+    ---@field vertex_shader vireo.ShaderModule|nil
+    ---@field fragment_shader vireo.ShaderModule|nil
+    ---@field hull_shader vireo.ShaderModule|nil
+    ---@field domain_shader vireo.ShaderModule|nil
+    ---@field geometry_shader vireo.ShaderModule|nil
+    ---@field primitive_topology vireo.PrimitiveTopology
+    ---@field msaa vireo.MSAA
+    ---@field cull_mode vireo.CullMode
+    ---@field polygon_mode vireo.PolygonMode
+    ---@field front_face_counter_clockwise boolean
+    ---@field depth_stencil_image_format vireo.ImageFormat
+    ---@field depth_test_enable boolean
+    ---@field depth_write_enable boolean
+    ---@field depth_compare_op vireo.CompareOp
+    ---@field depth_bias_enable boolean
+    ---@field depth_bias_constant_factor number
+    ---@field depth_bias_clamp number
+    ---@field depth_bias_slope_factor number
+    ---@field stencil_test_enable boolean
+    ---@field front_stencil_op_state vireo.StencilOpState
+    ---@field back_stencil_op_state vireo.StencilOpState
+    ---@field logic_op_enable boolean
+    ---@field logic_op vireo.LogicOp
+    ---@field alpha_to_coverage_enable boolean
+    GraphicPipelineConfiguration = vireo.GraphicPipelineConfiguration,
+
+    ------------------------------------------------------------------------
+    -- Classes / objects
+    ------------------------------------------------------------------------
+
+    ---@class vireo.Fence
+    ---@field wait fun(self:vireo.Fence):nil
+    ---@field reset fun(self:vireo.Fence):nil
+    Fence = vireo.Fence,
+
+    ---@class vireo.Semaphore
+    ---@field get_type fun(self:vireo.Semaphore):vireo.SemaphoreType
+    ---@field get_value fun(self:vireo.Semaphore):integer
+    ---@field set_value fun(self:vireo.Semaphore, value:integer):nil
+    ---@field increment_value fun(self:vireo.Semaphore):nil
+    ---@field decrement_value fun(self:vireo.Semaphore):nil
+    Semaphore = vireo.Semaphore,
+
+    ---@class vireo.Instance
+    Instance = vireo.Instance,
+
+    --- Note: get_description() is commented out in LuaBindings
+    ---@class vireo.PhysicalDevice
+    PhysicalDevice = vireo.PhysicalDevice,
+
+    ---@class vireo.Device
+    ---@field have_dedicated_transfer_queue fun(self:vireo.Device):boolean
+    Device = vireo.Device,
+
+    ---@class vireo.Buffer
+    ---@field get_size fun(self:vireo.Buffer):integer
+    ---@field get_type fun(self:vireo.Buffer):vireo.BufferType
+    ---@field get_instance_size fun(self:vireo.Buffer):integer
+    ---@field get_instance_size_aligned fun(self:vireo.Buffer):integer
+    ---@field get_instance_count fun(self:vireo.Buffer):integer
+    ---@field get_mapped_address fun(self:vireo.Buffer):lightuserdata|any
+    ---@field map fun(self:vireo.Buffer):nil
+    ---@field unmap fun(self:vireo.Buffer):nil
+    ---@field write fun(self:vireo.Buffer, data:lightuserdata|any, size:integer|nil, offset:integer|nil):nil
+    ---@field get_memory_allocations fun():vireo.VideoMemoryAllocationDesc[]   @static
+    Buffer = vireo.Buffer,
+
+    ---@class vireo.Sampler
+    Sampler = vireo.Sampler,
+
+    ---@class vireo.Image
+    ---@field get_format fun(self:vireo.Image):vireo.ImageFormat
+    ---@field get_width fun(self:vireo.Image):integer
+    ---@field get_height fun(self:vireo.Image):integer
+    ---@field get_mip_levels fun(self:vireo.Image):integer
+    ---@field get_array_size fun(self:vireo.Image):integer
+    ---@field get_row_pitch fun(self:vireo.Image, mipLevel:integer|nil):integer
+    ---@field get_row_length fun(self:vireo.Image, mipLevel:integer|nil):integer
+    ---@field get_image_size fun(self:vireo.Image, mipLevel:integer|nil):integer
+    ---@field get_aligned_image_size fun(self:vireo.Image, mipLevel:integer|nil):integer
+    ---@field get_aligned_row_pitch fun(self:vireo.Image, mipLevel:integer|nil):integer
+    ---@field get_aligned_row_length fun(self:vireo.Image, mipLevel:integer|nil):integer
+    ---@field is_read_write fun(self:vireo.Image):boolean
+    ---@field get_pixel_size fun(format:vireo.ImageFormat):integer   @static
+    ---@field get_memory_allocations fun():vireo.VideoMemoryAllocationDesc[]   @static
+    Image = vireo.Image,
+
+    ---@class vireo.RenderTarget
+    ---@field get_image fun(self:vireo.RenderTarget):vireo.Image
+    ---@field get_type fun(self:vireo.RenderTarget):vireo.RenderTargetType
+    RenderTarget = vireo.RenderTarget,
+
+    ---@class vireo.DescriptorLayout
+    ---@field add fun(self:vireo.DescriptorLayout, index:vireo.DescriptorIndex, type:vireo.DescriptorType, count:integer|nil):vireo.DescriptorLayout
+    ---@field build fun(self:vireo.DescriptorLayout):nil
+    ---@field get_capacity fun(self:vireo.DescriptorLayout):integer
+    ---@field is_dynamic_uniform fun(self:vireo.DescriptorLayout):boolean
+    ---@field is_samplers fun(self:vireo.DescriptorLayout):boolean
+    DescriptorLayout = vireo.DescriptorLayout,
+
+    --- Note: update() overloads are commented out in LuaBindings
+    ---@class vireo.DescriptorSet
+    ---@field get_layout fun(self:vireo.DescriptorSet):vireo.DescriptorLayout
+    DescriptorSet = vireo.DescriptorSet,
+
+    ---@class vireo.VertexInputLayout
+    VertexInputLayout = vireo.VertexInputLayout,
+
+    ---@class vireo.ShaderModule
+    ShaderModule = vireo.ShaderModule,
+
+    ---@class vireo.PipelineResources
+    PipelineResources = vireo.PipelineResources,
+
+    ---@class vireo.Pipeline
+    ---@field get_resources fun(self:vireo.Pipeline):vireo.PipelineResources
+    ---@field get_type fun(self:vireo.Pipeline):vireo.PipelineType
+    Pipeline = vireo.Pipeline,
+
+    ---@class vireo.ComputePipeline : vireo.Pipeline
+    ComputePipeline = vireo.ComputePipeline,
+
+    ---@class vireo.GraphicPipeline : vireo.Pipeline
+    GraphicPipeline = vireo.GraphicPipeline,
+
+    ---@class vireo.SwapChain
+    ---@field get_extent fun(self:vireo.SwapChain):vireo.Extent
+    ---@field get_aspect_ratio fun(self:vireo.SwapChain):number
+    ---@field get_current_frame_index fun(self:vireo.SwapChain):integer
+    ---@field get_frames_in_flight fun(self:vireo.SwapChain):integer
+    ---@field get_format fun(self:vireo.SwapChain):vireo.ImageFormat
+    ---@field next_frame_index fun(self:vireo.SwapChain):nil
+    ---@field acquire fun(self:vireo.SwapChain, fence:vireo.Fence):boolean
+    ---@field present fun(self:vireo.SwapChain):nil
+    ---@field recreate fun(self:vireo.SwapChain):nil
+    ---@field wait_idle fun(self:vireo.SwapChain):nil
+    SwapChain = vireo.SwapChain,
+
+    ---@class vireo.CommandList
+    ---@field begin fun(self:vireo.CommandList):nil
+    ---@field end fun(self:vireo.CommandList):nil
+    --- Upload a buffer to GPU memory
+    ---@field upload_buffer fun(self:vireo.CommandList, destination:vireo.Buffer, data:lightuserdata|any):nil
+    --- Upload an image to GPU memory
+    ---@field upload_image fun(self:vireo.CommandList, destination:vireo.Image, data:lightuserdata|any, firstMipLevel:integer):nil
+    --- Copy a buffer region into an image (single mip level)
+    ---@field copy_buffer_to_image fun(self:vireo.CommandList, src:vireo.Buffer, dst:vireo.Image, mipLevel:integer, arrayLayer:integer, generateMips:boolean):nil
+    --- Copy a buffer into an image providing explicit byte offsets per mip level
+    ---@field copy_buffer_to_image_levels fun(self:vireo.CommandList, src:vireo.Buffer, dst:vireo.Image, offsets:integer[], generateMips:boolean):nil
+    --- Copy a buffer into another buffer
+    ---@field copy_buffer_to_buffer fun(self:vireo.CommandList, src:vireo.Buffer, dst:vireo.Buffer, size:integer, srcOffset:integer, dstOffset:integer):nil
+    --- Copy buffer sub-regions
+    ---@field copy_buffer_regions fun(self:vireo.CommandList, src:vireo.Buffer, dst:vireo.Buffer, regions:vireo.BufferCopyRegion[]):nil
+    --- Blit / resolve an Image into the SwapChain backbuffer
+    ---@field copy_image_to_swap_chain fun(self:vireo.CommandList, src:vireo.Image, swapChain:vireo.SwapChain):nil
+    ---@field begin_rendering fun(self:vireo.CommandList, config:vireo.RenderingConfiguration):nil
+    ---@field end_rendering fun(self:vireo.CommandList):nil
+    ---@field dispatch fun(self:vireo.CommandList, x:integer, y:integer, z:integer):nil
+    --- Bind a single vertex buffer at optional byte offset
+    ---@field bind_vertex_buffer fun(self:vireo.CommandList, buffer:vireo.Buffer, offset:integer|nil):nil
+    --- Bind multiple vertex buffers
+    ---@field bind_vertex_buffers fun(self:vireo.CommandList, buffers:vireo.Buffer[], offsets:integer[]|nil):nil
+    --- Bind a descriptor set at the given set index
+    ---@field bind_descriptor fun(self:vireo.CommandList, descriptor:vireo.DescriptorSet, set:integer):nil
+    --- Bind a dynamic-uniform descriptor set with a dynamic offset
+    ---@field bind_descriptor_dynamic fun(self:vireo.CommandList, descriptor:vireo.DescriptorSet, set:integer, offset:integer):nil
+    ---@field draw fun(self:vireo.CommandList, vertexCountPerInstance:integer, instanceCount:integer|nil, firstVertex:integer|nil, firstInstance:integer|nil):nil
+    ---@field draw_indexed fun(self:vireo.CommandList, indexCountPerInstance:integer, instanceCount:integer|nil, firstIndex:integer|nil, firstVertex:integer|nil, firstInstance:integer|nil):nil
+    --- Indirect draw (non-indexed)
+    ---@field draw_indirect fun(self:vireo.CommandList, buffer:vireo.Buffer, offset:integer, drawCount:integer, stride:integer, firstCommandOffset:integer):nil
+    --- Indirect indexed draw with a GPU-side count buffer
+    ---@field draw_indexed_indirect_count fun(self:vireo.CommandList, buffer:vireo.Buffer, offset:integer, countBuffer:vireo.Buffer, countOffset:integer, maxDrawCount:integer, stride:integer, firstCommandOffset:integer):nil
+    --- Indirect indexed draw with a CPU-side draw count
+    ---@field draw_indexed_indirect fun(self:vireo.CommandList, buffer:vireo.Buffer, offset:integer, maxDrawCount:integer, stride:integer, firstCommandOffset:integer):nil
+    ---@field set_viewports fun(self:vireo.CommandList, viewports:vireo.Viewport[]):nil
+    ---@field set_scissors fun(self:vireo.CommandList, rects:vireo.Rect[]):nil
+    ---@field set_viewport fun(self:vireo.CommandList, viewport:vireo.Viewport):nil
+    --- Set a single scissor rect
+    ---@field set_scissor fun(self:vireo.CommandList, rect:vireo.Rect):nil
+    ---@field set_stencil_reference fun(self:vireo.CommandList, reference:integer):nil
+    ---@field push_constants fun(self:vireo.CommandList, resources:vireo.PipelineResources, desc:vireo.PushConstantsDesc, data:any):nil
+    ---@field cleanup fun(self:vireo.CommandList):nil
+    CommandList = vireo.CommandList,
+
+    ---@class vireo.CommandAllocator
+    ---@field reset fun(self:vireo.CommandAllocator):nil
+    ---@field get_command_list_type fun(self:vireo.CommandAllocator):vireo.CommandType
+    CommandAllocator = vireo.CommandAllocator,
+
+    --- Note: submit() overloads are commented out; only wait_idle() is currently bound
+    ---@class vireo.SubmitQueue
+    ---@field wait_idle fun(self:vireo.SubmitQueue):nil
+    SubmitQueue = vireo.SubmitQueue,
+
+    ---@class vireo.Vireo
+    ---@field backend vireo.Backend  @read-only property
+    ---@field wait_idle fun(self:vireo.Vireo):nil
+    ---@field create_swap_chain fun(self:vireo.Vireo, format:vireo.ImageFormat, presentQueue:vireo.SubmitQueue, windowHandle:any, presentMode:vireo.PresentMode|nil, framesInFlight:integer|nil):vireo.SwapChain
+    ---@field create_submit_queue fun(self:vireo.Vireo, commandType:vireo.CommandType, name:string|nil):vireo.SubmitQueue
+    ---@field create_fence fun(self:vireo.Vireo, createSignaled:boolean|nil, name:string|nil):vireo.Fence
+    ---@field create_semaphore fun(self:vireo.Vireo, type:vireo.SemaphoreType, name:string|nil):vireo.Semaphore
+    ---@field create_command_allocator fun(self:vireo.Vireo, type:vireo.CommandType):vireo.CommandAllocator
+    ---@field create_vertex_layout fun(self:vireo.Vireo, size:integer, attributes:vireo.VertexAttributeDesc[]):vireo.VertexInputLayout
+    --- Load a shader module from a file path (extension provided by get_shader_file_extension)
+    ---@field create_shader_module_from_file fun(self:vireo.Vireo, path:string):vireo.ShaderModule
+    --- Load a shader module from raw byte data with an optional debug name
+    ---@field create_shader_module_from_data fun(self:vireo.Vireo, data:any, name:string):vireo.ShaderModule
+    ---@field create_pipeline_resources fun(self:vireo.Vireo, layouts:vireo.DescriptorLayout[]|nil, pushConstant:vireo.PushConstantsDesc|nil, name:string|nil):vireo.PipelineResources
+    ---@field create_compute_pipeline fun(self:vireo.Vireo, resources:vireo.PipelineResources, shader:vireo.ShaderModule, name:string|nil):vireo.ComputePipeline
+    ---@field create_graphic_pipeline fun(self:vireo.Vireo, config:vireo.GraphicPipelineConfiguration, name:string|nil):vireo.GraphicPipeline
+    ---@field create_buffer fun(self:vireo.Vireo, type:vireo.BufferType, size:integer, count:integer|nil, name:string|nil):vireo.Buffer
+    ---@field create_image fun(self:vireo.Vireo, format:vireo.ImageFormat, width:integer, height:integer, mipLevels:integer|nil, arraySize:integer|nil, name:string|nil):vireo.Image
+    ---@field create_read_write_image fun(self:vireo.Vireo, format:vireo.ImageFormat, width:integer, height:integer, mipLevels:integer|nil, arraySize:integer|nil, name:string|nil):vireo.Image
+    ---@field create_descriptor_layout fun(self:vireo.Vireo, name:string|nil):vireo.DescriptorLayout
+    ---@field create_sampler_descriptor_layout fun(self:vireo.Vireo, name:string|nil):vireo.DescriptorLayout
+    ---@field create_dynamic_uniform_descriptor_layout fun(self:vireo.Vireo, name:string|nil):vireo.DescriptorLayout
+    ---@field create_descriptor_set fun(self:vireo.Vireo, layout:vireo.DescriptorLayout, name:string|nil):vireo.DescriptorSet
+    ---@field create_sampler fun(self:vireo.Vireo, minFilter:vireo.Filter, magFilter:vireo.Filter, addressModeU:vireo.AddressMode, addressModeV:vireo.AddressMode, addressModeW:vireo.AddressMode, minLod:number|nil, maxLod:number|nil, anisotropyEnable:boolean|nil, mipMapMode:vireo.FilterMode|nil, compareOp:vireo.CompareOp|nil):vireo.Sampler
+    ---@field is_backend_supported fun(backend:vireo.Backend):boolean   @static
+    ---@field get_shader_file_extension fun(self:vireo.Vireo):string
+    ---@field get_physical_device fun(self:vireo.Vireo):vireo.PhysicalDevice
+    ---@field get_device fun(self:vireo.Vireo):vireo.Device
+    ---@field get_instance fun(self:vireo.Vireo):vireo.Instance
+    Vireo = vireo.Vireo,
+}
