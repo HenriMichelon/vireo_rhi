@@ -379,3 +379,5 @@ cmake-build-debug-mingw
 *.dxil
 docs/html
 docs/doxygen-awesome-css/
+/CLAUDE.md
+/.claude/
