@@ -30,6 +30,9 @@ if (LUA_BINDINGS)
     )
     set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(lua_cmake)
+    if(MSVC)
+        set_property(TARGET lua PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    endif()
 endif()
 
 ######################################################
