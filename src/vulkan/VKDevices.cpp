@@ -356,6 +356,9 @@ instanceExtensions.data()};
         VkPhysicalDeviceFeatures deviceFeatures;
         vkGetPhysicalDeviceFeatures(vkPhysicalDevice, &deviceFeatures);
 
+        if (_deviceProperties.apiVersion < VK_API_VERSION_1_3) {
+            return 0;
+        }
         uint32_t score = 0;
         // Discrete GPUs have a significant performance advantage
         if (_deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {

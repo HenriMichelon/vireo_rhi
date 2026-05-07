@@ -1303,6 +1303,9 @@ export namespace vireo {
      * Add resources with `add()` then call `build()` to build the layout.
      * Note that samplers must be bounds to a specific sampler-only layout.
      *
+     * @warning Not thread-safe. `add()` and `build()` must be called from a single thread.
+     * @note Lifetime: must outlive all DescriptorSet instances created from this layout.
+     *
      * Manual page : \ref manual_040_01_descriptor_layout
      */
     class DescriptorLayout : public std::enable_shared_from_this<DescriptorLayout> {
@@ -1316,9 +1319,10 @@ export namespace vireo {
         virtual DescriptorLayout& add(DescriptorIndex index, DescriptorType type, size_t count = 1) = 0;
 
         /**
-         * Build the layout after adding resource descriptions with `add()`
+         * Build the layout after adding resource descriptions with `add()`.
+         * Must be called before creating a DescriptorSet from this layout.
          */
-        virtual void build() {}
+        virtual void build() { }
 
         /**
          * Returns the total number of resources instances
@@ -1361,6 +1365,10 @@ export namespace vireo {
     /**
      * A descriptor set object.
      * Contains resources for the shaders.
+     *
+     * @warning Not thread-safe. `update()` calls must be externally synchronized.
+     * @note Lifetime: the DescriptorLayout used to create this set must remain alive
+     *       as long as the set may be referenced by in-flight GPU commands.
      *
      * Manual page : \ref manual_040_02_descriptor_set
      */
@@ -1510,6 +1518,9 @@ export namespace vireo {
 
     /**
      * Base class for all pipeline types
+     *
+     * @note Lifetime: must remain alive for the duration of any frame that references it.
+     *       Destroying a Pipeline while commands that reference it are in-flight is undefined behavior.
      *
      * Manual page : \ref manual_080_00_pipelines
      */
@@ -1693,6 +1704,12 @@ export namespace vireo {
 
     /**
      * A command list (buffer) object
+     *
+     * @warning Not thread-safe. Must be recorded from a single thread.
+     * @note Lifecycle: call `begin()` before recording, `end()` after, then `cleanup()`
+     *       once the GPU has finished executing the submission.
+     * @note Lifetime: any Pipeline or DescriptorSet bound during recording must remain
+     *       alive until the GPU has finished executing the submitted commands.
      *
      * Manual page : \ref manual_050_00_commands
      */
@@ -2399,7 +2416,9 @@ export namespace vireo {
         virtual void resolveQueryPool(const QueryPool& queryPool, uint32_t firstQuery, uint32_t queryCount) = 0;
 
         /**
-         * Cleanup staging buffers used by `upload` functions
+         * Release staging buffers allocated by `upload()` calls.
+         * Must be called after the GPU has finished executing the command list.
+         * Omitting this call leaks GPU-visible upload memory.
          */
         virtual void cleanup() = 0;
 
@@ -2462,6 +2481,9 @@ export namespace vireo {
 
     /**
      * Command submission queue
+     *
+     * @warning Not thread-safe. Concurrent `submit()` calls from multiple threads
+     *          produce undefined behavior and must be externally synchronized.
      *
      * Manual page : \ref manual_060_00_queues
      */

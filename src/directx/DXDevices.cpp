@@ -72,7 +72,7 @@ namespace vireo {
         dxCheck(
             D3D12CreateDevice(
                 hardwareAdapter4.Get(),
-                D3D_FEATURE_LEVEL_11_0,
+                D3D_FEATURE_LEVEL_12_0,
                 IID_PPV_ARGS(&device)
                 ));
 #if defined(_DEBUG)
