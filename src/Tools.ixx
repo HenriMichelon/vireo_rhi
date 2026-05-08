@@ -14,8 +14,16 @@ import std;
 
 export namespace vireo {
 
+    /**
+     * Exception type thrown by the RHI for unrecoverable errors.
+     * In debug builds with a debugger attached it also triggers a breakpoint.
+     */
     class Exception : public std::exception {
     public:
+        /**
+         * Constructs an exception by concatenating all arguments into a single message string.
+         * @tparam Args Variadic argument types — any type supported by `operator<<` on `std::ostringstream`.
+         */
         template <typename... Args>
         Exception(Args... args) {
             std::ostringstream oss;
@@ -40,6 +48,7 @@ export namespace vireo {
 #endif
         }
 
+        /** Returns the formatted error message. */
         const char* what() const noexcept override {
             return message.c_str();
         }
@@ -53,6 +62,7 @@ export namespace vireo {
 export namespace std {
 
 #ifdef _WIN32
+    /** Converts a UTF-16 wide string to a UTF-8 `std::string`. */
     inline std::string to_string(const std::wstring& wstr) {
         if (wstr.empty())
             return {};
@@ -62,6 +72,7 @@ export namespace std {
         return result;
     }
 
+    /** Converts a UTF-8 `std::string` to a UTF-16 wide string. */
     inline std::wstring to_wstring(const std::string& str) {
         if (str.empty())
             return {};
@@ -72,11 +83,13 @@ export namespace std {
     }
 #else
 
+    /** Converts a UTF-16 wide string to a UTF-8 `std::string`. */
     inline string to_string(const std::wstring &wstr) {
         wstring_convert<codecvt_utf8_utf16<wchar_t>> conv;
         return conv.to_bytes(wstr);
     }
 
+    /** Converts a UTF-8 `std::string` to a UTF-16 wide string. */
     inline wstring to_wstring(const std::string &str) {
         wstring_convert<codecvt_utf8_utf16<wchar_t>> conv;
         return conv.from_bytes(str);

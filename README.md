@@ -37,7 +37,6 @@ Check out the [Vireo Samples](https://github.com/HenriMichelon/vireo_samples) re
 |:-----------------------------------------------| :--- |
 | What is Vireo RHI?                             | [🇫🇷 French](https://henrimichelon.github.io/Articles/fr/vireo_rhi.html) / [🇺🇸 English](https://henrimichelon.github.io/Articles/en/vireo_rhi.html) 
 | Example of TAA implementation with Vireo RHI   | [🇫🇷 French](https://henrimichelon.github.io/Articles/fr/taa_vireo_rhi.html) / [🇺🇸 English](https://henrimichelon.github.io/Articles/en/taa_vireo_rhi.html) |
-| Example of SMAA implementation with Vireo RHI  | [🇫🇷 French](https://henrimichelon.github.io/Articles/fr/smaa_vireo_rhi.html) / [🇺🇸 English](https://henrimichelon.github.io/Articles/en/smaa_vireo_rhi.html) |
 
 
 ## Getting Started

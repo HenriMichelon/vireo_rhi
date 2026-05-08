@@ -362,7 +362,7 @@ export namespace vireo {
         ALWAYS,
     };
 
-    /*
+    /**
      * Stencil comparison function
      *
      * Manual page : \ref manual_080_01_graphic_pipelines
@@ -453,7 +453,7 @@ export namespace vireo {
         OR_INVERTED
     };
 
-    /*
+    /**
      * Bitmask controlling which components are written to the framebuffer
      *
      * Manual page : \ref manual_080_01_graphic_pipelines
@@ -802,9 +802,13 @@ export namespace vireo {
      * Description of a memory allocation
      */
     struct VideoMemoryAllocationDesc {
+        //! Whether this allocation backs a buffer or an image
         VideoMemoryAllocationUsage usage;
+        //! Debug name of the allocated resource
         std::string name;
+        //! Size of the allocation in bytes
         size_t size;
+        //! Opaque pointer to the owning resource object
         void* ref;
     };
 
@@ -838,6 +842,7 @@ export namespace vireo {
      */
     class Semaphore : public std::enable_shared_from_this<Semaphore> {
     public:
+        /** Constructs a semaphore of the given type. @param type Binary or timeline semaphore. */
         Semaphore(const SemaphoreType type) : type{type} {}
 
         /**
@@ -919,6 +924,7 @@ export namespace vireo {
      */
     class Device : public std::enable_shared_from_this<Device> {
     public:
+        /** Returns `true` if the physical device exposes a dedicated transfer queue separate from the graphics queue. */
         virtual bool haveDedicatedTransferQueue() const = 0;
 
         virtual ~Device() = default;
@@ -938,6 +944,7 @@ export namespace vireo {
      */
     class Buffer : public std::enable_shared_from_this<Buffer> {
     public:
+        //! Sentinel value for size/offset parameters meaning "the entire buffer"
         static constexpr size_t WHOLE_SIZE = ~0ULL;
 
         /**
@@ -1021,6 +1028,7 @@ export namespace vireo {
      */
     class Sampler : public std::enable_shared_from_this<Sampler> {
     public:
+        //! Sentinel value for `maxLod` that disables LOD clamping (equivalent to `FLT_MAX`)
         static constexpr float LOD_CLAMP_NONE = 3.402823466e+38f;
 
         virtual ~Sampler() = default;
@@ -1038,6 +1046,7 @@ export namespace vireo {
      */
     class Image : public std::enable_shared_from_this<Image> {
     public:
+        //! Byte size per pixel (or per 4×4 block for BCn formats) indexed by ImageFormat value
         static constexpr uint8_t pixelSize[] = {
             1,  // R8_UNORM
             1,  // R8_SNORM
@@ -1212,18 +1221,23 @@ export namespace vireo {
          */
         static auto getMemoryAllocations() { return memoryAllocations; }
 
+        /** Returns `true` if the given format is a depth-only format. */
         static bool isDepthFormat(ImageFormat format);
 
+        /** Returns `true` if the given format is a combined depth-stencil format. */
         static bool isDepthStencilFormat(ImageFormat format);
 
+        /** Returns `true` if this image's format is a depth-only format. */
         bool isDepthFormat() const {
             return isDepthFormat(format);
         }
 
+        /** Returns `true` if this image's format is a combined depth-stencil format. */
         bool isDepthStencilFormat() const {
             return isDepthStencilFormat(format);
         }
 
+        /** Returns the debug name assigned to this image. */
         const auto& getName() const { return name; }
 
         virtual ~Image() = default;
@@ -1277,6 +1291,11 @@ export namespace vireo {
          */
         auto getType() const { return type; }
 
+        /**
+         * Constructs a render target wrapping an existing image.
+         * @param type  Intended attachment role (color, depth, or depth-stencil).
+         * @param image The underlying image to use as the attachment.
+         */
         RenderTarget(const RenderTargetType type, const std::shared_ptr<Image>& image) :
             type{type},
             image{image} {}
@@ -1461,6 +1480,7 @@ export namespace vireo {
          */
         virtual void update(DescriptorIndex index, const std::vector<std::shared_ptr<Sampler>>& samplers) = 0;
 
+        /** Returns the descriptor layout this set was created from. */
         const auto& getLayout() const { return layout; }
 
         virtual ~DescriptorSet() = default;
@@ -1622,7 +1642,9 @@ export namespace vireo {
      * Batch buffer upload infos
      */
     struct BufferUploadInfo {
+        //! Destination GPU buffer
         const std::shared_ptr<Buffer> buffer;
+        //! Source data pointer in host memory
         const void* data;
     };
 
@@ -1630,7 +1652,9 @@ export namespace vireo {
      * Batch image upload infos
      */
     struct ImageUploadInfo {
+        //! Destination GPU image
         const std::shared_ptr<Image> image;
+        //! Source pixel data pointer in host memory
         const void* data;
     };
 
@@ -1638,9 +1662,13 @@ export namespace vireo {
      * Structure specifying an indirect drawing command
      */
     struct DrawIndirectCommand {
+        //! Number of vertices to draw per instance
         uint32_t vertexCount{0};
+        //! Number of instances to draw
         uint32_t instanceCount{1};
+        //! Index of the first vertex to draw
         uint32_t firstVertex{0};
+        //! Index of the first instance
         uint32_t firstInstance{0};
     };
 
@@ -1648,16 +1676,27 @@ export namespace vireo {
      * Structure specifying an indexed indirect drawing command
      */
     struct DrawIndexedIndirectCommand {
+        //! Number of indices to draw per instance
         uint32_t indexCount{0};
+        //! Number of instances to draw
         uint32_t instanceCount{1};
+        //! Base index within the index buffer
         uint32_t firstIndex{0};
+        //! Value added to the vertex index before indexing into the vertex buffer
         int32_t  vertexOffset{0};
+        //! Index of the first instance
         uint32_t firstInstance{0};
     };
 
+    /**
+     * Describes a single region to copy between two buffers.
+     */
     struct BufferCopyRegion {
+        //! Byte offset in the source buffer
         size_t srcOffset;
+        //! Byte offset in the destination buffer
         size_t dstOffset;
+        //! Number of bytes to copy
         size_t size;
     };
 
@@ -1715,6 +1754,7 @@ export namespace vireo {
      */
     class CommandList : public std::enable_shared_from_this<CommandList> {
     public:
+        //! Size in bytes for each IndexType value (UINT16 → 2, UINT32 → 4)
         static constexpr uint32_t indexTypeSize[] = {
             2,
             4
@@ -2778,20 +2818,36 @@ export namespace vireo {
         bool              alphaToCoverageEnable{false};
     };
 
+    /**
+     * Severity level of a backend debug/validation message.
+     */
     enum class DebugLevel {
+        //! Verbose diagnostic output
         VERBOSE,
+        //! Informational message
         INFO,
+        //! Non-fatal warning
         WARNING,
+        //! Error condition
         ERROR
     };
 
+    /** Callback invoked by the backend for validation and debug messages. */
     using DebugCallback = void(*)(DebugLevel, const std::string&);
 
+    /**
+     * Configuration passed to Vireo::create() to select a backend and tune debug options.
+     */
     struct BackendConfiguration {
+        //! Graphics backend to use (Vulkan or DirectX 12)
         Backend backend = Backend::VULKAN;
+        //! Optional callback that receives validation and debug messages; may be nullptr to disable
         DebugCallback debugCallback = nullptr;
+        //! Vulkan validation layer messages whose text contains any of these substrings will be silently filtered
         std::vector<const char*> vulkanFilteredValidationMessages = { };
+        //! Maximum number of CBV/SRV/UAV descriptors in the DirectX 12 global heap
         uint32_t directX12MaxDescriptors = 3000;
+        //! Maximum number of sampler descriptors in the DirectX 12 global sampler heap
         uint32_t directX12MaxSamplers = 100;
     };
 
@@ -2807,6 +2863,7 @@ export namespace vireo {
          */
         static std::shared_ptr<Vireo> create(const BackendConfiguration& configuration = {});
 
+        /** Blocks the calling thread until all pending GPU work on all queues has completed. */
         virtual void waitIdle() {}
 
         /**
@@ -2882,7 +2939,9 @@ export namespace vireo {
             // size_t size) const = 0;
 
         /**
-         * Creates a shader module
+         * Creates a shader module from an in-memory compiled shader binary.
+         * @param data Compiled shader bytecode (SPIR-V for Vulkan, DXIL for DirectX).
+         * @param name Object name for debug tools.
          */
         virtual std::shared_ptr<ShaderModule> createShaderModule(
             const std::vector<char>& data,
@@ -3064,6 +3123,16 @@ export namespace vireo {
 
         /**
          * Creates a texture sampler.
+         * @param minFilter       Filter applied when texels are minified.
+         * @param magFilter       Filter applied when texels are magnified.
+         * @param addressModeU    Wrap mode for the U (horizontal) coordinate.
+         * @param addressModeV    Wrap mode for the V (vertical) coordinate.
+         * @param addressModeW    Wrap mode for the W (depth) coordinate.
+         * @param minLod          Minimum level-of-detail value clamped during sampling.
+         * @param maxLod          Maximum level-of-detail value clamped during sampling.
+         * @param anisotropyEnable Enable anisotropic filtering.
+         * @param mipMapMode      Filter applied when sampling between mip levels.
+         * @param compareOp       Comparison operator for depth-comparison samplers.
          */
         virtual std::shared_ptr<Sampler> createSampler(
             Filter minFilter,
