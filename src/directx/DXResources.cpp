@@ -182,7 +182,7 @@ namespace vireo {
                 image.Get() });
         }
 #ifdef _DEBUG
-        image->SetName((L"DXIMage : " + std::to_wstring(name)).c_str());
+        image->SetName((L"DXImage : " + std::to_wstring(name)).c_str());
 #endif
     }
 

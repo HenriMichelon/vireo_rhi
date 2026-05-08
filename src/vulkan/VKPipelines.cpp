@@ -198,7 +198,7 @@ namespace vireo {
             shaderStages.push_back({
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .stage = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,
-                .module = static_pointer_cast<const VKShaderModule>(configuration.fragmentShader)->getShaderModule(),
+                .module = static_pointer_cast<const VKShaderModule>(configuration.hullShader)->getShaderModule(),
                 .pName = "main"
             });
         }
@@ -206,7 +206,7 @@ namespace vireo {
             shaderStages.push_back({
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .stage = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT,
-                .module = static_pointer_cast<const VKShaderModule>(configuration.fragmentShader)->getShaderModule(),
+                .module = static_pointer_cast<const VKShaderModule>(configuration.domainShader)->getShaderModule(),
                 .pName = "main"
             });
         }
@@ -214,7 +214,7 @@ namespace vireo {
             shaderStages.push_back({
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .stage = VK_SHADER_STAGE_GEOMETRY_BIT,
-                .module = static_pointer_cast<const VKShaderModule>(configuration.fragmentShader)->getShaderModule(),
+                .module = static_pointer_cast<const VKShaderModule>(configuration.geometryShader)->getShaderModule(),
                 .pName = "main"
             });
         }
