@@ -32,7 +32,7 @@ namespace vireo {
         if ((!isDynamicUniform()) && type == DescriptorType::UNIFORM_DYNAMIC) {
             throw Exception("Use uniform dynamic descriptor layout for UNIFORM_DYNAMIC resources");
         }
-        auto unbounded = (
+        const auto unbounded = (
             (isBindless() && count > 1 && (
                 type == DescriptorType::SAMPLED_IMAGE ||
                 type == DescriptorType::READWRITE_IMAGE))
@@ -87,6 +87,9 @@ namespace vireo {
     }
 
     DXDescriptorHeap::DescriptorsArray DXDescriptorHeap::alloc(const uint32_t count) {
+        if (!retiredDescriptors.empty()) {
+            cleanup();
+        }
         const auto lock = std::lock_guard{mutex};
         for (uint32_t i = 0; i <= maxDescriptors - count; i++) {
             bool available = true;
@@ -113,19 +116,20 @@ namespace vireo {
 
     void DXDescriptorHeap::free(const DescriptorsArray& descriptor) {
         const auto lock = std::lock_guard{mutex};
-        retiredDescriptors.push_back({descriptor.index, TTL});
+        retiredDescriptors.push_back({descriptor.index, descriptor.count, TTL});
     }
 
     void DXDescriptorHeap::cleanup() {
         const auto lock = std::lock_guard{mutex};
-        for (auto& descriptor : retiredDescriptors) {
+        retiredDescriptors.remove_if([this](RetiredDescriptor& descriptor) {
             if (descriptor.ttl-- == 0) {
-                for (int i = 0; i < descriptor.count; ++i) {
+                for (uint32_t i = 0; i < descriptor.count; ++i) {
                     allocatedDescriptors[descriptor.index + i] = false;
                 }
-                retiredDescriptors.remove(descriptor);
+                return true;
             }
-        }
+            return false;
+        });
     }
 
     DXDescriptorSet::DXDescriptorSet(
@@ -136,6 +140,10 @@ namespace vireo {
         heap{heap},
         device{device},
         descriptors{heap->alloc(layout->getCapacity())} {
+    }
+
+    DXDescriptorSet::~DXDescriptorSet() {
+        heap->free(descriptors);
     }
 
     void DXDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer) {
