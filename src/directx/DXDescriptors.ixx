@@ -43,7 +43,6 @@ export namespace vireo {
         struct RetiredDescriptor {
             uint32_t index;
             uint32_t count;
-            uint32_t ttl;
 
             friend bool operator==(const RetiredDescriptor& lhs, const RetiredDescriptor& rhs) {
                 return lhs.index == rhs.index;
@@ -63,7 +62,6 @@ export namespace vireo {
         auto getHeap() const { return heap; }
 
     private:
-        static constexpr uint32_t    TTL{3};
         ComPtr<ID3D12Device>         device;
         ComPtr<ID3D12DescriptorHeap> heap;
         uint32_t                     maxDescriptors;
@@ -85,7 +83,7 @@ export namespace vireo {
         ~DXDescriptorSet() override;
 
         void update(
-            DescriptorIndex index,
+            const DescriptorIndex index,
             const std::shared_ptr<const Buffer>& buffer,
             const std::shared_ptr<const Buffer>& counterBuffer) override {
             update(index, *buffer, *counterBuffer);

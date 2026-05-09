@@ -116,19 +116,18 @@ namespace vireo {
 
     void DXDescriptorHeap::free(const DescriptorsArray& descriptor) {
         const auto lock = std::lock_guard{mutex};
-        retiredDescriptors.push_back({descriptor.index, descriptor.count, TTL});
+        retiredDescriptors.push_back({descriptor.index, descriptor.count});
     }
 
     void DXDescriptorHeap::cleanup() {
         const auto lock = std::lock_guard{mutex};
-        retiredDescriptors.remove_if([this](RetiredDescriptor& descriptor) {
-            if (descriptor.ttl-- == 0) {
-                for (uint32_t i = 0; i < descriptor.count; ++i) {
-                    allocatedDescriptors[descriptor.index + i] = false;
-                }
-                return true;
+        retiredDescriptors.remove_if([this](const RetiredDescriptor& descriptor) {
+            auto destroyed = false;
+            for (uint32_t i = 0; i < descriptor.count; ++i) {
+                allocatedDescriptors[descriptor.index + i] = false;
+                destroyed = true;
             }
-            return false;
+            return destroyed;
         });
     }
 
