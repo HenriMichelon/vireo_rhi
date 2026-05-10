@@ -46,6 +46,7 @@ namespace vireo {
         const std::shared_ptr<Fence>& fence,
         const std::shared_ptr<const SwapChain>&swapChain,
         const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
+        auto lock = std::lock_guard{submitMutex};
         assert(fence != nullptr);
         assert(swapChain != nullptr);
         submit(commandLists);
@@ -57,6 +58,7 @@ namespace vireo {
     void DXSubmitQueue::submit(
         const std::shared_ptr<Fence>& fence,
         const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
+        auto lock = std::lock_guard{submitMutex};
         assert(fence != nullptr);
         submit(commandLists);
         const auto dxFence = static_pointer_cast<DXFence>(fence);
@@ -64,6 +66,7 @@ namespace vireo {
     }
 
     void DXSubmitQueue::submit(const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
+        auto lock = std::lock_guard{submitMutex};
         assert(commandLists.size() > 0);
         auto dxCommandLists = std::vector<ID3D12CommandList*>(commandLists.size());
         for (int i = 0; i < commandLists.size(); i++) {
@@ -78,6 +81,7 @@ namespace vireo {
         const WaitStage,
         const std::shared_ptr<Semaphore>& signalSemaphore,
         const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
+        auto lock = std::lock_guard{submitMutex};
         assert(waitSemaphore != nullptr || signalSemaphore != nullptr);
         const auto dxWaitSemaphore = static_pointer_cast<DXSemaphore>(waitSemaphore);
         const auto dxSignalSemaphore = static_pointer_cast<DXSemaphore>(signalSemaphore);
@@ -97,6 +101,7 @@ namespace vireo {
         const WaitStage,
         const std::shared_ptr<Semaphore>& signalSemaphore,
         const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
+        auto lock = std::lock_guard{submitMutex};
         assert(waitSemaphore != nullptr || signalSemaphore != nullptr);
         const auto dxWaitSemaphore = static_pointer_cast<DXSemaphore>(waitSemaphore);
         const auto dxSignalSemaphore = static_pointer_cast<DXSemaphore>(signalSemaphore);
@@ -120,6 +125,7 @@ namespace vireo {
         const std::shared_ptr<Fence>& fence,
         const std::shared_ptr<const SwapChain>&swapChain,
         const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
+        auto lock = std::lock_guard{submitMutex};
         submit(waitSemaphore, waitStage, WaitStage::NONE, nullptr, commandLists);
         const auto dxFence = static_pointer_cast<DXFence>(fence);
         const auto dxSwapChain = static_pointer_cast<const DXSwapChain>(swapChain);
@@ -132,6 +138,7 @@ namespace vireo {
            const std::shared_ptr<Fence>& fence,
            const std::shared_ptr<const SwapChain>&swapChain,
            const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
+        auto lock = std::lock_guard{submitMutex};
         submit(waitSemaphore, waitStages, WaitStage::NONE, nullptr, commandLists);
         const auto dxFence = static_pointer_cast<DXFence>(fence);
         const auto dxSwapChain = static_pointer_cast<const DXSwapChain>(swapChain);
@@ -139,6 +146,7 @@ namespace vireo {
     }
 
     void DXSubmitQueue::waitIdle() const {
+        auto lock = std::lock_guard{submitMutex};
         ComPtr<ID3D12Fence> inFlightFence;
         dxCheck(device->CreateFence(
             0,

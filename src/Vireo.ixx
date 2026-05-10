@@ -2520,10 +2520,8 @@ export namespace vireo {
     };
 
     /**
-     * Command submission queue
-     *
-     * @warning Not thread-safe. Concurrent `submit()` calls from multiple threads
-     *          produce undefined behavior and must be externally synchronized.
+     * Command submission queue. Thread-safe: all submit() and waitIdle() calls
+     * are serialized by an internal recursive mutex.
      *
      * Manual page : \ref manual_060_00_queues
      */
@@ -2667,6 +2665,7 @@ export namespace vireo {
 
     protected:
         SubmitQueue() = default;
+        mutable std::recursive_mutex submitMutex;
     };
 
     /**
