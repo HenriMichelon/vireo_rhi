@@ -2,6 +2,8 @@
 
 Vireo RHI is an open-source library written in modern C++ that implements a common abstraction layer over multiple 3D graphics APIs. It provides a low-level, high-performance interface designed to mimic modern graphics APIs like Vulkan and DirectX 12 while hiding their boilerplate and complexity.
 
+Please refer to the [Documentation](https://henrimichelon.github.io/Vireo/) for detailed instructions on how to integrate and use the RHI.
+
 ## Key Features
 
 - **Multi-API Support**: 
@@ -37,33 +39,6 @@ Check out the [Vireo Samples](https://github.com/HenriMichelon/vireo_samples) re
 |:-----------------------------------------------| :--- |
 | What is Vireo RHI?                             | [🇫🇷 French](https://henrimichelon.github.io/Articles/fr/vireo_rhi.html) / [🇺🇸 English](https://henrimichelon.github.io/Articles/en/vireo_rhi.html) 
 | Example of TAA implementation with Vireo RHI   | [🇫🇷 French](https://henrimichelon.github.io/Articles/fr/taa_vireo_rhi.html) / [🇺🇸 English](https://henrimichelon.github.io/Articles/en/taa_vireo_rhi.html) |
-
-
-## Getting Started
-
-### Prerequisites
-
-Vireo supports Microsoft Windows and Linux (X11 & Wayland).
-
-- C++23 compiler with std module support (for windows : MSVC 19+, [LLVM+MingW 21+](https://github.com/mstorsjo/llvm-mingw/releases), for Linux : LLVM 21+).
-- CMake 3.29+ with a build tool like Ninja
-- Vulkan SDK (1.3+) 
-
-For Linux the following packages are needed :
-- vulkan-validation-layers
-- LLVM
-- libc++
-You need manually install the last version of the Vulkan SDK and execute the `setup-env.sh` script from the Vulkan installation directory.
-
-### Building
-
-Vireo RHI is intended to be used as a submodule or a CMake subdirectory.
-
-### Configuration Options
-
-- `DIRECTX_BACKEND`: Enable/Disable DirectX 12 support (Default: `ON` on Windows).
-- `LUA_BINDINGS`: Enable/Disable Lua bindings (Default: `OFF`).
-
 
 ## License
 
