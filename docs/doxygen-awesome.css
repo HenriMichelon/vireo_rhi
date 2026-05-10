@@ -29,9 +29,9 @@ SOFTWARE.
 
 html {
     /* primary theme color. This will affect the entire websites color scheme: links, arrows, labels, ... */
-    --primary-color: #1779c4;
-    --primary-dark-color: #335c80;
-    --primary-light-color: #70b1e9;
+    --primary-color: #1a9c4b;
+    --primary-dark-color: #215c35;
+    --primary-light-color: #6abf82;
 
     /* page base colors */
     --page-background-color: #ffffff;
@@ -83,9 +83,9 @@ html {
     --warning-color: #faf3d8;
     --warning-color-dark: #f3a600;
     --warning-color-darker: #5f4204;
-    --note-color: #e4f3ff;
-    --note-color-dark: #1879C4;
-    --note-color-darker: #274a5c;
+    --note-color: #e8f5e9;
+    --note-color-dark: #1e7e34;
+    --note-color-darker: #1a3d22;
     --todo-color: #e4dafd;
     --todo-color-dark: #5b2bdd;
     --todo-color-darker: #2a0d72;
@@ -144,7 +144,7 @@ html {
     --fragment-keywordflow: #d67c3b;
     --fragment-token: #438a59;
     --fragment-comment: #969696;
-    --fragment-link: #5383d6;
+    --fragment-link: #2e7d32;
     --fragment-preprocessor: #46aaa5;
     --fragment-linenumber-color: #797979;
     --fragment-linenumber-background: #f4f4f5;
@@ -187,9 +187,9 @@ html {
     html:not(.light-mode) {
         color-scheme: dark;
 
-        --primary-color: #1982d2;
-        --primary-dark-color: #86a9c4;
-        --primary-light-color: #4779ac;
+        --primary-color: #2da05f;
+        --primary-dark-color: #7abf96;
+        --primary-light-color: #1a6e3c;
 
         --box-shadow: 0 2px 8px 0 rgba(0,0,0,.35);
 
@@ -213,9 +213,9 @@ html {
         --warning-color: #3b2e04;
         --warning-color-dark: #f1b602;
         --warning-color-darker: #ceb670;
-        --note-color: #163750;
-        --note-color-dark: #1982D2;
-        --note-color-darker: #dcf0fa;
+        --note-color: #1a3d22;
+        --note-color-dark: #2da05f;
+        --note-color-darker: #c8e6c9;
         --todo-color: #2a2536;
         --todo-color-dark: #7661b3;
         --todo-color-darker: #ae9ed6;
@@ -236,7 +236,7 @@ html {
         --fragment-keywordflow: #e08000;
         --fragment-token: #7ec699;
         --fragment-comment: #999999;
-        --fragment-link: #98c0e3;
+        --fragment-link: #81c784;
         --fragment-preprocessor: #65cabe;
         --fragment-linenumber-color: #cccccc;
         --fragment-linenumber-background: #35393c;
@@ -248,9 +248,9 @@ html {
 html.dark-mode {
     color-scheme: dark;
 
-    --primary-color: #1982d2;
-    --primary-dark-color: #86a9c4;
-    --primary-light-color: #4779ac;
+    --primary-color: #2da05f;
+    --primary-dark-color: #7abf96;
+    --primary-light-color: #1a6e3c;
 
     --box-shadow: 0 2px 8px 0 rgba(0,0,0,.30);
 
@@ -274,9 +274,9 @@ html.dark-mode {
     --warning-color: #3b2e04;
     --warning-color-dark: #f1b602;
     --warning-color-darker: #ceb670;
-    --note-color: #163750;
-    --note-color-dark: #1982D2;
-    --note-color-darker: #dcf0fa;
+    --note-color: #1a3d22;
+    --note-color-dark: #2da05f;
+    --note-color-darker: #c8e6c9;
     --todo-color: #2a2536;
     --todo-color-dark: #7661b3;
     --todo-color-darker: #ae9ed6;
@@ -297,7 +297,7 @@ html.dark-mode {
     --fragment-keywordflow: #e08000;
     --fragment-token: #7ec699;
     --fragment-comment: #999999;
-    --fragment-link: #98c0e3;
+    --fragment-link: #81c784;
     --fragment-preprocessor: #65cabe;
     --fragment-linenumber-color: #cccccc;
     --fragment-linenumber-background: #35393c;

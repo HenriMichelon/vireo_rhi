@@ -45,22 +45,22 @@ dl.note {
 
 @media (prefers-color-scheme: dark) {
     html:not(.light-mode) {
-    --primary-color: #7aa2f7;
-    --primary-dark-color: #bb9af7;
-    --primary-light-color: #b4f9f8;
-  
-    --page-background-color: #24283b;
+    --primary-color: #f7923a;
+    --primary-dark-color: #f7c27a;
+    --primary-light-color: #ffe0b2;
+
+    --page-background-color: #272729;
     --page-foreground-color: #a9b1d6;
     --page-secondary-foreground-color: #9aa5ce;
-    --separator-color: #565f89;
-    --side-nav-background: #1a1b26;
-  
-    --code-background: #31364e;
+    --separator-color: #606065;
+    --side-nav-background: #1c1c1e;
+
+    --code-background: #353535;
     --code-foreground: #73daca;
-  
-    --tablehead-background: #1a1b26;
-  
-    --blockquote-background: #414868;
+
+    --tablehead-background: #1c1c1e;
+
+    --blockquote-background: #434343;
     --blockquote-foreground: #73daca;
   
     --warning-color: #e0af68;
