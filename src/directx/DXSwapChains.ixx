@@ -9,6 +9,7 @@ module;
 export module vireo.directx.swapchains;
 
 import vireo;
+import vireo.directx.commands;
 import vireo.directx.devices;
 
 export namespace vireo {
@@ -18,7 +19,7 @@ export namespace vireo {
         DXSwapChain(
             const ComPtr<IDXGIFactory4>& factory,
             const std::shared_ptr<DXDevice>& device,
-            const ComPtr<ID3D12CommandQueue>& commandQueue,
+            const std::shared_ptr<DXSubmitQueue>& commandQueue,
             ImageFormat format,
             HWND hWnd, PresentMode vSyncMode, uint32_t framesInFlight);
 
@@ -51,7 +52,7 @@ export namespace vireo {
         const ComPtr<IDXGIFactory4>    factory;
         ComPtr<IDXGISwapChain3>        swapChain;
         // Submission queue to present the frame buffers on the rendering surface
-        ComPtr<ID3D12CommandQueue>     presentCommandQueue;
+        std::shared_ptr<DXSubmitQueue> presentCommandQueue;
         // Frame buffers
         std::vector<ComPtr<ID3D12Resource>> renderTargets;
         // D3D12_DESCRIPTOR_HEAP_TYPE_RTV heap for the frame buffers

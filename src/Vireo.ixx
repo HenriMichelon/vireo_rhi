@@ -2659,6 +2659,8 @@ export namespace vireo {
          */
         virtual void waitIdle() const = 0;
 
+        std::recursive_mutex& getMutex() { return submitMutex; }
+
         virtual ~SubmitQueue() = default;
         SubmitQueue (SubmitQueue&) = delete;
         SubmitQueue& operator = (const SubmitQueue&) = delete;
@@ -2875,7 +2877,7 @@ export namespace vireo {
          */
         virtual std::shared_ptr<SwapChain> createSwapChain(
             ImageFormat format,
-            const std::shared_ptr<const SubmitQueue>& presentQueue,
+            const std::shared_ptr<SubmitQueue>& presentQueue,
             PlatformWindowHandle windowHandle,
             PresentMode presentMode = PresentMode::VSYNC,
             uint32_t framesInFlight = 2) const = 0;

@@ -19,7 +19,7 @@ namespace vireo {
     DXSwapChain::DXSwapChain(
         const ComPtr<IDXGIFactory4>& factory,
         const std::shared_ptr<DXDevice>& dxdevice,
-        const ComPtr<ID3D12CommandQueue>& commandQueue,
+        const std::shared_ptr<DXSubmitQueue>& commandQueue,
         const ImageFormat format,
         const HWND hWnd,
         const PresentMode vSyncMode,
@@ -61,7 +61,7 @@ namespace vireo {
 
         ComPtr<IDXGISwapChain1> swapChain1;
         dxCheck(factory->CreateSwapChainForHwnd(
-            presentCommandQueue.Get(),
+            presentCommandQueue->getCommandQueue().Get(),
             // Swap chain needs the queue so that it can force a flush on it.
             hWnd,
             &swapChainDesc,
@@ -192,7 +192,8 @@ namespace vireo {
 
     void DXSwapChain::present() {
         dxCheck(swapChain->Present(syncInterval, presentFlags));
-        dxCheck(presentCommandQueue->Signal(fence.Get(), fenceValue));
+        auto lock = std::lock_guard{presentCommandQueue->getMutex()};
+        dxCheck(presentCommandQueue->getCommandQueue()->Signal(fence.Get(), fenceValue));
     }
 
 }

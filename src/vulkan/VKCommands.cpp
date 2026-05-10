@@ -44,7 +44,6 @@ namespace vireo {
         const std::shared_ptr<Fence>& fence,
         const std::shared_ptr<const SwapChain>& swapChain,
         const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
-        auto lock = std::lock_guard{submitMutex};
         assert(fence != nullptr);
         assert(swapChain != nullptr);
         assert(!commandLists.empty());
@@ -66,11 +65,11 @@ namespace vireo {
             .signalSemaphoreInfoCount = 1,
             .pSignalSemaphoreInfos    = &vkSwapChain->getCurrentRenderFinishedSemaphoreInfo()
         };
+        auto lock = std::lock_guard{submitMutex};
         vkCheck(vkQueueSubmit2(commandQueue, 1, &submitInfo, vkFence->getFence()));
     }
 
     void VKSubmitQueue::submit(const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
-        auto lock = std::lock_guard{submitMutex};
         assert(!commandLists.empty());
         auto submitInfos = std::vector<VkCommandBufferSubmitInfo>(commandLists.size());
         for (int i = 0; i < commandLists.size(); i++) {
@@ -86,13 +85,13 @@ namespace vireo {
             .pCommandBufferInfos      = submitInfos.data(),
             .signalSemaphoreInfoCount = 0,
         };
+        auto lock = std::lock_guard{submitMutex};
         vkCheck(vkQueueSubmit2(commandQueue, 1, &submitInfo, VK_NULL_HANDLE));
     }
 
     void VKSubmitQueue::submit(
         const std::shared_ptr<Fence>& fence,
         const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
-        auto lock = std::lock_guard{submitMutex};
         assert(fence != nullptr);
         assert(!commandLists.empty());
         const auto vkFence = static_pointer_cast<const VKFence>(fence);
@@ -110,6 +109,7 @@ namespace vireo {
             .pCommandBufferInfos      = submitInfos.data(),
             .signalSemaphoreInfoCount = 0,
         };
+        auto lock = std::lock_guard{submitMutex};
         vkCheck(vkQueueSubmit2(commandQueue, 1, &submitInfo, vkFence->getFence()));
     }
 
@@ -119,7 +119,6 @@ namespace vireo {
            const WaitStage signalStage,
            const std::shared_ptr<Semaphore>& signalSemaphore,
            const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
-        auto lock = std::lock_guard{submitMutex};
         assert(waitSemaphore != nullptr || signalSemaphore != nullptr);
         assert(!commandLists.empty());
         const auto vkWaitSemaphore = static_pointer_cast<VKSemaphore>(waitSemaphore);
@@ -159,6 +158,7 @@ namespace vireo {
             .signalSemaphoreInfoCount = signalSemaphore ? 1u : 0u,
             .pSignalSemaphoreInfos    = signalSemaphore ? &signalSemaphoreSubmitInfo : VK_NULL_HANDLE,
         };
+        auto lock = std::lock_guard{submitMutex};
         vkCheck(vkQueueSubmit2(commandQueue, 1, &submitInfo, VK_NULL_HANDLE));
     }
 
@@ -168,7 +168,6 @@ namespace vireo {
            const WaitStage signalStage,
            const std::shared_ptr<Semaphore>& signalSemaphore,
            const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
-        auto lock = std::lock_guard{submitMutex};
         assert(waitSemaphore != nullptr || signalSemaphore != nullptr);
         assert(!commandLists.empty());
         const auto vkWaitSemaphore = static_pointer_cast<VKSemaphore>(waitSemaphore);
@@ -211,6 +210,7 @@ namespace vireo {
             .signalSemaphoreInfoCount = signalSemaphore ? 1u : 0u,
             .pSignalSemaphoreInfos    = signalSemaphore ? &signalSemaphoreSubmitInfo : VK_NULL_HANDLE,
         };
+        auto lock = std::lock_guard{submitMutex};
         vkCheck(vkQueueSubmit2(commandQueue, 1, &submitInfo, VK_NULL_HANDLE));
     }
 
@@ -221,7 +221,6 @@ namespace vireo {
            const std::shared_ptr<Fence>& fence,
            const std::shared_ptr<const SwapChain>& swapChain,
            const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
-        auto lock = std::lock_guard{submitMutex};
         assert(waitSemaphore != nullptr);
         assert(fence != nullptr);
         assert(swapChain != nullptr);
@@ -258,6 +257,7 @@ namespace vireo {
             .signalSemaphoreInfoCount = 1,
             .pSignalSemaphoreInfos    = &vkSwapChain->getCurrentRenderFinishedSemaphoreInfo(),
         };
+        auto lock = std::lock_guard{submitMutex};
         vkCheck(vkQueueSubmit2(commandQueue, 1, &submitInfo, vkFence->getFence()));
     }
 
@@ -267,7 +267,6 @@ namespace vireo {
            const std::shared_ptr<Fence>& fence,
            const std::shared_ptr<const SwapChain>& swapChain,
            const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
-        auto lock = std::lock_guard{submitMutex};
         assert(waitSemaphore != nullptr);
         assert(fence != nullptr);
         assert(swapChain != nullptr);
@@ -309,6 +308,7 @@ namespace vireo {
             .signalSemaphoreInfoCount = 1,
             .pSignalSemaphoreInfos    = &vkSwapChain->getCurrentRenderFinishedSemaphoreInfo(),
         };
+        auto lock = std::lock_guard{submitMutex};
         vkCheck(vkQueueSubmit2(commandQueue, 1, &submitInfo, vkFence->getFence()));
     }
 

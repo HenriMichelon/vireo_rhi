@@ -15,7 +15,6 @@ module vireo.vulkan.swapchains;
 
 import vireo.platform;
 import vireo.tools;
-import vireo.vulkan.commands;
 import vireo.vulkan.resources;
 import vireo.vulkan.tools;
 
@@ -23,7 +22,7 @@ namespace vireo {
 
     VKSwapChain::VKSwapChain(
         const std::shared_ptr<const VKDevice>& device,
-        const VkQueue presentQueue,
+        const std::shared_ptr<VKSubmitQueue>& presentQueue,
         PlatformWindowHandle windowHandle,
         const ImageFormat format,
         const PresentMode vSyncMode,
@@ -306,7 +305,8 @@ namespace vireo {
             .pImageIndices      = &imageIndex[currentFrameIndex],
             .pResults           = nullptr // Optional
         };
-        const auto result = vkQueuePresentKHR(presentQueue, &presentInfo);
+        auto lock = std::lock_guard{presentQueue->getMutex()};
+        const auto result = vkQueuePresentKHR(presentQueue->getCommandQueue(), &presentInfo);
         if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
             recreate();
 

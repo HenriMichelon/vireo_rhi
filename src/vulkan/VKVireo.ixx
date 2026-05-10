@@ -24,7 +24,7 @@ export namespace vireo {
 
         std::shared_ptr<SwapChain> createSwapChain(
             ImageFormat format,
-            const std::shared_ptr<const SubmitQueue>& submitQueue,
+            const std::shared_ptr<SubmitQueue>& submitQueue,
             PlatformWindowHandle windowHandle,
             PresentMode presentMode,
             uint32_t framesInFlight) const override;

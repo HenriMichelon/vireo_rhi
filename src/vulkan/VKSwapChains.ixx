@@ -11,6 +11,7 @@ export module vireo.vulkan.swapchains;
 import std;
 import vireo;
 import vireo.platform;
+import vireo.vulkan.commands;
 import vireo.vulkan.devices;
 
 export namespace vireo {
@@ -19,7 +20,7 @@ export namespace vireo {
     public:
         VKSwapChain(
             const std::shared_ptr<const VKDevice>& device,
-            VkQueue presentQueue,
+            const std::shared_ptr<VKSubmitQueue>& presentQueue,
             PlatformWindowHandle windowHandle,
             ImageFormat format,
             PresentMode vSyncMode,
@@ -54,34 +55,34 @@ export namespace vireo {
         };
         // For Device::querySwapChainSupport()
         struct SwapChainSupportDetails {
-            VkSurfaceCapabilitiesKHR   capabilities;
+            VkSurfaceCapabilitiesKHR capabilities;
             std::vector<VkSurfaceFormatKHR> formats;
-            std::vector<VkPresentModeKHR>   presentModes;
+            std::vector<VkPresentModeKHR> presentModes;
         };
 
         const std::shared_ptr<const VKDevice> device;
         // Platform specific window handle
-        PlatformWindowHandle    windowHandle;
+        PlatformWindowHandle windowHandle;
         // Rendering window drawing surface
-        VkSurfaceKHR             surface;
-        VkSwapchainKHR           swapChain{VK_NULL_HANDLE};
-        uint32_t                 imagesCount;
+        VkSurfaceKHR surface;
+        VkSwapchainKHR swapChain{VK_NULL_HANDLE};
+        uint32_t imagesCount;
         // Frame buffers
-        std::vector<VkImage>     swapChainImages;
+        std::vector<VkImage> swapChainImages;
         // Frame buffers image format
-        VkFormat                 swapChainImageFormat;
+        VkFormat swapChainImageFormat;
         // Current surface size
-        VkExtent2D               swapChainExtent;
+        VkExtent2D swapChainExtent;
         // Frame buffer vulkan image view
         std::vector<VkImageView> swapChainImageViews;
         // Submission queue used to present images on the surface
-        VkQueue                  presentQueue;
+        std::shared_ptr<VKSubmitQueue> presentQueue;
         // Frame buffer index by frame index
-        std::vector<uint32_t>        imageIndex;
+        std::vector<uint32_t> imageIndex;
         // Semaphore to wait the frame buffers to be ready to be used
-        std::vector<VkSemaphore>     imageAvailableSemaphore;
+        std::vector<VkSemaphore> imageAvailableSemaphore;
         // Semaphore to wait for all the commands to be executed by the GPU
-        std::vector<VkSemaphore>     renderFinishedSemaphore;
+        std::vector<VkSemaphore> renderFinishedSemaphore;
         std::vector<VkSemaphoreSubmitInfo> imageAvailableSemaphoreInfo;
         std::vector<VkSemaphoreSubmitInfo> renderFinishedSemaphoreInfo;
 #ifdef __linux__
