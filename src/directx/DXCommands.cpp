@@ -718,6 +718,18 @@ namespace vireo {
         } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::COMPUTE_READ) {
             srcState = D3D12_RESOURCE_STATE_COPY_SOURCE;
             dstState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+        } else if (oldState == ResourceState::GENERAL && newState == ResourceState::RENDER_TARGET_COLOR) {
+            srcState = D3D12_RESOURCE_STATE_COMMON;
+            dstState = D3D12_RESOURCE_STATE_RENDER_TARGET;
+        } else if (oldState == ResourceState::RENDER_TARGET_COLOR && newState == ResourceState::GENERAL) {
+            srcState = D3D12_RESOURCE_STATE_RENDER_TARGET;
+            dstState = D3D12_RESOURCE_STATE_COMMON;
+        } else if (oldState == ResourceState::COMPUTE_READ && newState == ResourceState::RENDER_TARGET_COLOR) {
+            srcState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+            dstState = D3D12_RESOURCE_STATE_RENDER_TARGET;
+        } else if (oldState == ResourceState::RENDER_TARGET_COLOR && newState == ResourceState::COMPUTE_READ) {
+            srcState = D3D12_RESOURCE_STATE_RENDER_TARGET;
+            dstState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
         } else {
             throw Exception("Not implemented");
             return;
