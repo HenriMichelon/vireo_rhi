@@ -571,6 +571,18 @@ namespace vireo {
         } else if (oldState == ResourceState::UNDEFINED && newState == ResourceState::COMPUTE_READ) {
             srcState = D3D12_RESOURCE_STATE_COMMON;
             dstState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+        } else if (oldState == ResourceState::RENDER_TARGET_DEPTH && newState == ResourceState::COMPUTE_READ) {
+            srcState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+            dstState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+        } else if (oldState == ResourceState::RENDER_TARGET_DEPTH_STENCIL && newState == ResourceState::COMPUTE_READ) {
+            srcState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+            dstState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+        } else if (oldState == ResourceState::COMPUTE_READ && newState == ResourceState::RENDER_TARGET_DEPTH) {
+            srcState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+            dstState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+        } else if (oldState == ResourceState::COMPUTE_READ && newState == ResourceState::RENDER_TARGET_DEPTH_STENCIL) {
+            srcState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+            dstState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
         } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::COMPUTE_READ) {
             srcState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
             dstState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
@@ -693,6 +705,9 @@ namespace vireo {
             dstState = D3D12_RESOURCE_STATE_COPY_SOURCE;
         } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::UNDEFINED) {
             srcState = D3D12_RESOURCE_STATE_COPY_DEST;
+            dstState = D3D12_RESOURCE_STATE_COMMON;
+        } else if (oldState == ResourceState::COMPUTE_READ && newState == ResourceState::GENERAL) {
+            srcState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
             dstState = D3D12_RESOURCE_STATE_COMMON;
         } else {
             throw Exception("Not implemented");
@@ -859,6 +874,10 @@ namespace vireo {
         } else if (oldState == ResourceState::VERTEX_INPUT && newState == ResourceState::COPY_DST) {
             srcState = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
             dstState = D3D12_RESOURCE_STATE_COPY_DEST;
+        } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::COPY_DST) {
+            return;
+            // srcState = D3D12_RESOURCE_STATE_COPY_DEST;
+            // dstState = D3D12_RESOURCE_STATE_COPY_DEST;
         } else {
             throw Exception("Not implemented");
         }

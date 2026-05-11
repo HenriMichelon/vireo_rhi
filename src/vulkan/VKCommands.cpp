@@ -832,7 +832,7 @@ namespace vireo {
             dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
             srcAccess = VK_ACCESS_SHADER_READ_BIT;
             dstAccess = VK_ACCESS_SHADER_WRITE_BIT;
-            srcLayout = VK_IMAGE_LAYOUT_GENERAL;
+            srcLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_GENERAL;
         } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::COMPUTE_READ) {
             srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
@@ -840,14 +840,14 @@ namespace vireo {
             srcAccess = VK_ACCESS_SHADER_WRITE_BIT;
             dstAccess = VK_ACCESS_SHADER_READ_BIT;
             srcLayout = VK_IMAGE_LAYOUT_GENERAL;
-            dstLayout = VK_IMAGE_LAYOUT_GENERAL;
+            dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::COMPUTE_READ) {
-            srcStage = static_cast<VkPipelineStageFlags>(VK_PIPELINE_STAGE_2_COPY_BIT);
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-            srcAccess = 0;
+            srcAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
             dstAccess = VK_ACCESS_SHADER_READ_BIT;
-            srcLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            dstLayout = VK_IMAGE_LAYOUT_GENERAL;
+            srcLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         } else if (oldState == ResourceState::SHADER_READ && newState == ResourceState::COMPUTE_WRITE) {
             srcStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
             dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
@@ -933,7 +933,7 @@ namespace vireo {
             srcAccess = 0;
             dstAccess = VK_ACCESS_SHADER_READ_BIT;
             srcLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            dstLayout = VK_IMAGE_LAYOUT_GENERAL;
+            dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         } else if (oldState == ResourceState::RENDER_TARGET_COLOR && newState == ResourceState::SHADER_READ) {
             srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
             dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
@@ -947,14 +947,14 @@ namespace vireo {
             srcAccess = VK_ACCESS_SHADER_READ_BIT;
             dstAccess = 0;
             srcLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            dstLayout = VK_IMAGE_LAYOUT_GENERAL;
+            dstLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         } else if (oldState == ResourceState::COMPUTE_READ && newState == ResourceState::UNDEFINED) {
             srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
             dstStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
             srcAccess = VK_ACCESS_SHADER_READ_BIT;
             dstAccess = 0;
             srcLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            dstLayout = VK_IMAGE_LAYOUT_GENERAL;
+            dstLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         } else if (oldState == ResourceState::COMPUTE_READ && newState == ResourceState::COPY_SRC) {
             srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
             dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
@@ -962,11 +962,18 @@ namespace vireo {
             dstAccess = VK_ACCESS_TRANSFER_READ_BIT;
             srcLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-        } else if (oldState == ResourceState::COMPUTE_READ && newState == ResourceState::UNDEFINED) {
-            srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-            dstStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+        } else if (oldState == ResourceState::COMPUTE_READ && newState == ResourceState::RENDER_TARGET_DEPTH) {
+            srcStage  = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            dstStage  = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
             srcAccess = VK_ACCESS_SHADER_READ_BIT;
-            dstAccess = 0;
+            dstAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        } else if (oldState == ResourceState::COMPUTE_READ && newState == ResourceState::GENERAL) {
+            srcStage  = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            dstStage  = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            srcAccess = VK_ACCESS_SHADER_READ_BIT;
+            dstAccess = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
             srcLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_GENERAL;
         } else if (oldState == ResourceState::RENDER_TARGET_COLOR && newState == ResourceState::PRESENT) {
@@ -1019,9 +1026,9 @@ namespace vireo {
             srcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::COPY_SRC) {
-            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
             dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-            srcAccess = 0;
+            srcAccess = VK_ACCESS_SHADER_WRITE_BIT;
             dstAccess = VK_ACCESS_TRANSFER_READ_BIT;
             srcLayout = VK_IMAGE_LAYOUT_GENERAL;
             dstLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
@@ -1045,21 +1052,21 @@ namespace vireo {
             srcAccess = VK_ACCESS_TRANSFER_READ_BIT;
             dstAccess = 0;
             srcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-            dstLayout = VK_IMAGE_LAYOUT_GENERAL;
+            dstLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         } else if (oldState == ResourceState::RENDER_TARGET_COLOR && newState == ResourceState::UNDEFINED) {
             srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
             dstStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
             srcAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
             dstAccess = 0;
             srcLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-            dstLayout = VK_IMAGE_LAYOUT_GENERAL;
+            dstLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::UNDEFINED) {
             srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
             dstStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
             srcAccess = 0;
             dstAccess = 0;
             srcLayout = VK_IMAGE_LAYOUT_GENERAL;
-            dstLayout = VK_IMAGE_LAYOUT_GENERAL;
+            dstLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         } else if ((oldState == ResourceState::RENDER_TARGET_DEPTH_STENCIL || oldState == ResourceState::RENDER_TARGET_DEPTH) &&
                    newState == ResourceState::UNDEFINED) {
             srcStage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
@@ -1067,7 +1074,7 @@ namespace vireo {
             srcAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
             dstAccess = 0;
             srcLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-            dstLayout = VK_IMAGE_LAYOUT_GENERAL;
+            dstLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             aspectFlag = oldState == ResourceState::RENDER_TARGET_DEPTH ?
                 VK_IMAGE_ASPECT_DEPTH_BIT :
                 static_cast<VkImageAspectFlagBits>(VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
@@ -1078,7 +1085,7 @@ namespace vireo {
             srcAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
             dstAccess = 0;
             srcLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-            dstLayout = VK_IMAGE_LAYOUT_GENERAL;
+            dstLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             aspectFlag = oldState == ResourceState::RENDER_TARGET_DEPTH_READ ?
                 VK_IMAGE_ASPECT_DEPTH_BIT :
                 static_cast<VkImageAspectFlagBits>(VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
@@ -1095,6 +1102,13 @@ namespace vireo {
             srcAccess = 0;
             dstAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
             srcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        } else if (oldState == ResourceState::COMPUTE_READ && newState == ResourceState::RENDER_TARGET_COLOR) {
+            srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            srcAccess = VK_ACCESS_SHADER_READ_BIT;
+            dstAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::COPY_DST) {
             srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
@@ -1121,7 +1135,7 @@ namespace vireo {
             srcStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
             dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             srcAccess = VK_ACCESS_SHADER_READ_BIT;
-            dstAccess = VK_ACCESS_TRANSFER_READ_BIT;
+            dstAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
             srcLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
         } else if (oldState == ResourceState::SHADER_READ && newState == ResourceState::RENDER_TARGET_DEPTH) {
@@ -1156,13 +1170,57 @@ namespace vireo {
             srcLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             aspectFlag =  static_cast<VkImageAspectFlagBits>(VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
+        } else if (oldState == ResourceState::RENDER_TARGET_DEPTH && newState == ResourceState::COMPUTE_READ) {
+            srcStage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            srcAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+            dstAccess = VK_ACCESS_SHADER_READ_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            aspectFlag = VK_IMAGE_ASPECT_DEPTH_BIT;
+        } else if (oldState == ResourceState::RENDER_TARGET_DEPTH_STENCIL && newState == ResourceState::COMPUTE_READ) {
+            srcStage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            srcAccess = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+            dstAccess = VK_ACCESS_SHADER_READ_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            aspectFlag =  static_cast<VkImageAspectFlagBits>(VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
         } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::UNDEFINED) {
             srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-            dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
             srcAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
             dstAccess = 0;
             srcLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        } else if (oldState == ResourceState::COMPUTE_READ && newState == ResourceState::COPY_DST) {
+            srcStage  = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            dstStage  = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            srcAccess = VK_ACCESS_SHADER_READ_BIT;
+            dstAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::COPY_DST) {
+            srcStage  = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            dstStage  = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            srcAccess = VK_ACCESS_SHADER_WRITE_BIT;
+            dstAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_GENERAL;
+            dstLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::COMPUTE_WRITE) {
+            srcStage  = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage  = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            srcAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
+            dstAccess = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_GENERAL;
+        } else if (oldState == ResourceState::COPY_SRC && newState == ResourceState::COMPUTE_READ) {
+            srcStage  = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage  = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            srcAccess = VK_ACCESS_TRANSFER_READ_BIT;
+            dstAccess = VK_ACCESS_SHADER_READ_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         } else {
             throw Exception("Not implemented");
         }
@@ -1233,7 +1291,7 @@ namespace vireo {
         } else if (oldState == ResourceState::SHADER_READ && newState == ResourceState::COMPUTE_WRITE) {
             srcStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
             dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-            srcAccess = VK_ACCESS_TRANSFER_READ_BIT;
+            srcAccess = VK_ACCESS_SHADER_READ_BIT;
             dstAccess = VK_ACCESS_SHADER_WRITE_BIT;
         } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::COPY_SRC) {
             srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
@@ -1247,7 +1305,7 @@ namespace vireo {
             dstAccess = VK_ACCESS_SHADER_READ_BIT;
         } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::SHADER_READ) {
             srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-            dstStage = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+            dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
             srcAccess = VK_ACCESS_SHADER_WRITE_BIT;
             dstAccess = VK_ACCESS_SHADER_READ_BIT;
         } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::SHADER_READ) {
