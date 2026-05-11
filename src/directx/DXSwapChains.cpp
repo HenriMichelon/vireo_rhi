@@ -196,4 +196,21 @@ namespace vireo {
         dxCheck(presentCommandQueue->getCommandQueue()->Signal(fence.Get(), fenceValue));
     }
 
+    // bool DXSwapChain::acquire(const std::shared_ptr<Fence>& fence) {
+    //     assert(fence != nullptr);
+    //     const auto dxFence = static_pointer_cast<DXFence>(fence);
+    //     if (this->fence->GetCompletedValue() < fenceValue) {
+    //         dxCheck(this->fence->SetEventOnCompletion(fenceValue, fenceEvent));
+    //         dxCheck(WaitForSingleObject(fenceEvent, INFINITE));
+    //     }
+    //     return true;
+    // }
+    //
+    // void DXSwapChain::present() {
+    //     dxCheck(swapChain->Present(syncInterval, presentFlags));
+    //     auto lock = std::lock_guard{presentCommandQueue->getMutex()};
+    //     fenceValue += 1;
+    //     dxCheck(presentCommandQueue->getCommandQueue()->Signal(fence.Get(), fenceValue));
+    // }
+
 }
