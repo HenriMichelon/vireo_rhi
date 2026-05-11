@@ -1400,7 +1400,8 @@ export namespace vireo {
          */
         virtual void update(
             DescriptorIndex index,
-            const std::shared_ptr<const Buffer>& buffer) = 0;
+            const std::shared_ptr<const Buffer>& buffer,
+            bool useWholeSize = true) = 0;
 
         virtual void update(
             DescriptorIndex index,
@@ -1413,18 +1414,18 @@ export namespace vireo {
             const Buffer& counterBuffer) = 0;
 
         /**
-         * Bind an uniform buffer
+         * Bind a uniform buffer
          * @param index Binding index
          * @param buffer The buffer
          */
-        virtual void update(DescriptorIndex index, const Buffer& buffer) = 0;
+        virtual void update(DescriptorIndex index, const Buffer& buffer, bool useWholeSize = true) = 0;
 
         /**
          * Bind a dynamic uniform buffer
          * @param buffer The buffer
          */
-        void update(const std::shared_ptr<const Buffer>& buffer) {
-            update(0, buffer);
+        void update(const std::shared_ptr<const Buffer>& buffer, bool useWholeSize = true) {
+            update(0, buffer, useWholeSize);
         }
 
         /**

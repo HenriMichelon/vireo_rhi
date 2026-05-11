@@ -162,12 +162,12 @@ namespace vireo {
         // vkFreeDescriptorSets(static_cast<const VKDescriptorLayout&>(layout).getDevice(), set, nullptr);
     }
 
-    void VKDescriptorSet::update(const DescriptorIndex index, const Buffer& buffer) {
+    void VKDescriptorSet::update(const DescriptorIndex index, const Buffer& buffer, const bool useWholeSize) {
         assert(!layout->isSamplers());
         const auto& vkBuffer = static_cast<const VKBuffer&>(buffer);
         const auto bufferInfo = VkDescriptorBufferInfo {
             .buffer = vkBuffer.getBuffer(),
-            .range = VK_WHOLE_SIZE,
+            .range = useWholeSize ? VK_WHOLE_SIZE : vkBuffer.getInstanceSizeAligned(),
         };
         const auto write = VkWriteDescriptorSet {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -186,7 +186,7 @@ namespace vireo {
         vkUpdateDescriptorSets(static_pointer_cast<const VKDescriptorLayout>(layout)->getDevice(), 1, &write, 0, nullptr);
     }
 
-    void VKDescriptorSet::update(const DescriptorIndex index, const Image& image, bool forceShaderRead) {
+    void VKDescriptorSet::update(const DescriptorIndex index, const Image& image, const bool forceShaderRead) {
         assert(!layout->isDynamicUniform());
         assert(!layout->isSamplers());
         const auto& vkImage = static_cast<const VKImage&>(image);

@@ -42,25 +42,25 @@ export namespace vireo {
 
         ~VKDescriptorSet() override;
 
-        void update(const DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer) override {
-            update(index, *buffer);
+        void update(const DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer, const bool useWholeSize) override {
+            update(index, *buffer, useWholeSize);
         }
 
         void update(
             const DescriptorIndex index,
             const std::shared_ptr<const Buffer>& buffer,
             const std::shared_ptr<const Buffer>&) override {
-            update(index, *buffer);
+            update(index, *buffer, true);
         }
 
         void update(
             const DescriptorIndex index,
             const Buffer& buffer,
             const Buffer&) override {
-            update(index, buffer);
+            update(index, buffer, true);
         }
 
-        void update(DescriptorIndex index, const Buffer& buffer) override;
+        void update(DescriptorIndex index, const Buffer& buffer, bool useWholeSize) override;
 
         void update(DescriptorIndex index, const Image& image, bool forceShaderRead) override;
 

@@ -1221,6 +1221,13 @@ namespace vireo {
             dstAccess = VK_ACCESS_SHADER_READ_BIT;
             srcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        } else if (oldState == ResourceState::GENERAL && newState == ResourceState::COPY_SRC) {
+            srcStage  = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            dstStage  = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            srcAccess = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+            dstAccess = VK_ACCESS_TRANSFER_READ_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_GENERAL;
+            dstLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
         } else if (oldState == ResourceState::GENERAL && newState == ResourceState::RENDER_TARGET_COLOR) {
             srcStage  = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
             dstStage  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -1228,12 +1235,26 @@ namespace vireo {
             dstAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
             srcLayout = VK_IMAGE_LAYOUT_GENERAL;
             dstLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        } else if (oldState == ResourceState::GENERAL && newState == ResourceState::SHADER_READ) {
+            srcStage  = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            dstStage  = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            srcAccess = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+            dstAccess = VK_ACCESS_SHADER_READ_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_GENERAL;
+            dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         } else if (oldState == ResourceState::RENDER_TARGET_COLOR && newState == ResourceState::GENERAL) {
             srcStage  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
             dstStage  = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
             srcAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
             dstAccess = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
             srcLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_GENERAL;
+        } else if (oldState == ResourceState::SHADER_READ && newState == ResourceState::GENERAL) {
+            srcStage  = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            dstStage  = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            srcAccess = VK_ACCESS_SHADER_READ_BIT;
+            dstAccess = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_GENERAL;
         } else {
             throw Exception("Not implemented");
