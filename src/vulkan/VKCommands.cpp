@@ -1305,6 +1305,11 @@ namespace vireo {
             dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             srcAccess = VK_ACCESS_SHADER_READ_BIT;
             dstAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
+        } else if (oldState == ResourceState::COPY_DST && newState == ResourceState::COPY_DST) {
+            srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            srcAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
+            dstAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
         } else {
             throw Exception("Not implemented");
         }
