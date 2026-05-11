@@ -1154,11 +1154,6 @@ namespace vireo {
             sourceOffset,
             copySize
         );
-        // const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-        //     dxDestination.getBuffer().Get(),
-        //     D3D12_RESOURCE_STATE_COPY_DEST,
-        //     DXBuffer::resourceStates[static_cast<int>(dxDestination.getType())]);
-        // commandList->ResourceBarrier(1, &memoryBarrier);
     }
 
     void DXCommandList::copy(
@@ -1166,30 +1161,35 @@ namespace vireo {
         const Buffer& destination,
         const std::vector<BufferCopyRegion>& regions) const {
         const auto& dxDestination = static_cast<const DXBuffer&>(destination);
-        // {
-        //     const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-        //                dxDestination.getBuffer().Get(),
-        //                DXBuffer::resourceStates[static_cast<int>(dxDestination.getType())],
-        //                D3D12_RESOURCE_STATE_COPY_DEST);
-        //     commandList->ResourceBarrier(1, &memoryBarrier);
-        // }
         const auto dst = dxDestination.getBuffer().Get();
         const auto src = static_cast<const DXBuffer&>(source).getBuffer().Get();
-        for (const auto& region : regions) {
-            commandList->CopyBufferRegion(
-               dst,
-               region.dstOffset,
-               src,
-               region.srcOffset,
-               region.size);
+        // emulate Vulkan multi regions copy for contiguous regions
+        auto sorted = regions;
+        std::ranges::sort(sorted,
+            [](const BufferCopyRegion& a, const BufferCopyRegion& b) {
+                return a.srcOffset < b.srcOffset;
+            });
+        std::vector<BufferCopyRegion> merged;
+        merged.reserve(sorted.size());
+        for (const auto& r : sorted) {
+            if (!merged.empty()) {
+                auto& last = merged.back();
+                if (last.srcOffset + last.size == r.srcOffset &&
+                    last.dstOffset + last.size == r.dstOffset) {
+                    last.size += r.size;
+                    continue;
+                }
+            }
+            merged.push_back(r);
         }
-        // {
-        //     const auto memoryBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-        //         dxDestination.getBuffer().Get(),
-        //         D3D12_RESOURCE_STATE_COPY_DEST,
-        //         DXBuffer::resourceStates[static_cast<int>(dxDestination.getType())]);
-        //         commandList->ResourceBarrier(1, &memoryBarrier);
-        // }
+        for (const auto& region : merged) {
+            commandList->CopyBufferRegion(
+                dst,
+                region.dstOffset,
+                src,
+                region.srcOffset,
+                region.size);
+        }
     }
 
     void DXCommandList::upload(
