@@ -447,7 +447,6 @@ namespace vireo {
         .endNamespace()
         .beginNamespace("ResourceState")
             .addProperty("UNDEFINED",                        []{ return static_cast<int>(ResourceState::UNDEFINED); })
-            .addProperty("GENERAL",                          []{ return static_cast<int>(ResourceState::GENERAL); })
             .addProperty("RENDER_TARGET_COLOR",              []{ return static_cast<int>(ResourceState::RENDER_TARGET_COLOR); })
             .addProperty("RENDER_TARGET_DEPTH",              []{ return static_cast<int>(ResourceState::RENDER_TARGET_DEPTH); })
             .addProperty("RENDER_TARGET_DEPTH_READ",         []{ return static_cast<int>(ResourceState::RENDER_TARGET_DEPTH_READ); })
