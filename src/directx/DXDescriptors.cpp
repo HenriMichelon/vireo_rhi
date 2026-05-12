@@ -145,17 +145,17 @@ namespace vireo {
         heap->free(descriptors);
     }
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer) {
+    void DXDescriptorSet::update(const DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer, bool useWholeSize) {
         assert(!layout->isSamplers());
         assert(buffer != nullptr);
         if (buffer->getType() == BufferType::UNIFORM && layout->isDynamicUniform()) {
             assert(buffer->getType() == BufferType::UNIFORM);
             dynamicBuffer = buffer;
         }
-        update(index, *buffer);
+        update(index, *buffer, useWholeSize);
     }
 
-        void DXDescriptorSet::update(const DescriptorIndex index, const Buffer& buffer, const Buffer& counterBuffer) {
+    void DXDescriptorSet::update(const DescriptorIndex index, const Buffer& buffer, const Buffer& counterBuffer) {
         assert(!layout->isSamplers());
         assert(buffer.getType() == BufferType::READWRITE_STORAGE || buffer.getType() == BufferType::INDIRECT);
         const auto cpuHandle = D3D12_CPU_DESCRIPTOR_HANDLE { descriptors.cpuHandle.ptr + index * heap->getDescriptorSize() };
@@ -177,7 +177,7 @@ namespace vireo {
     }
 
 
-    void DXDescriptorSet::update(const DescriptorIndex index, const Buffer& buffer) {
+    void DXDescriptorSet::update(const DescriptorIndex index, const Buffer& buffer, const bool) {
         assert(!layout->isSamplers());
         const auto cpuHandle = D3D12_CPU_DESCRIPTOR_HANDLE { descriptors.cpuHandle.ptr + index * heap->getDescriptorSize() };
 

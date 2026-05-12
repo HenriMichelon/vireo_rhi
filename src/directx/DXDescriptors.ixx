@@ -94,9 +94,9 @@ export namespace vireo {
             const Buffer& buffer,
             const Buffer& counterBuffer) override;
 
-        void update(DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer) override;
+        void update(DescriptorIndex index, const std::shared_ptr<const Buffer>& buffer, bool useWholeSize = false) override;
 
-        void update(DescriptorIndex index, const Buffer& buffer) override;
+        void update(DescriptorIndex index, const Buffer& buffer, bool useWholeSize = false) override;
 
         void update(DescriptorIndex index, const Image& image, bool forceShaderRead) override;
 
