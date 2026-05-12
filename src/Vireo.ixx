@@ -566,8 +566,6 @@ export namespace vireo {
     enum class ResourceState {
         //! Unknown/general/common state
         UNDEFINED,
-        //! All types of device access
-        GENERAL,
         //! Used as a color attachment in the graphics pipeline
         RENDER_TARGET_COLOR,
         //! Used as a depth attachment in the graphics pipeline
