@@ -261,7 +261,7 @@ namespace vireo {
             .front = {
                 .failOp = vkStencilOp[static_cast<int>(configuration.frontStencilOpState.failOp)],
                 .passOp = vkStencilOp[static_cast<int>(configuration.frontStencilOpState.passOp)],
-                .depthFailOp = vkStencilOp[static_cast<int>(configuration.frontStencilOpState.failOp)],
+                .depthFailOp = vkStencilOp[static_cast<int>(configuration.frontStencilOpState.depthFailOp)],
                 .compareOp = vkCompareOp[static_cast<int>(configuration.frontStencilOpState.compareOp)],
                 .compareMask = configuration.frontStencilOpState.compareMask,
                 .writeMask = configuration.frontStencilOpState.writeMask,
@@ -269,7 +269,7 @@ namespace vireo {
             .back = {
                 .failOp = vkStencilOp[static_cast<int>(configuration.backStencilOpState.failOp)],
                 .passOp = vkStencilOp[static_cast<int>(configuration.backStencilOpState.passOp)],
-                .depthFailOp = vkStencilOp[static_cast<int>(configuration.backStencilOpState.failOp)],
+                .depthFailOp = vkStencilOp[static_cast<int>(configuration.backStencilOpState.depthFailOp)],
                 .compareOp = vkCompareOp[static_cast<int>(configuration.backStencilOpState.compareOp)],
                 .compareMask = configuration.backStencilOpState.compareMask,
                 .writeMask = configuration.backStencilOpState.writeMask,
