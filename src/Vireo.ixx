@@ -698,8 +698,14 @@ export namespace vireo {
         uint32_t   height{0};
 
         Rect() = default;
+
         Rect(const int32_t x, const int32_t y, const uint32_t w, const uint32_t h) : x(x), y(y), width(w), height(h) {}
+
         Rect(const uint32_t w, const uint32_t h) : width(w), height(h) {}
+
+        bool operator==(const Rect& other) const {
+            return x == other.x && y == other.y && width == other.width && height == other.height;
+        }
     };
 
     /**
@@ -720,8 +726,16 @@ export namespace vireo {
         float    maxDepth{1.0f};
 
         Viewport() = default;
+
         Viewport(const float x, const float y, const float w, const float h) : x(x), y(y), width(w), height(h) {}
+
         Viewport(const float w, const float h) : width(w), height(h) {}
+
+
+        bool operator==(const Viewport& other) const {
+            return x == other.x && y == other.y && width == other.width && height == other.height && minDepth == other.minDepth && maxDepth == other.maxDepth;
+        }
+
     };
 
     /**
