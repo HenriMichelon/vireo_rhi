@@ -2333,8 +2333,6 @@ export namespace vireo {
          */
         virtual void setStencilReference(uint32_t reference) const = 0;
 
-        virtual void setStencilTestEnable(bool enable) = 0;
-
         /**
          * Insert a memory dependency
          * @param images The images affected by this barrier.

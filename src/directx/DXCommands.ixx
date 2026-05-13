@@ -303,8 +303,6 @@ export namespace vireo {
 
         void setStencilReference(uint32_t reference) const override;
 
-        void setStencilTestEnable(bool enable) override {};
-
         void barrier(
             const std::shared_ptr<const Image>& image,
             ResourceState oldState,
