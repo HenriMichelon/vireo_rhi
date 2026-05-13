@@ -547,6 +547,10 @@ namespace vireo {
         vkCmdSetStencilReference(commandBuffer, VK_STENCIL_FACE_FRONT_AND_BACK, reference);
     }
 
+    void VKCommandList::setStencilTestEnable(const bool enable) {
+        vkCmdSetStencilTestEnable(commandBuffer, enable);
+    }
+
     void VKCommandList::setViewports(const std::vector<Viewport>& viewports) const {
         std::vector<VkViewport> vkViewports(viewports.size());
         for (int i = 0; i < viewports.size(); i++) {
