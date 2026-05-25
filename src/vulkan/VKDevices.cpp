@@ -513,6 +513,7 @@ instanceExtensions.data()};
                 .features = {
                     .independentBlend = VK_TRUE,
                     .multiDrawIndirect = VK_TRUE,
+                    .depthBiasClamp = VK_TRUE,
                     .fillModeNonSolid = VK_TRUE,
                     .samplerAnisotropy = VK_TRUE,
                     .vertexPipelineStoresAndAtomics = VK_TRUE,
