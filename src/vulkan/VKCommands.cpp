@@ -1136,6 +1136,20 @@ namespace vireo {
             dstAccess = VK_ACCESS_TRANSFER_WRITE_BIT;
             srcLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             dstLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        } else if (oldState == ResourceState::COMPUTE_READ && newState == ResourceState::SHADER_READ) {
+            srcStage  = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            dstStage  = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            srcAccess = VK_ACCESS_SHADER_READ_BIT;
+            dstAccess = VK_ACCESS_SHADER_READ_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        } else if (oldState == ResourceState::SHADER_READ && newState == ResourceState::COMPUTE_READ) {
+            srcStage  = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            dstStage  = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+            srcAccess = VK_ACCESS_SHADER_READ_BIT;
+            dstAccess = VK_ACCESS_SHADER_READ_BIT;
+            srcLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            dstLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         } else if (oldState == ResourceState::COMPUTE_WRITE && newState == ResourceState::COPY_DST) {
             srcStage  = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
             dstStage  = VK_PIPELINE_STAGE_TRANSFER_BIT;
