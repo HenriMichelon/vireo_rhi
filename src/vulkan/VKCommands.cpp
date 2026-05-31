@@ -627,10 +627,10 @@ namespace vireo {
                 dsAttachmentInfo.imageView   = vkDepthImage->getImageView();
             }
 
-            if (conf.depthTestEnable) {
+            if (conf.useDepthAttachment) {
                 depthAttachmentInfo = dsAttachmentInfo;
             }
-            if (conf.stencilTestEnable) {
+            if (conf.useStencilAttachment) {
                 stencilAttachmentInfo = dsAttachmentInfo;
             }
         }

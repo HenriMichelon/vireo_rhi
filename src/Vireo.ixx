@@ -1640,9 +1640,9 @@ export namespace vireo {
         //! Multisampled depth attachment. `nullptr` if MSAA is disabled for the current pipeline.
         std::shared_ptr<RenderTarget>  multisampledDepthStencilRenderTarget{nullptr};
         //! `true` is the depth and stencil attachment is used for depth testing
-        bool                           depthTestEnable{false};
+        bool                           useDepthAttachment{false};
         //! `true` is the depth and stencil attachment is used for stencil testing
-        bool                           stencilTestEnable{false};
+        bool                           useStencilAttachment{false};
         //! Clear the depth and stencil attachment if `true`
         bool                           clearDepthStencil{false};
         //! Depth and stencil clear value
