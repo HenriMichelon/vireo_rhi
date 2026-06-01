@@ -451,27 +451,26 @@
 ---@field reset fun(self: vireo.Fence): nil Resets the fence to the unsignaled state.
 
 ---@class vireo.Semaphore GPU/GPU or GPU/CPU synchronization semaphore. Created by Vireo.create_semaphore().
----@field get_type fun(self: vireo.Semaphore): vireo.SemaphoreType Returns the semaphore type (BINARY or TIMELINE).
----@field get_value fun(self: vireo.Semaphore): integer Returns the current counter value (timeline semaphores only).
----@field set_value fun(self: vireo.Semaphore, value: integer): nil Sets the counter to value (timeline semaphores only).
+---@field type vireo.SemaphoreType The semaphore type (BINARY or TIMELINE). (read-only)
+---@field value integer Current counter value; assignable to set it (timeline semaphores only).
 ---@field increment_value fun(self: vireo.Semaphore): nil Increments the counter by one (timeline semaphores only).
 ---@field decrement_value fun(self: vireo.Semaphore): nil Decrements the counter by one (timeline semaphores only).
 
----@class vireo.Instance Underlying API instance (VkInstance / IDXGIFactory). Retrieved via Vireo.get_instance(). Opaque; used for platform-specific window surface creation.
+---@class vireo.Instance Underlying API instance (VkInstance / IDXGIFactory). Retrieved via Vireo.instance. Opaque; used for platform-specific window surface creation.
 
----@class vireo.PhysicalDevice Represents the physical GPU. Retrieved via Vireo.get_physical_device().
----@field get_description fun(self: vireo.PhysicalDevice): vireo.PhysicalDeviceDesc Returns name and memory info for the GPU.
+---@class vireo.PhysicalDevice Represents the physical GPU. Retrieved via Vireo.physical_device.
+---@field description vireo.PhysicalDeviceDesc Name and memory info for the GPU. (read-only)
 
----@class vireo.Device Logical device. Retrieved via Vireo.get_device().
----@field have_dedicated_transfer_queue fun(self: vireo.Device): boolean Returns true if the GPU exposes a dedicated transfer queue separate from the graphics queue.
+---@class vireo.Device Logical device. Retrieved via Vireo.device.
+---@field have_dedicated_transfer_queue boolean True if the GPU exposes a dedicated transfer queue separate from the graphics queue. (read-only)
 
 ---@class vireo.Buffer A GPU buffer. Created by Vireo.create_buffer().
----@field get_size fun(self: vireo.Buffer): integer Total size of the buffer in bytes. (read-only)
----@field get_type fun(self: vireo.Buffer): vireo.BufferType Usage type of this buffer. (read-only)
----@field get_instance_size fun(self: vireo.Buffer): integer Size of a single element/instance in bytes (before alignment). (read-only)
----@field get_instance_size_aligned fun(self: vireo.Buffer): integer Aligned size of a single element in bytes. (read-only)
----@field get_instance_count fun(self: vireo.Buffer): integer Number of elements/instances in the buffer. (read-only)
----@field get_mapped_address fun(self: vireo.Buffer): lightuserdata|any Returns the CPU-side mapped pointer (only valid after map(), for upload/download buffers).
+---@field size integer Total size of the buffer in bytes. (read-only)
+---@field type vireo.BufferType Usage type of this buffer. (read-only)
+---@field instance_size integer Size of a single element/instance in bytes (before alignment). (read-only)
+---@field instance_size_aligned integer Aligned size of a single element in bytes. (read-only)
+---@field instance_count integer Number of elements/instances in the buffer. (read-only)
+---@field mapped_address lightuserdata|any CPU-side mapped pointer (only valid after map(), for upload/download buffers). (read-only)
 ---@field map fun(self: vireo.Buffer): nil Maps the buffer for CPU access. Call unmap() when done.
 ---@field unmap fun(self: vireo.Buffer): nil Unmaps the buffer after CPU writes.
 ---@field write fun(self: vireo.Buffer, data: lightuserdata|any, size: integer|nil, offset: integer|nil): nil Writes data into the mapped buffer. size defaults to the whole buffer; offset defaults to 0.
@@ -480,31 +479,31 @@
 ---@class vireo.Sampler Texture sampler state. Created by Vireo.create_sampler(). Opaque.
 
 ---@class vireo.Image A GPU image (texture). Created by Vireo.create_image() or Vireo.create_read_write_image().
----@field get_format fun(self: vireo.Image): vireo.ImageFormat Pixel format of the image. (read-only)
----@field get_width fun(self: vireo.Image): integer Width in pixels of mip level 0. (read-only)
----@field get_height fun(self: vireo.Image): integer Height in pixels of mip level 0. (read-only)
----@field get_mip_levels fun(self: vireo.Image): integer Total number of mip levels. (read-only)
----@field get_array_size fun(self: vireo.Image): integer Number of array layers. (read-only)
+---@field format vireo.ImageFormat Pixel format of the image. (read-only)
+---@field width integer Width in pixels of mip level 0. (read-only)
+---@field height integer Height in pixels of mip level 0. (read-only)
+---@field mip_levels integer Total number of mip levels. (read-only)
+---@field array_size integer Number of array layers. (read-only)
+---@field is_read_write boolean True if the image was created as a read/write (UAV/storage image). (read-only)
 ---@field get_row_pitch fun(self: vireo.Image, mipLevel: integer|nil): integer Row pitch in bytes for the given mip level (default 0).
 ---@field get_row_length fun(self: vireo.Image, mipLevel: integer|nil): integer Row length in pixels for the given mip level (default 0).
 ---@field get_image_size fun(self: vireo.Image, mipLevel: integer|nil): integer Size in bytes of one layer at the given mip level (default 0).
 ---@field get_aligned_image_size fun(self: vireo.Image, mipLevel: integer|nil): integer Aligned size in bytes of one layer at the given mip level.
 ---@field get_aligned_row_pitch fun(self: vireo.Image, mipLevel: integer|nil): integer Aligned row pitch in bytes for the given mip level.
 ---@field get_aligned_row_length fun(self: vireo.Image, mipLevel: integer|nil): integer Aligned row length in pixels for the given mip level.
----@field is_read_write fun(self: vireo.Image): boolean Returns true if the image was created as a read/write (UAV/storage image).
 ---@field get_pixel_size fun(format: vireo.ImageFormat): integer Returns the pixel size in bytes for the given format. @static
 ---@field get_memory_allocations fun(): vireo.VideoMemoryAllocationDesc[] Returns all current GPU memory allocations for Image objects. @static
 
 ---@class vireo.RenderTarget A render-target image wrapper. Created by Vireo.create_render_target() or Vireo.create_render_target_from_swap_chain().
----@field get_image fun(self: vireo.RenderTarget): vireo.Image Returns the underlying Image.
----@field get_type fun(self: vireo.RenderTarget): vireo.RenderTargetType Returns the render-target type (COLOR, DEPTH, or DEPTH_STENCIL).
+---@field image vireo.Image The underlying Image. (read-only)
+---@field type vireo.RenderTargetType The render-target type (COLOR, DEPTH, or DEPTH_STENCIL). (read-only)
 
 ---@class vireo.DescriptorLayout Describes the bindings of a descriptor set. Created by Vireo.create_descriptor_layout().
+---@field capacity integer Number of bindings in this layout. (read-only)
+---@field is_dynamic_uniform boolean True if the layout was created for dynamic uniform buffers. (read-only)
+---@field is_samplers boolean True if the layout was created for samplers. (read-only)
 ---@field add fun(self: vireo.DescriptorLayout, index: vireo.DescriptorIndex, type: vireo.DescriptorType, count: integer|nil): vireo.DescriptorLayout Adds a binding at index with the given type (and optional array count). Returns self for chaining.
 ---@field build fun(self: vireo.DescriptorLayout): nil Finalizes the layout. Must be called before creating descriptor sets.
----@field get_capacity fun(self: vireo.DescriptorLayout): integer Returns the number of bindings in this layout.
----@field is_dynamic_uniform fun(self: vireo.DescriptorLayout): boolean Returns true if the layout was created for dynamic uniform buffers.
----@field is_samplers fun(self: vireo.DescriptorLayout): boolean Returns true if the layout was created for samplers.
 
 ---@class vireo.DescriptorSet A set of descriptors bound to a pipeline. Created by Vireo.create_descriptor_set().
 ---@field update_buffer fun(self: vireo.DescriptorSet, index: vireo.DescriptorIndex, buffer: vireo.Buffer): nil Binds a uniform or storage buffer at the given binding index.
@@ -514,7 +513,7 @@
 ---@field update_image_array fun(self: vireo.DescriptorSet, index: vireo.DescriptorIndex, images: vireo.Image[]): nil Binds an array of images at the given binding index.
 ---@field update_buffer_array fun(self: vireo.DescriptorSet, index: vireo.DescriptorIndex, buffers: vireo.Buffer[]): nil Binds an array of buffers at the given binding index.
 ---@field update_sampler_array fun(self: vireo.DescriptorSet, index: vireo.DescriptorIndex, samplers: vireo.Sampler[]): nil Binds an array of samplers at the given binding index.
----@field get_layout fun(self: vireo.DescriptorSet): vireo.DescriptorLayout Returns the DescriptorLayout this set was created from.
+---@field layout vireo.DescriptorLayout The DescriptorLayout this set was created from. (read-only)
 
 ---@class vireo.VertexInputLayout Describes the vertex input attributes of a pipeline. Created by Vireo.create_vertex_layout(). Opaque.
 
@@ -523,19 +522,19 @@
 ---@class vireo.PipelineResources Describes the pipeline layout (descriptor layouts + push constants). Created by Vireo.create_pipeline_resources(). Opaque.
 
 ---@class vireo.Pipeline Base class for compiled pipelines. Use vireo.ComputePipeline or vireo.GraphicPipeline.
----@field get_resources fun(self: vireo.Pipeline): vireo.PipelineResources Returns the pipeline layout.
----@field get_type fun(self: vireo.Pipeline): vireo.PipelineType Returns the pipeline type (GRAPHIC or COMPUTE).
+---@field resources vireo.PipelineResources The pipeline layout. (read-only)
+---@field type vireo.PipelineType The pipeline type (GRAPHIC or COMPUTE). (read-only)
 
 ---@class vireo.ComputePipeline : vireo.Pipeline Compiled compute pipeline. Created by Vireo.create_compute_pipeline().
 
 ---@class vireo.GraphicPipeline : vireo.Pipeline Compiled graphics pipeline. Created by Vireo.create_graphic_pipeline().
 
 ---@class vireo.SwapChain Presentation swap chain. Created by Vireo.create_swap_chain().
----@field get_extent fun(self: vireo.SwapChain): vireo.Extent Returns the current swap chain size in pixels.
----@field get_aspect_ratio fun(self: vireo.SwapChain): number Returns width / height.
----@field get_current_frame_index fun(self: vireo.SwapChain): integer Returns the index of the current back buffer (0 to frames_in_flight-1).
----@field get_frames_in_flight fun(self: vireo.SwapChain): integer Returns the number of buffered frames.
----@field get_format fun(self: vireo.SwapChain): vireo.ImageFormat Returns the back buffer pixel format.
+---@field extent vireo.Extent Current swap chain size in pixels. (read-only)
+---@field aspect_ratio number Width / height. (read-only)
+---@field current_frame_index integer Index of the current back buffer (0 to frames_in_flight-1). (read-only)
+---@field frames_in_flight integer Number of buffered frames. (read-only)
+---@field format vireo.ImageFormat Back buffer pixel format. (read-only)
 ---@field next_frame_index fun(self: vireo.SwapChain): nil Advances the internal frame index to the next frame.
 ---@field acquire fun(self: vireo.SwapChain, fence: vireo.Fence): boolean Acquires the next available back buffer. Returns false if the swap chain must be recreated (resize).
 ---@field present fun(self: vireo.SwapChain): nil Presents the current back buffer to the display.
@@ -583,7 +582,7 @@
 ---@class vireo.CommandAllocator Manages a pool of command lists for a specific queue type. Created by Vireo.create_command_allocator().
 ---@field reset fun(self: vireo.CommandAllocator): nil Resets the allocator and all its command lists. Call once per frame before re-recording.
 ---@field create_command_list fun(self: vireo.CommandAllocator, pipeline: vireo.Pipeline|nil): vireo.CommandList Creates a new command list. Pass a pipeline to pre-bind it at creation time (graphics allocators only).
----@field get_command_list_type fun(self: vireo.CommandAllocator): vireo.CommandType Returns the command type this allocator was created for.
+---@field command_list_type vireo.CommandType The command type this allocator was created for. (read-only)
 
 ---@class vireo.SubmitQueue GPU command submission queue. Created by Vireo.create_submit_queue().
 ---@field submit fun(self: vireo.SubmitQueue, commandLists: vireo.CommandList[]): nil Submits command lists with no synchronization.
@@ -597,6 +596,10 @@
 
 ---@class vireo.Vireo Main entry point. Obtained from the host application; not constructed in Lua.
 ---@field backend vireo.Backend The active rendering backend. (read-only)
+---@field shader_file_extension string File extension for compiled shaders on the active backend (e.g. ".spv" or ".cso"). (read-only)
+---@field physical_device vireo.PhysicalDevice The PhysicalDevice representing the active GPU. (read-only)
+---@field device vireo.Device The logical Device. (read-only)
+---@field instance vireo.Instance The underlying API Instance. (read-only)
 ---@field wait_idle fun(self: vireo.Vireo): nil Blocks until the GPU has finished all pending work on all queues.
 ---@field create_swap_chain fun(self: vireo.Vireo, format: vireo.ImageFormat, presentQueue: vireo.SubmitQueue, windowHandle: any, presentMode: vireo.PresentMode|nil, framesInFlight: integer|nil): vireo.SwapChain Creates a swap chain for the given OS window handle.
 ---@field create_submit_queue fun(self: vireo.Vireo, commandType: vireo.CommandType, name: string|nil): vireo.SubmitQueue Creates a GPU command submission queue.
@@ -604,7 +607,7 @@
 ---@field create_semaphore fun(self: vireo.Vireo, type: vireo.SemaphoreType, name: string|nil): vireo.Semaphore Creates a GPU synchronization semaphore.
 ---@field create_command_allocator fun(self: vireo.Vireo, type: vireo.CommandType): vireo.CommandAllocator Creates a command allocator for the given queue type.
 ---@field create_vertex_layout fun(self: vireo.Vireo, size: integer, attributes: vireo.VertexAttributeDesc[]): vireo.VertexInputLayout Creates a vertex input layout from a stride and a list of attribute descriptors.
----@field create_shader_module_from_file fun(self: vireo.Vireo, path: string): vireo.ShaderModule Loads a compiled shader from a file path (use get_shader_file_extension() for the right extension).
+---@field create_shader_module_from_file fun(self: vireo.Vireo, path: string): vireo.ShaderModule Loads a compiled shader from a file path (use shader_file_extension for the right extension).
 ---@field create_shader_module_from_data fun(self: vireo.Vireo, data: any, name: string): vireo.ShaderModule Creates a shader module from raw compiled byte data with an optional debug name.
 ---@field create_pipeline_resources fun(self: vireo.Vireo, layouts: vireo.DescriptorLayout[]|nil, pushConstant: vireo.PushConstantsDesc|nil, name: string|nil): vireo.PipelineResources Creates a pipeline layout from descriptor layouts and an optional push-constant range.
 ---@field create_compute_pipeline fun(self: vireo.Vireo, resources: vireo.PipelineResources, shader: vireo.ShaderModule, name: string|nil): vireo.ComputePipeline Creates a compiled compute pipeline.
@@ -620,10 +623,6 @@
 ---@field create_descriptor_set fun(self: vireo.Vireo, layout: vireo.DescriptorLayout, name: string|nil): vireo.DescriptorSet Creates a descriptor set from a built DescriptorLayout.
 ---@field create_sampler fun(self: vireo.Vireo, minFilter: vireo.Filter, magFilter: vireo.Filter, addressModeU: vireo.AddressMode, addressModeV: vireo.AddressMode, addressModeW: vireo.AddressMode, minLod: number|nil, maxLod: number|nil, anisotropyEnable: boolean|nil, mipMapMode: vireo.FilterMode|nil, compareOp: vireo.CompareOp|nil): vireo.Sampler Creates a texture sampler with the given filtering and addressing parameters.
 ---@field is_backend_supported fun(backend: vireo.Backend): boolean Returns true if the given backend is available on this machine. @static
----@field get_shader_file_extension fun(self: vireo.Vireo): string Returns the file extension for compiled shaders on the active backend (e.g. ".spv" or ".cso").
----@field get_physical_device fun(self: vireo.Vireo): vireo.PhysicalDevice Returns the PhysicalDevice representing the active GPU.
----@field get_device fun(self: vireo.Vireo): vireo.Device Returns the logical Device.
----@field get_instance fun(self: vireo.Vireo): vireo.Instance Returns the underlying API Instance.
 
 ------------------------------------------------------------------------
 -- Global namespace declaration

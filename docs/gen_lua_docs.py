@@ -4,10 +4,13 @@
 gen_lua_docs.py
 ===============
 
+Generates HTML documentation for Lua bindings from EmmyLua annotations.
+
 Usage
 -----
     python gen_lua_docs.py [--lua annotations.lua] [--out output_dir]
                            [--project-brief "My project description"]
+                           [--head-template header.html] [--foot-template footer.html]
 """
 
 from __future__ import annotations
@@ -20,8 +23,6 @@ import re
 import sys
 from dataclasses import dataclass, field
 from typing import Optional
-
-
 # ---------------------------------------------------------------------------
 # Data model
 # ---------------------------------------------------------------------------
@@ -36,8 +37,6 @@ class LuaField:
     inline_note: str = ""    # note appended at end of line (e.g. @read-only)
     params: list[tuple[str, str]] = field(default_factory=list)  # (name, type)
     returns: str = ""
-
-
 @dataclass
 class LuaClass:
     name: str                # full name, e.g. "vireo.Fence"
@@ -49,8 +48,6 @@ class LuaClass:
 
     def page_name(self) -> str:
         return self.short + "_lua.html"
-
-
 @dataclass
 class DocContext:
     """Project-level metadata threaded through all rendering functions."""
@@ -58,8 +55,8 @@ class DocContext:
     project_brief: str   # one-line project description for the page header
     ns_name: str         # raw namespace name, e.g. "vireo"
     ns_href: str         # namespace page filename, e.g. "namespacevireo_lua.html"
-
-
+    head_tmpl: str = ""  # content of the HTML head/header template file
+    foot_tmpl: str = ""  # content of the HTML footer template file
 # ---------------------------------------------------------------------------
 # Parsing
 # ---------------------------------------------------------------------------
@@ -70,15 +67,11 @@ RE_TYPE      = re.compile(r"^---@type\s+([A-Za-z0-9_.]+)\s*$")
 RE_ALIAS     = re.compile(r"^---@alias\s+([A-Za-z0-9_.]+)\s+(.*?)\s*$")
 RE_DOC       = re.compile(r"^---\s?(.*)$")
 RE_DIRECTIVE = re.compile(r"^---@")
-
-
 def _split_inline_note(rest: str) -> tuple[str, str]:
     m = re.search(r"\s+@(.*)$", rest)
     if m:
         return rest[: m.start()].rstrip(), m.group(1).strip()
     return rest, ""
-
-
 def _split_type_and_doc(rest: str) -> tuple[str, str]:
     """Split '@field name <type_token> [inline doc] [@note]' remainder into
     (raw_type, inline_doc).  The type token is either:
@@ -131,8 +124,6 @@ def _split_type_and_doc(rest: str) -> tuple[str, str]:
         inline_doc = ""
 
     return raw_type, inline_doc, inline_note
-
-
 def _parse_fun(t: str) -> tuple[list[tuple[str, str]], str]:
     m = re.match(r"^fun\s*\((.*)\)\s*(?::\s*(.*))?$", t.strip())
     if not m:
@@ -151,8 +142,6 @@ def _parse_fun(t: str) -> tuple[list[tuple[str, str]], str]:
             else:
                 params.append((arg, ""))
     return params, ret
-
-
 def _split_top_level(s: str, sep: str) -> list[str]:
     out: list[str] = []
     depth = 0
@@ -169,8 +158,6 @@ def _split_top_level(s: str, sep: str) -> list[str]:
             cur.append(ch)
     out.append("".join(cur))
     return out
-
-
 def parse_lua(path: str):
     with open(path, "r", encoding="utf-8") as f:
         lines = f.readlines()
@@ -251,8 +238,6 @@ def parse_lua(path: str):
         pending_doc = []
 
     return classes, aliases, type_global
-
-
 # ---------------------------------------------------------------------------
 # Classification
 # ---------------------------------------------------------------------------
@@ -277,100 +262,33 @@ def classify(cls: LuaClass) -> str:
     if all_integer and all_upper:
         return "enum"
     return "struct"
-
-
 # ---------------------------------------------------------------------------
 # HTML rendering helpers
 # ---------------------------------------------------------------------------
 
 def esc(s: str) -> str:
     return html.escape(s, quote=False)
-
-
 def _footer_date() -> str:
     return datetime.datetime.now().strftime("%a %b %d %Y %H:%M:%S")
 
-
-HEAD_TMPL = """\
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
-<meta http-equiv="X-UA-Compatible" content="IE=11"/>
-<meta name="generator" content="gen_lua_docs.py"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>{project_name}: {title}</title>
-<link href="tabs.css" rel="stylesheet" type="text/css"/>
-<link href="navtree.css" rel="stylesheet" type="text/css"/>
-<link href="doxypress.css" rel="stylesheet" type="text/css" />
-<link href="doxygen-awesome.css" rel="stylesheet" type="text/css"/>
-<link href="custom.css" rel="stylesheet" type="text/css"/>
-</head>
-<body>
-<div id="top"><!-- do not remove this div, it is closed by DoxyPress -->
-<div id="titlearea">
-<table cellspacing="0" cellpadding="0">
- <tbody>
- <tr style="height: 56px;">
-  <td id="projectlogo"><img alt="Logo" src="logo.png"/></td>
-  <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">{project_name}
-      &#160;<span id="projectnumber">0.0</span>
-   </div>
-   <div id="projectbrief">{project_brief}</div>
-  </td>
- </tr>
- </tbody>
-</table>
-</div>
-<!-- end header part -->
-  <div id="navrow1" class="tabs">
-    <ul class="tablist">
-      <li><a href="pages.html"><span>Documentation</span></a></li>
-      <li{ns_current}><a href="{ns_href}"><span>Lua&#160;API</span></a></li>
-      <li><a href="annotated.html"><span>Classes</span></a></li>
-    </ul>
-  </div>
-</div><!-- top -->
-<div id="doc-content">
-"""
-
-FOOTER_TMPL = """\
-</div><!-- doc-content -->
-<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
-  <ul>
-{navpath}
-    <li class="footer">Generated on {date} for {project_name} &nbsp; by
-    gen_lua_docs.py</li>
-  </ul>
-</div>
-</body>
-</html>
-"""
-
-
 def render_head(title: str, is_namespace: bool, ctx: DocContext) -> str:
-    return HEAD_TMPL.format(
+    return ctx.head_tmpl.format(
         project_name=esc(ctx.project_name),
         project_brief=esc(ctx.project_brief),
         ns_href=ctx.ns_href,
         title=esc(title),
         ns_current=' class="current"' if is_namespace else "",
     )
-
-
 def render_footer(navpath_items: list[tuple[str, str]], ctx: DocContext) -> str:
     parts = [
         '    <li class="navelem"><a class="el" href="%s">%s</a></li>' % (href, esc(label))
         for href, label in navpath_items
     ]
-    return FOOTER_TMPL.format(
+    return ctx.foot_tmpl.format(
         navpath="\n".join(parts),
         date=_footer_date(),
         project_name=esc(ctx.project_name),
     )
-
-
 def type_link(t: str, classes: dict[str, LuaClass]) -> str:
     t = t.strip()
     if not t:
@@ -388,8 +306,6 @@ def type_link(t: str, classes: dict[str, LuaClass]) -> str:
     else:
         html_t = esc(base)
     return html_t + esc(suffix)
-
-
 def method_signature(fld: LuaField, classes: dict[str, LuaClass]) -> str:
     params = [p for p in fld.params if p[0] != "self"]
     rendered = []
@@ -399,8 +315,6 @@ def method_signature(fld: LuaField, classes: dict[str, LuaClass]) -> str:
         else:
             rendered.append(esc(pname))
     return "(" + ", ".join(rendered) + ")"
-
-
 # ---------------------------------------------------------------------------
 # Namespace page
 # ---------------------------------------------------------------------------
@@ -474,8 +388,6 @@ def render_namespace(global_cls: LuaClass, classes: dict[str, LuaClass],
     out.append('</div><!-- contents -->')
     out.append(render_footer([(ctx.ns_href, ctx.ns_name)], ctx))
     return "\n".join(out)
-
-
 # ---------------------------------------------------------------------------
 # Class page
 # ---------------------------------------------------------------------------
@@ -657,8 +569,6 @@ def render_class(cls: LuaClass, classes: dict[str, LuaClass],
     out.append(render_footer(
         [(ctx.ns_href, ctx.ns_name), (cls.page_name(), cls.short)], ctx))
     return "\n".join(out)
-
-
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
@@ -673,11 +583,30 @@ def main(argv=None) -> int:
     ap.add_argument("--project-brief", default="", dest="project_brief",
                     metavar="TEXT",
                     help="One-line project description shown in the page header")
+    ap.add_argument("--head-template", default="", dest="head_template",
+                    metavar="FILE",
+                    help="Path to the HTML head/header template file")
+    ap.add_argument("--foot-template", default="", dest="foot_template",
+                    metavar="FILE",
+                    help="Path to the HTML footer template file")
     args = ap.parse_args(argv)
 
     if not os.path.isfile(args.lua):
         print("Error: file not found: %s" % args.lua, file=sys.stderr)
         return 1
+
+    def _read_template(path: str, label: str) -> str:
+        if not path:
+            return ""
+        if not os.path.isfile(path):
+            print("Error: %s not found: %s" % (label, path), file=sys.stderr)
+            raise SystemExit(1)
+        with open(path, "r", encoding="utf-8") as fh:
+            return fh.read()
+
+    head_tmpl = _read_template(args.head_template, "head template")
+    foot_tmpl = _read_template(args.foot_template, "foot template")
+
     os.makedirs(args.out, exist_ok=True)
 
     classes, aliases, type_global = parse_lua(args.lua)
@@ -704,6 +633,8 @@ def main(argv=None) -> int:
         project_brief = project_brief,
         ns_name       = ns_name,
         ns_href       = ns_href,
+        head_tmpl     = head_tmpl,
+        foot_tmpl     = foot_tmpl,
     )
 
     # 1) Namespace page
@@ -724,7 +655,5 @@ def main(argv=None) -> int:
     print("Write: %d class pages in %s" % (count, args.out))
 
     return 0
-
-
 if __name__ == "__main__":
     raise SystemExit(main())

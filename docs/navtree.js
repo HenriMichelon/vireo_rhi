@@ -538,5 +538,12 @@ function initNavTree(toroot,relpath)
        navTo(o,toroot,hashUrl(),relpath);
      }
   })
+
+  $(document).ready(function() {
+    var $list = $('ul.tablist').first();
+    $list.append('<li><a href="namespacevireo_lua.html" ><span>Lua API</span></a></li>');
+    $list.append('<li><a href="https://github.com/HenriMichelon/vireo_rhi" target="_blank"><span>GitHub</span></a></li>');
+  });
+
 }
 
