@@ -124,6 +124,23 @@ if(WIN32)
 endif ()
 
 #######################################################
+find_program(PYTHON_EXECUTABLE python)
+
+if (PYTHON_EXECUTABLE)
+    message(STATUS "Python found: ${PYTHON_EXECUTABLE}")
+    set(DOCS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/docs")
+
+    add_custom_target(vireo_docs_lua
+            COMMAND ${PYTHON_EXECUTABLE} gen_lua_docs.py --lua ../src/bindings/lua/vireo.lua --out ./html --project-brief "Vireo 3D Rendering Hardware Interface" --head-template ./lua-header.html --foot-template ./lua-footer.html
+            WORKING_DIRECTORY ${DOCS_DIRECTORY}
+            COMMENT "Generating Lua documentation with gen_lua_docs.py"
+            VERBATIM
+    )
+else()
+    message(STATUS "Python not found, vireo_doc_lua target will not be available.")
+endif()
+
+#######################################################
 find_program(DOXYPRESS_EXECUTABLE doxypress)
 
 if (DOXYPRESS_EXECUTABLE)
@@ -133,12 +150,12 @@ if (DOXYPRESS_EXECUTABLE)
     add_custom_target(vireo_docs
             COMMAND ${DOXYPRESS_EXECUTABLE}
             COMMAND ${CMAKE_COMMAND} -E copy
-                ${DOCS_DIRECTORY}/navtree.js
-                ${DOCS_DIRECTORY}/html/navtree.js
+            ${DOCS_DIRECTORY}/navtree.js
+            ${DOCS_DIRECTORY}/html/navtree.js
             WORKING_DIRECTORY ${DOCS_DIRECTORY}
             COMMENT "Generating documentation with DoxyPress"
             VERBATIM
     )
 else()
-    message(STATUS "DoxyPress not found, doxypress target will not be available.")
+    message(STATUS "DoxyPress not found, vireo_doc target will not be available.")
 endif()
