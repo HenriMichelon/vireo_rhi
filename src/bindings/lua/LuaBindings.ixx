@@ -13,9 +13,9 @@ export import lua_bridge;
 
 export namespace vireo {
 
-    class LuaBindings {
-    public:
-        static void _register(lua_State*L);
+    struct LuaBindings {
+        static inline bool registered{false};
+        static void _register(lua_State* L);
     };
 
 }

@@ -2,630 +2,631 @@
 ---@diagnostic disable: missing-return, lowercase-global
 
 ------------------------------------------------------------------------
--- Enums (exposed as namespaces)
+-- Enums (exposed as namespaces with addVariable)
 ------------------------------------------------------------------------
 
----@class vireo.Backend
----@field UNDEFINED integer
----@field DIRECTX integer
----@field VULKAN integer
+---@class vireo.Backend Type of supported backends
+---@field UNDEFINED integer Unknown or uninitialized backend.
+---@field DIRECTX integer DirectX 12 backend.
+---@field VULKAN integer Vulkan backend.
 
 ---@class vireo.Filter
----@field NEAREST integer
----@field LINEAR integer
+---@field NEAREST integer Nearest-neighbor filtering (no interpolation).
+---@field LINEAR integer Bilinear filtering.
 
 ---@class vireo.AddressMode
----@field REPEAT integer
----@field MIRRORED_REPEAT integer
----@field CLAMP_TO_EDGE integer
----@field CLAMP_TO_BORDER integer
+---@field REPEAT integer Texture coordinates wrap around (tile).
+---@field MIRRORED_REPEAT integer Texture coordinates mirror on each wrap.
+---@field CLAMP_TO_EDGE integer Texture coordinates clamp to [0,1]; edge texels are repeated.
+---@field CLAMP_TO_BORDER integer Texture coordinates outside [0,1] sample the border color.
 
 ---@class vireo.FilterMode
----@field NEAREST integer
----@field LINEAR integer
+---@field NEAREST integer Nearest mip-level selection.
+---@field LINEAR integer Linear interpolation between mip levels.
 
 ---@class vireo.ImageFormat
----@field R8_UNORM integer
----@field R8_SNORM integer
----@field R8_UINT integer
----@field R8_SINT integer
----@field R8G8_UNORM integer
----@field R8G8_SNORM integer
----@field R8G8_UINT integer
----@field R8G8_SINT integer
----@field R8G8B8A8_UNORM integer
----@field R8G8B8A8_SNORM integer
----@field R8G8B8A8_UINT integer
----@field R8G8B8A8_SINT integer
----@field R8G8B8A8_SRGB integer
----@field B8G8R8A8_UNORM integer
----@field B8G8R8A8_SRGB integer
----@field B8G8R8X8_UNORM integer
----@field B8G8R8X8_SRGB integer
----@field A2B10G10R10_UNORM integer
----@field A2B10G10R10_UINT integer
----@field R16_UNORM integer
----@field R16_SNORM integer
----@field R16_UINT integer
----@field R16_SINT integer
----@field R16_SFLOAT integer
----@field R16G16_UNORM integer
----@field R16G16_SNORM integer
----@field R16G16_UINT integer
----@field R16G16_SINT integer
----@field R16G16_SFLOAT integer
----@field R16G16B16A16_UNORM integer
----@field R16G16B16A16_SNORM integer
----@field R16G16B16A16_UINT integer
----@field R16G16B16A16_SINT integer
----@field R16G16B16A16_SFLOAT integer
----@field R32_UINT integer
----@field R32_SINT integer
----@field R32_SFLOAT integer
----@field R32G32_UINT integer
----@field R32G32_SINT integer
----@field R32G32_SFLOAT integer
----@field R32G32B32_UINT integer
----@field R32G32B32_SINT integer
----@field R32G32B32_SFLOAT integer
----@field R32G32B32A32_UINT integer
----@field R32G32B32A32_SINT integer
----@field R32G32B32A32_SFLOAT integer
----@field D16_UNORM integer
----@field D24_UNORM_S8_UINT integer
----@field D32_SFLOAT integer
----@field D32_SFLOAT_S8_UINT integer
----@field BC1_UNORM integer
----@field BC1_UNORM_SRGB integer
----@field BC2_UNORM integer
----@field BC2_UNORM_SRGB integer
----@field BC3_UNORM integer
----@field BC3_UNORM_SRGB integer
----@field BC4_UNORM integer
----@field BC4_SNORM integer
----@field BC5_UNORM integer
----@field BC5_SNORM integer
----@field BC6H_UFLOAT integer
----@field BC6H_SFLOAT integer
----@field BC7_UNORM integer
----@field BC7_UNORM_SRGB integer
+---@field R8_UNORM integer 8-bit single-channel, normalized unsigned.
+---@field R8_SNORM integer 8-bit single-channel, normalized signed.
+---@field R8_UINT integer 8-bit single-channel, unsigned integer.
+---@field R8_SINT integer 8-bit single-channel, signed integer.
+---@field R8G8_UNORM integer 8-bit two-channel, normalized unsigned.
+---@field R8G8_SNORM integer 8-bit two-channel, normalized signed.
+---@field R8G8_UINT integer 8-bit two-channel, unsigned integer.
+---@field R8G8_SINT integer 8-bit two-channel, signed integer.
+---@field R8G8B8A8_UNORM integer 8-bit RGBA, normalized unsigned.
+---@field R8G8B8A8_SNORM integer 8-bit RGBA, normalized signed.
+---@field R8G8B8A8_UINT integer 8-bit RGBA, unsigned integer.
+---@field R8G8B8A8_SINT integer 8-bit RGBA, signed integer.
+---@field R8G8B8A8_SRGB integer 8-bit RGBA, sRGB color space.
+---@field B8G8R8A8_UNORM integer 8-bit BGRA, normalized unsigned (common swapchain format).
+---@field B8G8R8A8_SRGB integer 8-bit BGRA, sRGB color space.
+---@field B8G8R8X8_UNORM integer 8-bit BGRx, normalized unsigned (X channel unused).
+---@field B8G8R8X8_SRGB integer 8-bit BGRx, sRGB color space (X channel unused).
+---@field A2B10G10R10_UNORM integer 10-bit RGB + 2-bit alpha, normalized unsigned.
+---@field A2B10G10R10_UINT integer 10-bit RGB + 2-bit alpha, unsigned integer.
+---@field R16_UNORM integer 16-bit single-channel, normalized unsigned.
+---@field R16_SNORM integer 16-bit single-channel, normalized signed.
+---@field R16_UINT integer 16-bit single-channel, unsigned integer.
+---@field R16_SINT integer 16-bit single-channel, signed integer.
+---@field R16_SFLOAT integer 16-bit single-channel, float.
+---@field R16G16_UNORM integer 16-bit two-channel, normalized unsigned.
+---@field R16G16_SNORM integer 16-bit two-channel, normalized signed.
+---@field R16G16_UINT integer 16-bit two-channel, unsigned integer.
+---@field R16G16_SINT integer 16-bit two-channel, signed integer.
+---@field R16G16_SFLOAT integer 16-bit two-channel, float.
+---@field R16G16B16A16_UNORM integer 16-bit RGBA, normalized unsigned.
+---@field R16G16B16A16_SNORM integer 16-bit RGBA, normalized signed.
+---@field R16G16B16A16_UINT integer 16-bit RGBA, unsigned integer.
+---@field R16G16B16A16_SINT integer 16-bit RGBA, signed integer.
+---@field R16G16B16A16_SFLOAT integer 16-bit RGBA, float.
+---@field R32_UINT integer 32-bit single-channel, unsigned integer.
+---@field R32_SINT integer 32-bit single-channel, signed integer.
+---@field R32_SFLOAT integer 32-bit single-channel, float.
+---@field R32G32_UINT integer 32-bit two-channel, unsigned integer.
+---@field R32G32_SINT integer 32-bit two-channel, signed integer.
+---@field R32G32_SFLOAT integer 32-bit two-channel, float.
+---@field R32G32B32_UINT integer 32-bit three-channel, unsigned integer.
+---@field R32G32B32_SINT integer 32-bit three-channel, signed integer.
+---@field R32G32B32_SFLOAT integer 32-bit three-channel, float.
+---@field R32G32B32A32_UINT integer 32-bit RGBA, unsigned integer.
+---@field R32G32B32A32_SINT integer 32-bit RGBA, signed integer.
+---@field R32G32B32A32_SFLOAT integer 32-bit RGBA, float.
+---@field D16_UNORM integer 16-bit depth, normalized unsigned.
+---@field D24_UNORM_S8_UINT integer 24-bit depth + 8-bit stencil.
+---@field D32_SFLOAT integer 32-bit depth, float.
+---@field D32_SFLOAT_S8_UINT integer 32-bit depth (float) + 8-bit stencil.
+---@field BC1_UNORM integer BC1 block-compressed, normalized unsigned (RGB + 1-bit alpha).
+---@field BC1_UNORM_SRGB integer BC1 block-compressed, sRGB.
+---@field BC2_UNORM integer BC2 block-compressed, normalized unsigned (RGBA, 4-bit alpha).
+---@field BC2_UNORM_SRGB integer BC2 block-compressed, sRGB.
+---@field BC3_UNORM integer BC3 block-compressed, normalized unsigned (RGBA, interpolated alpha).
+---@field BC3_UNORM_SRGB integer BC3 block-compressed, sRGB.
+---@field BC4_UNORM integer BC4 block-compressed, single-channel normalized unsigned.
+---@field BC4_SNORM integer BC4 block-compressed, single-channel normalized signed.
+---@field BC5_UNORM integer BC5 block-compressed, two-channel normalized unsigned.
+---@field BC5_SNORM integer BC5 block-compressed, two-channel normalized signed.
+---@field BC6H_UFLOAT integer BC6H block-compressed, HDR unsigned float.
+---@field BC6H_SFLOAT integer BC6H block-compressed, HDR signed float.
+---@field BC7_UNORM integer BC7 block-compressed, high-quality RGBA normalized unsigned.
+---@field BC7_UNORM_SRGB integer BC7 block-compressed, high-quality RGBA sRGB.
 
 ---@class vireo.BufferType
----@field VERTEX integer
----@field INDEX integer
----@field INDIRECT integer
----@field UNIFORM integer
----@field STORAGE integer
----@field DEVICE_STORAGE integer
----@field READWRITE_STORAGE integer
----@field BUFFER_UPLOAD integer
----@field BUFFER_DOWNLOAD integer
----@field IMAGE_UPLOAD integer
----@field IMAGE_DOWNLOAD integer
+---@field VERTEX integer Vertex buffer, read on the GPU during draw calls.
+---@field INDEX integer Index buffer, read on the GPU during indexed draw calls.
+---@field INDIRECT integer Indirect draw/dispatch argument buffer.
+---@field UNIFORM integer Uniform (constant) buffer, CPU-writable, shader-readable.
+---@field STORAGE integer Storage buffer, shader-readable.
+---@field DEVICE_STORAGE integer Device-local storage buffer, GPU-only.
+---@field READWRITE_STORAGE integer Read/write storage buffer (UAV/SSBO).
+---@field BUFFER_UPLOAD integer CPU-side staging buffer for uploading data to a VERTEX/INDEX/UNIFORM/STORAGE buffer.
+---@field BUFFER_DOWNLOAD integer CPU-side readback buffer for downloading data from a GPU buffer.
+---@field IMAGE_UPLOAD integer CPU-side staging buffer for uploading image data.
+---@field IMAGE_DOWNLOAD integer CPU-side readback buffer for downloading image data.
 
 ---@class vireo.IndexType
----@field UINT16 integer
----@field UINT32 integer
+---@field UINT16 integer 16-bit unsigned integer indices.
+---@field UINT32 integer 32-bit unsigned integer indices.
 
 ---@class vireo.DescriptorType
----@field UNIFORM integer
----@field UNIFORM_DYNAMIC integer
----@field STORAGE integer
----@field DEVICE_STORAGE integer
----@field READWRITE_STORAGE integer
----@field SAMPLED_IMAGE integer
----@field SAMPLER integer
----@field READWRITE_IMAGE integer
+---@field UNIFORM integer Uniform (constant) buffer binding.
+---@field UNIFORM_DYNAMIC integer Dynamic uniform buffer binding (offset supplied at bind time).
+---@field STORAGE integer Read-only storage buffer binding.
+---@field DEVICE_STORAGE integer Device-local storage buffer binding.
+---@field READWRITE_STORAGE integer Read/write storage buffer binding (UAV/SSBO).
+---@field SAMPLED_IMAGE integer Sampled image (texture) binding.
+---@field SAMPLER integer Sampler binding.
+---@field READWRITE_IMAGE integer Read/write image binding (storage image / UAV).
 
 ---@class vireo.CommandType
----@field GRAPHIC integer
----@field TRANSFER integer
----@field COMPUTE integer
+---@field GRAPHIC integer Graphics command queue / allocator.
+---@field TRANSFER integer Transfer (copy) command queue / allocator.
+---@field COMPUTE integer Compute command queue / allocator.
 
 ---@class vireo.AttributeFormat
----@field R32_FLOAT integer
----@field R32G32_FLOAT integer
----@field R32G32B32_FLOAT integer
----@field R32G32B32A32_FLOAT integer
----@field R32_SINT integer
----@field R32G32_SINT integer
----@field R32G32B32_SINT integer
----@field R32G32B32A32_SINT integer
----@field R32_UINT integer
----@field R32G32_UINT integer
----@field R32G32B32_UINT integer
----@field R32G32B32A32_UINT integer
+---@field R32_FLOAT integer Single 32-bit float (e.g. a scalar weight).
+---@field R32G32_FLOAT integer Two 32-bit floats (e.g. UV coordinates).
+---@field R32G32B32_FLOAT integer Three 32-bit floats (e.g. positions or normals).
+---@field R32G32B32A32_FLOAT integer Four 32-bit floats (e.g. tangents or colors).
+---@field R32_SINT integer Single 32-bit signed integer.
+---@field R32G32_SINT integer Two 32-bit signed integers.
+---@field R32G32B32_SINT integer Three 32-bit signed integers.
+---@field R32G32B32A32_SINT integer Four 32-bit signed integers.
+---@field R32_UINT integer Single 32-bit unsigned integer.
+---@field R32G32_UINT integer Two 32-bit unsigned integers.
+---@field R32G32B32_UINT integer Three 32-bit unsigned integers.
+---@field R32G32B32A32_UINT integer Four 32-bit unsigned integers.
 
 ---@class vireo.RenderTargetType
----@field COLOR integer
----@field DEPTH integer
----@field DEPTH_STENCIL integer
+---@field COLOR integer Color render target.
+---@field DEPTH integer Depth-only render target.
+---@field DEPTH_STENCIL integer Combined depth/stencil render target.
 
 ---@class vireo.CullMode
----@field NONE integer
----@field FRONT integer
----@field BACK integer
+---@field NONE integer No face culling.
+---@field FRONT integer Cull front-facing polygons.
+---@field BACK integer Cull back-facing polygons (default).
 
 ---@class vireo.PrimitiveTopology
----@field POINT_LIST integer
----@field LINE_LIST integer
----@field LINE_STRIP integer
----@field TRIANGLE_LIST integer
----@field TRIANGLE_STRIP integer
+---@field POINT_LIST integer Each vertex is a separate point.
+---@field LINE_LIST integer Every two vertices form an independent line segment.
+---@field LINE_STRIP integer Vertices form a connected polyline.
+---@field TRIANGLE_LIST integer Every three vertices form an independent triangle (default).
+---@field TRIANGLE_STRIP integer Vertices form a strip of connected triangles.
 
 ---@class vireo.PolygonMode
----@field FILL integer
----@field WIREFRAME integer
+---@field FILL integer Polygons are filled (default).
+---@field WIREFRAME integer Polygons are drawn as wireframe outlines.
 
 ---@class vireo.CompareOp
----@field NEVER integer
----@field LESS integer
----@field EQUAL integer
----@field LESS_OR_EQUAL integer
----@field GREATER integer
----@field NOT_EQUAL integer
----@field GREATER_OR_EQUAL integer
----@field ALWAYS integer
+---@field NEVER integer The test never passes.
+---@field LESS integer Passes if source < destination.
+---@field EQUAL integer Passes if source == destination.
+---@field LESS_OR_EQUAL integer Passes if source <= destination.
+---@field GREATER integer Passes if source > destination.
+---@field NOT_EQUAL integer Passes if source != destination.
+---@field GREATER_OR_EQUAL integer Passes if source >= destination.
+---@field ALWAYS integer The test always passes.
 
 ---@class vireo.StencilOp
----@field KEEP integer
----@field ZERO integer
----@field REPLACE integer
----@field INCREMENT_AND_CLAMP integer
----@field DECREMENT_AND_CLAMP integer
----@field INVERT integer
----@field INCREMENT_AND_WRAP integer
----@field DECREMENT_AND_WRAP integer
+---@field KEEP integer Keep the current stencil value.
+---@field ZERO integer Set the stencil value to 0.
+---@field REPLACE integer Replace with the reference value.
+---@field INCREMENT_AND_CLAMP integer Increment, clamped to the maximum representable value.
+---@field DECREMENT_AND_CLAMP integer Decrement, clamped to 0.
+---@field INVERT integer Bitwise-invert the stencil value.
+---@field INCREMENT_AND_WRAP integer Increment, wrapping to 0 on overflow.
+---@field DECREMENT_AND_WRAP integer Decrement, wrapping to max on underflow.
 
 ---@class vireo.BlendFactor
----@field ZERO integer
----@field ONE integer
----@field SRC_COLOR integer
----@field ONE_MINUS_SRC_COLOR integer
----@field DST_COLOR integer
----@field ONE_MINUS_DST_COLOR integer
----@field SRC_ALPHA integer
----@field ONE_MINUS_SRC_ALPHA integer
----@field DST_ALPHA integer
----@field ONE_MINUS_DST_ALPHA integer
----@field CONSTANT_COLOR integer
----@field ONE_MINUS_CONSTANT_COLOR integer
----@field CONSTANT_ALPHA integer
----@field ONE_MINUS_CONSTANT_ALPHA integer
----@field SRC_ALPHA_SATURATE integer
----@field SRC1_COLOR integer
----@field ONE_MINUS_SRC1_COLOR integer
----@field SRC1_ALPHA integer
----@field ONE_MINUS_SRC1_ALPHA integer
+---@field ZERO integer Factor is (0, 0, 0, 0).
+---@field ONE integer Factor is (1, 1, 1, 1).
+---@field SRC_COLOR integer Factor is the source color (Rs, Gs, Bs, As).
+---@field ONE_MINUS_SRC_COLOR integer Factor is (1-Rs, 1-Gs, 1-Bs, 1-As).
+---@field DST_COLOR integer Factor is the destination color (Rd, Gd, Bd, Ad).
+---@field ONE_MINUS_DST_COLOR integer Factor is (1-Rd, 1-Gd, 1-Bd, 1-Ad).
+---@field SRC_ALPHA integer Factor is the source alpha (As, As, As, As).
+---@field ONE_MINUS_SRC_ALPHA integer Factor is (1-As, 1-As, 1-As, 1-As). Common for alpha blending.
+---@field DST_ALPHA integer Factor is the destination alpha (Ad, Ad, Ad, Ad).
+---@field ONE_MINUS_DST_ALPHA integer Factor is (1-Ad, 1-Ad, 1-Ad, 1-Ad).
+---@field CONSTANT_COLOR integer Factor is the blend constant color.
+---@field ONE_MINUS_CONSTANT_COLOR integer Factor is one minus the blend constant color.
+---@field CONSTANT_ALPHA integer Factor is the blend constant alpha.
+---@field ONE_MINUS_CONSTANT_ALPHA integer Factor is one minus the blend constant alpha.
+---@field SRC_ALPHA_SATURATE integer Factor is (min(As,1-Ad), min(As,1-Ad), min(As,1-Ad), 1).
+---@field SRC1_COLOR integer Factor is the second source color (dual-source blending).
+---@field ONE_MINUS_SRC1_COLOR integer Factor is one minus the second source color.
+---@field SRC1_ALPHA integer Factor is the second source alpha.
+---@field ONE_MINUS_SRC1_ALPHA integer Factor is one minus the second source alpha.
 
 ---@class vireo.BlendOp
----@field ADD integer
----@field SUBTRACT integer
----@field REVERSE_SUBTRACT integer
----@field MIN integer
----@field MAX integer
+---@field ADD integer Result = Src * SrcFactor + Dst * DstFactor.
+---@field SUBTRACT integer Result = Src * SrcFactor - Dst * DstFactor.
+---@field REVERSE_SUBTRACT integer Result = Dst * DstFactor - Src * SrcFactor.
+---@field MIN integer Result = min(Src, Dst).
+---@field MAX integer Result = max(Src, Dst).
 
 ---@class vireo.LogicOp
----@field CLEAR integer
----@field SET integer
----@field COPY integer
----@field COPY_INVERTED integer
----@field NOOP integer
----@field INVERT integer
----@field AND integer
----@field NAND integer
----@field OR integer
----@field NOR integer
----@field XOR integer
----@field EQUIV integer
----@field AND_REVERSE integer
----@field AND_INVERTED integer
----@field OR_REVERSE integer
----@field OR_INVERTED integer
+---@field CLEAR integer Result = 0.
+---@field SET integer Result = 1.
+---@field COPY integer Result = Src.
+---@field COPY_INVERTED integer Result = ~Src.
+---@field NOOP integer Result = Dst.
+---@field INVERT integer Result = ~Dst.
+---@field AND integer Result = Src & Dst.
+---@field NAND integer Result = ~(Src & Dst).
+---@field OR integer Result = Src | Dst.
+---@field NOR integer Result = ~(Src | Dst).
+---@field XOR integer Result = Src ^ Dst.
+---@field EQUIV integer Result = ~(Src ^ Dst).
+---@field AND_REVERSE integer Result = Src & ~Dst.
+---@field AND_INVERTED integer Result = ~Src & Dst.
+---@field OR_REVERSE integer Result = Src | ~Dst.
+---@field OR_INVERTED integer Result = ~Src | Dst.
 
 ---@class vireo.ColorWriteMask
----@field RED integer
----@field GREEN integer
----@field BLUE integer
----@field ALPHA integer
----@field ALL integer
+---@field RED integer Enable writes to the red channel.
+---@field GREEN integer Enable writes to the green channel.
+---@field BLUE integer Enable writes to the blue channel.
+---@field ALPHA integer Enable writes to the alpha channel.
+---@field ALL integer Enable writes to all four channels (R+G+B+A).
 
 ---@class vireo.ShaderStage
----@field ALL integer
----@field VERTEX integer
----@field FRAGMENT integer
----@field HULL integer
----@field DOMAIN integer
----@field GEOMETRY integer
----@field COMPUTE integer
+---@field ALL integer All shader stages.
+---@field VERTEX integer Vertex shader stage.
+---@field FRAGMENT integer Fragment (pixel) shader stage.
+---@field HULL integer Hull (tessellation control) shader stage.
+---@field DOMAIN integer Domain (tessellation evaluation) shader stage.
+---@field GEOMETRY integer Geometry shader stage.
+---@field COMPUTE integer Compute shader stage.
 
 ---@class vireo.WaitStage
----@field NONE integer
----@field PIPELINE_TOP integer
----@field VERTEX_INPUT integer
----@field VERTEX_SHADER integer
----@field DEPTH_STENCIL_TEST_BEFORE_FRAGMENT_SHADER integer
----@field FRAGMENT_SHADER integer
----@field DEPTH_STENCIL_TEST_AFTER_FRAGMENT_SHADER integer
----@field COLOR_OUTPUT integer
----@field COMPUTE_SHADER integer
----@field TRANSFER integer
----@field PIPELINE_BOTTOM integer
----@field ALL_GRAPHICS integer
----@field ALL_COMMANDS integer
----@field COPY integer
----@field RESOLV integer
----@field BLIT integer
----@field CLEAR integer
+---@field NONE integer No stage / no wait.
+---@field PIPELINE_TOP integer Top of the pipeline (before any stage begins).
+---@field VERTEX_INPUT integer Vertex input stage (buffer reads).
+---@field VERTEX_SHADER integer Vertex shader stage.
+---@field DEPTH_STENCIL_TEST_BEFORE_FRAGMENT_SHADER integer Early depth/stencil test (before fragment shading).
+---@field FRAGMENT_SHADER integer Fragment shader stage.
+---@field DEPTH_STENCIL_TEST_AFTER_FRAGMENT_SHADER integer Late depth/stencil test (after fragment shading).
+---@field COLOR_OUTPUT integer Color attachment output stage.
+---@field COMPUTE_SHADER integer Compute shader stage.
+---@field TRANSFER integer Transfer (copy/blit) stage.
+---@field PIPELINE_BOTTOM integer Bottom of the pipeline (all stages complete).
+---@field ALL_GRAPHICS integer All graphics pipeline stages combined.
+---@field ALL_COMMANDS integer All commands in the queue.
+---@field COPY integer Copy operations stage.
+---@field RESOLV integer Multisample resolve stage.
+---@field BLIT integer Blit operations stage.
+---@field CLEAR integer Clear operations stage.
 
 ---@class vireo.ResourceState
----@field UNDEFINED integer
----@field GENERAL integer
----@field RENDER_TARGET_COLOR integer
----@field RENDER_TARGET_DEPTH integer
----@field RENDER_TARGET_DEPTH_READ integer
----@field RENDER_TARGET_DEPTH_STENCIL integer
----@field RENDER_TARGET_DEPTH_STENCIL_READ integer
----@field PRESENT integer
----@field COPY_SRC integer
----@field COPY_DST integer
----@field SHADER_READ integer
----@field COMPUTE_READ integer
----@field COMPUTE_WRITE integer
----@field INDIRECT_DRAW integer
----@field VERTEX_INPUT integer
----@field UNIFORM integer
+---@field UNDEFINED integer Unknown / initial state. A barrier from UNDEFINED discards previous content.
+---@field RENDER_TARGET_COLOR integer Image used as a color render target attachment.
+---@field RENDER_TARGET_DEPTH integer Image used as a read/write depth attachment.
+---@field RENDER_TARGET_DEPTH_READ integer Image used as a read-only depth attachment.
+---@field RENDER_TARGET_DEPTH_STENCIL integer Image used as a read/write depth+stencil attachment.
+---@field RENDER_TARGET_DEPTH_STENCIL_READ integer Image used as a read-only depth+stencil attachment.
+---@field PRESENT integer Image ready to be presented by the swap chain.
+---@field COPY_SRC integer Resource used as the source of a copy operation.
+---@field COPY_DST integer Resource used as the destination of a copy operation.
+---@field SHADER_READ integer Image/buffer read by a shader (SRV / sampled).
+---@field COMPUTE_READ integer Resource read by a compute shader.
+---@field COMPUTE_WRITE integer Resource written by a compute shader (UAV).
+---@field INDIRECT_DRAW integer Buffer used as an indirect draw/dispatch argument source.
+---@field VERTEX_INPUT integer Buffer used as a vertex/index input source.
+---@field UNIFORM integer Buffer used as a uniform (constant) buffer.
 
 ---@class vireo.MSAA
----@field NONE integer
----@field X2 integer
----@field X4 integer
----@field X8 integer
----@field X16 integer
----@field X32 integer
----@field X64 integer
+---@field NONE integer No multisampling (1 sample).
+---@field X2 integer 2× multisampling.
+---@field X4 integer 4× multisampling.
+---@field X8 integer 8× multisampling.
+---@field X16 integer 16× multisampling.
+---@field X32 integer 32× multisampling.
+---@field X64 integer 64× multisampling.
 
 ---@class vireo.PresentMode
----@field IMMEDIATE integer
----@field VSYNC integer
+---@field IMMEDIATE integer Frames are presented immediately without waiting for VSync (may tear).
+---@field VSYNC integer Frames are synchronized to the display refresh rate (no tearing).
 
 ---@class vireo.PipelineType
----@field GRAPHIC integer
----@field COMPUTE integer
+---@field GRAPHIC integer Graphics pipeline (vertex + fragment + optional hull/domain/geometry).
+---@field COMPUTE integer Compute pipeline.
 
 ---@class vireo.SemaphoreType
----@field BINARY integer
----@field TIMELINE integer
+---@field BINARY integer Binary semaphore: signaled / unsignaled.
+---@field TIMELINE integer Timeline semaphore: monotonically increasing 64-bit counter.
 
 ------------------------------------------------------------------------
 -- Aliases / typedefs
 ------------------------------------------------------------------------
 
----@alias vireo.DescriptorIndex integer
+---@alias vireo.DescriptorIndex integer  Binding index within a DescriptorLayout / DescriptorSet.
 
 ------------------------------------------------------------------------
 -- Structs
--- Note: properties use snake_case as registered in LuaBindings
 ------------------------------------------------------------------------
 
----@class vireo.ColorBlendDesc
----@field blend_enable boolean
----@field src_color_blend_factor vireo.BlendFactor
----@field dst_color_blend_factor vireo.BlendFactor
----@field color_blend_op vireo.BlendOp
----@field src_alpha_blend_factor vireo.BlendFactor
----@field dst_alpha_blend_factor vireo.BlendFactor
----@field alpha_blend_op vireo.BlendOp
----@field color_write_mask vireo.ColorWriteMask
+---@class vireo.ColorBlendDesc Color blend state for a single render-target attachment.
+---@field blend_enable boolean True to enable blending on this attachment.
+---@field src_color_blend_factor vireo.BlendFactor Blend factor applied to the source color.
+---@field dst_color_blend_factor vireo.BlendFactor Blend factor applied to the destination color.
+---@field color_blend_op vireo.BlendOp Blend operation for the color channels.
+---@field src_alpha_blend_factor vireo.BlendFactor Blend factor applied to the source alpha.
+---@field dst_alpha_blend_factor vireo.BlendFactor Blend factor applied to the destination alpha.
+---@field alpha_blend_op vireo.BlendOp Blend operation for the alpha channel.
+---@field color_write_mask vireo.ColorWriteMask Bitmask of color channels to write (see vireo.ColorWriteMask).
 
----@class vireo.StencilOpState
----@field fail_op vireo.StencilOp
----@field pass_op vireo.StencilOp
----@field depth_fail_op vireo.StencilOp
----@field compare_op vireo.CompareOp
----@field compare_mask integer
----@field write_mask integer
+---@class vireo.StencilOpState Per-face stencil operation state.
+---@field fail_op vireo.StencilOp Operation when the stencil test fails.
+---@field pass_op vireo.StencilOp Operation when both the stencil and depth tests pass.
+---@field depth_fail_op vireo.StencilOp Operation when the stencil test passes but depth fails.
+---@field compare_op vireo.CompareOp Stencil comparison function.
+---@field compare_mask integer Bitmask applied to both reference and stored values before comparison.
+---@field write_mask integer Bitmask controlling which stencil bits are written.
 
----@class vireo.PhysicalDeviceDesc
----@field name string
----@field dedicated_video_memory integer
----@field dedicated_system_memory integer
----@field shared_system_memory integer
+---@class vireo.PhysicalDeviceDesc GPU device description returned by PhysicalDevice.get_description().
+---@field name string Human-readable GPU name. (read-only)
+---@field dedicated_video_memory integer Dedicated video memory in bytes. (read-only)
+---@field dedicated_system_memory integer Dedicated system memory in bytes. (read-only)
+---@field shared_system_memory integer Shared system memory in bytes. (read-only)
 
----@class vireo.Extent
----@field width integer
----@field height integer
+---@class vireo.Extent 2D integer dimensions.
+---@field width integer Width in pixels/texels.
+---@field height integer Height in pixels/texels.
 
----@class vireo.Rect
----Constructor overloads:
----  Rect(width, height)          -- x=0, y=0
----  Rect(x, y, width, height)
----@field x integer
----@field y integer
----@field width integer
----@field height integer
+---@class vireo.Rect 2D integer rectangle (position + size). Constructor overloads: Rect(width, height) sets x=y=0; Rect(x, y, width, height).
+---@field x integer Left edge (pixels). Default 0.
+---@field y integer Top edge (pixels). Default 0.
+---@field width integer Rectangle width in pixels.
+---@field height integer Rectangle height in pixels.
 
----@class vireo.Viewport
----Constructor overloads:
----  Viewport(width, height)
----  Viewport(x, y, width, height)
----@field x number
----@field y number
----@field width number
----@field height number
----@field min_depth number
----@field max_depth number
+---@class vireo.Viewport Floating-point viewport with depth range. Constructor overloads: Viewport(width, height); Viewport(x, y, width, height).
+---@field x number Left edge of the viewport (pixels).
+---@field y number Top edge of the viewport (pixels).
+---@field width number Viewport width in pixels.
+---@field height number Viewport height in pixels.
+---@field min_depth number Minimum depth value (default 0.0).
+---@field max_depth number Maximum depth value (default 1.0).
 
----@class vireo.PushConstantsDesc
----@field stage vireo.ShaderStage
----@field size integer
----@field offset integer
+---@class vireo.PushConstantsDesc Describes a push-constant range visible to one or more shader stages.
+---@field stage vireo.ShaderStage Shader stage(s) that can access this push-constant range.
+---@field size integer Size of the push-constant block in bytes.
+---@field offset integer Offset into the push-constant block in bytes.
 
----@class vireo.VertexAttributeDesc
----@field binding string
----@field format vireo.AttributeFormat
----@field offset integer
+---@class vireo.VertexAttributeDesc Describes a single vertex attribute in a VertexInputLayout.
+---@field binding string Input binding slot name.
+---@field format vireo.AttributeFormat Data type and component count of the attribute.
+---@field offset integer Byte offset of this attribute within the vertex structure.
 
----@class vireo.DepthClearValue
----@field depth number
----@field stencil integer
+---@class vireo.DepthClearValue Depth and stencil clear values used when clearing a depth/stencil attachment.
+---@field depth number Clear value for the depth aspect (default 1.0).
+---@field stencil integer Clear value for the stencil aspect (default 0).
 
---- Note: color[] and depthStencil sub-fields are NOT currently exposed
---- via properties in LuaBindings (the helper functions are commented out).
----@class vireo.ClearValue
+---@class vireo.ClearValue Union holding either a color clear value (r/g/b/a) or a depth/stencil clear value (depth/stencil). Set r/g/b/a for color attachments; set depth/stencil for depth attachments.
+---@field r number Red component of the color clear value (0.0–1.0).
+---@field g number Green component of the color clear value (0.0–1.0).
+---@field b number Blue component of the color clear value (0.0–1.0).
+---@field a number Alpha component of the color clear value (0.0–1.0, default 1.0).
+---@field depth number Depth clear value (default 1.0). Overrides r/g/b/a union when used.
+---@field stencil integer Stencil clear value (default 0). Overrides r/g/b/a union when used.
 
----@class vireo.VideoMemoryAllocationDesc
----@field usage vireo.VideoMemoryAllocationUsage
----@field name string
----@field size integer
----@field ref any
+---@class vireo.VideoMemoryAllocationDesc Describes a single GPU memory allocation.
+---@field usage vireo.VideoMemoryAllocationUsage Whether this allocation backs a buffer or an image. (read-only)
+---@field name string Debug name of the allocated resource. (read-only)
+---@field size integer Allocation size in bytes. (read-only)
+---@field ref any Opaque reference to the underlying resource object. (read-only)
 
----@class vireo.RenderTargetDesc
----@field swap_chain vireo.SwapChain|nil
----@field render_target vireo.RenderTarget|nil
----@field multisampled_render_target vireo.RenderTarget|nil
----@field clear boolean
----@field clear_value vireo.ClearValue
----@field discard_after_render boolean
+---@class vireo.RenderTargetDesc Describes a single attachment slot in a RenderingConfiguration.
+---@field swap_chain vireo.SwapChain|nil Swap chain providing this attachment (nil if using render_target).
+---@field render_target vireo.RenderTarget|nil Render target for this attachment (nil if using swap_chain).
+---@field multisampled_render_target vireo.RenderTarget|nil Optional MSAA resolve target.
+---@field clear boolean True to clear this attachment at the start of the render pass.
+---@field clear_value vireo.ClearValue Clear value used when clear is true.
+---@field discard_after_render boolean True to discard the attachment content after the render pass.
 
----@class vireo.RenderingConfiguration
----@field color_render_targets vireo.RenderTargetDesc[]
----@field depth_stencil_render_target vireo.RenderTarget|nil
----@field multisampled_depth_stencil_render_target vireo.RenderTarget|nil
----@field depth_test_enable boolean
----@field stencil_test_enable boolean
----@field clear_depth_stencil boolean
----@field depth_stencil_clear_value vireo.ClearValue
----@field discard_depth_stencil_after_render boolean
+---@class vireo.RenderingConfiguration Full render-pass configuration passed to CommandList.begin_rendering().
+---@field color_render_targets vireo.RenderTargetDesc[] List of color attachment descriptors.
+---@field depth_stencil_render_target vireo.RenderTarget|nil Depth/stencil attachment (nil to disable).
+---@field multisampled_depth_stencil_render_target vireo.RenderTarget|nil Optional MSAA depth/stencil resolve target.
+---@field use_depth_attachment boolean True to use the depth attachment during rendering.
+---@field use_stencil_attachment boolean True to use the stencil attachment during rendering.
+---@field clear_depth_stencil boolean True to clear the depth/stencil attachment at the start of the render pass.
+---@field depth_stencil_clear_value vireo.ClearValue Clear value for depth/stencil (use .depth and .stencil fields).
+---@field discard_depth_stencil_after_render boolean True to discard the depth/stencil content after the render pass.
 
----@class vireo.DrawIndirectCommand
----@field vertex_count integer
----@field instance_count integer
----@field first_vertex integer
----@field first_instance integer
+---@class vireo.DrawIndirectCommand GPU-side structure for an indirect (non-indexed) draw call. Mirror of VkDrawIndirectCommand / D3D12_DRAW_ARGUMENTS.
+---@field vertex_count integer Number of vertices to draw.
+---@field instance_count integer Number of instances to draw.
+---@field first_vertex integer Index of the first vertex.
+---@field first_instance integer Instance ID of the first instance.
 
----@class vireo.DrawIndexedIndirectCommand
----@field index_count integer
----@field instance_count integer
----@field first_index integer
----@field vertex_offset integer
----@field first_instance integer
+---@class vireo.DrawIndexedIndirectCommand GPU-side structure for an indirect indexed draw call. Mirror of VkDrawIndexedIndirectCommand / D3D12_DRAW_INDEXED_ARGUMENTS.
+---@field index_count integer Number of indices to draw.
+---@field instance_count integer Number of instances to draw.
+---@field first_index integer Base index within the index buffer.
+---@field vertex_offset integer Added to each index value before reading a vertex.
+---@field first_instance integer Instance ID of the first instance.
 
----@class vireo.BufferCopyRegion
----@field src_offset integer
----@field dst_offset integer
----@field size integer
+---@class vireo.BufferCopyRegion Describes a source/destination region pair for a buffer-to-buffer copy.
+---@field src_offset integer Byte offset into the source buffer.
+---@field dst_offset integer Byte offset into the destination buffer.
+---@field size integer Number of bytes to copy.
 
----@class vireo.GraphicPipelineConfiguration
----@field resources vireo.PipelineResources
----@field color_render_formats vireo.ImageFormat[]
----@field color_blend_desc vireo.ColorBlendDesc[]
----@field vertex_input_layout vireo.VertexInputLayout|nil
----@field vertex_shader vireo.ShaderModule|nil
----@field fragment_shader vireo.ShaderModule|nil
----@field hull_shader vireo.ShaderModule|nil
----@field domain_shader vireo.ShaderModule|nil
----@field geometry_shader vireo.ShaderModule|nil
----@field primitive_topology vireo.PrimitiveTopology
----@field msaa vireo.MSAA
----@field cull_mode vireo.CullMode
----@field polygon_mode vireo.PolygonMode
----@field front_face_counter_clockwise boolean
----@field depth_stencil_image_format vireo.ImageFormat
----@field depth_test_enable boolean
----@field depth_write_enable boolean
----@field depth_compare_op vireo.CompareOp
----@field depth_bias_enable boolean
----@field depth_bias_constant_factor number
----@field depth_bias_clamp number
----@field depth_bias_slope_factor number
----@field stencil_test_enable boolean
----@field front_stencil_op_state vireo.StencilOpState
----@field back_stencil_op_state vireo.StencilOpState
----@field logic_op_enable boolean
----@field logic_op vireo.LogicOp
----@field alpha_to_coverage_enable boolean
+---@class vireo.GraphicPipelineConfiguration Full description of a graphics pipeline passed to Vireo.create_graphic_pipeline().
+---@field resources vireo.PipelineResources Pipeline layout (descriptor layouts + push constants).
+---@field color_render_formats vireo.ImageFormat[] Formats of the color render target attachments.
+---@field color_blend_desc vireo.ColorBlendDesc[] Per-attachment color blend states.
+---@field vertex_input_layout vireo.VertexInputLayout|nil Vertex attribute layout (nil for mesh/compute-only pipelines).
+---@field vertex_shader vireo.ShaderModule|nil Vertex shader module.
+---@field fragment_shader vireo.ShaderModule|nil Fragment shader module.
+---@field hull_shader vireo.ShaderModule|nil Hull (tessellation control) shader module.
+---@field domain_shader vireo.ShaderModule|nil Domain (tessellation evaluation) shader module.
+---@field geometry_shader vireo.ShaderModule|nil Geometry shader module.
+---@field primitive_topology vireo.PrimitiveTopology Input primitive assembly topology.
+---@field msaa vireo.MSAA Multisampling level (NONE disables MSAA).
+---@field cull_mode vireo.CullMode Face culling mode.
+---@field polygon_mode vireo.PolygonMode Fill mode (FILL or WIREFRAME).
+---@field front_face_counter_clockwise boolean True if counter-clockwise winding defines front faces.
+---@field depth_stencil_image_format vireo.ImageFormat Format of the depth/stencil attachment (UNDEFINED if none).
+---@field depth_test_enable boolean True to enable the depth test.
+---@field depth_write_enable boolean True to write depth values when the depth test passes.
+---@field depth_compare_op vireo.CompareOp Depth comparison function.
+---@field depth_bias_enable boolean True to enable depth biasing (useful for shadow maps).
+---@field depth_bias_constant_factor number Constant depth bias added to each fragment's depth.
+---@field depth_bias_clamp number Maximum (or minimum) depth bias applied to a fragment.
+---@field depth_bias_slope_factor number Depth bias scaled by the fragment's slope.
+---@field stencil_test_enable boolean True to enable the stencil test.
+---@field front_stencil_op_state vireo.StencilOpState Stencil operations for front-facing polygons.
+---@field back_stencil_op_state vireo.StencilOpState Stencil operations for back-facing polygons.
+---@field logic_op_enable boolean True to enable logical operations on color attachments.
+---@field logic_op vireo.LogicOp Logical operation applied to color attachments when logic_op_enable is true.
+---@field alpha_to_coverage_enable boolean True to derive a coverage mask from the fragment alpha value (MSAA).
 
 ------------------------------------------------------------------------
 -- Classes / objects
 ------------------------------------------------------------------------
 
----@class vireo.Fence
----@field wait fun(self:vireo.Fence):nil
----@field reset fun(self:vireo.Fence):nil
+---@class vireo.Fence CPU/GPU synchronization primitive. Created by Vireo.create_fence().
+---@field wait fun(self: vireo.Fence): nil Blocks the CPU until the fence is signaled.
+---@field reset fun(self: vireo.Fence): nil Resets the fence to the unsignaled state.
 
----@class vireo.Semaphore
----@field get_type fun(self:vireo.Semaphore):vireo.SemaphoreType
----@field get_value fun(self:vireo.Semaphore):integer
----@field set_value fun(self:vireo.Semaphore, value:integer):nil
----@field increment_value fun(self:vireo.Semaphore):nil
----@field decrement_value fun(self:vireo.Semaphore):nil
+---@class vireo.Semaphore GPU/GPU or GPU/CPU synchronization semaphore. Created by Vireo.create_semaphore().
+---@field get_type fun(self: vireo.Semaphore): vireo.SemaphoreType Returns the semaphore type (BINARY or TIMELINE).
+---@field get_value fun(self: vireo.Semaphore): integer Returns the current counter value (timeline semaphores only).
+---@field set_value fun(self: vireo.Semaphore, value: integer): nil Sets the counter to value (timeline semaphores only).
+---@field increment_value fun(self: vireo.Semaphore): nil Increments the counter by one (timeline semaphores only).
+---@field decrement_value fun(self: vireo.Semaphore): nil Decrements the counter by one (timeline semaphores only).
 
----@class vireo.Instance
+---@class vireo.Instance Underlying API instance (VkInstance / IDXGIFactory). Retrieved via Vireo.get_instance(). Opaque; used for platform-specific window surface creation.
 
---- Note: get_description() is commented out in LuaBindings
----@class vireo.PhysicalDevice
+---@class vireo.PhysicalDevice Represents the physical GPU. Retrieved via Vireo.get_physical_device().
+---@field get_description fun(self: vireo.PhysicalDevice): vireo.PhysicalDeviceDesc Returns name and memory info for the GPU.
 
----@class vireo.Device
----@field have_dedicated_transfer_queue fun(self:vireo.Device):boolean
+---@class vireo.Device Logical device. Retrieved via Vireo.get_device().
+---@field have_dedicated_transfer_queue fun(self: vireo.Device): boolean Returns true if the GPU exposes a dedicated transfer queue separate from the graphics queue.
 
----@class vireo.Buffer
----@field get_size fun(self:vireo.Buffer):integer
----@field get_type fun(self:vireo.Buffer):vireo.BufferType
----@field get_instance_size fun(self:vireo.Buffer):integer
----@field get_instance_size_aligned fun(self:vireo.Buffer):integer
----@field get_instance_count fun(self:vireo.Buffer):integer
----@field get_mapped_address fun(self:vireo.Buffer):lightuserdata|any
----@field map fun(self:vireo.Buffer):nil
----@field unmap fun(self:vireo.Buffer):nil
----@field write fun(self:vireo.Buffer, data:lightuserdata|any, size:integer|nil, offset:integer|nil):nil
----@field get_memory_allocations fun():vireo.VideoMemoryAllocationDesc[]   @static
+---@class vireo.Buffer A GPU buffer. Created by Vireo.create_buffer().
+---@field get_size fun(self: vireo.Buffer): integer Total size of the buffer in bytes. (read-only)
+---@field get_type fun(self: vireo.Buffer): vireo.BufferType Usage type of this buffer. (read-only)
+---@field get_instance_size fun(self: vireo.Buffer): integer Size of a single element/instance in bytes (before alignment). (read-only)
+---@field get_instance_size_aligned fun(self: vireo.Buffer): integer Aligned size of a single element in bytes. (read-only)
+---@field get_instance_count fun(self: vireo.Buffer): integer Number of elements/instances in the buffer. (read-only)
+---@field get_mapped_address fun(self: vireo.Buffer): lightuserdata|any Returns the CPU-side mapped pointer (only valid after map(), for upload/download buffers).
+---@field map fun(self: vireo.Buffer): nil Maps the buffer for CPU access. Call unmap() when done.
+---@field unmap fun(self: vireo.Buffer): nil Unmaps the buffer after CPU writes.
+---@field write fun(self: vireo.Buffer, data: lightuserdata|any, size: integer|nil, offset: integer|nil): nil Writes data into the mapped buffer. size defaults to the whole buffer; offset defaults to 0.
+---@field get_memory_allocations fun(): vireo.VideoMemoryAllocationDesc[] Returns all current GPU memory allocations for Buffer objects. @static
 
----@class vireo.Sampler
+---@class vireo.Sampler Texture sampler state. Created by Vireo.create_sampler(). Opaque.
 
----@class vireo.Image
----@field get_format fun(self:vireo.Image):vireo.ImageFormat
----@field get_width fun(self:vireo.Image):integer
----@field get_height fun(self:vireo.Image):integer
----@field get_mip_levels fun(self:vireo.Image):integer
----@field get_array_size fun(self:vireo.Image):integer
----@field get_row_pitch fun(self:vireo.Image, mipLevel:integer|nil):integer
----@field get_row_length fun(self:vireo.Image, mipLevel:integer|nil):integer
----@field get_image_size fun(self:vireo.Image, mipLevel:integer|nil):integer
----@field get_aligned_image_size fun(self:vireo.Image, mipLevel:integer|nil):integer
----@field get_aligned_row_pitch fun(self:vireo.Image, mipLevel:integer|nil):integer
----@field get_aligned_row_length fun(self:vireo.Image, mipLevel:integer|nil):integer
----@field is_read_write fun(self:vireo.Image):boolean
----@field get_pixel_size fun(format:vireo.ImageFormat):integer   @static
----@field get_memory_allocations fun():vireo.VideoMemoryAllocationDesc[]   @static
+---@class vireo.Image A GPU image (texture). Created by Vireo.create_image() or Vireo.create_read_write_image().
+---@field get_format fun(self: vireo.Image): vireo.ImageFormat Pixel format of the image. (read-only)
+---@field get_width fun(self: vireo.Image): integer Width in pixels of mip level 0. (read-only)
+---@field get_height fun(self: vireo.Image): integer Height in pixels of mip level 0. (read-only)
+---@field get_mip_levels fun(self: vireo.Image): integer Total number of mip levels. (read-only)
+---@field get_array_size fun(self: vireo.Image): integer Number of array layers. (read-only)
+---@field get_row_pitch fun(self: vireo.Image, mipLevel: integer|nil): integer Row pitch in bytes for the given mip level (default 0).
+---@field get_row_length fun(self: vireo.Image, mipLevel: integer|nil): integer Row length in pixels for the given mip level (default 0).
+---@field get_image_size fun(self: vireo.Image, mipLevel: integer|nil): integer Size in bytes of one layer at the given mip level (default 0).
+---@field get_aligned_image_size fun(self: vireo.Image, mipLevel: integer|nil): integer Aligned size in bytes of one layer at the given mip level.
+---@field get_aligned_row_pitch fun(self: vireo.Image, mipLevel: integer|nil): integer Aligned row pitch in bytes for the given mip level.
+---@field get_aligned_row_length fun(self: vireo.Image, mipLevel: integer|nil): integer Aligned row length in pixels for the given mip level.
+---@field is_read_write fun(self: vireo.Image): boolean Returns true if the image was created as a read/write (UAV/storage image).
+---@field get_pixel_size fun(format: vireo.ImageFormat): integer Returns the pixel size in bytes for the given format. @static
+---@field get_memory_allocations fun(): vireo.VideoMemoryAllocationDesc[] Returns all current GPU memory allocations for Image objects. @static
 
----@class vireo.RenderTarget
----@field get_image fun(self:vireo.RenderTarget):vireo.Image
----@field get_type fun(self:vireo.RenderTarget):vireo.RenderTargetType
+---@class vireo.RenderTarget A render-target image wrapper. Created by Vireo.create_render_target() or Vireo.create_render_target_from_swap_chain().
+---@field get_image fun(self: vireo.RenderTarget): vireo.Image Returns the underlying Image.
+---@field get_type fun(self: vireo.RenderTarget): vireo.RenderTargetType Returns the render-target type (COLOR, DEPTH, or DEPTH_STENCIL).
 
----@class vireo.DescriptorLayout
----@field add fun(self:vireo.DescriptorLayout, index:vireo.DescriptorIndex, type:vireo.DescriptorType, count:integer|nil):vireo.DescriptorLayout
----@field build fun(self:vireo.DescriptorLayout):nil
----@field get_capacity fun(self:vireo.DescriptorLayout):integer
----@field is_dynamic_uniform fun(self:vireo.DescriptorLayout):boolean
----@field is_samplers fun(self:vireo.DescriptorLayout):boolean
+---@class vireo.DescriptorLayout Describes the bindings of a descriptor set. Created by Vireo.create_descriptor_layout().
+---@field add fun(self: vireo.DescriptorLayout, index: vireo.DescriptorIndex, type: vireo.DescriptorType, count: integer|nil): vireo.DescriptorLayout Adds a binding at index with the given type (and optional array count). Returns self for chaining.
+---@field build fun(self: vireo.DescriptorLayout): nil Finalizes the layout. Must be called before creating descriptor sets.
+---@field get_capacity fun(self: vireo.DescriptorLayout): integer Returns the number of bindings in this layout.
+---@field is_dynamic_uniform fun(self: vireo.DescriptorLayout): boolean Returns true if the layout was created for dynamic uniform buffers.
+---@field is_samplers fun(self: vireo.DescriptorLayout): boolean Returns true if the layout was created for samplers.
 
---- Note: update() overloads are commented out in LuaBindings
----@class vireo.DescriptorSet
----@field get_layout fun(self:vireo.DescriptorSet):vireo.DescriptorLayout
+---@class vireo.DescriptorSet A set of descriptors bound to a pipeline. Created by Vireo.create_descriptor_set().
+---@field update_buffer fun(self: vireo.DescriptorSet, index: vireo.DescriptorIndex, buffer: vireo.Buffer): nil Binds a uniform or storage buffer at the given binding index.
+---@field update_dynamic_buffer fun(self: vireo.DescriptorSet, buffer: vireo.Buffer): nil Binds a dynamic uniform buffer at binding index 0. The dynamic offset is supplied at CommandList.bind_descriptor_dynamic().
+---@field update_image fun(self: vireo.DescriptorSet, index: vireo.DescriptorIndex, image: vireo.Image): nil Binds a sampled image or storage image at the given binding index.
+---@field update_sampler fun(self: vireo.DescriptorSet, index: vireo.DescriptorIndex, sampler: vireo.Sampler): nil Binds a sampler at the given binding index.
+---@field update_image_array fun(self: vireo.DescriptorSet, index: vireo.DescriptorIndex, images: vireo.Image[]): nil Binds an array of images at the given binding index.
+---@field update_buffer_array fun(self: vireo.DescriptorSet, index: vireo.DescriptorIndex, buffers: vireo.Buffer[]): nil Binds an array of buffers at the given binding index.
+---@field update_sampler_array fun(self: vireo.DescriptorSet, index: vireo.DescriptorIndex, samplers: vireo.Sampler[]): nil Binds an array of samplers at the given binding index.
+---@field get_layout fun(self: vireo.DescriptorSet): vireo.DescriptorLayout Returns the DescriptorLayout this set was created from.
 
----@class vireo.VertexInputLayout
+---@class vireo.VertexInputLayout Describes the vertex input attributes of a pipeline. Created by Vireo.create_vertex_layout(). Opaque.
 
----@class vireo.ShaderModule
+---@class vireo.ShaderModule A compiled shader. Created by Vireo.create_shader_module_from_file() or Vireo.create_shader_module_from_data(). Opaque.
 
----@class vireo.PipelineResources
+---@class vireo.PipelineResources Describes the pipeline layout (descriptor layouts + push constants). Created by Vireo.create_pipeline_resources(). Opaque.
 
----@class vireo.Pipeline
----@field get_resources fun(self:vireo.Pipeline):vireo.PipelineResources
----@field get_type fun(self:vireo.Pipeline):vireo.PipelineType
+---@class vireo.Pipeline Base class for compiled pipelines. Use vireo.ComputePipeline or vireo.GraphicPipeline.
+---@field get_resources fun(self: vireo.Pipeline): vireo.PipelineResources Returns the pipeline layout.
+---@field get_type fun(self: vireo.Pipeline): vireo.PipelineType Returns the pipeline type (GRAPHIC or COMPUTE).
 
----@class vireo.ComputePipeline : vireo.Pipeline
+---@class vireo.ComputePipeline : vireo.Pipeline Compiled compute pipeline. Created by Vireo.create_compute_pipeline().
 
----@class vireo.GraphicPipeline : vireo.Pipeline
+---@class vireo.GraphicPipeline : vireo.Pipeline Compiled graphics pipeline. Created by Vireo.create_graphic_pipeline().
 
----@class vireo.SwapChain
----@field get_extent fun(self:vireo.SwapChain):vireo.Extent
----@field get_aspect_ratio fun(self:vireo.SwapChain):number
----@field get_current_frame_index fun(self:vireo.SwapChain):integer
----@field get_frames_in_flight fun(self:vireo.SwapChain):integer
----@field get_format fun(self:vireo.SwapChain):vireo.ImageFormat
----@field next_frame_index fun(self:vireo.SwapChain):nil
----@field acquire fun(self:vireo.SwapChain, fence:vireo.Fence):boolean
----@field present fun(self:vireo.SwapChain):nil
----@field recreate fun(self:vireo.SwapChain):nil
----@field wait_idle fun(self:vireo.SwapChain):nil
+---@class vireo.SwapChain Presentation swap chain. Created by Vireo.create_swap_chain().
+---@field get_extent fun(self: vireo.SwapChain): vireo.Extent Returns the current swap chain size in pixels.
+---@field get_aspect_ratio fun(self: vireo.SwapChain): number Returns width / height.
+---@field get_current_frame_index fun(self: vireo.SwapChain): integer Returns the index of the current back buffer (0 to frames_in_flight-1).
+---@field get_frames_in_flight fun(self: vireo.SwapChain): integer Returns the number of buffered frames.
+---@field get_format fun(self: vireo.SwapChain): vireo.ImageFormat Returns the back buffer pixel format.
+---@field next_frame_index fun(self: vireo.SwapChain): nil Advances the internal frame index to the next frame.
+---@field acquire fun(self: vireo.SwapChain, fence: vireo.Fence): boolean Acquires the next available back buffer. Returns false if the swap chain must be recreated (resize).
+---@field present fun(self: vireo.SwapChain): nil Presents the current back buffer to the display.
+---@field recreate fun(self: vireo.SwapChain): nil Recreates the swap chain (e.g. after a window resize).
+---@field wait_idle fun(self: vireo.SwapChain): nil Waits until all pending present operations complete.
 
----@class vireo.CommandList
----@field begin fun(self:vireo.CommandList):nil
----@field end fun(self:vireo.CommandList):nil
---- Upload a buffer to GPU memory
----@field upload_buffer fun(self:vireo.CommandList, destination:vireo.Buffer, data:lightuserdata|any):nil
---- Upload an image to GPU memory
----@field upload_image fun(self:vireo.CommandList, destination:vireo.Image, data:lightuserdata|any, firstMipLevel:integer):nil
---- Copy a buffer region into an image (single mip level)
----@field copy_buffer_to_image fun(self:vireo.CommandList, src:vireo.Buffer, dst:vireo.Image, mipLevel:integer, arrayLayer:integer, generateMips:boolean):nil
---- Copy a buffer into an image providing explicit byte offsets per mip level
----@field copy_buffer_to_image_levels fun(self:vireo.CommandList, src:vireo.Buffer, dst:vireo.Image, offsets:integer[], generateMips:boolean):nil
---- Copy a buffer into another buffer
----@field copy_buffer_to_buffer fun(self:vireo.CommandList, src:vireo.Buffer, dst:vireo.Buffer, size:integer, srcOffset:integer, dstOffset:integer):nil
---- Copy buffer sub-regions
----@field copy_buffer_regions fun(self:vireo.CommandList, src:vireo.Buffer, dst:vireo.Buffer, regions:vireo.BufferCopyRegion[]):nil
---- Blit / resolve an Image into the SwapChain backbuffer
----@field copy_image_to_swap_chain fun(self:vireo.CommandList, src:vireo.Image, swapChain:vireo.SwapChain):nil
----@field begin_rendering fun(self:vireo.CommandList, config:vireo.RenderingConfiguration):nil
----@field end_rendering fun(self:vireo.CommandList):nil
----@field dispatch fun(self:vireo.CommandList, x:integer, y:integer, z:integer):nil
---- Bind a single vertex buffer at optional byte offset
----@field bind_vertex_buffer fun(self:vireo.CommandList, buffer:vireo.Buffer, offset:integer|nil):nil
---- Bind multiple vertex buffers
----@field bind_vertex_buffers fun(self:vireo.CommandList, buffers:vireo.Buffer[], offsets:integer[]|nil):nil
---- Bind a descriptor set at the given set index
----@field bind_descriptor fun(self:vireo.CommandList, descriptor:vireo.DescriptorSet, set:integer):nil
---- Bind a dynamic-uniform descriptor set with a dynamic offset
----@field bind_descriptor_dynamic fun(self:vireo.CommandList, descriptor:vireo.DescriptorSet, set:integer, offset:integer):nil
----@field draw fun(self:vireo.CommandList, vertexCountPerInstance:integer, instanceCount:integer|nil, firstVertex:integer|nil, firstInstance:integer|nil):nil
----@field draw_indexed fun(self:vireo.CommandList, indexCountPerInstance:integer, instanceCount:integer|nil, firstIndex:integer|nil, firstVertex:integer|nil, firstInstance:integer|nil):nil
---- Indirect draw (non-indexed)
----@field draw_indirect fun(self:vireo.CommandList, buffer:vireo.Buffer, offset:integer, drawCount:integer, stride:integer, firstCommandOffset:integer):nil
---- Indirect indexed draw with a GPU-side count buffer
----@field draw_indexed_indirect_count fun(self:vireo.CommandList, buffer:vireo.Buffer, offset:integer, countBuffer:vireo.Buffer, countOffset:integer, maxDrawCount:integer, stride:integer, firstCommandOffset:integer):nil
---- Indirect indexed draw with a CPU-side draw count
----@field draw_indexed_indirect fun(self:vireo.CommandList, buffer:vireo.Buffer, offset:integer, maxDrawCount:integer, stride:integer, firstCommandOffset:integer):nil
----@field set_viewports fun(self:vireo.CommandList, viewports:vireo.Viewport[]):nil
----@field set_scissors fun(self:vireo.CommandList, rects:vireo.Rect[]):nil
----@field set_viewport fun(self:vireo.CommandList, viewport:vireo.Viewport):nil
---- Set a single scissor rect
----@field set_scissor fun(self:vireo.CommandList, rect:vireo.Rect):nil
----@field set_stencil_reference fun(self:vireo.CommandList, reference:integer):nil
----@field push_constants fun(self:vireo.CommandList, resources:vireo.PipelineResources, desc:vireo.PushConstantsDesc, data:any):nil
----@field cleanup fun(self:vireo.CommandList):nil
+---@class vireo.CommandList Records GPU commands. Obtained from CommandAllocator.create_command_list().
+---@field begin fun(self: vireo.CommandList): nil Begins recording. Must be called before any other recording command.
+---@field end fun(self: vireo.CommandList): nil Ends recording. Must be called before submitting.
+---@field upload_buffer fun(self: vireo.CommandList, destination: vireo.Buffer, data: lightuserdata|any): nil Uploads CPU data into a BUFFER_UPLOAD buffer.
+---@field upload_image fun(self: vireo.CommandList, destination: vireo.Image, data: lightuserdata|any, firstMipLevel: integer): nil Uploads CPU data into an IMAGE_UPLOAD staging buffer starting at firstMipLevel.
+---@field copy_buffer_to_image fun(self: vireo.CommandList, src: vireo.Buffer, dst: vireo.Image, mipLevel: integer, arrayLayer: integer, generateMips: boolean): nil Copies a staging buffer into a single image mip level and array layer.
+---@field copy_buffer_to_image_levels fun(self: vireo.CommandList, src: vireo.Buffer, dst: vireo.Image, offsets: integer[], generateMips: boolean): nil Copies a staging buffer into multiple mip levels using explicit byte offsets per level.
+---@field copy_buffer_to_buffer fun(self: vireo.CommandList, src: vireo.Buffer, dst: vireo.Buffer, size: integer, srcOffset: integer, dstOffset: integer): nil Copies size bytes from src (at srcOffset) into dst (at dstOffset).
+---@field copy_buffer_regions fun(self: vireo.CommandList, src: vireo.Buffer, dst: vireo.Buffer, regions: vireo.BufferCopyRegion[]): nil Copies multiple non-contiguous regions between two buffers.
+---@field copy_image_to_swap_chain fun(self: vireo.CommandList, src: vireo.Image, swapChain: vireo.SwapChain): nil Blits or resolves src into the swap chain's current back buffer.
+---@field begin_rendering fun(self: vireo.CommandList, config: vireo.RenderingConfiguration): nil Begins a dynamic render pass. Pair with end_rendering().
+---@field end_rendering fun(self: vireo.CommandList): nil Ends the current dynamic render pass.
+---@field dispatch fun(self: vireo.CommandList, x: integer, y: integer, z: integer): nil Dispatches a compute shader with the given thread-group counts.
+---@field bind_pipeline fun(self: vireo.CommandList, pipeline: vireo.Pipeline, descriptorsAlreadyBound: boolean|nil): nil Binds a graphics or compute pipeline. Pass descriptorsAlreadyBound=true to skip re-binding unchanged descriptor sets.
+---@field bind_vertex_buffer fun(self: vireo.CommandList, buffer: vireo.Buffer, offset: integer|nil): nil Binds a vertex buffer at the default slot. offset is a byte offset (default 0).
+---@field bind_vertex_buffers fun(self: vireo.CommandList, buffers: vireo.Buffer[], offsets: integer[]|nil): nil Binds multiple vertex buffers at once.
+---@field bind_index_buffer fun(self: vireo.CommandList, buffer: vireo.Buffer, indexType: vireo.IndexType|nil, firstIndex: integer|nil): nil Binds an index buffer. Defaults to UINT32 and firstIndex=0.
+---@field bind_descriptors fun(self: vireo.CommandList, pipelineType: vireo.PipelineType, resources: vireo.PipelineResources, descriptors: vireo.DescriptorSet[]): nil Binds descriptor sets before the pipeline is bound (supply pipelineType + resources).
+---@field bind_descriptors fun(self: vireo.CommandList, descriptors: vireo.DescriptorSet[]): nil Binds descriptor sets after the pipeline is bound (pipeline type is inferred).
+---@field bind_descriptor fun(self: vireo.CommandList, descriptor: vireo.DescriptorSet, set: integer): nil Binds a single descriptor set at the given set index (after pipeline bind).
+---@field bind_descriptor_dynamic fun(self: vireo.CommandList, descriptor: vireo.DescriptorSet, set: integer, offset: integer): nil Binds a dynamic-uniform descriptor set with a byte offset into the buffer.
+---@field draw fun(self: vireo.CommandList, vertexCountPerInstance: integer, instanceCount: integer|nil, firstVertex: integer|nil, firstInstance: integer|nil): nil Issues a non-indexed draw call.
+---@field draw_indexed fun(self: vireo.CommandList, indexCountPerInstance: integer, instanceCount: integer|nil, firstIndex: integer|nil, firstVertex: integer|nil, firstInstance: integer|nil): nil Issues an indexed draw call.
+---@field draw_indirect fun(self: vireo.CommandList, buffer: vireo.Buffer, offset: integer, drawCount: integer, stride: integer, firstCommandOffset: integer): nil Issues indirect (non-indexed) draw calls sourced from a GPU buffer.
+---@field draw_indexed_indirect_count fun(self: vireo.CommandList, buffer: vireo.Buffer, offset: integer, countBuffer: vireo.Buffer, countOffset: integer, maxDrawCount: integer, stride: integer, firstCommandOffset: integer): nil Issues indirect indexed draw calls with the draw count stored in a GPU buffer.
+---@field draw_indexed_indirect fun(self: vireo.CommandList, buffer: vireo.Buffer, offset: integer, maxDrawCount: integer, stride: integer, firstCommandOffset: integer): nil Issues indirect indexed draw calls with a CPU-side draw count.
+---@field barrier_image fun(self: vireo.CommandList, image: vireo.Image, oldState: vireo.ResourceState, newState: vireo.ResourceState): nil Inserts a memory barrier transitioning an image from oldState to newState.
+---@field barrier_render_target fun(self: vireo.CommandList, renderTarget: vireo.RenderTarget, oldState: vireo.ResourceState, newState: vireo.ResourceState): nil Inserts a memory barrier transitioning a render-target image between resource states.
+---@field barrier_swap_chain fun(self: vireo.CommandList, swapChain: vireo.SwapChain, oldState: vireo.ResourceState, newState: vireo.ResourceState): nil Inserts a memory barrier for the swap chain's current back buffer.
+---@field barrier_buffer fun(self: vireo.CommandList, buffer: vireo.Buffer, oldState: vireo.ResourceState, newState: vireo.ResourceState): nil Inserts a memory barrier for a buffer resource.
+---@field set_viewports fun(self: vireo.CommandList, viewports: vireo.Viewport[]): nil Sets multiple viewports.
+---@field set_scissors fun(self: vireo.CommandList, rects: vireo.Rect[]): nil Sets multiple scissor rectangles.
+---@field set_viewport fun(self: vireo.CommandList, viewport: vireo.Viewport): nil Sets a single viewport.
+---@field set_scissor fun(self: vireo.CommandList, rect: vireo.Rect): nil Sets a single scissor rectangle.
+---@field set_stencil_reference fun(self: vireo.CommandList, reference: integer): nil Sets the stencil reference value used in stencil comparisons.
+---@field push_constants fun(self: vireo.CommandList, resources: vireo.PipelineResources, desc: vireo.PushConstantsDesc, data: any): nil Uploads push-constant data for the bound pipeline.
+---@field cleanup fun(self: vireo.CommandList): nil Releases internal temporary resources after the command list has been submitted.
 
----@class vireo.CommandAllocator
----@field reset fun(self:vireo.CommandAllocator):nil
----@field get_command_list_type fun(self:vireo.CommandAllocator):vireo.CommandType
+---@class vireo.CommandAllocator Manages a pool of command lists for a specific queue type. Created by Vireo.create_command_allocator().
+---@field reset fun(self: vireo.CommandAllocator): nil Resets the allocator and all its command lists. Call once per frame before re-recording.
+---@field create_command_list fun(self: vireo.CommandAllocator, pipeline: vireo.Pipeline|nil): vireo.CommandList Creates a new command list. Pass a pipeline to pre-bind it at creation time (graphics allocators only).
+---@field get_command_list_type fun(self: vireo.CommandAllocator): vireo.CommandType Returns the command type this allocator was created for.
 
---- Note: submit() overloads are commented out; only wait_idle() is currently bound
----@class vireo.SubmitQueue
----@field wait_idle fun(self:vireo.SubmitQueue):nil
+---@class vireo.SubmitQueue GPU command submission queue. Created by Vireo.create_submit_queue().
+---@field submit fun(self: vireo.SubmitQueue, commandLists: vireo.CommandList[]): nil Submits command lists with no synchronization.
+---@field submit_fence fun(self: vireo.SubmitQueue, fence: vireo.Fence, commandLists: vireo.CommandList[]): nil Submits command lists and signals fence when the GPU finishes.
+---@field submit_fence_swap fun(self: vireo.SubmitQueue, fence: vireo.Fence, swapChain: vireo.SwapChain, commandLists: vireo.CommandList[]): nil Submits command lists synchronized with a swap-chain present operation and a CPU fence.
+---@field submit_wait_fence_swap fun(self: vireo.SubmitQueue, waitSemaphore: vireo.Semaphore, waitStage: vireo.WaitStage, fence: vireo.Fence, swapChain: vireo.SwapChain, commandLists: vireo.CommandList[]): nil Submits with GPU wait on waitSemaphore, CPU fence signal, and swap-chain present.
+---@field submit_wait_signal fun(self: vireo.SubmitQueue, waitSemaphore: vireo.Semaphore, waitStage: vireo.WaitStage, signalStage: vireo.WaitStage, signalSemaphore: vireo.Semaphore, commandLists: vireo.CommandList[]): nil Submits with GPU/GPU synchronization: waits on waitSemaphore and signals signalSemaphore.
+---@field submit_wait fun(self: vireo.SubmitQueue, waitSemaphore: vireo.Semaphore, waitStage: vireo.WaitStage, commandLists: vireo.CommandList[]): nil Submits after waiting on a GPU semaphore at the given pipeline stage.
+---@field submit_signal fun(self: vireo.SubmitQueue, signalStage: vireo.WaitStage, signalSemaphore: vireo.Semaphore, commandLists: vireo.CommandList[]): nil Submits and signals a GPU semaphore when the given pipeline stage completes.
+---@field wait_idle fun(self: vireo.SubmitQueue): nil Blocks the CPU until all submitted commands have finished executing.
 
----@class vireo.Vireo
----@field backend vireo.Backend                @read-only property
----@field wait_idle fun(self:vireo.Vireo):nil
----@field create_swap_chain fun(self:vireo.Vireo, format:vireo.ImageFormat, presentQueue:vireo.SubmitQueue, windowHandle:any, presentMode:vireo.PresentMode|nil, framesInFlight:integer|nil):vireo.SwapChain
----@field create_submit_queue fun(self:vireo.Vireo, commandType:vireo.CommandType, name:string|nil):vireo.SubmitQueue
----@field create_fence fun(self:vireo.Vireo, createSignaled:boolean|nil, name:string|nil):vireo.Fence
----@field create_semaphore fun(self:vireo.Vireo, type:vireo.SemaphoreType, name:string|nil):vireo.Semaphore
----@field create_command_allocator fun(self:vireo.Vireo, type:vireo.CommandType):vireo.CommandAllocator
----@field create_vertex_layout fun(self:vireo.Vireo, size:integer, attributes:vireo.VertexAttributeDesc[]):vireo.VertexInputLayout
---- Load a shader module from a file path (extension provided by get_shader_file_extension)
----@field create_shader_module_from_file fun(self:vireo.Vireo, path:string):vireo.ShaderModule
---- Load a shader module from raw byte data with an optional debug name
----@field create_shader_module_from_data fun(self:vireo.Vireo, data:any, name:string):vireo.ShaderModule
----@field create_pipeline_resources fun(self:vireo.Vireo, layouts:vireo.DescriptorLayout[]|nil, pushConstant:vireo.PushConstantsDesc|nil, name:string|nil):vireo.PipelineResources
----@field create_compute_pipeline fun(self:vireo.Vireo, resources:vireo.PipelineResources, shader:vireo.ShaderModule, name:string|nil):vireo.ComputePipeline
----@field create_graphic_pipeline fun(self:vireo.Vireo, config:vireo.GraphicPipelineConfiguration, name:string|nil):vireo.GraphicPipeline
----@field create_buffer fun(self:vireo.Vireo, type:vireo.BufferType, size:integer, count:integer|nil, name:string|nil):vireo.Buffer
----@field create_image fun(self:vireo.Vireo, format:vireo.ImageFormat, width:integer, height:integer, mipLevels:integer|nil, arraySize:integer|nil, name:string|nil):vireo.Image
----@field create_read_write_image fun(self:vireo.Vireo, format:vireo.ImageFormat, width:integer, height:integer, mipLevels:integer|nil, arraySize:integer|nil, name:string|nil):vireo.Image
----@field create_descriptor_layout fun(self:vireo.Vireo, name:string|nil):vireo.DescriptorLayout
----@field create_sampler_descriptor_layout fun(self:vireo.Vireo, name:string|nil):vireo.DescriptorLayout
----@field create_dynamic_uniform_descriptor_layout fun(self:vireo.Vireo, name:string|nil):vireo.DescriptorLayout
----@field create_descriptor_set fun(self:vireo.Vireo, layout:vireo.DescriptorLayout, name:string|nil):vireo.DescriptorSet
----@field create_sampler fun(self:vireo.Vireo, minFilter:vireo.Filter, magFilter:vireo.Filter, addressModeU:vireo.AddressMode, addressModeV:vireo.AddressMode, addressModeW:vireo.AddressMode, minLod:number|nil, maxLod:number|nil, anisotropyEnable:boolean|nil, mipMapMode:vireo.FilterMode|nil, compareOp:vireo.CompareOp|nil):vireo.Sampler
----@field is_backend_supported fun(backend:vireo.Backend):boolean   @static
----@field get_shader_file_extension fun(self:vireo.Vireo):string
----@field get_physical_device fun(self:vireo.Vireo):vireo.PhysicalDevice
----@field get_device fun(self:vireo.Vireo):vireo.Device
----@field get_instance fun(self:vireo.Vireo):vireo.Instance
+---@class vireo.Vireo Main entry point. Obtained from the host application; not constructed in Lua.
+---@field backend vireo.Backend The active rendering backend. (read-only)
+---@field wait_idle fun(self: vireo.Vireo): nil Blocks until the GPU has finished all pending work on all queues.
+---@field create_swap_chain fun(self: vireo.Vireo, format: vireo.ImageFormat, presentQueue: vireo.SubmitQueue, windowHandle: any, presentMode: vireo.PresentMode|nil, framesInFlight: integer|nil): vireo.SwapChain Creates a swap chain for the given OS window handle.
+---@field create_submit_queue fun(self: vireo.Vireo, commandType: vireo.CommandType, name: string|nil): vireo.SubmitQueue Creates a GPU command submission queue.
+---@field create_fence fun(self: vireo.Vireo, createSignaled: boolean|nil, name: string|nil): vireo.Fence Creates a CPU/GPU synchronization fence (unsignaled by default).
+---@field create_semaphore fun(self: vireo.Vireo, type: vireo.SemaphoreType, name: string|nil): vireo.Semaphore Creates a GPU synchronization semaphore.
+---@field create_command_allocator fun(self: vireo.Vireo, type: vireo.CommandType): vireo.CommandAllocator Creates a command allocator for the given queue type.
+---@field create_vertex_layout fun(self: vireo.Vireo, size: integer, attributes: vireo.VertexAttributeDesc[]): vireo.VertexInputLayout Creates a vertex input layout from a stride and a list of attribute descriptors.
+---@field create_shader_module_from_file fun(self: vireo.Vireo, path: string): vireo.ShaderModule Loads a compiled shader from a file path (use get_shader_file_extension() for the right extension).
+---@field create_shader_module_from_data fun(self: vireo.Vireo, data: any, name: string): vireo.ShaderModule Creates a shader module from raw compiled byte data with an optional debug name.
+---@field create_pipeline_resources fun(self: vireo.Vireo, layouts: vireo.DescriptorLayout[]|nil, pushConstant: vireo.PushConstantsDesc|nil, name: string|nil): vireo.PipelineResources Creates a pipeline layout from descriptor layouts and an optional push-constant range.
+---@field create_compute_pipeline fun(self: vireo.Vireo, resources: vireo.PipelineResources, shader: vireo.ShaderModule, name: string|nil): vireo.ComputePipeline Creates a compiled compute pipeline.
+---@field create_graphic_pipeline fun(self: vireo.Vireo, config: vireo.GraphicPipelineConfiguration, name: string|nil): vireo.GraphicPipeline Creates a compiled graphics pipeline from a full configuration.
+---@field create_buffer fun(self: vireo.Vireo, type: vireo.BufferType, size: integer, count: integer|nil, name: string|nil): vireo.Buffer Allocates a GPU buffer. size is the per-element size in bytes; count is the number of elements (default 1).
+---@field create_image fun(self: vireo.Vireo, format: vireo.ImageFormat, width: integer, height: integer, mipLevels: integer|nil, arraySize: integer|nil, name: string|nil): vireo.Image Allocates a GPU image (shader-read-only).
+---@field create_read_write_image fun(self: vireo.Vireo, format: vireo.ImageFormat, width: integer, height: integer, mipLevels: integer|nil, arraySize: integer|nil, name: string|nil): vireo.Image Allocates a GPU read/write image (UAV / storage image).
+---@field create_render_target fun(self: vireo.Vireo, format: vireo.ImageFormat, width: integer, height: integer, type: vireo.RenderTargetType|nil, clearValue: vireo.ClearValue|nil, arraySize: integer|nil, msaa: vireo.MSAA|nil, name: string|nil): vireo.RenderTarget Creates a render target of the given format and dimensions.
+---@field create_render_target_from_swap_chain fun(self: vireo.Vireo, swapChain: vireo.SwapChain, clearValue: vireo.ClearValue|nil, msaa: vireo.MSAA|nil, name: string|nil): vireo.RenderTarget Creates a render target that matches the format and size of the given swap chain.
+---@field create_descriptor_layout fun(self: vireo.Vireo, name: string|nil): vireo.DescriptorLayout Creates an empty descriptor layout for uniform/storage/image/sampler bindings.
+---@field create_sampler_descriptor_layout fun(self: vireo.Vireo, name: string|nil): vireo.DescriptorLayout Creates an empty descriptor layout for sampler-only bindings.
+---@field create_dynamic_uniform_descriptor_layout fun(self: vireo.Vireo, name: string|nil): vireo.DescriptorLayout Creates an empty descriptor layout for dynamic uniform buffer bindings.
+---@field create_descriptor_set fun(self: vireo.Vireo, layout: vireo.DescriptorLayout, name: string|nil): vireo.DescriptorSet Creates a descriptor set from a built DescriptorLayout.
+---@field create_sampler fun(self: vireo.Vireo, minFilter: vireo.Filter, magFilter: vireo.Filter, addressModeU: vireo.AddressMode, addressModeV: vireo.AddressMode, addressModeW: vireo.AddressMode, minLod: number|nil, maxLod: number|nil, anisotropyEnable: boolean|nil, mipMapMode: vireo.FilterMode|nil, compareOp: vireo.CompareOp|nil): vireo.Sampler Creates a texture sampler with the given filtering and addressing parameters.
+---@field is_backend_supported fun(backend: vireo.Backend): boolean Returns true if the given backend is available on this machine. @static
+---@field get_shader_file_extension fun(self: vireo.Vireo): string Returns the file extension for compiled shaders on the active backend (e.g. ".spv" or ".cso").
+---@field get_physical_device fun(self: vireo.Vireo): vireo.PhysicalDevice Returns the PhysicalDevice representing the active GPU.
+---@field get_device fun(self: vireo.Vireo): vireo.Device Returns the logical Device.
+---@field get_instance fun(self: vireo.Vireo): vireo.Instance Returns the underlying API Instance.
 
 ------------------------------------------------------------------------
 -- Global namespace declaration
--- All vireo.* classes above are accessible as fields of this global.
 ------------------------------------------------------------------------
 
 ---@class vireo
