@@ -638,7 +638,7 @@ namespace vireo {
                 })
             .addFunction("bind_descriptors",
                 luabridge::overload<
-                    PipelineType,
+                    const CommandList*, PipelineType,
                     const std::shared_ptr<PipelineResources>&,
                     const std::vector<std::shared_ptr<const DescriptorSet>>&>(
                     +[](const CommandList* self,
@@ -648,6 +648,7 @@ namespace vireo {
                         self->bindDescriptors(type, resources, descriptors);
                     }),
                 luabridge::overload<
+                    const CommandList*,
                     const std::vector<std::shared_ptr<const DescriptorSet>>&>(
                     +[](const CommandList* self,
                         const std::vector<std::shared_ptr<const DescriptorSet>>& descriptors) {
@@ -699,11 +700,11 @@ namespace vireo {
             .addFunction("reset",
                 &CommandAllocator::reset)
             .addFunction("create_command_list",
-                luabridge::overload<>(
+                luabridge::overload<const CommandAllocator*>(
                     +[](const CommandAllocator* self) {
                         return self->createCommandList();
                     }),
-                luabridge::overload<const Pipeline&>(
+                luabridge::overload<const CommandAllocator*, const Pipeline&>(
                     +[](const CommandAllocator* self, const Pipeline& pipeline) {
                         return self->createCommandList(pipeline);
                     }))

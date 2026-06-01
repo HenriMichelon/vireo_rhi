@@ -919,7 +919,7 @@ export namespace vireo {
         /**
          * Returns the graphic adapter description
          */
-        virtual const PhysicalDeviceDesc getDescription() const = 0;
+        virtual PhysicalDeviceDesc getDescription() const = 0;
 
         virtual ~PhysicalDevice() = default;
         PhysicalDevice (PhysicalDevice&) = delete;

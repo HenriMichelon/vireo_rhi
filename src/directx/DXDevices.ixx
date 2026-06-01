@@ -38,7 +38,7 @@ export namespace vireo {
 
         auto getHardwareAdapter() { return hardwareAdapter4; }
 
-        const PhysicalDeviceDesc getDescription() const override;
+        PhysicalDeviceDesc getDescription() const override;
 
     private:
         ComPtr<IDXGIAdapter4> hardwareAdapter4;

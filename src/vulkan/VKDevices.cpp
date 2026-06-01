@@ -401,7 +401,7 @@ instanceExtensions.data()};
     }
 
     // https://dev.to/reg__/there-is-a-way-to-query-gpu-memory-usage-in-vulkan---use-dxgi-1f0d
-    const PhysicalDeviceDesc VKPhysicalDevice::getDescription() const {
+    PhysicalDeviceDesc VKPhysicalDevice::getDescription() const {
         PhysicalDeviceDesc result;
 #if defined(_WIN32) and defined(DIRECTX_BACKEND)
         IDXGIFactory4 *dxgiFactory{nullptr};

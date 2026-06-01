@@ -57,7 +57,7 @@ namespace vireo {
         }
     }
 
-    const PhysicalDeviceDesc DXPhysicalDevice::getDescription() const {
+    PhysicalDeviceDesc DXPhysicalDevice::getDescription() const {
         DXGI_ADAPTER_DESC3 desc;
         dxCheck(hardwareAdapter4->GetDesc3(&desc));
         return {

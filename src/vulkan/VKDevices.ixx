@@ -80,7 +80,7 @@ export namespace vireo {
         // Returns the MSAA sample count
         auto getSampleCount() const { return sampleCount; }
 
-        const PhysicalDeviceDesc getDescription() const override;
+        PhysicalDeviceDesc getDescription() const override;
 
     private:
         VkInstance                   instance{VK_NULL_HANDLE};
