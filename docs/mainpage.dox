@@ -15,7 +15,8 @@ Documentation
 - \ref about
 - \ref getting_started
 - \ref manual
-- [Lua API](namespacevireo_lua.html)
+- \ref vireo "Classes"
+- \ref z_lua_api
 
 Tutorials & examples
 ---------------------------------------------------------------------------

@@ -1,0 +1,7 @@
+/*!
+\page z_lua_api Lua API
+
+Vireo Lua API namespaces :
+
+- [vireo](namespacevireo_lua.html)
+*/
