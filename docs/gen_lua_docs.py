@@ -23,9 +23,6 @@ import re
 import sys
 from dataclasses import dataclass, field
 from typing import Optional
-# ---------------------------------------------------------------------------
-# Data model
-# ---------------------------------------------------------------------------
 
 @dataclass
 class LuaField:
@@ -57,9 +54,6 @@ class DocContext:
     ns_href: str         # namespace page filename, e.g. "namespacevireo_lua.html"
     head_tmpl: str = ""  # content of the HTML head/header template file
     foot_tmpl: str = ""  # content of the HTML footer template file
-# ---------------------------------------------------------------------------
-# Parsing
-# ---------------------------------------------------------------------------
 
 RE_CLASS     = re.compile(r"^---@class\s+([A-Za-z0-9_.]+)\s*(?::\s*([A-Za-z0-9_.]+))?\s*(?:\s+(.+))?$")
 RE_FIELD     = re.compile(r"^---@field\s+(\S+)\s+(.*?)\s*$")
@@ -73,15 +67,8 @@ def _split_inline_note(rest: str) -> tuple[str, str]:
         return rest[: m.start()].rstrip(), m.group(1).strip()
     return rest, ""
 def _split_type_and_doc(rest: str) -> tuple[str, str]:
-    """Split '@field name <type_token> [inline doc] [@note]' remainder into
-    (raw_type, inline_doc).  The type token is either:
-      - a fun(...):... expression  (balanced parentheses)
-      - a plain word (possibly ending with [] or |alternates)
-    Everything after the type token (and before any trailing @note) is the
-    inline doc comment."""
     rest = rest.strip()
     if rest.startswith("fun"):
-        # consume until parentheses are balanced
         depth = 0
         i = 0
         while i < len(rest):
@@ -93,7 +80,6 @@ def _split_type_and_doc(rest: str) -> tuple[str, str]:
                     i += 1
                     break
             i += 1
-        # optional return type after ":"
         if i < len(rest) and rest[i] == ":":
             i += 1
             while i < len(rest) and rest[i] == " ":
@@ -104,12 +90,10 @@ def _split_type_and_doc(rest: str) -> tuple[str, str]:
         raw_type = rest[:i].rstrip()
         remainder = rest[i:].lstrip()
     else:
-        # plain type token: one whitespace-delimited word
         parts = rest.split(None, 1)
         raw_type = parts[0]
         remainder = parts[1] if len(parts) > 1 else ""
 
-    # strip trailing @note from remainder
     m = re.search(r"\s+@\S", remainder)
     if m:
         inline_doc = remainder[:m.start()].strip()
@@ -118,7 +102,6 @@ def _split_type_and_doc(rest: str) -> tuple[str, str]:
         inline_doc = remainder.strip()
         inline_note = ""
 
-    # if remainder starts with "@" it is a note, not a doc
     if inline_doc.startswith("@"):
         inline_note = inline_doc.lstrip("@").strip()
         inline_doc = ""
@@ -164,7 +147,7 @@ def parse_lua(path: str):
 
     classes: dict[str, LuaClass] = {}
     aliases: dict[str, str] = {}
-    type_global: Optional[str] = None
+    type_globals: list[str] = []
 
     current: Optional[LuaClass] = None
     pending_doc: list[str] = []
@@ -211,7 +194,7 @@ def parse_lua(path: str):
 
         m = RE_TYPE.match(stripped)
         if m:
-            type_global = m.group(1)
+            type_globals.append(m.group(1))
             flush_doc()
             current = None
             continue
@@ -237,21 +220,16 @@ def parse_lua(path: str):
 
         pending_doc = []
 
-    return classes, aliases, type_global
-# ---------------------------------------------------------------------------
-# Classification
-# ---------------------------------------------------------------------------
+    return classes, aliases, type_globals
 
 def classify(cls: LuaClass) -> str:
     if not cls.fields:
-        # opaque class (e.g. Instance, Sampler) → treat as class
         return "class"
     has_method = any(f.is_method for f in cls.fields)
     if has_method:
         return "class"
 
     def is_const_name(n: str) -> bool:
-        # enum constant names are ALL_CAPS; struct properties are snake_case
         return bool(re.fullmatch(r"[A-Z0-9_]+", n))
 
     all_integer = all(
@@ -262,9 +240,6 @@ def classify(cls: LuaClass) -> str:
     if all_integer and all_upper:
         return "enum"
     return "struct"
-# ---------------------------------------------------------------------------
-# HTML rendering helpers
-# ---------------------------------------------------------------------------
 
 def esc(s: str) -> str:
     return html.escape(s, quote=False)
@@ -315,9 +290,6 @@ def method_signature(fld: LuaField, classes: dict[str, LuaClass]) -> str:
         else:
             rendered.append(esc(pname))
     return "(" + ", ".join(rendered) + ")"
-# ---------------------------------------------------------------------------
-# Namespace page
-# ---------------------------------------------------------------------------
 
 def render_namespace(global_cls: LuaClass, classes: dict[str, LuaClass],
                      ctx: DocContext) -> str:
@@ -388,9 +360,6 @@ def render_namespace(global_cls: LuaClass, classes: dict[str, LuaClass],
     out.append('</div><!-- contents -->')
     out.append(render_footer([(ctx.ns_href, ctx.ns_name)], ctx))
     return "\n".join(out)
-# ---------------------------------------------------------------------------
-# Class page
-# ---------------------------------------------------------------------------
 
 def render_class(cls: LuaClass, classes: dict[str, LuaClass],
                  ctx: DocContext) -> str:
@@ -439,7 +408,6 @@ def render_class(cls: LuaClass, classes: dict[str, LuaClass],
     out.append('<p>Lua full name: <code>%s</code></p>' % esc(cls.name))
     out.append('</div>')
 
-    # --- Summary table ---------------------------------------------------
     out.append('<table class="memberdecls">')
 
     if methods:
@@ -489,7 +457,6 @@ def render_class(cls: LuaClass, classes: dict[str, LuaClass],
 
     out.append('</table>')
 
-    # --- Detailed method documentation -----------------------------------
     if methods:
         out.append('<h2 class="groupheader">Member Function Documentation</h2>')
         for m in methods:
@@ -547,7 +514,6 @@ def render_class(cls: LuaClass, classes: dict[str, LuaClass],
                            '<dd>%s</dd></dl>' % type_link(m.returns, classes))
             out.append('</div></div>')
 
-    # --- Detailed property / enumerator documentation -------------------
     if props:
         doc_title = ("Enumerator Documentation" if cls.kind == "enum"
                      else "Property Documentation")
@@ -569,9 +535,6 @@ def render_class(cls: LuaClass, classes: dict[str, LuaClass],
     out.append(render_footer(
         [(ctx.ns_href, ctx.ns_name), (cls.page_name(), cls.short)], ctx))
     return "\n".join(out)
-# ---------------------------------------------------------------------------
-# Entry point
-# ---------------------------------------------------------------------------
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(
@@ -609,44 +572,56 @@ def main(argv=None) -> int:
 
     os.makedirs(args.out, exist_ok=True)
 
-    classes, aliases, type_global = parse_lua(args.lua)
+    classes, aliases, type_globals = parse_lua(args.lua)
 
-    if type_global is None or type_global not in classes:
+    if not type_globals:
         print("Error: no ---@type annotation found; cannot determine namespace name.",
               file=sys.stderr)
         return 1
 
-    global_cls = classes[type_global]
+    unknown = [t for t in type_globals if t not in classes]
+    if unknown:
+        print("Error: ---@type names not declared as @class: %s" % ", ".join(unknown),
+              file=sys.stderr)
+        return 1
 
+    ns_set = set(type_globals)
     for name, cls in classes.items():
-        if name == type_global:
-            continue
-        cls.kind = classify(cls)
+        if name not in ns_set:
+            cls.kind = classify(cls)
 
-    ns_name       = type_global                            # e.g. "vireo"
-    project_name  = type_global.capitalize()               # e.g. "Vireo"
+    project_name  = type_globals[0].capitalize()
     project_brief = args.project_brief or ("%s Lua API" % project_name)
-    ns_href       = "namespace%s_lua.html" % ns_name       # e.g. "namespacevireo_lua.html"
 
+    for ns_name in type_globals:
+        global_cls = classes[ns_name]
+        ns_href    = "namespace%s_lua.html" % ns_name
+        ctx = DocContext(
+            project_name  = project_name,
+            project_brief = project_brief,
+            ns_name       = ns_name,
+            ns_href       = ns_href,
+            head_tmpl     = head_tmpl,
+            foot_tmpl     = foot_tmpl,
+        )
+        ns_path = os.path.join(args.out, ns_href)
+        with open(ns_path, "w", encoding="utf-8") as f:
+            f.write(render_namespace(global_cls, classes, ctx))
+        print("Write: %s" % ns_path)
+
+    first_ns   = type_globals[0]
+    first_href = "namespace%s_lua.html" % first_ns
     ctx = DocContext(
         project_name  = project_name,
         project_brief = project_brief,
-        ns_name       = ns_name,
-        ns_href       = ns_href,
+        ns_name       = first_ns,
+        ns_href       = first_href,
         head_tmpl     = head_tmpl,
         foot_tmpl     = foot_tmpl,
     )
-
-    # 1) Namespace page
-    ns_path = os.path.join(args.out, ns_href)
-    with open(ns_path, "w", encoding="utf-8") as f:
-        f.write(render_namespace(global_cls, classes, ctx))
-    print("Write: %s" % ns_path)
-
-    # 2) One page per class
     count = 0
     for name, cls in classes.items():
-        if name == type_global:
+        if name in ns_set:
             continue
         p = os.path.join(args.out, cls.page_name())
         with open(p, "w", encoding="utf-8") as f:
