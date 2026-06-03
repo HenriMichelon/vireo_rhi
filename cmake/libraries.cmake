@@ -10,7 +10,7 @@ message("Vulkan " ${Vulkan_VERSION} " found")
 
 ######################################################
 if (DIRECTX_BACKEND)
-    message(NOTICE "Fetching DirectX-Headers from https://github.com/microsoft/DirectX-Headers.git...")
+    message(NOTICE "Fetching DirectX-Headers...")
     FetchContent_Declare(
             DirectX-Headers
             GIT_REPOSITORY https://github.com/microsoft/DirectX-Headers.git
