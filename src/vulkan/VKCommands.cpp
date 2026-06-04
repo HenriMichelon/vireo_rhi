@@ -399,7 +399,11 @@ namespace vireo {
         const uint32_t stride,
         const uint32_t firstCommandOffset) {
         const auto& vkBuffer = static_cast<const VKBuffer&>(buffer);
-        vkCmdDrawIndirect(commandBuffer, vkBuffer.getBuffer(), offset, drawCount, stride);
+        vkCmdDrawIndirect(commandBuffer,
+            vkBuffer.getBuffer(),
+            offset + firstCommandOffset,
+            drawCount,
+            stride);
     }
 
     void VKCommandList::drawIndexed(
