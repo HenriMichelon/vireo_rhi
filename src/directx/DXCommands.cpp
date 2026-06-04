@@ -58,7 +58,9 @@ namespace vireo {
         const std::shared_ptr<Fence>& fence,
         const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
         assert(fence != nullptr);
-        submit(commandLists);
+        if (!commandLists.empty()) {
+            submit(commandLists);
+        }
         const auto dxFence = static_pointer_cast<DXFence>(fence);
         dxCheck(commandQueue->Signal(dxFence->getFence().Get(), dxFence->getValue()));
     }

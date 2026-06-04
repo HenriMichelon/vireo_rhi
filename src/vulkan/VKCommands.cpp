@@ -93,8 +93,12 @@ namespace vireo {
         const std::shared_ptr<Fence>& fence,
         const std::vector<std::shared_ptr<const CommandList>>& commandLists) const {
         assert(fence != nullptr);
-        assert(!commandLists.empty());
         const auto vkFence = static_pointer_cast<const VKFence>(fence);
+        if (commandLists.empty()) {
+            auto lock = std::lock_guard{submitMutex};
+            vkCheck(vkQueueSubmit2(commandQueue, 0, nullptr, vkFence->getFence()));
+            return;
+        }
         auto submitInfos = std::vector<VkCommandBufferSubmitInfo>(commandLists.size());
         for (int i = 0; i < commandLists.size(); i++) {
             submitInfos[i] = {
@@ -103,10 +107,10 @@ namespace vireo {
             };
         }
         const auto submitInfo = VkSubmitInfo2 {
-            .sType                    = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
-            .waitSemaphoreInfoCount   = 0,
-            .commandBufferInfoCount   = static_cast<uint32_t>(submitInfos.size()),
-            .pCommandBufferInfos      = submitInfos.data(),
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+            .waitSemaphoreInfoCount = 0,
+            .commandBufferInfoCount = static_cast<uint32_t>(submitInfos.size()),
+            .pCommandBufferInfos = submitInfos.data(),
             .signalSemaphoreInfoCount = 0,
         };
         auto lock = std::lock_guard{submitMutex};
