@@ -42,6 +42,7 @@ function(vireo_compile_options TARGET_NAME)
                 /D_UNICODE
                 /DWIN32_LEAN_AND_MEAN
                 /DNOMINMAX
+                /bigobj # for Lua bindings
                 /wd4291  # for Flecs 'new' placement operator
         )
         if (CMAKE_BUILD_TYPE STREQUAL "Debug")
